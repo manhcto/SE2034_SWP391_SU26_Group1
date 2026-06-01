@@ -1,4 +1,4 @@
-package vn.edu.fpt.controller;
+package vn.edu.fpt.controller.customer;
 
 public class ExternalTicketController {
 }

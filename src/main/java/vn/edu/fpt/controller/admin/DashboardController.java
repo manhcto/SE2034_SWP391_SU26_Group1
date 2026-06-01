@@ -1,4 +1,4 @@
-package vn.edu.fpt.controller;
+package vn.edu.fpt.controller.admin;
 
 public class DashboardController {
 }
