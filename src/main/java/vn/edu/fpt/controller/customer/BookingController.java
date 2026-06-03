@@ -19,7 +19,7 @@ public class BookingController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect(request.getContextPath() + "/home.jsp");
+        response.sendRedirect(request.getContextPath() + "/views/home.jsp");
     }
 
     @Override
@@ -59,8 +59,6 @@ public class BookingController extends HttpServlet {
                 numberAdult = Integer.parseInt(request.getParameter("numberAdult"));
                 numberChildren = Integer.parseInt(request.getParameter("numberChildren"));
                 totalPrice = Double.parseDouble(request.getParameter("totalPrice"));
-
-                // Lấy 2 trường ẩn vừa thêm vào JSP
                 tourScheduleID = Integer.parseInt(request.getParameter("tourScheduleID"));
                 unitPrice = Double.parseDouble(request.getParameter("unitPrice"));
 
@@ -82,7 +80,6 @@ public class BookingController extends HttpServlet {
                 return;
             }
 
-            // Gán dữ liệu
             boolean isBookedForOther = (isBookedForOtherStr != null && isBookedForOtherStr.equals("on"));
             String bookingCode = "BK-" + System.currentTimeMillis() % 1000000;
 
@@ -105,13 +102,13 @@ public class BookingController extends HttpServlet {
                 booking.setUserID((Integer) session.getAttribute("userID"));
             }
 
-            // Gọi hàm lưu bằng Transaction
             BookingDAO dao = new BookingDAO();
             boolean isSuccess = dao.insertBookingTransaction(booking, tourScheduleID, unitPrice);
 
             if (isSuccess) {
                 session.setAttribute("successMessage", "Đặt tour thành công! Mã đơn: " + bookingCode);
-                response.sendRedirect(request.getContextPath() + "/home.jsp");
+                // FIX 2: Sửa đường dẫn điều hướng sau khi đặt tour thành công về /views/home.jsp
+                response.sendRedirect(request.getContextPath() + "/views/home.jsp");
             } else {
                 request.setAttribute("error", "Không thể lưu đơn hàng. Vui lòng thử lại!");
                 request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
