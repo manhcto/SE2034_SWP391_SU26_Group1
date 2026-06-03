@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+
 <header class="site-header">
     <div class="header-inner">
         <a class="logo" href="${pageContext.request.contextPath}/home">
@@ -12,7 +13,10 @@
 
         <nav class="main-nav" id="mainNav">
             <a href="${pageContext.request.contextPath}/tour">Tour trọn gói</a>
-            <a href="${pageContext.request.contextPath}/hotel">Khách sạn</a>
+
+
+            <a href="${pageContext.request.contextPath}/accommodation">Khách sạn</a>
+
             <a href="${pageContext.request.contextPath}/vehicle">Thuê xe</a>
             <a href="${pageContext.request.contextPath}/service">Dịch vụ cộng thêm</a>
         </nav>

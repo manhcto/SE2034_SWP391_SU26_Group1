@@ -11,8 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import vn.edu.fpt.DAO.VehicleDAO;
-import vn.edu.fpt.model.Vehicle;
 import vn.edu.fpt.model.Service;
+import vn.edu.fpt.model.Vehicle;
 
 @WebServlet(name = "ManageVehicleController", urlPatterns = {"/staff/vehicle"})
 public class ManageVehicleController extends HttpServlet {
@@ -63,7 +63,7 @@ public class ManageVehicleController extends HttpServlet {
         try {
             String idRaw = request.getParameter("id");
 
-            if (idRaw != null && !idRaw.trim().isEmpty()) {
+            if (!isBlank(idRaw)) {
                 int serviceID = Integer.parseInt(idRaw);
                 boolean success = vehicleDAO.deleteVehicle(serviceID);
 
@@ -111,11 +111,22 @@ public class ManageVehicleController extends HttpServlet {
             String priceRaw = request.getParameter("vPrice");
             String vehicleStatus = request.getParameter("vStatus");
 
+            String image = request.getParameter("vImage");
+            String seatCountRaw = request.getParameter("vSeatCount");
+            String vehicleType = request.getParameter("vVehicleType");
+            String transmission = request.getParameter("vTransmission");
+            String fuelType = request.getParameter("vFuelType");
+
             List<String> errors = validateVehicleInput(
                     vehicleBrand,
                     licensePlate,
                     priceRaw,
-                    vehicleStatus
+                    vehicleStatus,
+                    image,
+                    seatCountRaw,
+                    vehicleType,
+                    transmission,
+                    fuelType
             );
 
             if (!errors.isEmpty()) {
@@ -125,18 +136,27 @@ public class ManageVehicleController extends HttpServlet {
                 return;
             }
 
-            Vehicle v = new Vehicle();
-
             vehicleBrand = safeTrim(vehicleBrand);
             licensePlate = safeTrim(licensePlate).toUpperCase();
             vehicleStatus = safeTrim(vehicleStatus);
+            image = safeTrim(image);
+            vehicleType = safeTrim(vehicleType);
+            transmission = safeTrim(transmission);
+            fuelType = safeTrim(fuelType);
 
             double pricePerDay = Double.parseDouble(priceRaw.trim());
+            int seatCount = Integer.parseInt(seatCountRaw.trim());
 
+            Vehicle v = new Vehicle();
             v.setVehicleBrand(vehicleBrand);
             v.setLicensePlate(licensePlate);
             v.setPricePerDay(pricePerDay);
             v.setStatus(vehicleStatus);
+            v.setImage(image);
+            v.setSeatCount(seatCount);
+            v.setVehicleType(vehicleType);
+            v.setTransmission(transmission);
+            v.setFuelType(fuelType);
 
             Service s = new Service();
             s.setServiceCategoryID(2);
@@ -168,16 +188,28 @@ public class ManageVehicleController extends HttpServlet {
 
         try {
             String serviceIDRaw = request.getParameter("serviceID");
+
             String vehicleBrand = request.getParameter("vBrand");
             String licensePlate = request.getParameter("vPlate");
             String priceRaw = request.getParameter("vPrice");
             String vehicleStatus = request.getParameter("vStatus");
 
+            String image = request.getParameter("vImage");
+            String seatCountRaw = request.getParameter("vSeatCount");
+            String vehicleType = request.getParameter("vVehicleType");
+            String transmission = request.getParameter("vTransmission");
+            String fuelType = request.getParameter("vFuelType");
+
             List<String> errors = validateVehicleInput(
                     vehicleBrand,
                     licensePlate,
                     priceRaw,
-                    vehicleStatus
+                    vehicleStatus,
+                    image,
+                    seatCountRaw,
+                    vehicleType,
+                    transmission,
+                    fuelType
             );
 
             if (isBlank(serviceIDRaw)) {
@@ -191,12 +223,18 @@ public class ManageVehicleController extends HttpServlet {
                 return;
             }
 
-            int serviceID = Integer.parseInt(serviceIDRaw);
-            double pricePerDay = Double.parseDouble(priceRaw.trim());
+            int serviceID = Integer.parseInt(serviceIDRaw.trim());
 
             vehicleBrand = safeTrim(vehicleBrand);
             licensePlate = safeTrim(licensePlate).toUpperCase();
             vehicleStatus = safeTrim(vehicleStatus);
+            image = safeTrim(image);
+            vehicleType = safeTrim(vehicleType);
+            transmission = safeTrim(transmission);
+            fuelType = safeTrim(fuelType);
+
+            double pricePerDay = Double.parseDouble(priceRaw.trim());
+            int seatCount = Integer.parseInt(seatCountRaw.trim());
 
             Vehicle v = new Vehicle();
             v.setServiceID(serviceID);
@@ -204,6 +242,11 @@ public class ManageVehicleController extends HttpServlet {
             v.setLicensePlate(licensePlate);
             v.setPricePerDay(pricePerDay);
             v.setStatus(vehicleStatus);
+            v.setImage(image);
+            v.setSeatCount(seatCount);
+            v.setVehicleType(vehicleType);
+            v.setTransmission(transmission);
+            v.setFuelType(fuelType);
 
             Service s = new Service();
             s.setServiceID(serviceID);
@@ -229,12 +272,19 @@ public class ManageVehicleController extends HttpServlet {
                 + "/staff/vehicle?action=list&status=" + statusParam);
     }
 
-    private List<String> validateVehicleInput(String brand, String plate, String priceRaw, String status) {
+    private List<String> validateVehicleInput(String brand, String plate, String priceRaw, String status,
+                                              String image, String seatCountRaw, String vehicleType,
+                                              String transmission, String fuelType) {
         List<String> errors = new ArrayList<>();
 
         brand = safeTrim(brand);
         plate = safeTrim(plate).toUpperCase();
         status = safeTrim(status);
+        image = safeTrim(image);
+        seatCountRaw = safeTrim(seatCountRaw);
+        vehicleType = safeTrim(vehicleType);
+        transmission = safeTrim(transmission);
+        fuelType = safeTrim(fuelType);
 
         if (isBlank(brand)) {
             errors.add("Tên xe không được để trống.");
@@ -269,6 +319,47 @@ public class ManageVehicleController extends HttpServlet {
 
         if (!isValidStatus(status)) {
             errors.add("Trạng thái xe không hợp lệ.");
+        }
+
+        if (isBlank(image)) {
+            errors.add("Ảnh xe không được để trống.");
+        } else if (!image.matches("^https?://.+")) {
+            errors.add("Ảnh xe phải là URL hợp lệ bắt đầu bằng http:// hoặc https://.");
+        } else if (image.length() > 500) {
+            errors.add("Link ảnh xe không được vượt quá 500 ký tự.");
+        }
+
+        if (isBlank(seatCountRaw)) {
+            errors.add("Số chỗ ngồi không được để trống.");
+        } else {
+            try {
+                int seatCount = Integer.parseInt(seatCountRaw.trim());
+
+                if (seatCount < 1 || seatCount > 60) {
+                    errors.add("Số chỗ ngồi phải từ 1 đến 60.");
+                }
+
+            } catch (NumberFormatException e) {
+                errors.add("Số chỗ ngồi phải là số nguyên hợp lệ.");
+            }
+        }
+
+        if (isBlank(vehicleType)) {
+            errors.add("Loại xe không được để trống.");
+        } else if (vehicleType.length() > 50) {
+            errors.add("Loại xe không được vượt quá 50 ký tự.");
+        }
+
+        if (isBlank(transmission)) {
+            errors.add("Hộp số không được để trống.");
+        } else if (transmission.length() > 50) {
+            errors.add("Hộp số không được vượt quá 50 ký tự.");
+        }
+
+        if (isBlank(fuelType)) {
+            errors.add("Nhiên liệu không được để trống.");
+        } else if (fuelType.length() > 50) {
+            errors.add("Nhiên liệu không được vượt quá 50 ký tự.");
         }
 
         return errors;

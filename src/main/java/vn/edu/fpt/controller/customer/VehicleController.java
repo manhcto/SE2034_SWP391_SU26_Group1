@@ -1,40 +1,109 @@
 package vn.edu.fpt.controller.customer;
 
-import vn.edu.fpt.DAO.VehicleDAO;
-import vn.edu.fpt.model.Vehicle;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import vn.edu.fpt.DAO.VehicleDAO;
+import vn.edu.fpt.model.Vehicle;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-// Đặt tên servlet độc nhất, chịu trách nhiệm đón đường dẫn /vehicles của Khách hàng
-@WebServlet(name = "CustomerVehicleController", urlPatterns = {"/vehicles", "/vehicle-detail"})
-public class VehicleController extends HttpServlet { // Đổi lại tên Class này cho trùng với tên file .java thực tế của bạn nếu cần
+@WebServlet(name = "CustomerVehicleController", urlPatterns = {"/vehicle", "/vehicle/detail"})
+public class VehicleController extends HttpServlet {
+
+    private final VehicleDAO vehicleDAO = new VehicleDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String servletPath = request.getServletPath();
-        VehicleDAO dao = new VehicleDAO();
+        request.setCharacterEncoding("UTF-8");
 
-        // 1. Xem danh sách xe phía khách hàng
-        if (servletPath.equals("/vehicles")) {
-            List<Vehicle> list = dao.getAllVehicles();
-            request.setAttribute("vehicleList", list);
-            request.getRequestDispatcher("/views/customer/vehicle-rent.jsp").forward(request, response);
+        String servletPath = request.getServletPath();
+
+        if ("/vehicle/detail".equals(servletPath)) {
+            showDetail(request, response);
+        } else {
+            showList(request, response);
         }
-        // 2. Xem chi tiết 1 chiếc xe
-        else if (servletPath.equals("/vehicle-detail")) {
-            String idParam = request.getParameter("id");
-            if (idParam != null && !idParam.isEmpty()) {
-                int id = Integer.parseInt(idParam);
-                Vehicle vehicle = dao.getVehicleById(id);
-                request.setAttribute("vehicle", vehicle);
+    }
+
+    private void showList(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String keyword = request.getParameter("keyword");
+        String type = request.getParameter("type");
+
+        List<Vehicle> allList = vehicleDAO.getAvailableVehiclesForCustomer();
+        List<Vehicle> filteredList = new ArrayList<>();
+
+        for (Vehicle v : allList) {
+            boolean matchKeyword = true;
+            boolean matchType = true;
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String key = keyword.trim().toLowerCase();
+
+                String brand = v.getVehicleBrand() == null ? "" : v.getVehicleBrand().toLowerCase();
+                String plate = v.getLicensePlate() == null ? "" : v.getLicensePlate().toLowerCase();
+                String vehicleType = v.getVehicleType() == null ? "" : v.getVehicleType().toLowerCase();
+                String transmission = v.getTransmission() == null ? "" : v.getTransmission().toLowerCase();
+                String fuelType = v.getFuelType() == null ? "" : v.getFuelType().toLowerCase();
+
+                matchKeyword = brand.contains(key)
+                        || plate.contains(key)
+                        || vehicleType.contains(key)
+                        || transmission.contains(key)
+                        || fuelType.contains(key);
             }
-            request.getRequestDispatcher("/views/customer/vehicle-detail.jsp").forward(request, response);
+
+            if (type != null && !type.trim().isEmpty() && !"all".equalsIgnoreCase(type)) {
+                matchType = type.equalsIgnoreCase(v.getVehicleType());
+            }
+
+            if (matchKeyword && matchType) {
+                filteredList.add(v);
+            }
+        }
+
+        request.setAttribute("vehicleList", filteredList);
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("selectedType", type);
+
+        request.getRequestDispatcher("/views/customer/vehicle-list.jsp")
+                .forward(request, response);
+    }
+
+    private void showDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String idRaw = request.getParameter("id");
+
+        if (idRaw == null || idRaw.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/vehicle");
+            return;
+        }
+
+        try {
+            int serviceID = Integer.parseInt(idRaw);
+
+            Vehicle vehicle = vehicleDAO.getVehicleByIdForCustomer(serviceID);
+
+            if (vehicle == null) {
+                response.sendRedirect(request.getContextPath() + "/vehicle");
+                return;
+            }
+
+            request.setAttribute("vehicle", vehicle);
+
+            request.getRequestDispatcher("/views/customer/vehicle-detail.jsp")
+                    .forward(request, response);
+
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/vehicle");
         }
     }
 }

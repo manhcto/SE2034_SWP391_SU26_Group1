@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVn | Quản lý phương tiện</title>
+    <title>WonderVN | Quản lý phương tiện</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -49,15 +49,13 @@
             background: #f8fafc;
         }
 
-        .vehicle-icon {
-            width: 44px;
-            height: 44px;
+        .vehicle-img {
+            width: 86px;
+            height: 60px;
+            object-fit: cover;
             border-radius: 14px;
-            background: linear-gradient(135deg, #4e46dc, #7c3aed);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: 1px solid #e2e8f0;
+            background: #f1f5f9;
         }
 
         .badge-soft-success {
@@ -107,6 +105,17 @@
         .invalid-feedback {
             font-size: 13px;
             font-weight: 600;
+        }
+
+        .spec-pill {
+            display: inline-block;
+            background: #eef2ff;
+            color: #3730a3;
+            border-radius: 999px;
+            padding: 5px 9px;
+            font-size: 12px;
+            font-weight: 700;
+            margin: 2px;
         }
     </style>
 </head>
@@ -172,13 +181,20 @@
             <h2 class="fw-bold mb-1">
                 <i class="fa-solid fa-car-side me-2"></i> Quản lý phương tiện
             </h2>
-            <p class="mb-0 opacity-75">Quản lý xe cho thuê, biển số, giá thuê và trạng thái sử dụng.</p>
+            <p class="mb-0 opacity-75">Quản lý xe cho thuê, ảnh xe, thông số, giá thuê và trạng thái sử dụng.</p>
         </div>
 
-        <button class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm"
-                data-bs-toggle="modal" data-bs-target="#modalAddVehicle">
-            <i class="fa-solid fa-plus me-2"></i> Thêm phương tiện
-        </button>
+        <div class="d-flex gap-2">
+            <a href="${pageContext.request.contextPath}/admin/home"
+               class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm">
+                <i class="fa-solid fa-house me-2"></i> Admin Home
+            </a>
+
+            <button class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm"
+                    data-bs-toggle="modal" data-bs-target="#modalAddVehicle">
+                <i class="fa-solid fa-plus me-2"></i> Thêm phương tiện
+            </button>
+        </div>
     </div>
 
     <div class="card card-custom">
@@ -187,9 +203,9 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                     <tr>
-                        <th class="ps-4">Dịch vụ</th>
-                        <th>Hãng xe / Tên xe</th>
+                        <th class="ps-4">Xe</th>
                         <th>Biển số</th>
+                        <th>Thông số</th>
                         <th>Giá thuê</th>
                         <th>Trạng thái</th>
                         <th class="text-end pe-4">Thao tác</th>
@@ -212,26 +228,28 @@
                             <c:forEach var="v" items="${vehicleList}">
                                 <tr>
                                     <td class="ps-4">
-                                        <div class="fw-bold text-secondary">#V-${v.serviceID}</div>
-                                        <small class="text-muted">
-                                                ${v.serviceDetails.serviceType} - ${v.serviceDetails.fulfillmentType}
-                                        </small>
-                                    </td>
-
-                                    <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="vehicle-icon me-3">
-                                                <i class="fa-solid fa-car"></i>
-                                            </div>
+                                            <img src="${v.image}"
+                                                 class="vehicle-img me-3"
+                                                 onerror="this.src='https://placehold.co/160x100?text=Vehicle';">
                                             <div>
                                                 <div class="fw-bold text-dark">${v.vehicleBrand}</div>
-                                                <small class="text-muted">${v.serviceDetails.serviceName}</small>
+                                                <small class="text-muted">
+                                                    Service ID: #${v.serviceID}
+                                                </small>
                                             </div>
                                         </div>
                                     </td>
 
                                     <td>
                                         <span class="plate-box">${v.licensePlate}</span>
+                                    </td>
+
+                                    <td>
+                                        <span class="spec-pill">${v.seatCount} chỗ</span>
+                                        <span class="spec-pill">${v.vehicleType}</span>
+                                        <span class="spec-pill">${v.transmission}</span>
+                                        <span class="spec-pill">${v.fuelType}</span>
                                     </td>
 
                                     <td>
@@ -281,7 +299,7 @@
                                 </tr>
 
                                 <div class="modal fade" id="modalEditVehicle${v.serviceID}" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered">
                                         <div class="modal-content border-0 shadow-lg">
                                             <form action="${pageContext.request.contextPath}/staff/vehicle"
                                                   method="POST"
@@ -300,7 +318,7 @@
 
                                                 <div class="modal-body p-4">
                                                     <div class="row g-3">
-                                                        <div class="col-12">
+                                                        <div class="col-md-6">
                                                             <label class="form-label fw-bold small text-secondary">Hãng xe & tên xe</label>
                                                             <input type="text"
                                                                    name="vBrand"
@@ -309,12 +327,10 @@
                                                                    minlength="2"
                                                                    maxlength="255"
                                                                    required>
-                                                            <div class="invalid-feedback">
-                                                                Tên xe phải từ 2 đến 255 ký tự.
-                                                            </div>
+                                                            <div class="invalid-feedback">Tên xe phải từ 2 đến 255 ký tự.</div>
                                                         </div>
 
-                                                        <div class="col-12">
+                                                        <div class="col-md-6">
                                                             <label class="form-label fw-bold small text-secondary">Biển số xe</label>
                                                             <input type="text"
                                                                    name="vPlate"
@@ -323,12 +339,21 @@
                                                                    maxlength="20"
                                                                    pattern="[0-9]{2}[A-Z][0-9A-Z]?-[0-9]{4,5}"
                                                                    required>
-                                                            <div class="invalid-feedback">
-                                                                Biển số xe không đúng định dạng. Ví dụ: 29F-1892 hoặc 29K1-9123.
-                                                            </div>
+                                                            <div class="invalid-feedback">Biển số xe không đúng định dạng. Ví dụ: 29F-1892 hoặc 29K1-9123.</div>
                                                         </div>
 
-                                                        <div class="col-md-6">
+                                                        <div class="col-12">
+                                                            <label class="form-label fw-bold small text-secondary">Link ảnh xe</label>
+                                                            <input type="url"
+                                                                   name="vImage"
+                                                                   class="form-control vehicle-image-input"
+                                                                   value="${v.image}"
+                                                                   placeholder="https://..."
+                                                                   required>
+                                                            <div class="invalid-feedback">Ảnh xe phải là URL hợp lệ bắt đầu bằng http:// hoặc https://.</div>
+                                                        </div>
+
+                                                        <div class="col-md-4">
                                                             <label class="form-label fw-bold small text-secondary">Giá thuê / ngày</label>
                                                             <div class="input-group">
                                                                 <input type="number"
@@ -340,18 +365,58 @@
                                                                        value="${v.pricePerDay}"
                                                                        required>
                                                                 <span class="input-group-text">VND</span>
-                                                                <div class="invalid-feedback">
-                                                                    Giá thuê xe phải từ 1,000 đến 100,000,000 VND/ngày.
-                                                                </div>
+                                                                <div class="invalid-feedback">Giá thuê xe phải từ 1,000 đến 100,000,000 VND/ngày.</div>
                                                             </div>
                                                         </div>
 
-                                                        <div class="col-md-6">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label fw-bold small text-secondary">Số chỗ ngồi</label>
+                                                            <input type="number"
+                                                                   name="vSeatCount"
+                                                                   class="form-control vehicle-seat-input"
+                                                                   min="1"
+                                                                   max="60"
+                                                                   value="${v.seatCount}"
+                                                                   required>
+                                                            <div class="invalid-feedback">Số chỗ ngồi phải từ 1 đến 60.</div>
+                                                        </div>
+
+                                                        <div class="col-md-4">
                                                             <label class="form-label fw-bold small text-secondary">Trạng thái</label>
                                                             <select name="vStatus" class="form-select" required>
                                                                 <option value="Available" <c:if test="${v.status == 'Available'}">selected</c:if>>Available</option>
                                                                 <option value="Unavailable" <c:if test="${v.status == 'Unavailable'}">selected</c:if>>Unavailable</option>
                                                                 <option value="Maintenance" <c:if test="${v.status == 'Maintenance'}">selected</c:if>>Maintenance</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="col-md-4">
+                                                            <label class="form-label fw-bold small text-secondary">Loại xe</label>
+                                                            <select name="vVehicleType" class="form-select vehicle-type-input" required>
+                                                                <option value="Sedan" <c:if test="${v.vehicleType == 'Sedan'}">selected</c:if>>Sedan</option>
+                                                                <option value="SUV" <c:if test="${v.vehicleType == 'SUV'}">selected</c:if>>SUV</option>
+                                                                <option value="Luxury Sedan" <c:if test="${v.vehicleType == 'Luxury Sedan'}">selected</c:if>>Luxury Sedan</option>
+                                                                <option value="Motorbike" <c:if test="${v.vehicleType == 'Motorbike'}">selected</c:if>>Motorbike</option>
+                                                                <option value="Bus" <c:if test="${v.vehicleType == 'Bus'}">selected</c:if>>Bus</option>
+                                                                <option value="Limousine" <c:if test="${v.vehicleType == 'Limousine'}">selected</c:if>>Limousine</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="col-md-4">
+                                                            <label class="form-label fw-bold small text-secondary">Hộp số</label>
+                                                            <select name="vTransmission" class="form-select vehicle-transmission-input" required>
+                                                                <option value="Automatic" <c:if test="${v.transmission == 'Automatic'}">selected</c:if>>Automatic</option>
+                                                                <option value="Manual" <c:if test="${v.transmission == 'Manual'}">selected</c:if>>Manual</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="col-md-4">
+                                                            <label class="form-label fw-bold small text-secondary">Nhiên liệu</label>
+                                                            <select name="vFuelType" class="form-select vehicle-fuel-input" required>
+                                                                <option value="Gasoline" <c:if test="${v.fuelType == 'Gasoline'}">selected</c:if>>Gasoline</option>
+                                                                <option value="Diesel" <c:if test="${v.fuelType == 'Diesel'}">selected</c:if>>Diesel</option>
+                                                                <option value="Electric" <c:if test="${v.fuelType == 'Electric'}">selected</c:if>>Electric</option>
+                                                                <option value="Hybrid" <c:if test="${v.fuelType == 'Hybrid'}">selected</c:if>>Hybrid</option>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -379,7 +444,7 @@
 </div>
 
 <div class="modal fade" id="modalAddVehicle" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
             <form action="${pageContext.request.contextPath}/staff/vehicle"
                   method="POST"
@@ -397,7 +462,7 @@
 
                 <div class="modal-body p-4">
                     <div class="row g-3">
-                        <div class="col-12">
+                        <div class="col-md-6">
                             <label class="form-label fw-bold small text-secondary">Hãng xe & tên xe</label>
                             <input type="text"
                                    name="vBrand"
@@ -406,12 +471,10 @@
                                    minlength="2"
                                    maxlength="255"
                                    required>
-                            <div class="invalid-feedback">
-                                Tên xe phải từ 2 đến 255 ký tự.
-                            </div>
+                            <div class="invalid-feedback">Tên xe phải từ 2 đến 255 ký tự.</div>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-md-6">
                             <label class="form-label fw-bold small text-secondary">Biển số xe</label>
                             <input type="text"
                                    name="vPlate"
@@ -420,12 +483,20 @@
                                    maxlength="20"
                                    pattern="[0-9]{2}[A-Z][0-9A-Z]?-[0-9]{4,5}"
                                    required>
-                            <div class="invalid-feedback">
-                                Biển số xe không đúng định dạng. Ví dụ: 29F-1892 hoặc 29K1-9123.
-                            </div>
+                            <div class="invalid-feedback">Biển số xe không đúng định dạng. Ví dụ: 29F-1892 hoặc 29K1-9123.</div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-secondary">Link ảnh xe</label>
+                            <input type="url"
+                                   name="vImage"
+                                   class="form-control vehicle-image-input"
+                                   placeholder="https://..."
+                                   required>
+                            <div class="invalid-feedback">Ảnh xe phải là URL hợp lệ bắt đầu bằng http:// hoặc https://.</div>
+                        </div>
+
+                        <div class="col-md-4">
                             <label class="form-label fw-bold small text-secondary">Giá thuê / ngày</label>
                             <div class="input-group">
                                 <input type="number"
@@ -437,18 +508,58 @@
                                        placeholder="500000"
                                        required>
                                 <span class="input-group-text">VND</span>
-                                <div class="invalid-feedback">
-                                    Giá thuê xe phải từ 1,000 đến 100,000,000 VND/ngày.
-                                </div>
+                                <div class="invalid-feedback">Giá thuê xe phải từ 1,000 đến 100,000,000 VND/ngày.</div>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-secondary">Số chỗ ngồi</label>
+                            <input type="number"
+                                   name="vSeatCount"
+                                   class="form-control vehicle-seat-input"
+                                   min="1"
+                                   max="60"
+                                   placeholder="4"
+                                   required>
+                            <div class="invalid-feedback">Số chỗ ngồi phải từ 1 đến 60.</div>
+                        </div>
+
+                        <div class="col-md-4">
                             <label class="form-label fw-bold small text-secondary">Trạng thái</label>
                             <select name="vStatus" class="form-select" required>
                                 <option value="Available">Available</option>
                                 <option value="Unavailable">Unavailable</option>
                                 <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-secondary">Loại xe</label>
+                            <select name="vVehicleType" class="form-select vehicle-type-input" required>
+                                <option value="Sedan">Sedan</option>
+                                <option value="SUV">SUV</option>
+                                <option value="Luxury Sedan">Luxury Sedan</option>
+                                <option value="Motorbike">Motorbike</option>
+                                <option value="Bus">Bus</option>
+                                <option value="Limousine">Limousine</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-secondary">Hộp số</label>
+                            <select name="vTransmission" class="form-select vehicle-transmission-input" required>
+                                <option value="Automatic">Automatic</option>
+                                <option value="Manual">Manual</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-secondary">Nhiên liệu</label>
+                            <select name="vFuelType" class="form-select vehicle-fuel-input" required>
+                                <option value="Gasoline">Gasoline</option>
+                                <option value="Diesel">Diesel</option>
+                                <option value="Electric">Electric</option>
+                                <option value="Hybrid">Hybrid</option>
                             </select>
                         </div>
                     </div>
@@ -475,6 +586,8 @@
             const brandInput = form.querySelector("input[name='vBrand']");
             const plateInput = form.querySelector("input[name='vPlate']");
             const priceInput = form.querySelector("input[name='vPrice']");
+            const imageInput = form.querySelector("input[name='vImage']");
+            const seatInput = form.querySelector("input[name='vSeatCount']");
 
             function setInvalid(input) {
                 input.classList.add("is-invalid");
@@ -531,6 +644,34 @@
                 return true;
             }
 
+            function validateImage() {
+                if (!imageInput) return true;
+
+                const value = imageInput.value.trim();
+
+                if (!/^https?:\/\/.+/.test(value) || value.length > 500) {
+                    setInvalid(imageInput);
+                    return false;
+                }
+
+                setValid(imageInput);
+                return true;
+            }
+
+            function validateSeat() {
+                if (!seatInput) return true;
+
+                const seat = Number(seatInput.value);
+
+                if (!seatInput.value || seat < 1 || seat > 60) {
+                    setInvalid(seatInput);
+                    return false;
+                }
+
+                setValid(seatInput);
+                return true;
+            }
+
             if (brandInput) {
                 brandInput.addEventListener("input", validateBrand);
                 brandInput.addEventListener("blur", validateBrand);
@@ -546,12 +687,24 @@
                 priceInput.addEventListener("blur", validatePrice);
             }
 
+            if (imageInput) {
+                imageInput.addEventListener("input", validateImage);
+                imageInput.addEventListener("blur", validateImage);
+            }
+
+            if (seatInput) {
+                seatInput.addEventListener("input", validateSeat);
+                seatInput.addEventListener("blur", validateSeat);
+            }
+
             form.addEventListener("submit", function (event) {
                 const okBrand = validateBrand();
                 const okPlate = validatePlate();
                 const okPrice = validatePrice();
+                const okImage = validateImage();
+                const okSeat = validateSeat();
 
-                if (!okBrand || !okPlate || !okPrice) {
+                if (!okBrand || !okPlate || !okPrice || !okImage || !okSeat) {
                     event.preventDefault();
                     event.stopPropagation();
                 }

@@ -303,4 +303,63 @@ public class AccommodationDAO {
 
         return a;
     }
+
+    public List<Accommodation> getAvailableAccommodationsForCustomer() {
+        List<Accommodation> list = new ArrayList<>();
+
+        String sql = "SELECT a.*, " +
+                "s.serviceCategoryID, s.serviceName, s.[status] AS serviceStatus, " +
+                "s.serviceType, s.fulfillmentType, s.createAt, s.updateAt " +
+                "FROM [dbo].[Accommodation] a " +
+                "JOIN [dbo].[Service] s ON a.serviceID = s.serviceID " +
+                "WHERE a.[status] = 'Available' " +
+                "AND s.[status] = 'Active' " +
+                "AND s.serviceType = 'Accommodation' " +
+                "ORDER BY a.rate DESC, a.serviceID DESC";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Accommodation a = mapAccommodation(rs);
+                list.add(a);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public Accommodation getAvailableAccommodationByIdForCustomer(int serviceID) {
+        String sql = "SELECT a.*, " +
+                "s.serviceCategoryID, s.serviceName, s.[status] AS serviceStatus, " +
+                "s.serviceType, s.fulfillmentType, s.createAt, s.updateAt " +
+                "FROM [dbo].[Accommodation] a " +
+                "JOIN [dbo].[Service] s ON a.serviceID = s.serviceID " +
+                "WHERE a.serviceID = ? " +
+                "AND a.[status] = 'Available' " +
+                "AND s.[status] = 'Active' " +
+                "AND s.serviceType = 'Accommodation'";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, serviceID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapAccommodation(rs);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }
+

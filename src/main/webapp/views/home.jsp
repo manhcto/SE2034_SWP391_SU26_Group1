@@ -238,6 +238,29 @@
         </div>
 
         <div class="service-grid">
+            <a class="service-card" href="${pageContext.request.contextPath}/accommodation">
+                <span>🏨</span>
+                <h3>Khách sạn</h3>
+                <p>Đặt phòng theo ngày đi và nhu cầu lưu trú.</p>
+            </a>
+
+            <article class="service-card">
+                <span>🚗</span>
+                <h3>Thuê xe</h3>
+                <p>Xe du lịch có tài xế, hỗ trợ đón trả theo lịch.</p>
+            </article>
+
+            <article class="service-card">
+                <span>🎟️</span>
+                <h3>Vé vui chơi</h3>
+                <p>Hỗ trợ đặt vé tham quan, khu vui chơi, trải nghiệm.</p>
+            </article>
+
+            <article class="service-card">
+                <span>🍽️</span>
+                <h3>Nhà hàng</h3>
+                <p>Gợi ý bữa ăn phù hợp với lịch trình của đoàn.</p>
+            </article>
             <article class="service-card"><span>🏨</span><h3>Khách sạn</h3><p>Đặt phòng theo ngày đi và nhu cầu lưu trú.</p></article>
             <article class="service-card"><span>🚗</span><h3>Thuê xe</h3><p>Xe du lịch có tài xế, hỗ trợ đón trả theo lịch.</p></article>
             <article class="service-card"><span>🎟️</span><h3>Vé vui chơi</h3><p>Hỗ trợ đặt vé tham quan, khu vui chơi, trải nghiệm.</p></article>

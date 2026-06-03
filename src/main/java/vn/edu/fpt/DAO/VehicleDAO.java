@@ -67,8 +67,8 @@ public class VehicleDAO {
                 "VALUES (?, ?, ?, ?, ?, GETDATE())";
 
         String sqlVehicle = "INSERT INTO [dbo].[Vehicle] " +
-                "(serviceID, vehicleBrand, license_plate, price_per_day, [status]) " +
-                "VALUES (?, ?, ?, ?, ?)";
+                "(serviceID, vehicleBrand, license_plate, price_per_day, [status], image, seat_count, vehicle_type, transmission, fuel_type) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         Connection conn = null;
 
@@ -107,6 +107,11 @@ public class VehicleDAO {
                 psVehicle.setString(3, v.getLicensePlate());
                 psVehicle.setDouble(4, v.getPricePerDay());
                 psVehicle.setString(5, v.getStatus());
+                psVehicle.setString(6, v.getImage());
+                psVehicle.setInt(7, v.getSeatCount());
+                psVehicle.setString(8, v.getVehicleType());
+                psVehicle.setString(9, v.getTransmission());
+                psVehicle.setString(10, v.getFuelType());
 
                 psVehicle.executeUpdate();
             }
@@ -145,7 +150,8 @@ public class VehicleDAO {
                 "WHERE serviceID = ?";
 
         String sqlVehicle = "UPDATE [dbo].[Vehicle] " +
-                "SET vehicleBrand = ?, license_plate = ?, price_per_day = ?, [status] = ? " +
+                "SET vehicleBrand = ?, license_plate = ?, price_per_day = ?, [status] = ?, " +
+                "image = ?, seat_count = ?, vehicle_type = ?, transmission = ?, fuel_type = ? " +
                 "WHERE serviceID = ?";
 
         Connection conn = null;
@@ -171,7 +177,12 @@ public class VehicleDAO {
                 psVehicle.setString(2, v.getLicensePlate());
                 psVehicle.setDouble(3, v.getPricePerDay());
                 psVehicle.setString(4, v.getStatus());
-                psVehicle.setInt(5, v.getServiceID());
+                psVehicle.setString(5, v.getImage());
+                psVehicle.setInt(6, v.getSeatCount());
+                psVehicle.setString(7, v.getVehicleType());
+                psVehicle.setString(8, v.getTransmission());
+                psVehicle.setString(9, v.getFuelType());
+                psVehicle.setInt(10, v.getServiceID());
 
                 psVehicle.executeUpdate();
             }
@@ -252,6 +263,64 @@ public class VehicleDAO {
         return false;
     }
 
+    public List<Vehicle> getAvailableVehiclesForCustomer() {
+        List<Vehicle> list = new ArrayList<>();
+
+        String sql = "SELECT v.*, " +
+                "s.serviceCategoryID, s.serviceName, s.[status] AS serviceStatus, " +
+                "s.serviceType, s.fulfillmentType, s.createAt, s.updateAt " +
+                "FROM [dbo].[Vehicle] v " +
+                "JOIN [dbo].[Service] s ON v.serviceID = s.serviceID " +
+                "WHERE s.[status] = 'Active' " +
+                "AND s.serviceType = 'Vehicle' " +
+                "AND v.[status] = 'Available' " +
+                "ORDER BY v.price_per_day ASC, v.serviceID DESC";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Vehicle v = mapVehicle(rs);
+                list.add(v);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public Vehicle getVehicleByIdForCustomer(int serviceID) {
+        String sql = "SELECT v.*, " +
+                "s.serviceCategoryID, s.serviceName, s.[status] AS serviceStatus, " +
+                "s.serviceType, s.fulfillmentType, s.createAt, s.updateAt " +
+                "FROM [dbo].[Vehicle] v " +
+                "JOIN [dbo].[Service] s ON v.serviceID = s.serviceID " +
+                "WHERE v.serviceID = ? " +
+                "AND s.[status] = 'Active' " +
+                "AND s.serviceType = 'Vehicle' " +
+                "AND v.[status] = 'Available'";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, serviceID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapVehicle(rs);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     private Vehicle mapVehicle(ResultSet rs) throws SQLException {
         Vehicle v = new Vehicle();
 
@@ -260,6 +329,12 @@ public class VehicleDAO {
         v.setLicensePlate(rs.getString("license_plate"));
         v.setPricePerDay(rs.getDouble("price_per_day"));
         v.setStatus(rs.getString("status"));
+
+        v.setImage(rs.getString("image"));
+        v.setSeatCount(rs.getInt("seat_count"));
+        v.setVehicleType(rs.getString("vehicle_type"));
+        v.setTransmission(rs.getString("transmission"));
+        v.setFuelType(rs.getString("fuel_type"));
 
         Service s = new Service();
         s.setServiceID(rs.getInt("serviceID"));
