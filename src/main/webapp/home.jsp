@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -249,5 +250,141 @@
 
 <button class="scroll-top" id="scrollTop" type="button">↑</button>
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
+
+<c:if test="${not empty sessionScope.successMessage}">
+    <div id="successToast" class="success-toast">
+        <div class="toast-body">
+            <div class="toast-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+            </div>
+            <div class="toast-content">
+                <span class="toast-title">Đặt Tour Thành Công!</span>
+                <p class="toast-desc">${sessionScope.successMessage}</p>
+            </div>
+            <button type="button" class="toast-close-btn" onclick="dismissToast()">×</button>
+        </div>
+        <div class="toast-progress"></div>
+    </div>
+
+    <style>
+        .success-toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 9999;
+            min-width: 320px;
+            max-width: 400px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            animation: slideInToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .toast-body {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            color: #10b981;
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .toast-title {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 15px;
+        }
+
+        .toast-desc {
+            color: #64748b;
+            font-size: 13.5px;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .toast-close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .toast-close-btn:hover {
+            color: #475569;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background-color: #10b981;
+            width: 100%;
+            animation: progressCount 5s linear forwards;
+        }
+
+        @keyframes slideInToast {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutToast {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes progressCount {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+    </style>
+
+    <script>
+        function dismissToast() {
+            const toast = document.getElementById('successToast');
+            if (toast) {
+                toast.style.animation = 'slideOutToast 0.4s ease-in forwards';
+                setTimeout(() => {
+                    toast.remove();
+                }, 400);
+            }
+        }
+        setTimeout(dismissToast, 5000);
+    </script>
+
+    <c:remove var="successMessage" scope="session" />
+</c:if>
 </body>
 </html>
