@@ -1,110 +1,278 @@
 package vn.edu.fpt.DAO;
 
-import vn.edu.fpt.model.Vehicles;
 import vn.edu.fpt.common.DBConnection;
+import vn.edu.fpt.model.Service;
+import vn.edu.fpt.model.Vehicle;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class VehicleDAO {
 
-    // 1. Xem danh sách tất cả xe cho thuê (ListVehicles - Guest/Customer)
-    public List<Vehicles> getAllVehicles() {
-        List<Vehicles> list = new ArrayList<>();
-        String sql = "SELECT [vehicleID], [serviceID], [vehicleBrand], [license_plate], [price_per_day], [carAvailability] FROM [dbo].[Vehicles]";
+    public List<Vehicle> getAllVehicles() {
+        List<Vehicle> list = new ArrayList<>();
 
-        try (Connection conn = new DBConnection().getConnection(); // Kết nối qua DBConnection của thư mục common
+        String sql = "SELECT v.*, " +
+                "s.serviceCategoryID, s.serviceName, s.[status] AS serviceStatus, " +
+                "s.serviceType, s.fulfillmentType, s.createAt, s.updateAt " +
+                "FROM [dbo].[Vehicle] v " +
+                "JOIN [dbo].[Service] s ON v.serviceID = s.serviceID";
+
+        try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                Vehicles vehicle = new Vehicles();
-                vehicle.setVehicleID(rs.getInt("vehicleID"));
-                vehicle.setServiceID(rs.getInt("serviceID"));
-                vehicle.setVehicleBrand(rs.getString("vehicleBrand"));
-                vehicle.setLicensePlate(rs.getString("license_plate"));
-                vehicle.setPricePerDay(rs.getDouble("price_per_day"));
-                vehicle.setCarAvailability(rs.getString("carAvailability"));
-                list.add(vehicle);
+                Vehicle v = mapVehicle(rs);
+                list.add(v);
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return list;
     }
 
-    // 2. Xem chi tiết thông tin một chiếc xe (ViewVehicles)
-    public Vehicles getVehicleById(int id) {
-        String sql = "SELECT * FROM [dbo].[Vehicles] WHERE [vehicleID] = ?";
-        try (Connection conn = new DBConnection().getConnection(); //
+    public Vehicle getVehicleById(int serviceID) {
+        String sql = "SELECT v.*, " +
+                "s.serviceCategoryID, s.serviceName, s.[status] AS serviceStatus, " +
+                "s.serviceType, s.fulfillmentType, s.createAt, s.updateAt " +
+                "FROM [dbo].[Vehicle] v " +
+                "JOIN [dbo].[Service] s ON v.serviceID = s.serviceID " +
+                "WHERE v.serviceID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
+
+            ps.setInt(1, serviceID);
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Vehicles vehicle = new Vehicles();
-                    vehicle.setVehicleID(rs.getInt("vehicleID"));
-                    vehicle.setServiceID(rs.getInt("serviceID"));
-                    vehicle.setVehicleBrand(rs.getString("vehicleBrand"));
-                    vehicle.setLicensePlate(rs.getString("license_plate"));
-                    vehicle.setPricePerDay(rs.getDouble("price_per_day"));
-                    vehicle.setCarAvailability(rs.getString("carAvailability"));
-                    return vehicle;
+                    return mapVehicle(rs);
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return null;
     }
 
-    // 3. Thêm xe mới vào danh mục hệ thống (Manage VehicleRental - Staff)
-    public boolean insertVehicle(Vehicles vehicle) {
-        String sql = "INSERT INTO [dbo].[Vehicles] ([serviceID], [vehicleBrand], [license_plate], [price_per_day], [carAvailability]) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = new DBConnection().getConnection(); //
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, vehicle.getServiceID());
-            ps.setString(2, vehicle.getVehicleBrand());
-            ps.setString(3, vehicle.getLicensePlate());
-            ps.setDouble(4, vehicle.getPricePerDay());
-            ps.setString(5, vehicle.getCarAvailability());
-            return ps.executeUpdate() > 0;
+    public boolean addVehicle(Vehicle v) {
+        String sqlService = "INSERT INTO [dbo].[Service] " +
+                "(serviceCategoryID, serviceName, [status], serviceType, fulfillmentType, createAt) " +
+                "VALUES (?, ?, ?, ?, ?, GETDATE())";
+
+        String sqlVehicle = "INSERT INTO [dbo].[Vehicle] " +
+                "(serviceID, vehicleBrand, license_plate, price_per_day, [status]) " +
+                "VALUES (?, ?, ?, ?, ?)";
+
+        Connection conn = null;
+
+        try {
+            conn = new DBConnection().getConnection();
+            conn.setAutoCommit(false);
+
+            int generatedServiceID = 0;
+
+            try (PreparedStatement psService = conn.prepareStatement(sqlService, Statement.RETURN_GENERATED_KEYS)) {
+                Service s = v.getServiceDetails();
+
+                psService.setInt(1, s.getServiceCategoryID());
+                psService.setString(2, s.getServiceName());
+                psService.setString(3, s.getStatus());
+                psService.setString(4, s.getServiceType());
+                psService.setString(5, s.getFulfillmentType());
+
+                psService.executeUpdate();
+
+                try (ResultSet rs = psService.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        generatedServiceID = rs.getInt(1);
+                    }
+                }
+            }
+
+            if (generatedServiceID <= 0) {
+                conn.rollback();
+                return false;
+            }
+
+            try (PreparedStatement psVehicle = conn.prepareStatement(sqlVehicle)) {
+                psVehicle.setInt(1, generatedServiceID);
+                psVehicle.setString(2, v.getVehicleBrand());
+                psVehicle.setString(3, v.getLicensePlate());
+                psVehicle.setDouble(4, v.getPricePerDay());
+                psVehicle.setString(5, v.getStatus());
+
+                psVehicle.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+
         } catch (Exception e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
             e.printStackTrace();
+
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
         return false;
     }
 
-    // 4. Cập nhật thông tin xe hoặc trạng thái thuê/bảo trì (Manage VehicleRental)
-    public boolean updateVehicle(Vehicles vehicle) {
-        String sql = "UPDATE [dbo].[Vehicles] SET [serviceID] = ?, [vehicleBrand] = ?, [license_plate] = ?, [price_per_day] = ?, [carAvailability] = ? WHERE [vehicleID] = ?";
-        try (Connection conn = new DBConnection().getConnection(); //
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, vehicle.getServiceID());
-            ps.setString(2, vehicle.getVehicleBrand());
-            ps.setString(3, vehicle.getLicensePlate());
-            ps.setDouble(4, vehicle.getPricePerDay());
-            ps.setString(5, vehicle.getCarAvailability());
-            ps.setInt(6, vehicle.getVehicleID());
-            return ps.executeUpdate() > 0;
+    public boolean updateVehicle(Vehicle v) {
+        String sqlService = "UPDATE [dbo].[Service] " +
+                "SET serviceName = ?, [status] = ?, serviceType = ?, fulfillmentType = ?, updateAt = GETDATE() " +
+                "WHERE serviceID = ?";
+
+        String sqlVehicle = "UPDATE [dbo].[Vehicle] " +
+                "SET vehicleBrand = ?, license_plate = ?, price_per_day = ?, [status] = ? " +
+                "WHERE serviceID = ?";
+
+        Connection conn = null;
+
+        try {
+            conn = new DBConnection().getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement psService = conn.prepareStatement(sqlService)) {
+                Service s = v.getServiceDetails();
+
+                psService.setString(1, s.getServiceName());
+                psService.setString(2, s.getStatus());
+                psService.setString(3, s.getServiceType());
+                psService.setString(4, s.getFulfillmentType());
+                psService.setInt(5, v.getServiceID());
+
+                psService.executeUpdate();
+            }
+
+            try (PreparedStatement psVehicle = conn.prepareStatement(sqlVehicle)) {
+                psVehicle.setString(1, v.getVehicleBrand());
+                psVehicle.setString(2, v.getLicensePlate());
+                psVehicle.setDouble(3, v.getPricePerDay());
+                psVehicle.setString(4, v.getStatus());
+                psVehicle.setInt(5, v.getServiceID());
+
+                psVehicle.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+
         } catch (Exception e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
             e.printStackTrace();
+
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
         return false;
     }
 
-    // 5. Xóa phương tiện khỏi hệ thống (Manage VehicleRental)
-    public boolean deleteVehicle(int id) {
-        String sql = "DELETE FROM [dbo].[Vehicles] WHERE [vehicleID] = ?";
-        try (Connection conn = new DBConnection().getConnection(); //
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+    public boolean deleteVehicle(int serviceID) {
+        String sqlVehicle = "DELETE FROM [dbo].[Vehicle] WHERE serviceID = ?";
+        String sqlService = "DELETE FROM [dbo].[Service] WHERE serviceID = ?";
+
+        Connection conn = null;
+
+        try {
+            conn = new DBConnection().getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement psVehicle = conn.prepareStatement(sqlVehicle)) {
+                psVehicle.setInt(1, serviceID);
+                psVehicle.executeUpdate();
+            }
+
+            try (PreparedStatement psService = conn.prepareStatement(sqlService)) {
+                psService.setInt(1, serviceID);
+                psService.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+
         } catch (Exception e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
             e.printStackTrace();
+
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
         return false;
+    }
+
+    private Vehicle mapVehicle(ResultSet rs) throws SQLException {
+        Vehicle v = new Vehicle();
+
+        v.setServiceID(rs.getInt("serviceID"));
+        v.setVehicleBrand(rs.getString("vehicleBrand"));
+        v.setLicensePlate(rs.getString("license_plate"));
+        v.setPricePerDay(rs.getDouble("price_per_day"));
+        v.setStatus(rs.getString("status"));
+
+        Service s = new Service();
+        s.setServiceID(rs.getInt("serviceID"));
+        s.setServiceCategoryID(rs.getInt("serviceCategoryID"));
+        s.setServiceName(rs.getString("serviceName"));
+        s.setStatus(rs.getString("serviceStatus"));
+        s.setServiceType(rs.getString("serviceType"));
+        s.setFulfillmentType(rs.getString("fulfillmentType"));
+        s.setCreatedAt(rs.getTimestamp("createAt"));
+        s.setUpdateAt(rs.getTimestamp("updateAt"));
+
+        v.setServiceDetails(s);
+
+        return v;
     }
 }
