@@ -325,11 +325,11 @@
         </div>
 
         <div class="service-grid">
-            <article class="service-card">
+            <a class="service-card" href="${pageContext.request.contextPath}/accommodation">
                 <span>🏨</span>
                 <h3>Khách sạn</h3>
                 <p>Đặt phòng theo ngày đi và nhu cầu lưu trú.</p>
-            </article>
+            </a>
 
             <article class="service-card">
                 <span>🚗</span>
