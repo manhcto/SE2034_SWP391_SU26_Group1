@@ -6,8 +6,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WonderVN | Trang chủ</title>
+
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
+
+    <style>
+        .admin-entry-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-left: 12px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            color: #0f172a;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .admin-entry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+        }
+
+        .hero-action-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-top: 18px;
+        }
+    </style>
 </head>
+
 <body>
 <jsp:include page="/WEB-INF/common/homepage/header.jsp" />
 
@@ -17,7 +51,19 @@
             <div class="hero-content">
                 <p class="eyebrow">Khám phá Việt Nam cùng WonderVN</p>
                 <h1>Đặt tour, khách sạn, thuê xe và dịch vụ cộng thêm dễ dàng</h1>
-                <p class="hero-desc">WonderVN giúp bạn tìm chuyến đi phù hợp, rõ lịch trình, rõ giá và dễ theo dõi trong một hệ thống.</p>
+                <p class="hero-desc">
+                    WonderVN giúp bạn tìm chuyến đi phù hợp, rõ lịch trình, rõ giá và dễ theo dõi trong một hệ thống.
+                </p>
+
+                <div class="hero-action-row">
+                    <a class="primary-btn" href="${pageContext.request.contextPath}/tour">
+                        Khám phá tour
+                    </a>
+
+                    <a class="admin-entry-btn" href="${pageContext.request.contextPath}/admin/home">
+                        ⚙ Vào trang quản trị
+                    </a>
+                </div>
 
                 <div class="search-panel">
                     <div class="search-tabs">
@@ -87,7 +133,10 @@
                     <p>Thời lượng: 4 ngày 3 đêm</p>
                     <p>Lịch gần nhất: 15/06/2026</p>
                     <div class="tour-price-row">
-                        <div><span>Giá từ</span><strong>5.990.000đ</strong></div>
+                        <div>
+                            <span>Giá từ</span>
+                            <strong>5.990.000đ</strong>
+                        </div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=1">Xem chi tiết</a>
                     </div>
                 </div>
@@ -101,7 +150,10 @@
                     <p>Thời lượng: 3 ngày 2 đêm</p>
                     <p>Lịch gần nhất: 20/06/2026</p>
                     <div class="tour-price-row">
-                        <div><span>Giá từ</span><strong>4.590.000đ</strong></div>
+                        <div>
+                            <span>Giá từ</span>
+                            <strong>4.590.000đ</strong>
+                        </div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=2">Xem chi tiết</a>
                     </div>
                 </div>
@@ -115,7 +167,10 @@
                     <p>Thời lượng: 3 ngày 2 đêm</p>
                     <p>Lịch gần nhất: 25/06/2026</p>
                     <div class="tour-price-row">
-                        <div><span>Giá từ</span><strong>6.490.000đ</strong></div>
+                        <div>
+                            <span>Giá từ</span>
+                            <strong>6.490.000đ</strong>
+                        </div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=3">Xem chi tiết</a>
                     </div>
                 </div>
@@ -129,7 +184,10 @@
                     <p>Thời lượng: 3 ngày 2 đêm</p>
                     <p>Lịch gần nhất: 28/06/2026</p>
                     <div class="tour-price-row">
-                        <div><span>Giá từ</span><strong>3.990.000đ</strong></div>
+                        <div>
+                            <span>Giá từ</span>
+                            <strong>3.990.000đ</strong>
+                        </div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=4">Xem chi tiết</a>
                     </div>
                 </div>
@@ -157,6 +215,7 @@
 
         <div class="tour-grid">
             <%-- Sau này thay các card mẫu bằng vòng lặp JSTL từ requestScope.packageTours --%>
+
             <article class="tour-card package-card" data-region="north">
                 <div class="tour-image image-moc-chau"></div>
                 <div class="tour-body">
@@ -164,9 +223,16 @@
                     <p>Mã chương trình: <strong>NDHAN120</strong></p>
                     <p>Khởi hành: Hà Nội</p>
                     <p>Thời lượng: 2 ngày 1 đêm</p>
-                    <div class="date-list"><span>13/06</span><span>20/06</span><span>27/06</span></div>
+                    <div class="date-list">
+                        <span>13/06</span>
+                        <span>20/06</span>
+                        <span>27/06</span>
+                    </div>
                     <div class="tour-price-row">
-                        <div><span>Giá từ</span><strong>2.190.000đ</strong></div>
+                        <div>
+                            <span>Giá từ</span>
+                            <strong>2.190.000đ</strong>
+                        </div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=5">Xem chi tiết</a>
                     </div>
                 </div>
@@ -179,9 +245,16 @@
                     <p>Mã chương trình: <strong>NDSGN150</strong></p>
                     <p>Khởi hành: TP. Hồ Chí Minh</p>
                     <p>Thời lượng: 6 ngày 5 đêm</p>
-                    <div class="date-list"><span>02/06</span><span>09/06</span><span>16/06</span></div>
+                    <div class="date-list">
+                        <span>02/06</span>
+                        <span>09/06</span>
+                        <span>16/06</span>
+                    </div>
                     <div class="tour-price-row">
-                        <div><span>Giá từ</span><strong>13.190.000đ</strong></div>
+                        <div>
+                            <span>Giá từ</span>
+                            <strong>13.190.000đ</strong>
+                        </div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=6">Xem chi tiết</a>
                     </div>
                 </div>
@@ -194,9 +267,16 @@
                     <p>Mã chương trình: <strong>WVNMT221</strong></p>
                     <p>Khởi hành: Hà Nội</p>
                     <p>Thời lượng: 4 ngày 3 đêm</p>
-                    <div class="date-list"><span>18/06</span><span>09/07</span><span>23/07</span></div>
+                    <div class="date-list">
+                        <span>18/06</span>
+                        <span>09/07</span>
+                        <span>23/07</span>
+                    </div>
                     <div class="tour-price-row">
-                        <div><span>Giá từ</span><strong>7.990.000đ</strong></div>
+                        <div>
+                            <span>Giá từ</span>
+                            <strong>7.990.000đ</strong>
+                        </div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=7">Xem chi tiết</a>
                     </div>
                 </div>
@@ -209,9 +289,16 @@
                     <p>Mã chương trình: <strong>WVNPQ330</strong></p>
                     <p>Khởi hành: TP. Hồ Chí Minh</p>
                     <p>Thời lượng: 3 ngày 2 đêm</p>
-                    <div class="date-list"><span>21/06</span><span>05/07</span><span>19/07</span></div>
+                    <div class="date-list">
+                        <span>21/06</span>
+                        <span>05/07</span>
+                        <span>19/07</span>
+                    </div>
                     <div class="tour-price-row">
-                        <div><span>Giá từ</span><strong>6.290.000đ</strong></div>
+                        <div>
+                            <span>Giá từ</span>
+                            <strong>6.290.000đ</strong>
+                        </div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=8">Xem chi tiết</a>
                     </div>
                 </div>
@@ -238,10 +325,29 @@
         </div>
 
         <div class="service-grid">
-            <article class="service-card"><span>🏨</span><h3>Khách sạn</h3><p>Đặt phòng theo ngày đi và nhu cầu lưu trú.</p></article>
-            <article class="service-card"><span>🚗</span><h3>Thuê xe</h3><p>Xe du lịch có tài xế, hỗ trợ đón trả theo lịch.</p></article>
-            <article class="service-card"><span>🎟️</span><h3>Vé vui chơi</h3><p>Hỗ trợ đặt vé tham quan, khu vui chơi, trải nghiệm.</p></article>
-            <article class="service-card"><span>🍽️</span><h3>Nhà hàng</h3><p>Gợi ý bữa ăn phù hợp với lịch trình của đoàn.</p></article>
+            <article class="service-card">
+                <span>🏨</span>
+                <h3>Khách sạn</h3>
+                <p>Đặt phòng theo ngày đi và nhu cầu lưu trú.</p>
+            </article>
+
+            <article class="service-card">
+                <span>🚗</span>
+                <h3>Thuê xe</h3>
+                <p>Xe du lịch có tài xế, hỗ trợ đón trả theo lịch.</p>
+            </article>
+
+            <article class="service-card">
+                <span>🎟️</span>
+                <h3>Vé vui chơi</h3>
+                <p>Hỗ trợ đặt vé tham quan, khu vui chơi, trải nghiệm.</p>
+            </article>
+
+            <article class="service-card">
+                <span>🍽️</span>
+                <h3>Nhà hàng</h3>
+                <p>Gợi ý bữa ăn phù hợp với lịch trình của đoàn.</p>
+            </article>
         </div>
     </section>
 </main>
@@ -249,6 +355,7 @@
 <jsp:include page="/WEB-INF/common/homepage/footer.jsp" />
 
 <button class="scroll-top" id="scrollTop" type="button">↑</button>
+
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
 
 <c:if test="${not empty sessionScope.successMessage}">
