@@ -2,6 +2,7 @@ package vn.edu.fpt.DAO;
 
 import vn.edu.fpt.common.DBConnection;
 import vn.edu.fpt.model.Booking;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,7 +11,100 @@ import java.sql.Statement;
 public class BookingDAO {
 
     /**
-     * Dùng Transaction để lưu đồng thời vào bảng Booking và Booking_Detail
+     * Kiểm tra tourScheduleID có tồn tại hay không.
+     */
+    public boolean isTourScheduleExist(int tourScheduleID) {
+        String sql = "SELECT tourScheduleID FROM Tour_Scheduler WHERE tourScheduleID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, tourScheduleID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi kiểm tra tourScheduleID: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /**
+     * Lấy giá người lớn và giá trẻ em từ database dựa vào tourScheduleID.
+     * Không lấy giá từ form để tránh người dùng sửa giá bằng F12.
+     *
+     * return double[0] = adultPrice
+     *        double[1] = childrenPrice
+     */
+    public double[] getTourPricesBySchedule(int tourScheduleID) {
+        String sql = "SELECT t.adultPrice, t.childrenPrice "
+                + "FROM Tour_Scheduler ts "
+                + "JOIN Tour t ON ts.tourID = t.tourID "
+                + "WHERE ts.tourScheduleID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, tourScheduleID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new double[]{
+                            rs.getDouble("adultPrice"),
+                            rs.getDouble("childrenPrice")
+                    };
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi lấy giá tour: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * Lấy số chỗ còn lại của lịch trình tour.
+     * Nếu không tìm thấy tourScheduleID thì trả về -1.
+     */
+    public int getRemainingSeats(int tourScheduleID) {
+        String sql = "SELECT maxParticipants, quantity "
+                + "FROM Tour_Scheduler "
+                + "WHERE tourScheduleID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, tourScheduleID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int maxParticipants = rs.getInt("maxParticipants");
+                    int quantity = rs.getInt("quantity");
+                    return maxParticipants - quantity;
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi lấy số chỗ còn lại: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    /**
+     * Dùng Transaction để lưu đồng thời:
+     * 1. Booking
+     * 2. Booking_Detail
+     * 3. Cập nhật Tour_Scheduler.quantity
+     *
+     * Nếu một bước lỗi thì rollback toàn bộ.
      */
     public boolean insertBookingTransaction(Booking booking, int tourScheduleID, double unitPrice) {
 
@@ -21,14 +115,17 @@ public class BookingDAO {
         String sqlDetail = "INSERT INTO Booking_Detail (bookingID, tourScheduleID, quantity, unitPrice, subTotal) "
                 + "VALUES (?, ?, ?, ?, ?)";
 
-        // Lấy connection từ file DBConnection của bạn
+        String sqlUpdateSchedule = "UPDATE Tour_Scheduler "
+                + "SET quantity = quantity + ? "
+                + "WHERE tourScheduleID = ? "
+                + "AND quantity + ? <= maxParticipants";
+
         try (Connection conn = new DBConnection().getConnection()) {
 
-            // TẮT CHẾ ĐỘ TỰ ĐỘNG LƯU ĐỂ BẮT ĐẦU TRANSACTION
             conn.setAutoCommit(false);
 
-            // 1. Lưu vào bảng Booking
             try (PreparedStatement psBooking = conn.prepareStatement(sqlBooking, Statement.RETURN_GENERATED_KEYS)) {
+
                 psBooking.setString(1, booking.getBookingCode());
                 psBooking.setString(2, booking.getBookingType());
                 psBooking.setString(3, booking.getFirstName());
@@ -55,45 +152,55 @@ public class BookingDAO {
                     return false;
                 }
 
-                // 2. Lấy BookingID vừa được tự động sinh ra
-                int generatedBookingID = 0;
+                int generatedBookingID;
+
                 try (ResultSet generatedKeys = psBooking.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         generatedBookingID = generatedKeys.getInt(1);
                     } else {
                         conn.rollback();
-                        return false; // Không lấy được ID -> hủy giao dịch
+                        return false;
                     }
                 }
 
-                // 3. Lưu tiếp vào bảng Booking_Detail
-                try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
-                    int totalQuantity = booking.getNumberAdult() + booking.getNumberChildren();
+                int totalQuantity = booking.getNumberAdult() + booking.getNumberChildren();
 
-                    psDetail.setInt(1, generatedBookingID); // Truyền ID lấy được ở trên vào đây
+                try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
+                    psDetail.setInt(1, generatedBookingID);
                     psDetail.setInt(2, tourScheduleID);
                     psDetail.setInt(3, totalQuantity);
                     psDetail.setDouble(4, unitPrice);
-                    psDetail.setDouble(5, booking.getTotalPrice()); // Subtotal bằng luôn TotalPrice cho dễ
+                    psDetail.setDouble(5, booking.getTotalPrice());
 
                     psDetail.executeUpdate();
                 }
 
-                // 4. Nếu CẢ 2 bước đều trơn tru -> CHỐT LƯU XUỐNG DATABASE
+                try (PreparedStatement psUpdateSchedule = conn.prepareStatement(sqlUpdateSchedule)) {
+                    psUpdateSchedule.setInt(1, totalQuantity);
+                    psUpdateSchedule.setInt(2, tourScheduleID);
+                    psUpdateSchedule.setInt(3, totalQuantity);
+
+                    int updatedRows = psUpdateSchedule.executeUpdate();
+
+                    if (updatedRows == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+
                 conn.commit();
                 return true;
 
             } catch (Exception e) {
-                // NẾU CÓ BẤT KỲ LỖI NÀO XẢY RA, LẬP TỨC THU HỒI LẠI TOÀN BỘ
                 conn.rollback();
                 System.out.println("Lỗi Transaction, đã rollback dữ liệu: " + e.getMessage());
                 e.printStackTrace();
             } finally {
-                // Trả lại cài đặt mặc định cho Connection
                 conn.setAutoCommit(true);
             }
 
         } catch (Exception e) {
+            System.out.println("Lỗi kết nối hoặc xử lý BookingDAO: " + e.getMessage());
             e.printStackTrace();
         }
 
