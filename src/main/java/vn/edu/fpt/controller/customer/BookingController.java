@@ -48,6 +48,7 @@ public class BookingController extends HttpServlet {
             address = address == null ? "" : address.trim();
             note = note == null ? "" : note.trim();
 
+            // Validate customer information
             if (firstName.isEmpty()) {
                 errors.add("Họ và tên đệm không được để trống.");
             } else if (firstName.length() > 100) {
@@ -90,6 +91,7 @@ public class BookingController extends HttpServlet {
             int numberChildren = 0;
             int tourScheduleID = 0;
 
+            // Validate booking quantity and schedule ID
             try {
                 numberAdult = Integer.parseInt(request.getParameter("numberAdult"));
                 numberChildren = Integer.parseInt(request.getParameter("numberChildren"));
@@ -118,6 +120,7 @@ public class BookingController extends HttpServlet {
             double totalPrice = 0;
             double unitPriceForDetail = 0;
 
+            // Calculate price from database
             if (errors.isEmpty()) {
                 double[] prices = dao.getTourPricesBySchedule(tourScheduleID);
 
@@ -138,6 +141,7 @@ public class BookingController extends HttpServlet {
                 }
             }
 
+            // Check remaining seats
             if (errors.isEmpty()) {
                 int totalGuests = numberAdult + numberChildren;
                 int remainingSeats = dao.getRemainingSeats(tourScheduleID);
@@ -186,11 +190,12 @@ public class BookingController extends HttpServlet {
                 booking.setUserID((Integer) session.getAttribute("userID"));
             }
 
-            boolean isSuccess = dao.insertBookingTransaction(booking, tourScheduleID, unitPriceForDetail);
+            // Save booking and redirect to summary
+            int bookingID = dao.insertBookingTransactionReturnID(booking, tourScheduleID, unitPriceForDetail);
 
-            if (isSuccess) {
+            if (bookingID > 0) {
                 session.setAttribute("successMessage", "Đặt tour thành công! Mã đơn: " + bookingCode);
-                response.sendRedirect(request.getContextPath() + "/views/home.jsp");
+                response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
             } else {
                 request.setAttribute("error", "Không thể lưu đơn hàng. Có thể số chỗ vừa được người khác đặt hết. Vui lòng thử lại!");
                 request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);

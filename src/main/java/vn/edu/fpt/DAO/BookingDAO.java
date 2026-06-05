@@ -7,12 +7,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BookingDAO {
 
-    /**
-     * Kiểm tra tourScheduleID có tồn tại hay không.
-     */
+    // Check if tour schedule exists
     public boolean isTourScheduleExist(int tourScheduleID) {
         String sql = "SELECT tourScheduleID FROM Tour_Scheduler WHERE tourScheduleID = ?";
 
@@ -33,13 +33,7 @@ public class BookingDAO {
         return false;
     }
 
-    /**
-     * Lấy giá người lớn và giá trẻ em từ database dựa vào tourScheduleID.
-     * Không lấy giá từ form để tránh người dùng sửa giá bằng F12.
-     *
-     * return double[0] = adultPrice
-     *        double[1] = childrenPrice
-     */
+    // Get tour prices by schedule ID
     public double[] getTourPricesBySchedule(int tourScheduleID) {
         String sql = "SELECT t.adultPrice, t.childrenPrice "
                 + "FROM Tour_Scheduler ts "
@@ -68,10 +62,7 @@ public class BookingDAO {
         return null;
     }
 
-    /**
-     * Lấy số chỗ còn lại của lịch trình tour.
-     * Nếu không tìm thấy tourScheduleID thì trả về -1.
-     */
+    // Get remaining seats of a tour schedule
     public int getRemainingSeats(int tourScheduleID) {
         String sql = "SELECT maxParticipants, quantity "
                 + "FROM Tour_Scheduler "
@@ -98,16 +89,14 @@ public class BookingDAO {
         return -1;
     }
 
-    /**
-     * Dùng Transaction để lưu đồng thời:
-     * 1. Booking
-     * 2. Booking_Detail
-     * 3. Cập nhật Tour_Scheduler.quantity
-     *
-     * Nếu một bước lỗi thì rollback toàn bộ.
-     */
+    // Insert booking transaction and return true if success
     public boolean insertBookingTransaction(Booking booking, int tourScheduleID, double unitPrice) {
+        int bookingID = insertBookingTransactionReturnID(booking, tourScheduleID, unitPrice);
+        return bookingID > 0;
+    }
 
+    // Insert booking, detail and update schedule in one transaction
+    public int insertBookingTransactionReturnID(Booking booking, int tourScheduleID, double unitPrice) {
         String sqlBooking = "INSERT INTO Booking (bookingCode, bookingType, firstName, lastName, email, "
                 + "phone, address, note, numberAdult, numberChildren, totalPrice, isBookedForOther, userID) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -121,7 +110,6 @@ public class BookingDAO {
                 + "AND quantity + ? <= maxParticipants";
 
         try (Connection conn = new DBConnection().getConnection()) {
-
             conn.setAutoCommit(false);
 
             try (PreparedStatement psBooking = conn.prepareStatement(sqlBooking, Statement.RETURN_GENERATED_KEYS)) {
@@ -149,7 +137,7 @@ public class BookingDAO {
 
                 if (affectedRows == 0) {
                     conn.rollback();
-                    return false;
+                    return -1;
                 }
 
                 int generatedBookingID;
@@ -159,7 +147,7 @@ public class BookingDAO {
                         generatedBookingID = generatedKeys.getInt(1);
                     } else {
                         conn.rollback();
-                        return false;
+                        return -1;
                     }
                 }
 
@@ -184,12 +172,12 @@ public class BookingDAO {
 
                     if (updatedRows == 0) {
                         conn.rollback();
-                        return false;
+                        return -1;
                     }
                 }
 
                 conn.commit();
-                return true;
+                return generatedBookingID;
 
             } catch (Exception e) {
                 conn.rollback();
@@ -204,6 +192,87 @@ public class BookingDAO {
             e.printStackTrace();
         }
 
-        return false;
+        return -1;
+    }
+
+    // Get booking summary by booking ID
+    public Map<String, Object> getBookingSummaryByID(int bookingID) {
+        String sql = "SELECT "
+                + "b.bookingID, "
+                + "b.bookingCode, "
+                + "b.bookingType, "
+                + "b.email, "
+                + "b.phone, "
+                + "b.numberAdult, "
+                + "b.numberChildren, "
+                + "b.note, "
+                + "b.address, "
+                + "b.firstName, "
+                + "b.lastName, "
+                + "b.status, "
+                + "b.bookDate, "
+                + "b.totalPrice, "
+                + "bd.quantity, "
+                + "bd.unitPrice, "
+                + "bd.subTotal, "
+                + "bd.tourScheduleID, "
+                + "t.tourID, "
+                + "t.tourName, "
+                + "t.startPlace, "
+                + "t.endPlace, "
+                + "ts.startDate, "
+                + "ts.endDate "
+                + "FROM Booking b "
+                + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
+                + "JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID "
+                + "JOIN Tour t ON ts.tourID = t.tourID "
+                + "WHERE b.bookingID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, bookingID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> summary = new HashMap<>();
+
+                    summary.put("bookingID", rs.getInt("bookingID"));
+                    summary.put("bookingCode", rs.getString("bookingCode"));
+                    summary.put("bookingType", rs.getString("bookingType"));
+                    summary.put("email", rs.getString("email"));
+                    summary.put("phone", rs.getString("phone"));
+                    summary.put("numberAdult", rs.getInt("numberAdult"));
+                    summary.put("numberChildren", rs.getInt("numberChildren"));
+                    summary.put("note", rs.getString("note"));
+                    summary.put("address", rs.getString("address"));
+                    summary.put("firstName", rs.getString("firstName"));
+                    summary.put("lastName", rs.getString("lastName"));
+                    summary.put("status", rs.getString("status"));
+                    summary.put("bookDate", rs.getTimestamp("bookDate"));
+                    summary.put("totalPrice", rs.getDouble("totalPrice"));
+
+                    summary.put("quantity", rs.getInt("quantity"));
+                    summary.put("unitPrice", rs.getDouble("unitPrice"));
+                    summary.put("subTotal", rs.getDouble("subTotal"));
+                    summary.put("tourScheduleID", rs.getInt("tourScheduleID"));
+
+                    summary.put("tourID", rs.getInt("tourID"));
+                    summary.put("tourName", rs.getString("tourName"));
+                    summary.put("startPlace", rs.getString("startPlace"));
+                    summary.put("endPlace", rs.getString("endPlace"));
+                    summary.put("startDate", rs.getTimestamp("startDate"));
+                    summary.put("endDate", rs.getTimestamp("endDate"));
+
+                    return summary;
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi lấy Booking Summary: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }
