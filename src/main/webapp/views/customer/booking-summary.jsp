@@ -149,7 +149,7 @@
 
 <body>
 
-<jsp:include page="/WEB-INF/common/homepage/header.jsp" />
+<jsp:include page="/views/common/client-header.jsp" />
 
 <main>
     <section class="summary-container">
@@ -337,16 +337,16 @@
                     Về trang chủ
                 </a>
 
-                <a href="${pageContext.request.contextPath}/booking-history"
+                <a href="${pageContext.request.contextPath}/booking-list"
                    class="summary-btn summary-btn-outline">
-                    Xem lịch sử đặt tour
+                    Xem danh sách booking
                 </a>
             </div>
         </c:if>
     </section>
 </main>
 
-<jsp:include page="/WEB-INF/common/homepage/footer.jsp" />
+<jsp:include page="/views/common/client-footer.jsp" />
 
 <button class="scroll-top" id="scrollTop" type="button">↑</button>
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>

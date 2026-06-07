@@ -112,7 +112,7 @@
 
 <body>
 
-<jsp:include page="/WEB-INF/common/homepage/header.jsp" />
+<jsp:include page="/views/common/client-header.jsp" />
 
 <main>
     <section class="section checkout-container">
@@ -284,7 +284,7 @@
     </section>
 </main>
 
-<jsp:include page="/WEB-INF/common/homepage/footer.jsp" />
+<jsp:include page="/views/common/client-footer.jsp" />
 
 <button class="scroll-top" id="scrollTop" type="button">↑</button>
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>

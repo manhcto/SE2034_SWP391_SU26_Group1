@@ -38,7 +38,7 @@
     }
 
     .header-search {
-        width: 340px;
+        width: 390px;
         height: 50px;
         border-radius: 999px;
         background: #f1f5f9;
@@ -66,15 +66,15 @@
     .main-nav {
         display: flex;
         align-items: center;
-        gap: 24px;
+        gap: 18px;
         margin-left: auto;
     }
 
     .main-nav a {
         color: #020617;
         text-decoration: none;
-        font-size: 16px;
-        font-weight: 800;
+        font-size: 13px;
+        font-weight: 700;
         white-space: nowrap;
         transition: 0.2s ease;
     }
@@ -192,15 +192,16 @@
         }
 
         .header-search {
-            width: 260px;
+            width: 300px;
         }
 
         .main-nav {
-            gap: 16px;
+            gap: 14px;
         }
 
         .main-nav a {
-            font-size: 15px;
+            font-size: 12px;
+            font-weight: 700;
         }
     }
 
@@ -230,6 +231,11 @@
 
         .main-nav.show {
             display: flex;
+        }
+
+        .main-nav a {
+            font-size: 14px;
+            font-weight: 700;
         }
 
         .header-actions {
@@ -263,6 +269,8 @@
 
         <nav class="main-nav" id="mainNav">
             <a href="${pageContext.request.contextPath}/tour">Tour trọn gói</a>
+            <a href="${pageContext.request.contextPath}/booking">Đặt Tour Ngay</a>
+            <a href="${pageContext.request.contextPath}/booking-list">Đơn của tôi</a>
             <a href="${pageContext.request.contextPath}/accommodation">Khách sạn</a>
             <a href="${pageContext.request.contextPath}/vehicle">Thuê xe</a>
             <a href="${pageContext.request.contextPath}/service">Dịch vụ cộng thêm</a>

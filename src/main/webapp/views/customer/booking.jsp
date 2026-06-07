@@ -76,7 +76,7 @@
 
 <body>
 
-<jsp:include page="/WEB-INF/common/homepage/header.jsp" />
+<jsp:include page="/views/common/client-header.jsp" />
 
 <main>
     <section class="booking-container">
@@ -120,7 +120,7 @@
     </section>
 </main>
 
-<jsp:include page="/WEB-INF/common/homepage/footer.jsp" />
+<jsp:include page="/views/common/client-footer.jsp" />
 
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
 
