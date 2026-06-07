@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -6,441 +6,640 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Chi tiết xe thuê</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WonderVN | ${vehicle.displayName}</title>
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --dark: #0f172a;
+            --text: #1e293b;
+            --muted: #64748b;
+            --bg: #f3f6fb;
+            --soft: #f8fafc;
+            --border: #e2e8f0;
+            --warning-bg: #fff7ed;
+            --warning-border: #fed7aa;
+            --warning-text: #9a3412;
+            --shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            background: #f4f7fb;
-            color: #0f172a;
+            margin: 0;
+            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.5;
         }
 
-        .vehicle-detail-shell {
-            max-width: 1220px;
-            margin: 40px auto 72px;
-            padding: 0 20px;
+        .detail-page {
+            padding: 30px 0 56px;
         }
 
-        .back-link {
+        .breadcrumb-line {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-bottom: 18px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .breadcrumb-line a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .btn-back-page {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            color: #1d4ed8;
+            gap: 9px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid #dbe3ef;
             text-decoration: none;
-            font-weight: 900;
-            margin-bottom: 18px;
+            font-weight: 800;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            cursor: pointer;
         }
 
-        .detail-card {
-            background: white;
-            border-radius: 32px;
-            overflow: hidden;
+        .btn-back-page:hover {
+            background: #f8fafc;
+            color: var(--primary);
+        }
+
+        .detail-layout {
             display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            box-shadow: 0 22px 50px rgba(15, 23, 42, 0.13);
-            border: 1px solid #e2e8f0;
+            grid-template-columns: minmax(0, 1fr) 360px;
+            gap: 26px;
+            align-items: start;
         }
 
-        .detail-image {
-            position: relative;
-            min-height: 520px;
-            background: #e2e8f0;
+        .main-card,
+        .booking-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 26px;
+            box-shadow: var(--shadow);
             overflow: hidden;
         }
 
-        .detail-image img {
+        .image-hero {
+            height: 390px;
+            position: relative;
+            overflow: hidden;
+            background: #e2e8f0;
+        }
+
+        .image-hero img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
         }
 
-        .floating-badge {
+        .image-overlay {
             position: absolute;
-            top: 24px;
-            left: 24px;
-            background: rgba(15, 23, 42, 0.92);
-            color: white;
-            padding: 11px 16px;
-            border-radius: 16px;
-            font-weight: 900;
+            left: 22px;
+            right: 22px;
+            bottom: 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 14px;
         }
 
-        .detail-content {
-            padding: 36px;
-        }
-
-        .service-chip {
+        .type-badge,
+        .available-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: #eff6ff;
-            color: #1d4ed8;
-            border: 1px solid #dbeafe;
-            padding: 10px 14px;
             border-radius: 999px;
-            font-weight: 900;
-            margin-bottom: 16px;
-        }
-
-        .detail-content h1 {
-            font-size: 44px;
-            line-height: 1.15;
-            font-weight: 900;
-            margin: 0 0 12px;
-        }
-
-        .sub-info {
-            color: #64748b;
+            padding: 9px 14px;
+            font-size: 13px;
             font-weight: 700;
-            margin-bottom: 22px;
+            backdrop-filter: blur(8px);
         }
 
-        .sub-info i {
-            color: #2563eb;
-            margin-right: 7px;
+        .type-badge {
+            background: rgba(15, 23, 42, 0.9);
+            color: #ffffff;
         }
 
-        .price-box {
-            background: linear-gradient(135deg, #0f172a, #1d4ed8);
-            color: white;
-            border-radius: 24px;
+        .available-badge {
+            background: #22c55e;
+            color: #ffffff;
+            box-shadow: 0 12px 24px rgba(34, 197, 94, 0.24);
+        }
+
+        .main-content {
+            padding: 28px;
+        }
+
+        .vehicle-title {
+            font-size: 32px;
+            line-height: 1.22;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0 0 12px;
+            color: var(--dark);
+        }
+
+        .location-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .location-row i {
+            color: #06b6d4;
+            margin-top: 4px;
+        }
+
+        .location-row strong {
+            color: #334155;
+            font-size: 15.5px;
+            font-weight: 700;
+        }
+
+        .spec-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 13px;
+            margin: 22px 0 28px;
+        }
+
+        .spec-card {
+            border: 1px solid var(--border);
+            background: var(--soft);
+            border-radius: 18px;
+            padding: 16px;
+            min-height: 118px;
+        }
+
+        .spec-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 13px;
+            background: #e0ecff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 17px;
+            margin-bottom: 12px;
+        }
+
+        .spec-label {
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11.5px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .spec-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1.35;
+        }
+
+        .section-block {
+            margin-top: 26px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            line-height: 1.3;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: var(--dark);
+        }
+
+        .section-title i {
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .text-box {
+            color: #475569;
+            font-size: 15.5px;
+            line-height: 1.8;
+        }
+
+        .note-box {
+            color: #334155;
+            font-size: 15.5px;
+            line-height: 1.8;
+            font-weight: 700;
+            padding: 0;
+            margin-top: 4px;
+            background: transparent;
+            border: none;
+        }
+
+        .note-box i {
+            display: none;
+        }
+
+        .note-box .note-prefix {
+            color: #0f172a;
+            font-weight: 900;
+        }
+
+        .booking-card {
+            position: sticky;
+            top: 100px;
             padding: 24px;
-            margin: 22px 0;
         }
 
-        .price-label {
-            opacity: 0.85;
+        .booking-title {
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .price-main {
+            font-size: 32px;
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--dark);
+        }
+
+        .price-unit {
+            color: var(--muted);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .side-info {
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .side-info-label {
+            color: var(--muted);
+            font-size: 14px;
             font-weight: 700;
             margin-bottom: 6px;
         }
 
-        .price-value {
-            font-size: 42px;
-            font-weight: 900;
-            line-height: 1;
-        }
-
-        .price-note {
-            margin-top: 7px;
-            color: #dbeafe;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin: 22px 0;
-        }
-
-        .info-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            padding: 16px;
-        }
-
-        .info-item small {
-            display: block;
-            color: #64748b;
-            margin-bottom: 5px;
+        .side-info-value {
             font-weight: 800;
+            font-size: 17px;
+            color: var(--dark);
         }
 
-        .info-item strong {
-            color: #0f172a;
-            font-size: 15px;
+        .side-info-sub {
+            color: var(--muted);
+            margin-top: 4px;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        .feature-list {
-            display: grid;
-            gap: 10px;
-            margin: 20px 0 26px;
-        }
-
-        .feature-list div {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #334155;
-            font-weight: 700;
-        }
-
-        .feature-list i {
-            color: #16a34a;
-        }
-
-        .action-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        .rent-btn,
-        .cart-btn-detail {
+        .btn-book {
+            width: 100%;
             border: none;
-            border-radius: 18px;
-            padding: 15px 18px;
-            font-weight: 900;
-            text-align: center;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-weight: 800;
+            font-size: 15.5px;
+            margin-top: 8px;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+        }
+
+        .btn-book:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        }
+
+        .btn-back {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: var(--dark);
+            border-radius: 16px;
+            padding: 13px 18px;
+            font-weight: 800;
             text-decoration: none;
-            cursor: pointer;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
         }
 
-        .rent-btn {
-            background: #0f172a;
-            color: white;
-        }
-
-        .cart-btn-detail {
-            background: #e0f2fe;
-            color: #075985;
-        }
-
-        .rent-btn:disabled,
-        .cart-btn-detail.disabled {
-            background: #cbd5e1;
-            color: #64748b;
-            cursor: not-allowed;
-        }
-
-        .suggestion-section {
-            margin-top: 28px;
-            background: white;
-            border-radius: 28px;
-            padding: 28px;
-            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
-        }
-
-        .suggestion-section h2 {
-            margin: 0 0 16px;
-            font-weight: 900;
-        }
-
-        .suggestion-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
-        .suggestion-box {
+        .btn-back:hover {
             background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            padding: 18px;
+            color: var(--dark);
         }
 
-        .suggestion-box i {
-            color: #2563eb;
-            font-size: 22px;
+        .quick-tips {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px dashed #cbd5e1;
+        }
+
+        .tip-item {
+            display: flex;
+            gap: 9px;
+            align-items: flex-start;
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.55;
             margin-bottom: 10px;
         }
 
-        .suggestion-box h4 {
-            margin: 0 0 6px;
-            font-weight: 900;
+        .tip-item i {
+            color: #22c55e;
+            margin-top: 3px;
         }
 
-        .suggestion-box p {
-            margin: 0;
-            color: #64748b;
-            line-height: 1.6;
-            font-size: 14px;
-        }
-
-        @media (max-width: 992px) {
-            .detail-card {
+        @media (max-width: 1100px) {
+            .detail-layout {
                 grid-template-columns: 1fr;
             }
 
-            .detail-image {
-                min-height: 350px;
+            .booking-card {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .image-hero {
+                height: 300px;
             }
 
-            .suggestion-grid,
-            .info-grid,
-            .action-row {
+            .main-content {
+                padding: 22px;
+            }
+
+            .vehicle-title {
+                font-size: 27px;
+            }
+
+            .spec-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .price-main {
+                font-size: 29px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .spec-grid {
                 grid-template-columns: 1fr;
             }
 
-            .detail-content h1 {
-                font-size: 34px;
+            .image-overlay {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
     </style>
 </head>
 
 <body>
-<jsp:include page="/WEB-INF/common/homepage/header.jsp" />
 
-<section class="vehicle-detail-shell">
-    <a class="back-link" href="${pageContext.request.contextPath}/vehicle">
-        <i class="fa-solid fa-arrow-left"></i>
-        Quay lại danh sách xe
-    </a>
+<jsp:include page="/views/common/client-header.jsp"/>
 
-    <div class="detail-card">
-        <div class="detail-image">
-            <img src="${vehicle.image}"
-                 alt="${vehicle.vehicleBrand}"
-                 onerror="this.src='https://placehold.co/1100x760?text=WonderVN+Vehicle';">
+<div class="container detail-page">
+    <div class="breadcrumb-line">
+        <button type="button" class="btn-back-page" onclick="history.back()">
+            <i class="fa-solid fa-arrow-left"></i>
+            Quay lại trang trước
+        </button>
 
-            <div class="floating-badge">
-                <i class="fa-solid fa-car-side"></i>
-                ${vehicle.vehicleType}
+        <a href="${pageContext.request.contextPath}/home">
+            <i class="fa-solid fa-house"></i> Trang chủ
+        </a>
+
+        <span>/</span>
+
+        <a href="${pageContext.request.contextPath}/vehicle">Thuê xe</a>
+
+        <span>/</span>
+
+        <span>${vehicle.displayName}</span>
+    </div>
+
+    <div class="detail-layout">
+        <div class="main-card">
+            <div class="image-hero">
+                <img src="${vehicle.image}"
+                     alt="${vehicle.displayName}"
+                     onerror="this.src='https://placehold.co/1200x700?text=WonderVN+Vehicle';">
+
+                <div class="image-overlay">
+                    <div class="type-badge">
+                        <i class="fa-solid fa-car-side"></i>
+                        <c:choose>
+                            <c:when test="${vehicle.vehicleType == 'Motorbike'}">Xe máy</c:when>
+                            <c:when test="${vehicle.vehicleType == 'Luxury Sedan'}">Sedan hạng sang</c:when>
+                            <c:when test="${vehicle.vehicleType == 'Bus'}">Xe khách</c:when>
+                            <c:otherwise>${vehicle.vehicleType}</c:otherwise>
+                        </c:choose>
+                    </div>
+
+                    <div class="available-badge">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Sẵn sàng cho thuê
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <h1 class="vehicle-title">${vehicle.displayName}</h1>
+
+                <div class="location-row">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div>
+                        <strong>${vehicle.pickupProvince}</strong><br>
+                        <span>${vehicle.fullPickupAddress}</span>
+                    </div>
+                </div>
+
+                <div class="spec-grid">
+                    <div class="spec-card">
+                        <div class="spec-icon">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="spec-label">Số chỗ</div>
+                        <div class="spec-value">${vehicle.seatCount} chỗ</div>
+                    </div>
+
+                    <div class="spec-card">
+                        <div class="spec-icon">
+                            <i class="fa-solid fa-gears"></i>
+                        </div>
+                        <div class="spec-label">Hộp số</div>
+                        <div class="spec-value">
+                            <c:choose>
+                                <c:when test="${vehicle.transmission == 'Automatic'}">Số tự động</c:when>
+                                <c:otherwise>Số sàn</c:otherwise>
+                            </c:choose>
+                        </div>
+                    </div>
+
+                    <div class="spec-card">
+                        <div class="spec-icon">
+                            <i class="fa-solid fa-gas-pump"></i>
+                        </div>
+                        <div class="spec-label">Nhiên liệu</div>
+                        <div class="spec-value">
+                            <c:choose>
+                                <c:when test="${vehicle.fuelType == 'Gasoline'}">Xăng</c:when>
+                                <c:when test="${vehicle.fuelType == 'Diesel'}">Dầu Diesel</c:when>
+                                <c:when test="${vehicle.fuelType == 'Electric'}">Điện</c:when>
+                                <c:otherwise>Hybrid</c:otherwise>
+                            </c:choose>
+                        </div>
+                    </div>
+
+                    <div class="spec-card">
+                        <div class="spec-icon">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
+                        <div class="spec-label">Biển số</div>
+                        <div class="spec-value">${vehicle.licensePlate}</div>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <h2 class="section-title">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Mô tả phương tiện
+                    </h2>
+
+                    <div class="text-box">
+                        <c:choose>
+                            <c:when test="${not empty vehicle.description}">
+                                ${vehicle.description}
+                            </c:when>
+                            <c:otherwise>
+                                Phương tiện phù hợp cho nhu cầu di chuyển du lịch, công tác và các hành trình cá nhân.
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+
+                <div class="section-block">
+                    <h2 class="section-title">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Lưu ý khi sử dụng
+                    </h2>
+
+                    <div class="note-box">
+                        <span class="note-prefix">Ghi chú:</span>
+                        <c:choose>
+                            <c:when test="${not empty vehicle.usageNotes}">
+                                ${vehicle.usageNotes}
+                            </c:when>
+                            <c:otherwise>
+                                Khách hàng nên kiểm tra xe trước khi nhận, sử dụng đúng mục đích và hoàn trả đúng thời gian đã thỏa thuận.
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="detail-content">
-            <div class="service-chip">
-                <i class="fa-solid fa-route"></i>
-                ${vehicle.serviceDetails.fulfillmentType}
-            </div>
+        <aside class="booking-card">
+            <div class="booking-title">Giá thuê</div>
 
-            <h1>${vehicle.vehicleBrand}</h1>
-
-            <div class="sub-info">
-                <i class="fa-solid fa-id-card"></i>
-                Biển số: ${vehicle.licensePlate}
-            </div>
-
-            <div class="price-box">
-                <div class="price-label">Giá thuê</div>
-                <div class="price-value">
+            <div class="price-row">
+                <div class="price-main">
                     <fmt:formatNumber value="${vehicle.pricePerDay}" type="number" maxFractionDigits="0"/> đ
                 </div>
-                <div class="price-note">mỗi ngày</div>
+                <div class="price-unit">/ ngày</div>
             </div>
 
-            <div class="info-grid">
-                <div class="info-item">
-                    <small>Trạng thái</small>
-                    <c:choose>
-                        <c:when test="${vehicle.status == 'Available'}">
-                            <strong>Sẵn sàng cho thuê</strong>
-                        </c:when>
-                        <c:when test="${vehicle.status == 'Maintenance'}">
-                            <strong>Đang bảo trì</strong>
-                        </c:when>
-                        <c:otherwise>
-                            <strong>Tạm không khả dụng</strong>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-
-                <div class="info-item">
-                    <small>Mã dịch vụ</small>
-                    <strong>#${vehicle.serviceID}</strong>
-                </div>
-
-                <div class="info-item">
-                    <small>Loại dịch vụ</small>
-                    <strong>${vehicle.serviceDetails.serviceType}</strong>
-                </div>
-
-                <div class="info-item">
-                    <small>Tên dịch vụ</small>
-                    <strong>${vehicle.serviceDetails.serviceName}</strong>
-                </div>
-
-                <div class="info-item">
-                    <small>Số chỗ ngồi</small>
-                    <strong>${vehicle.seatCount} chỗ</strong>
-                </div>
-
-                <div class="info-item">
-                    <small>Loại xe</small>
-                    <strong>${vehicle.vehicleType}</strong>
-                </div>
-
-                <div class="info-item">
-                    <small>Hộp số</small>
-                    <strong>${vehicle.transmission}</strong>
-                </div>
-
-                <div class="info-item">
-                    <small>Nhiên liệu</small>
-                    <strong>${vehicle.fuelType}</strong>
+            <div class="side-info">
+                <div class="side-info-label">Tiền đặt cọc</div>
+                <div class="side-info-value">
+                    <fmt:formatNumber value="${vehicle.depositAmount}" type="number" maxFractionDigits="0"/> đ
                 </div>
             </div>
 
-            <div class="feature-list">
-                <div>
-                    <i class="fa-solid fa-circle-check"></i>
-                    Phù hợp di chuyển du lịch, công tác và đưa đón theo lịch trình.
-                </div>
-
-                <div>
-                    <i class="fa-solid fa-circle-check"></i>
-                    Giá thuê rõ ràng theo ngày, dễ tính chi phí trong giỏ hàng.
-                </div>
-
-                <div>
-                    <i class="fa-solid fa-circle-check"></i>
-                    Thông tin xe được đồng bộ trực tiếp từ hệ thống WonderVN.
+            <div class="side-info">
+                <div class="side-info-label">Địa điểm nhận xe</div>
+                <div class="side-info-value">${vehicle.pickupProvince}</div>
+                <div class="side-info-sub">
+                    ${vehicle.pickupDistrict}
+                    <c:if test="${not empty vehicle.pickupWard}">
+                        , ${vehicle.pickupWard}
+                    </c:if>
                 </div>
             </div>
 
-            <c:choose>
-                <c:when test="${vehicle.status == 'Available'}">
-                    <div class="action-row">
-                        <button class="rent-btn" type="button"
-                                onclick="alert('Chức năng thuê xe sẽ được phát triển ở bước tiếp theo.');">
-                            Thuê ngay
-                        </button>
+            <button type="button" class="btn-book">
+                <i class="fa-solid fa-cart-plus me-2"></i>
+                Thêm vào giỏ thuê
+            </button>
 
-                        <button class="cart-btn-detail" type="button"
-                                onclick="alert('Chức năng thêm xe vào giỏ hàng sẽ được phát triển ở bước tiếp theo.');">
-                            Thêm vào giỏ hàng
-                        </button>
-                    </div>
-                </c:when>
+            <a href="${pageContext.request.contextPath}/vehicle" class="btn-back">
+                <i class="fa-solid fa-list me-2"></i>
+                Xem danh sách xe
+            </a>
 
-                <c:otherwise>
-                    <div class="action-row">
-                        <button class="rent-btn" type="button" disabled>
-                            Tạm không khả dụng
-                        </button>
+            <div class="quick-tips">
+                <div class="tip-item">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Kiểm tra thông tin xe và địa điểm nhận trước khi đặt.</span>
+                </div>
 
-                        <button class="cart-btn-detail disabled" type="button" disabled>
-                            Không thể thêm vào giỏ
-                        </button>
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </div>
+                <div class="tip-item">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Giá thuê có thể thay đổi theo thời gian thuê và chính sách dịch vụ.</span>
+                </div>
+
+                <div class="tip-item">
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Tiền đặt cọc được dùng để đảm bảo quá trình thuê xe.</span>
+                </div>
+            </div>
+        </aside>
     </div>
+</div>
 
-    <div class="suggestion-section">
-        <h2>Thông tin hỗ trợ thuê xe</h2>
+<jsp:include page="/views/common/client-footer.jsp"/>
 
-        <div class="suggestion-grid">
-            <div class="suggestion-box">
-                <i class="fa-solid fa-calendar-days"></i>
-                <h4>Thuê theo ngày</h4>
-                <p>Phù hợp với khách cần xe trong nhiều ngày hoặc theo lịch trình du lịch cá nhân.</p>
-            </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-            <div class="suggestion-box">
-                <i class="fa-solid fa-shield-halved"></i>
-                <h4>An toàn & rõ ràng</h4>
-                <p>Thông tin xe, biển số, giá thuê và trạng thái được kiểm soát từ hệ thống quản trị.</p>
-            </div>
-
-            <div class="suggestion-box">
-                <i class="fa-solid fa-cart-shopping"></i>
-                <h4>Sẵn sàng tích hợp giỏ hàng</h4>
-                <p>Bước tiếp theo có thể chọn ngày thuê, số ngày thuê và thêm xe vào cart.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<jsp:include page="/WEB-INF/common/homepage/footer.jsp" />
-
-<script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
 </body>
 </html>

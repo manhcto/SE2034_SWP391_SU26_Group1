@@ -1,446 +1,483 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>WonderVN | Khách sạn & Lưu trú</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --dark: #0f172a;
+            --text: #1e293b;
+            --muted: #64748b;
+            --bg: #f3f6fb;
+            --border: #e2e8f0;
+            --shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+            --shadow-hover: 0 22px 46px rgba(15, 23, 42, 0.14);
+        }
+
         body {
-            background: #f4f7fb;
-            color: #0f172a;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-size: 15px;
         }
 
-        .page-top-space {
-            height: 24px;
-        }
-
-        .acc-hero {
-            background:
-                    radial-gradient(circle at top right, rgba(255,255,255,0.10), transparent 20%),
-                    linear-gradient(135deg, #081a4b, #2563eb);
+        .accom-hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
             color: white;
-            padding: 64px 0 120px;
+            padding: 54px 0 105px;
         }
 
-        .acc-container {
-            max-width: 1240px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .acc-breadcrumb {
+        .hero-badge {
             display: inline-flex;
-            align-items: center;
             gap: 8px;
-            padding: 10px 16px;
+            align-items: center;
+            padding: 9px 15px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.16);
-            font-weight: 700;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.22);
+            font-weight: 800;
             margin-bottom: 18px;
         }
 
-        .acc-hero h1 {
-            font-size: 56px;
-            line-height: 1.1;
-            margin: 0 0 16px;
+        .accom-hero h1 {
             max-width: 780px;
-            font-weight: 800;
+            font-size: 40px;
+            font-weight: 900;
+            line-height: 1.18;
+            letter-spacing: -0.6px;
+            margin-bottom: 14px;
         }
 
-        .acc-hero p {
-            font-size: 18px;
-            line-height: 1.8;
+        .accom-hero p {
+            max-width: 780px;
             color: #dbeafe;
-            max-width: 760px;
+            font-size: 16px;
+            line-height: 1.75;
             margin: 0;
         }
 
-        .search-wrap {
-            max-width: 1240px;
-            margin: -56px auto 40px;
-            padding: 0 20px;
+        .content-wrap {
+            margin-top: -62px;
             position: relative;
             z-index: 5;
         }
 
-        .search-box {
-            background: #fff;
-            border-radius: 28px;
-            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
+        .back-toolbar {
+            margin-bottom: 16px;
+        }
+
+        .btn-back-page {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 11px 18px;
+            border-radius: 999px;
+            background: white;
+            color: var(--dark);
+            border: 1px solid #dbe3ef;
+            text-decoration: none;
+            font-weight: 800;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+        }
+
+        .search-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
             padding: 24px;
-            display: grid;
-            grid-template-columns: 1.6fr 1fr auto;
-            gap: 16px;
-            align-items: end;
+            box-shadow: var(--shadow);
         }
 
-        .search-group label {
-            display: block;
+        .form-label {
+            font-size: 13px;
             font-weight: 800;
-            margin-bottom: 8px;
-            color: #1e293b;
+            color: #475569;
+            margin-bottom: 7px;
         }
 
-        .search-group input,
-        .search-group select {
-            width: 100%;
-            border: 1px solid #dbe4f0;
-            border-radius: 16px;
-            padding: 14px 16px;
+        .form-control,
+        .form-select {
+            height: 48px;
+            border-radius: 14px;
+            border: 1px solid #dbe3ef;
             font-size: 15px;
-            outline: none;
-            background: #fff;
         }
 
-        .search-group input:focus,
-        .search-group select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
-        }
-
-        .search-btn {
+        .btn-search {
+            height: 48px;
             border: none;
-            border-radius: 16px;
-            background: #081a4b;
-            color: #fff;
-            padding: 15px 22px;
+            border-radius: 14px;
+            background: var(--dark);
+            color: white;
             font-weight: 800;
-            font-size: 16px;
-            min-width: 160px;
-            height: 52px;
+            width: 100%;
         }
 
-        .acc-section {
-            max-width: 1240px;
-            margin: 0 auto;
-            padding: 0 20px 70px;
-        }
-
-        .section-head {
-            margin-bottom: 26px;
-        }
-
-        .section-head h2 {
-            font-size: 44px;
-            margin: 0 0 10px;
+        .btn-reset {
+            height: 48px;
+            border-radius: 14px;
+            border: 1px solid #dbe3ef;
+            background: white;
+            color: #475569;
             font-weight: 800;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
         }
 
-        .section-head p {
+        .page-heading {
+            margin: 44px 0 22px;
+        }
+
+        .page-heading h2 {
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--dark);
+            margin-bottom: 6px;
+        }
+
+        .page-heading p {
+            color: var(--muted);
             margin: 0;
-            color: #64748b;
-            font-size: 18px;
         }
 
-        .hotel-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 28px;
-        }
-
-        .hotel-card {
-            background: #fff;
-            border-radius: 28px;
+        .accom-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.10);
-            border: 1px solid #e2e8f0;
-            transition: all 0.25s ease;
+            height: 100%;
+            box-shadow: var(--shadow);
+            transition: 0.22s ease;
         }
 
-        .hotel-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 24px 50px rgba(15, 23, 42, 0.16);
+        .accom-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
         }
 
-        .hotel-image {
+        .accom-img-box {
+            height: 230px;
             position: relative;
-            height: 320px;
             overflow: hidden;
-            background: #e5e7eb;
+            background: #e2e8f0;
         }
 
-        .hotel-image img {
+        .accom-img-box img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
+            transition: 0.35s ease;
         }
 
-        .hotel-badge {
+        .accom-card:hover .accom-img-box img {
+            transform: scale(1.05);
+        }
+
+        .type-badge,
+        .rating-badge {
             position: absolute;
-            top: 18px;
-            left: 18px;
-            background: #0f172a;
-            color: #fff;
-            padding: 9px 14px;
-            border-radius: 14px;
+            top: 16px;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 12.5px;
             font-weight: 800;
-            font-size: 14px;
+            display: inline-flex;
+            gap: 7px;
+            align-items: center;
         }
 
-        .hotel-status {
-            position: absolute;
-            top: 18px;
-            right: 18px;
-            background: #22c55e;
-            color: #fff;
-            padding: 9px 14px;
-            border-radius: 14px;
-            font-weight: 800;
-            font-size: 14px;
+        .type-badge {
+            left: 16px;
+            background: rgba(15, 23, 42, 0.9);
+            color: white;
         }
 
-        .hotel-body {
-            padding: 24px 28px 28px;
+        .rating-badge {
+            right: 16px;
+            background: #facc15;
+            color: #713f12;
         }
 
-        .hotel-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 18px;
+        .accom-body {
+            padding: 21px;
+        }
+
+        .accom-name {
+            font-size: 21px;
+            font-weight: 900;
+            color: var(--dark);
+            line-height: 1.3;
+            min-height: 54px;
             margin-bottom: 10px;
         }
 
-        .hotel-top h3 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 800;
-            line-height: 1.35;
-            flex: 1;
-        }
-
-        .hotel-rate {
-            white-space: nowrap;
-            color: #0f172a;
-            font-weight: 800;
-            font-size: 18px;
-        }
-
-        .hotel-rate i {
-            color: #facc15;
-            margin-right: 4px;
-        }
-
-        .hotel-location {
-            color: #64748b;
-            font-size: 16px;
+        .location {
+            display: flex;
+            gap: 9px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.55;
             margin-bottom: 14px;
         }
 
-        .hotel-location i {
-            color: #0ea5e9;
-            margin-right: 8px;
+        .location i {
+            color: #06b6d4;
+            margin-top: 3px;
         }
 
-        .hotel-desc {
-            color: #475569;
-            line-height: 1.8;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        .hotel-tags {
+        .facility-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin: 14px 0 16px;
         }
 
-        .hotel-tags span {
-            background: #0f766e;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 700;
+        .facility-pill {
+            background: #ecfeff;
+            color: #155e75;
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-size: 12.5px;
+            font-weight: 800;
         }
 
-        .hotel-meta {
+        .desc {
+            color: #475569;
+            line-height: 1.65;
+            font-size: 14.5px;
+            min-height: 72px;
+            margin-bottom: 16px;
+        }
+
+        .bottom-row {
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 18px;
-            margin-bottom: 20px;
-            color: #64748b;
-            font-size: 15px;
+            gap: 14px;
         }
 
-        .hotel-meta div i {
-            margin-right: 8px;
-            color: #2563eb;
+        .price {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--dark);
+            line-height: 1.1;
         }
 
-        .hotel-footer {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
+        .price-unit {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 3px;
         }
 
-        .detail-btn {
-            background: linear-gradient(135deg, #0f172a, #1d4ed8);
-            color: #fff;
-            text-decoration: none;
-            padding: 14px 18px;
+        .btn-detail {
+            background: var(--primary);
+            color: white;
             border-radius: 14px;
+            text-decoration: none;
+            padding: 10px 14px;
             font-weight: 800;
-            transition: all 0.2s ease;
+            font-size: 14px;
+            white-space: nowrap;
         }
 
-        .detail-btn:hover {
-            color: #fff;
-            opacity: 0.95;
-            transform: translateY(-1px);
-        }
-
-        .empty-box {
-            background: #fff;
+        .empty-state {
+            background: white;
             border-radius: 24px;
-            padding: 60px 20px;
+            border: 1px solid var(--border);
+            padding: 56px 20px;
             text-align: center;
-            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
-        }
-
-        .empty-box i {
-            font-size: 48px;
-            margin-bottom: 16px;
-            color: #94a3b8;
-        }
-
-        @media (max-width: 992px) {
-            .search-box,
-            .hotel-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .acc-hero h1 {
-                font-size: 42px;
-            }
-
-            .section-head h2 {
-                font-size: 34px;
-            }
+            box-shadow: var(--shadow);
         }
     </style>
 </head>
+
 <body>
 
-<jsp:include page="/WEB-INF/common/homepage/header.jsp" />
+<jsp:include page="/views/common/client-header.jsp"/>
 
-<div class="page-top-space"></div>
-
-<section class="acc-hero">
-    <div class="acc-container">
-        <div class="acc-breadcrumb">
+<section class="accom-hero">
+    <div class="container">
+        <div class="hero-badge">
             <i class="fa-solid fa-hotel"></i>
             WonderVN Accommodation
         </div>
+
         <h1>Tìm nơi lưu trú phù hợp cho hành trình của bạn</h1>
+
         <p>
-            Khám phá khách sạn, homestay, resort và căn hộ dịch vụ với không gian đẹp,
-            mức giá rõ ràng và trải nghiệm lưu trú chỉn chu.
+            Khám phá khách sạn, homestay, resort và căn hộ dịch vụ với thông tin phòng,
+            tiện ích, giá và vị trí rõ ràng.
         </p>
     </div>
 </section>
 
-<section class="search-wrap">
-    <form class="search-box" action="${pageContext.request.contextPath}/accommodation" method="get">
-        <div class="search-group">
-            <label>Tìm theo tên, địa chỉ hoặc mô tả</label>
-            <input type="text" name="keyword" value="${keyword}"
-                   placeholder="VD: Đà Nẵng, homestay, resort gần biển...">
-        </div>
-
-        <div class="search-group">
-            <label>Loại hình lưu trú</label>
-            <select name="type">
-                <option value="all" ${empty selectedType || selectedType == 'all' ? 'selected' : ''}>Tất cả</option>
-                <option value="Khách sạn" ${selectedType == 'Khách sạn' ? 'selected' : ''}>Khách sạn</option>
-                <option value="Homestay" ${selectedType == 'Homestay' ? 'selected' : ''}>Homestay</option>
-                <option value="Resort" ${selectedType == 'Resort' ? 'selected' : ''}>Resort</option>
-                <option value="Apartment" ${selectedType == 'Apartment' ? 'selected' : ''}>Apartment</option>
-            </select>
-        </div>
-
-        <button class="search-btn" type="submit">
-            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+<div class="container content-wrap">
+    <div class="back-toolbar">
+        <button type="button" class="btn-back-page" onclick="history.back()">
+            <i class="fa-solid fa-arrow-left"></i>
+            Quay lại trang trước
         </button>
-    </form>
-</section>
+    </div>
 
-<section class="acc-section">
-    <div class="section-head">
+    <form class="search-panel" action="${pageContext.request.contextPath}/accommodation" method="get">
+        <div class="row g-3 align-items-end">
+            <div class="col-xl-3 col-lg-4 col-md-6">
+                <label class="form-label">Tìm kiếm</label>
+                <input class="form-control" name="keyword" value="${keyword}"
+                       placeholder="VD: Hà Nội, resort, gần biển...">
+            </div>
+
+            <div class="col-xl-2 col-lg-4 col-md-6">
+                <label class="form-label">Tỉnh/thành</label>
+                <input class="form-control" name="province" value="${selectedProvince}" placeholder="VD: Hà Nội">
+            </div>
+
+            <div class="col-xl-2 col-lg-4 col-md-6">
+                <label class="form-label">Quận/huyện</label>
+                <input class="form-control" name="district" value="${selectedDistrict}" placeholder="VD: Hoàn Kiếm">
+            </div>
+
+            <div class="col-xl-2 col-lg-4 col-md-6">
+                <label class="form-label">Loại lưu trú</label>
+                <select class="form-select" name="type">
+                    <option value="">Tất cả</option>
+                    <option value="Hotel" ${selectedType == 'Hotel' ? 'selected' : ''}>Khách sạn</option>
+                    <option value="Homestay" ${selectedType == 'Homestay' ? 'selected' : ''}>Homestay</option>
+                    <option value="Resort" ${selectedType == 'Resort' ? 'selected' : ''}>Resort</option>
+                    <option value="Apartment" ${selectedType == 'Apartment' ? 'selected' : ''}>Căn hộ</option>
+                    <option value="Villa" ${selectedType == 'Villa' ? 'selected' : ''}>Villa</option>
+                </select>
+            </div>
+
+            <div class="col-xl-1 col-lg-4 col-md-6">
+                <label class="form-label">Khách</label>
+                <input class="form-control" type="number" min="1" name="guests" value="${selectedGuests}" placeholder="2">
+            </div>
+
+            <div class="col-xl-2 col-lg-4 col-md-6">
+                <label class="form-label">Giá từ</label>
+                <input class="form-control" type="number" min="0" step="1000" name="minPrice" value="${selectedMinPrice}">
+            </div>
+
+            <div class="col-xl-2 col-lg-4 col-md-6">
+                <label class="form-label">Giá đến</label>
+                <input class="form-control" type="number" min="0" step="1000" name="maxPrice" value="${selectedMaxPrice}">
+            </div>
+
+            <div class="col-xl-2 col-lg-4 col-md-6">
+                <label class="form-label">Đánh giá từ</label>
+                <input class="form-control" type="number" min="0" max="5" step="0.1" name="minRate" value="${selectedMinRate}">
+            </div>
+
+            <div class="col-xl-2 col-lg-4 col-md-6">
+                <label class="form-label d-none d-md-block">&nbsp;</label>
+                <button class="btn-search" type="submit">
+                    <i class="fa-solid fa-magnifying-glass me-2"></i>Tìm kiếm
+                </button>
+            </div>
+
+            <div class="col-xl-2 col-lg-4 col-md-6">
+                <label class="form-label d-none d-md-block">&nbsp;</label>
+                <a class="btn-reset" href="${pageContext.request.contextPath}/accommodation">
+                    <i class="fa-solid fa-rotate-left me-2"></i>Xóa lọc
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <div class="page-heading">
         <h2>Danh sách lưu trú</h2>
         <p>Lựa chọn nơi nghỉ phù hợp trước khi tiếp tục đặt dịch vụ.</p>
     </div>
 
     <c:choose>
         <c:when test="${empty accommodationList}">
-            <div class="empty-box">
-                <i class="fa-solid fa-hotel"></i>
-                <h3>Chưa tìm thấy nơi lưu trú phù hợp</h3>
-                <p>Hãy thử thay đổi từ khóa hoặc loại hình lưu trú.</p>
+            <div class="empty-state mb-5">
+                <i class="fa-solid fa-hotel fa-4x text-secondary opacity-50 mb-4"></i>
+                <h4 class="fw-bold">Không tìm thấy nơi lưu trú phù hợp</h4>
+                <p class="text-muted mb-0">Hãy thử thay đổi khu vực, loại lưu trú hoặc khoảng giá.</p>
             </div>
         </c:when>
 
         <c:otherwise>
-            <div class="hotel-grid">
-                <c:forEach var="acc" items="${accommodationList}">
-                    <div class="hotel-card">
-                        <div class="hotel-image">
-                            <img src="${acc.image}" alt="${acc.name}"
-                                 onerror="this.src='https://placehold.co/900x600?text=WonderVN+Accommodation';">
-                            <div class="hotel-badge">${acc.type}</div>
-                            <div class="hotel-status">Còn phòng</div>
-                        </div>
+            <div class="row g-4 mb-5">
+                <c:forEach var="a" items="${accommodationList}">
+                    <div class="col-xl-4 col-lg-6">
+                        <div class="accom-card">
+                            <div class="accom-img-box">
+                                <img src="${a.image}" alt="${a.name}"
+                                     onerror="this.src='https://placehold.co/900x600?text=WonderVN+Accommodation';">
 
-                        <div class="hotel-body">
-                            <div class="hotel-top">
-                                <h3>${acc.name}</h3>
-                                <div class="hotel-rate">
-                                    <i class="fa-solid fa-star"></i> ${acc.rate}
+                                <div class="type-badge">
+                                    <i class="fa-solid fa-hotel"></i>${a.displayType}
+                                </div>
+
+                                <div class="rating-badge">
+                                    <i class="fa-solid fa-star"></i>${a.rate}
                                 </div>
                             </div>
 
-                            <div class="hotel-location">
-                                <i class="fa-solid fa-location-dot"></i>${acc.address}
-                            </div>
+                            <div class="accom-body">
+                                <div class="accom-name">${a.name}</div>
 
-                            <div class="hotel-desc">
-                                <c:choose>
-                                    <c:when test="${not empty acc.description && acc.description.length() > 140}">
-                                        ${acc.description.substring(0, 140)}...
-                                    </c:when>
-                                    <c:otherwise>
-                                        ${acc.description}
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
+                                <div class="location">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <div>
+                                        <strong>${a.province}</strong><br>
+                                            ${a.district}
+                                        <c:if test="${not empty a.ward}">, ${a.ward}</c:if>
+                                    </div>
+                                </div>
 
-                            <div class="hotel-tags">
-                                <span>WiFi miễn phí</span>
-                                <span>Check-in ${acc.checkInTime}</span>
-                                <span>Check-out ${acc.checkOutTime}</span>
-                            </div>
+                                <div class="facility-row">
+                                    <c:forEach var="f" items="${a.facilityList}" varStatus="st">
+                                        <c:if test="${st.index < 3}">
+                                            <span class="facility-pill">${f.icon} ${f.facilityName}</span>
+                                        </c:if>
+                                    </c:forEach>
+                                </div>
 
-                            <div class="hotel-meta">
-                                <div><i class="fa-solid fa-phone"></i>${acc.phone}</div>
-                                <div><i class="fa-solid fa-bed"></i> Xem chi tiết phòng</div>
-                            </div>
+                                <div class="desc">
+                                    <c:choose>
+                                        <c:when test="${not empty a.description}">
+                                            ${a.description}
+                                        </c:when>
+                                        <c:otherwise>
+                                            Nơi lưu trú phù hợp cho du lịch, công tác và kỳ nghỉ cùng gia đình.
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
 
-                            <div class="hotel-footer">
-                                <a class="detail-btn"
-                                   href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.serviceID}">
-                                    Xem chi tiết
-                                </a>
+                                <div class="bottom-row">
+                                    <div>
+                                        <div class="price">
+                                            <fmt:formatNumber value="${a.minRoomPrice}" type="number" maxFractionDigits="0"/> đ
+                                        </div>
+                                        <div class="price-unit">từ / đêm</div>
+                                    </div>
+
+                                    <a class="btn-detail"
+                                       href="${pageContext.request.contextPath}/accommodation/detail?id=${a.serviceID}">
+                                        Xem chi tiết
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -448,9 +485,11 @@
             </div>
         </c:otherwise>
     </c:choose>
-</section>
+</div>
 
-<jsp:include page="/WEB-INF/common/homepage/footer.jsp" />
-<script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
+<jsp:include page="/views/common/client-footer.jsp"/>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

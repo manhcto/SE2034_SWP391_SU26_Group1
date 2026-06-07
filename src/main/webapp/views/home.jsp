@@ -43,7 +43,7 @@
 </head>
 
 <body>
-<jsp:include page="/WEB-INF/common/homepage/header.jsp" />
+<jsp:include page="/views/common/client-header.jsp" />
 
 <main>
     <section class="hero">
@@ -331,11 +331,11 @@
                 <p>Đặt phòng theo ngày đi và nhu cầu lưu trú.</p>
             </a>
 
-            <article class="service-card">
+            <a class="service-card" href="${pageContext.request.contextPath}/vehicle">
                 <span>🚗</span>
                 <h3>Thuê xe</h3>
-                <p>Xe du lịch có tài xế, hỗ trợ đón trả theo lịch.</p>
-            </article>
+                <p>Xe du lịch, xe máy, SUV, Limousine hỗ trợ nhận xe theo địa điểm.</p>
+            </a>
 
             <article class="service-card">
                 <span>🎟️</span>
@@ -352,7 +352,7 @@
     </section>
 </main>
 
-<jsp:include page="/WEB-INF/common/homepage/footer.jsp" />
+<jsp:include page="/views/common/client-footer.jsp" />
 
 <button class="scroll-top" id="scrollTop" type="button">↑</button>
 

@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -6,541 +6,768 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVn | Chi tiết lưu trú</title>
+    <title>WonderVN | Chi tiết nơi lưu trú</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --dark: #0f172a;
+            --muted: #64748b;
+            --bg: #f3f6fb;
+            --border: #e2e8f0;
+            --soft: #f8fafc;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+        }
+
         body {
-            background: #f4f7fb;
-            font-family: Arial, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #1e293b;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-main {
+            flex: 1;
+            min-width: 0;
+            padding: 28px;
+        }
+
+        .back-btn {
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 999px;
+            padding: 10px 16px;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 800;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .back-btn:hover {
+            background: #f8fafc;
+            color: var(--primary);
         }
 
         .hero-card {
-            border: none;
-            border-radius: 24px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 26px;
             overflow: hidden;
-            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
         }
 
         .hero-img {
             width: 100%;
-            height: 260px;
+            height: 340px;
             object-fit: cover;
+            background: #e2e8f0;
+        }
+
+        .hero-body {
+            padding: 26px;
+        }
+
+        .hero-title {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--dark);
+            margin-bottom: 8px;
+            letter-spacing: -0.4px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 22px;
         }
 
         .info-card {
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
         }
 
-        .btn-primary {
-            background-color: #4e46dc;
-            border-color: #4e46dc;
+        .info-card i {
+            color: var(--primary);
+            font-size: 20px;
+            margin-bottom: 10px;
         }
 
-        .btn-primary:hover {
-            background-color: #3b34b6;
-            border-color: #3b34b6;
+        .info-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
         }
 
-        .badge-soft-success {
-            background: #dcfce7;
-            color: #166534;
+        .info-value {
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--dark);
+            margin-top: 4px;
         }
 
-        .badge-soft-danger {
-            background: #fee2e2;
-            color: #991b1b;
+        .section-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 24px;
         }
 
-        .badge-soft-warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .room-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #4e46dc, #7c3aed);
-            color: white;
+        .section-head {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .section-head h2 {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--dark);
+            margin: 0;
+        }
+
+        .btn-main {
+            border: none;
+            border-radius: 14px;
+            background: var(--primary);
+            color: white;
+            padding: 11px 16px;
+            font-weight: 800;
+            display: inline-flex;
+            gap: 8px;
             align-items: center;
             justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
         }
 
-        .form-control, .form-select {
-            border-radius: 12px;
-            padding: 10px 12px;
+        .btn-main:hover {
+            background: var(--primary-dark);
+            color: white;
+        }
+
+        .room-card {
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            overflow: hidden;
+            background: white;
+            height: 100%;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+        }
+
+        .room-img {
+            height: 180px;
+            width: 100%;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+
+        .room-body {
+            padding: 18px;
+        }
+
+        .room-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .room-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .pill {
+            background: #eef2ff;
+            color: #3730a3;
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-size: 12.5px;
+            font-weight: 800;
+        }
+
+        .facility-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .facility-pill {
+            background: #ecfeff;
+            color: #155e75;
+            border-radius: 999px;
+            padding: 9px 12px;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 13px;
+            min-height: 46px;
+            border: 1px solid #dbe3ef;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        textarea.form-control {
+            min-height: 96px;
+        }
+
+        .modal-dialog {
+            max-height: 94vh;
         }
 
         .modal-content {
-            border-radius: 22px;
+            border: none;
+            border-radius: 24px;
+            overflow: hidden;
+            max-height: 94vh;
         }
 
-        .action-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
+        .modal-header {
+            flex-shrink: 0;
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 20px 24px;
         }
 
-        .invalid-feedback {
-            font-size: 13px;
+        .modal-title {
+            font-weight: 900;
+        }
+
+        .modal-header .btn-close {
+            display: block !important;
+            filter: invert(1) grayscale(100%) brightness(200%);
+            opacity: 0.9;
+        }
+
+        .modal-header .btn-close:hover {
+            opacity: 1;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(94vh - 145px);
+        }
+
+        .modal-footer {
+            flex-shrink: 0;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            padding: 16px 24px;
+        }
+
+        .modal-footer .btn-light,
+        .modal-footer [data-bs-dismiss="modal"] {
+            display: none !important;
+        }
+
+        .facility-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .facility-item {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: var(--soft);
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-weight: 600;
+            color: #334155;
+        }
+
+        .facility-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .facility-item i {
+            color: var(--primary);
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .facility-pill {
+            background: #ecfeff;
+            color: #155e75;
+            border-radius: 999px;
+            padding: 9px 12px;
+            font-weight: 800;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .facility-pill i {
+            color: var(--primary);
+        }
+
+        .input-error {
+            border-color: var(--danger) !important;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.10) !important;
+        }
+
+        .input-success {
+            border-color: var(--success) !important;
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.10) !important;
+        }
+
+        .live-error {
+            display: block;
+            color: var(--danger);
+            font-size: 12.5px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 992px) {
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .facility-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .section-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .admin-main {
+                padding: 18px;
+            }
+
+            .info-grid,
+            .facility-list {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 
 <body>
-<div class="container-fluid py-4 px-4">
 
-    <c:if test="${not empty sessionScope.errors}">
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4">
-            <div class="fw-bold mb-2">
-                <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                Dữ liệu nhập vào chưa hợp lệ
-            </div>
+<div class="admin-layout">
+    <jsp:include page="/views/common/admin-sidebar.jsp"/>
 
-            <ul class="mb-0">
-                <c:forEach var="err" items="${sessionScope.errors}">
-                    <li>${err}</li>
-                </c:forEach>
-            </ul>
+    <main class="admin-main">
+        <jsp:include page="/views/common/admin-header.jsp"/>
 
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-
-        <c:remove var="errors" scope="session"/>
-    </c:if>
-
-    <c:if test="${not empty param.status}">
-        <c:choose>
-            <c:when test="${param.status == 'addRoomSuccess'}">
-                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4">
-                    <i class="fa-solid fa-circle-check me-2"></i> Thêm phòng thành công.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            </c:when>
-
-            <c:when test="${param.status == 'updateRoomSuccess'}">
-                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4">
-                    <i class="fa-solid fa-circle-check me-2"></i> Cập nhật phòng thành công.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            </c:when>
-
-            <c:when test="${param.status == 'deleteRoomSuccess'}">
-                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4">
-                    <i class="fa-solid fa-trash me-2"></i> Xóa phòng thành công.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            </c:when>
-
-            <c:when test="${param.status == 'validationFail'}"></c:when>
-
-            <c:otherwise>
-                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-4">
-                    <i class="fa-solid fa-circle-exclamation me-2"></i> Thao tác thất bại. Vui lòng kiểm tra lại dữ liệu.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            </c:otherwise>
-        </c:choose>
-    </c:if>
-
-    <div class="mb-3">
-        <a href="${pageContext.request.contextPath}/staff/accommodation?action=list"
-           class="btn btn-light border rounded-4 px-4">
-            <i class="fa-solid fa-arrow-left me-2"></i> Quay lại danh sách
+        <a class="back-btn" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
+            <i class="fa-solid fa-arrow-left"></i>
+            Quay lại danh sách
         </a>
-    </div>
 
-    <div class="card hero-card mb-4">
-        <div class="row g-0">
-            <div class="col-md-4">
-                <img src="${accommodation.image}" class="hero-img"
-                     onerror="this.src='https://placehold.co/600x400?text=Accommodation';">
+        <c:if test="${not empty sessionScope.errors}">
+            <div class="alert alert-danger rounded-4 border-0 mb-4">
+                <strong>Dữ liệu nhập vào chưa hợp lệ</strong>
+                <ul class="mb-0 mt-2">
+                    <c:forEach var="err" items="${sessionScope.errors}">
+                        <li>${err}</li>
+                    </c:forEach>
+                </ul>
             </div>
+            <c:remove var="errors" scope="session"/>
+        </c:if>
 
-            <div class="col-md-8">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h2 class="fw-bold mb-2">${accommodation.name}</h2>
+        <div class="hero-card">
+            <img class="hero-img" src="${accommodation.image}" alt="${accommodation.name}"
+                 onerror="this.src='https://placehold.co/1200x600?text=WonderVN+Accommodation';">
 
-                            <p class="text-muted mb-2">
-                                <i class="fa-solid fa-location-dot text-danger me-2"></i>
-                                ${accommodation.address}
-                            </p>
+            <div class="hero-body">
+                <h1 class="hero-title">${accommodation.name}</h1>
 
-                            <p class="text-muted mb-2">
-                                <i class="fa-solid fa-phone me-2"></i>
-                                ${accommodation.phone}
-                            </p>
-                        </div>
+                <div class="muted">
+                    <i class="fa-solid fa-location-dot text-info me-1"></i>
+                    ${accommodation.fullAddress}
+                </div>
 
-                        <c:choose>
-                            <c:when test="${accommodation.status == 'Available'}">
-                                <span class="badge badge-soft-success rounded-pill px-3 py-2">Available</span>
-                            </c:when>
+                <p class="mt-3 mb-0">${accommodation.description}</p>
 
-                            <c:when test="${accommodation.status == 'Maintenance'}">
-                                <span class="badge badge-soft-warning rounded-pill px-3 py-2">Maintenance</span>
-                            </c:when>
-
-                            <c:otherwise>
-                                <span class="badge badge-soft-danger rounded-pill px-3 py-2">
-                                        ${accommodation.status}
-                                </span>
-                            </c:otherwise>
-                        </c:choose>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <i class="fa-solid fa-hotel"></i>
+                        <div class="info-label">Loại lưu trú</div>
+                        <div class="info-value">${accommodation.displayType}</div>
                     </div>
 
-                    <hr>
+                    <div class="info-card">
+                        <i class="fa-solid fa-star"></i>
+                        <div class="info-label">Đánh giá</div>
+                        <div class="info-value">${accommodation.rate}/5</div>
+                    </div>
 
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <small class="text-muted">Service ID</small>
-                            <div class="fw-bold">#${accommodation.serviceID}</div>
-                        </div>
+                    <div class="info-card">
+                        <i class="fa-solid fa-clock"></i>
+                        <div class="info-label">Nhận / trả phòng</div>
+                        <div class="info-value">${accommodation.checkInText} - ${accommodation.checkOutText}</div>
+                    </div>
 
-                        <div class="col-md-3">
-                            <small class="text-muted">Loại hình</small>
-                            <div class="fw-bold">${accommodation.type}</div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <small class="text-muted">Check-in</small>
-                            <div class="fw-bold">${accommodation.checkInTime}</div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <small class="text-muted">Check-out</small>
-                            <div class="fw-bold">${accommodation.checkOutTime}</div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <small class="text-muted">Rate</small>
-                            <div class="fw-bold text-warning">
-                                <i class="fa-solid fa-star me-1"></i>${accommodation.rate}
-                            </div>
-                        </div>
-
-                        <div class="col-md-9">
-                            <small class="text-muted">Mô tả</small>
-                            <div class="fw-semibold">${accommodation.description}</div>
-                        </div>
+                    <div class="info-card">
+                        <i class="fa-solid fa-phone"></i>
+                        <div class="info-label">Liên hệ</div>
+                        <div class="info-value">${accommodation.phone}</div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ROOM LIST -->
-    <div class="card info-card">
-        <div class="card-header bg-white border-0 p-4 d-flex justify-content-between align-items-center">
-            <div>
-                <h4 class="fw-bold mb-1">
-                    <i class="fa-solid fa-bed text-primary me-2"></i>
-                    Danh sách phòng
-                </h4>
-                <p class="text-muted mb-0">Quản lý phòng thuộc cơ sở lưu trú này.</p>
+        <div class="section-card">
+            <div class="section-head">
+                <h2>Tiện ích nơi lưu trú</h2>
+
+                <button class="btn-main" data-bs-toggle="modal" data-bs-target="#accommodationFacilityModal">
+                    <i class="fa-solid fa-pen"></i>
+                    Cập nhật tiện ích
+                </button>
             </div>
 
-            <button class="btn btn-primary px-4 py-2 fw-bold"
-                    data-bs-toggle="modal" data-bs-target="#modalAddRoom">
-                <i class="fa-solid fa-plus me-2"></i> Thêm phòng
-            </button>
+            <div class="facility-wrap">
+                <c:choose>
+                    <c:when test="${empty accommodation.facilityList}">
+                        <span class="text-muted">Chưa có tiện ích.</span>
+                    </c:when>
+
+                    <c:otherwise>
+                        <c:forEach var="f" items="${accommodation.facilityList}">
+    <span class="facility-pill">
+        <i class="fa-solid ${f.icon}"></i>
+        ${f.facilityName}
+    </span>
+                        </c:forEach>
+                    </c:otherwise>
+                </c:choose>
+            </div>
         </div>
 
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                    <tr>
-                        <th class="ps-4">Phòng</th>
-                        <th>Số lượng</th>
-                        <th>Giá phòng</th>
-                        <th>Còn trống</th>
-                        <th>Trạng thái</th>
-                        <th class="text-end pe-4">Thao tác</th>
-                    </tr>
-                    </thead>
+        <div class="section-card">
+            <div class="section-head">
+                <h2>Danh sách phòng</h2>
 
-                    <tbody>
-                    <c:choose>
-                        <c:when test="${empty roomList}">
-                            <tr>
-                                <td colspan="6" class="text-center py-5">
-                                    <i class="fa-solid fa-bed fa-3x text-secondary opacity-50 mb-3"></i>
-                                    <h6 class="fw-bold text-secondary">Chưa có phòng nào</h6>
-                                    <p class="text-muted mb-0">Hãy thêm phòng đầu tiên cho cơ sở này.</p>
-                                </td>
-                            </tr>
-                        </c:when>
+                <button class="btn-main" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                    <i class="fa-solid fa-plus"></i>
+                    Thêm phòng
+                </button>
+            </div>
 
-                        <c:otherwise>
-                            <c:forEach var="room" items="${roomList}">
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="room-icon me-3">
-                                                <i class="fa-solid fa-bed"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">${room.roomType}</div>
-                                                <small class="text-muted">Room ID: #${room.roomID}</small>
-                                            </div>
+            <div class="row g-4">
+                <c:choose>
+                    <c:when test="${empty roomList}">
+                        <div class="col-12 text-center text-muted py-4">
+                            Chưa có phòng.
+                        </div>
+                    </c:when>
+
+                    <c:otherwise>
+                        <c:forEach var="r" items="${roomList}">
+                            <div class="col-xl-4 col-lg-6">
+                                <div class="room-card">
+                                    <img class="room-img" src="${r.image}" alt="${r.roomType}"
+                                         onerror="this.src='https://placehold.co/800x500?text=WonderVN+Room';">
+
+                                    <div class="room-body">
+                                        <div class="room-title">${r.roomType}</div>
+
+                                        <div class="text-muted small">${r.description}</div>
+
+                                        <div class="room-specs">
+                                            <span class="pill">
+                                                <i class="fa-solid fa-bed me-1"></i>
+                                                ${r.bedCount} ${r.displayBedType}
+                                            </span>
+
+                                            <span class="pill">
+                                                <i class="fa-solid fa-user me-1"></i>
+                                                ${r.maxAdults} NL
+                                            </span>
+
+                                            <span class="pill">
+                                                <i class="fa-solid fa-child me-1"></i>
+                                                ${r.maxChildren} TE
+                                            </span>
+
+                                            <span class="pill">
+                                                <i class="fa-solid fa-ruler-combined me-1"></i>
+                                                ${r.roomSize} m²
+                                            </span>
                                         </div>
-                                    </td>
 
-                                    <td class="fw-bold">${room.numberOfRooms}</td>
-
-                                    <td class="fw-bold text-primary">
-                                        <fmt:formatNumber value="${room.priceOfRoom}" type="number" maxFractionDigits="0"/> VND
-                                    </td>
-
-                                    <td class="fw-bold">${room.roomAvailability}</td>
-
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${room.status == 'Available'}">
-                                                <span class="badge badge-soft-success rounded-pill px-3 py-2">Available</span>
-                                            </c:when>
-
-                                            <c:when test="${room.status == 'Maintenance'}">
-                                                <span class="badge badge-soft-warning rounded-pill px-3 py-2">Maintenance</span>
-                                            </c:when>
-
-                                            <c:otherwise>
-                                                <span class="badge badge-soft-danger rounded-pill px-3 py-2">
-                                                        ${room.status}
-                                                </span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-
-                                    <td class="text-end pe-4">
-                                        <button class="btn btn-light action-btn text-warning border"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#modalEditRoom${room.roomID}">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </button>
-
-                                        <a href="${pageContext.request.contextPath}/staff/room?action=delete&id=${room.roomID}&serviceID=${accommodation.serviceID}"
-                                           class="btn btn-light action-btn text-danger border"
-                                           onclick="return confirm('Bạn có chắc muốn xóa phòng này không?');">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-
-                                <!-- EDIT ROOM MODAL -->
-                                <div class="modal fade" id="modalEditRoom${room.roomID}" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 shadow-lg">
-                                            <form action="${pageContext.request.contextPath}/staff/room"
-                                                  method="POST"
-                                                  class="room-form"
-                                                  novalidate>
-                                                <input type="hidden" name="action" value="update">
-                                                <input type="hidden" name="serviceID" value="${accommodation.serviceID}">
-                                                <input type="hidden" name="roomID" value="${room.roomID}">
-
-                                                <div class="modal-header border-0 p-4 pb-2">
-                                                    <h5 class="fw-bold mb-0">
-                                                        <i class="fa-solid fa-pen-to-square text-warning me-2"></i>
-                                                        Cập nhật phòng
-                                                    </h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        <div class="d-flex justify-content-between align-items-end mt-3">
+                                            <div>
+                                                <div class="fw-bold fs-5">
+                                                    <fmt:formatNumber value="${r.priceOfRoom}" type="number" maxFractionDigits="0"/> đ
                                                 </div>
 
-                                                <div class="modal-body p-4">
-                                                    <div class="row g-3">
-                                                        <div class="col-12">
-                                                            <label class="form-label fw-bold small text-secondary">Loại phòng</label>
-                                                            <input type="text"
-                                                                   name="roomType"
-                                                                   class="form-control room-type-input"
-                                                                   value="${room.roomType}"
-                                                                   minlength="2"
-                                                                   maxlength="100"
-                                                                   required>
-                                                            <div class="invalid-feedback">
-                                                                Loại phòng phải từ 2 đến 100 ký tự.
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold small text-secondary">Số lượng phòng</label>
-                                                            <input type="number"
-                                                                   name="numberOfRooms"
-                                                                   class="form-control room-total-input"
-                                                                   min="1"
-                                                                   max="1000"
-                                                                   value="${room.numberOfRooms}"
-                                                                   required>
-                                                            <div class="invalid-feedback">
-                                                                Số lượng phòng phải từ 1 đến 1000.
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold small text-secondary">Số phòng còn trống</label>
-                                                            <input type="number"
-                                                                   name="roomAvailability"
-                                                                   class="form-control room-available-input"
-                                                                   min="0"
-                                                                   max="1000"
-                                                                   value="${room.roomAvailability}"
-                                                                   required>
-                                                            <div class="invalid-feedback">
-                                                                Số phòng còn trống phải từ 0 đến tổng số phòng.
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold small text-secondary">Giá phòng</label>
-                                                            <input type="number"
-                                                                   name="priceOfRoom"
-                                                                   class="form-control room-price-input"
-                                                                   min="1000"
-                                                                   max="100000000"
-                                                                   step="1000"
-                                                                   value="${room.priceOfRoom}"
-                                                                   required>
-                                                            <div class="invalid-feedback">
-                                                                Giá phòng phải từ 1,000 đến 100,000,000 VND.
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="col-md-6">
-                                                            <label class="form-label fw-bold small text-secondary">Trạng thái</label>
-                                                            <select name="status" class="form-select" required>
-                                                                <option value="Available" <c:if test="${room.status == 'Available'}">selected</c:if>>Available</option>
-                                                                <option value="Unavailable" <c:if test="${room.status == 'Unavailable'}">selected</c:if>>Unavailable</option>
-                                                                <option value="Maintenance" <c:if test="${room.status == 'Maintenance'}">selected</c:if>>Maintenance</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
+                                                <div class="text-muted small">
+                                                    Còn ${r.roomAvailability}/${r.numberOfRooms} phòng
                                                 </div>
+                                            </div>
 
-                                                <div class="modal-footer border-0 p-4 pt-0">
-                                                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
-                                                    <button type="submit" class="btn btn-primary px-5">
-                                                        <i class="fa-solid fa-floppy-disk me-2"></i>Lưu thay đổi
-                                                    </button>
-                                                </div>
-                                            </form>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editRoomModal${r.roomID}">
+                                                    Sửa
+                                                </button>
+
+                                                <a class="btn btn-sm btn-outline-danger"
+                                                   onclick="return confirm('Bạn có chắc muốn xóa phòng này?')"
+                                                   href="${pageContext.request.contextPath}/staff/accommodation?action=deleteRoom&roomID=${r.roomID}&serviceID=${accommodation.serviceID}">
+                                                    Xóa
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                            </c:forEach>
-                        </c:otherwise>
-                    </c:choose>
-                    </tbody>
-                </table>
+                            <div class="modal fade" id="editRoomModal${r.roomID}" tabindex="-1">
+                                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                                    <div class="modal-content">
+                                        <form class="room-form"
+                                              action="${pageContext.request.contextPath}/staff/accommodation"
+                                              method="post"
+                                              novalidate>
+                                            <input type="hidden" name="action" value="updateRoom">
+                                            <input type="hidden" name="roomID" value="${r.roomID}">
+                                            <input type="hidden" name="serviceID" value="${accommodation.serviceID}">
+
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Cập nhật phòng</h5>
+                                                <button type="button" class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal" aria-label="Đóng"></button>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold">Loại phòng</label>
+                                                        <input class="form-control" name="roomType" value="${r.roomType}" required>
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold">Giá phòng</label>
+                                                        <input class="form-control" type="number" min="1" step="1000" name="priceOfRoom" value="${r.priceOfRoom}" required>
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold">Trạng thái</label>
+                                                        <select class="form-select" name="status">
+                                                            <option value="Available" ${r.status == 'Available' ? 'selected' : ''}>Còn phòng</option>
+                                                            <option value="Unavailable" ${r.status == 'Unavailable' ? 'selected' : ''}>Hết phòng</option>
+                                                            <option value="Maintenance" ${r.status == 'Maintenance' ? 'selected' : ''}>Bảo trì</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="col-md-3">
+                                                        <label class="form-label fw-bold">Tổng số phòng</label>
+                                                        <input class="form-control" type="number" min="1" name="numberOfRooms" value="${r.numberOfRooms}" required>
+                                                    </div>
+
+                                                    <div class="col-md-3">
+                                                        <label class="form-label fw-bold">Phòng còn trống</label>
+                                                        <input class="form-control" type="number" min="0" name="roomAvailability" value="${r.roomAvailability}" required>
+                                                    </div>
+
+                                                    <div class="col-md-3">
+                                                        <label class="form-label fw-bold">Số giường</label>
+                                                        <input class="form-control" type="number" min="1" max="20" name="bedCount" value="${r.bedCount}" required>
+                                                    </div>
+
+                                                    <div class="col-md-3">
+                                                        <label class="form-label fw-bold">Loại giường</label>
+                                                        <select class="form-select" name="bedType">
+                                                            <option value="Single" ${r.bedType == 'Single' ? 'selected' : ''}>Giường đơn</option>
+                                                            <option value="Double" ${r.bedType == 'Double' ? 'selected' : ''}>Giường đôi</option>
+                                                            <option value="Queen" ${r.bedType == 'Queen' ? 'selected' : ''}>Queen</option>
+                                                            <option value="King" ${r.bedType == 'King' ? 'selected' : ''}>King</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold">Người lớn tối đa</label>
+                                                        <input class="form-control" type="number" min="1" max="50" name="maxAdults" value="${r.maxAdults}" required>
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold">Trẻ em tối đa</label>
+                                                        <input class="form-control" type="number" min="0" max="50" name="maxChildren" value="${r.maxChildren}" required>
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <label class="form-label fw-bold">Diện tích m²</label>
+                                                        <input class="form-control" type="number" min="1" max="1000" step="0.1" name="roomSize" value="${r.roomSize}" required>
+                                                    </div>
+
+                                                    <div class="col-12">
+                                                        <label class="form-label fw-bold">Link ảnh phòng</label>
+                                                        <input class="form-control" name="image" value="${r.image}" required>
+                                                    </div>
+
+                                                    <div class="col-12">
+                                                        <label class="form-label fw-bold">Mô tả phòng</label>
+                                                        <textarea class="form-control" name="description" required>${r.description}</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button class="btn-main" type="submit">
+                                                    <i class="fa-solid fa-save"></i>
+                                                    Lưu thay đổi
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 
-<!-- ADD ROOM MODAL -->
-<div class="modal fade" id="modalAddRoom" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <form action="${pageContext.request.contextPath}/staff/room"
-                  method="POST"
-                  class="room-form"
+<div class="modal fade" id="addRoomModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <form class="room-form"
+                  action="${pageContext.request.contextPath}/staff/accommodation"
+                  method="post"
                   novalidate>
-                <input type="hidden" name="action" value="add">
+                <input type="hidden" name="action" value="addRoom">
                 <input type="hidden" name="serviceID" value="${accommodation.serviceID}">
 
-                <div class="modal-header border-0 p-4 pb-2">
-                    <h5 class="fw-bold mb-0">
-                        <i class="fa-solid fa-bed text-primary me-2"></i>
-                        Thêm phòng mới
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm phòng mới</h5>
+                    <button type="button" class="btn-close btn-close-white"
+                            data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
 
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label fw-bold small text-secondary">Loại phòng</label>
-                            <input type="text"
-                                   name="roomType"
-                                   class="form-control room-type-input"
-                                   placeholder="VD: Deluxe Double Room"
-                                   minlength="2"
-                                   maxlength="100"
-                                   required>
-                            <div class="invalid-feedback">
-                                Loại phòng phải từ 2 đến 100 ký tự.
-                            </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Loại phòng</label>
+                            <input class="form-control" name="roomType" placeholder="VD: Deluxe King" required>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-secondary">Số lượng phòng</label>
-                            <input type="number"
-                                   name="numberOfRooms"
-                                   class="form-control room-total-input"
-                                   min="1"
-                                   max="1000"
-                                   value="1"
-                                   required>
-                            <div class="invalid-feedback">
-                                Số lượng phòng phải từ 1 đến 1000.
-                            </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Giá phòng</label>
+                            <input class="form-control" type="number" min="1" step="1000" name="priceOfRoom" placeholder="1200000" required>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-secondary">Số phòng còn trống</label>
-                            <input type="number"
-                                   name="roomAvailability"
-                                   class="form-control room-available-input"
-                                   min="0"
-                                   max="1000"
-                                   value="1"
-                                   required>
-                            <div class="invalid-feedback">
-                                Số phòng còn trống phải từ 0 đến tổng số phòng.
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-secondary">Giá phòng</label>
-                            <input type="number"
-                                   name="priceOfRoom"
-                                   class="form-control room-price-input"
-                                   min="1000"
-                                   max="100000000"
-                                   step="1000"
-                                   placeholder="500000"
-                                   required>
-                            <div class="invalid-feedback">
-                                Giá phòng phải từ 1,000 đến 100,000,000 VND.
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small text-secondary">Trạng thái</label>
-                            <select name="status" class="form-select" required>
-                                <option value="Available">Available</option>
-                                <option value="Unavailable">Unavailable</option>
-                                <option value="Maintenance">Maintenance</option>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Trạng thái</label>
+                            <select class="form-select" name="status">
+                                <option value="Available">Còn phòng</option>
+                                <option value="Unavailable">Hết phòng</option>
+                                <option value="Maintenance">Bảo trì</option>
                             </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Tổng số phòng</label>
+                            <input class="form-control" type="number" min="1" name="numberOfRooms" value="1" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Phòng còn trống</label>
+                            <input class="form-control" type="number" min="0" name="roomAvailability" value="1" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Số giường</label>
+                            <input class="form-control" type="number" min="1" max="20" name="bedCount" value="1" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Loại giường</label>
+                            <select class="form-select" name="bedType">
+                                <option value="Single">Giường đơn</option>
+                                <option value="Double">Giường đôi</option>
+                                <option value="Queen">Queen</option>
+                                <option value="King">King</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Người lớn tối đa</label>
+                            <input class="form-control" type="number" min="1" max="50" name="maxAdults" value="2" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Trẻ em tối đa</label>
+                            <input class="form-control" type="number" min="0" max="50" name="maxChildren" value="0" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Diện tích m²</label>
+                            <input class="form-control" type="number" min="1" max="1000" step="0.1" name="roomSize" value="25" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Link ảnh phòng</label>
+                            <input class="form-control" name="image" placeholder="https://..." required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Mô tả phòng</label>
+                            <textarea class="form-control" name="description" placeholder="Mô tả tiện nghi, view, phong cách phòng..." required></textarea>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary px-5">
-                        <i class="fa-solid fa-plus me-2"></i>Thêm phòng
+                <div class="modal-footer">
+                    <button class="btn-main" type="submit">
+                        <i class="fa-solid fa-plus"></i>
+                        Thêm phòng
                     </button>
                 </div>
             </form>
@@ -548,124 +775,299 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<div class="modal fade" id="accommodationFacilityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form action="${pageContext.request.contextPath}/staff/accommodation" method="post">
+                <input type="hidden" name="action" value="updateAccommodationFacilities">
+                <input type="hidden" name="serviceID" value="${accommodation.serviceID}">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Cập nhật tiện ích nơi lưu trú</h5>
+                    <button type="button" class="btn-close btn-close-white"
+                            data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="facility-list">
+                        <c:forEach var="f" items="${accommodationFacilityOptions}">
+                            <c:set var="checked" value="false"/>
+
+                            <c:forEach var="af" items="${accommodation.facilityList}">
+                                <c:if test="${af.facilityID == f.facilityID}">
+                                    <c:set var="checked" value="true"/>
+                                </c:if>
+                            </c:forEach>
+
+                            <label class="facility-item">
+                                <input type="checkbox" name="facilityIDs" value="${f.facilityID}" ${checked ? 'checked' : ''}>
+                                <i class="fa-solid ${f.icon}"></i>
+                                <span>${f.facilityName}</span>
+                            </label>
+                        </c:forEach>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn-main" type="submit">
+                        <i class="fa-solid fa-save"></i>
+                        Lưu tiện ích
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const roomForms = document.querySelectorAll(".room-form");
+    function showFieldError(input, message) {
+        clearFieldError(input);
 
-        roomForms.forEach(function (form) {
-            const roomTypeInput = form.querySelector("input[name='roomType']");
-            const totalInput = form.querySelector("input[name='numberOfRooms']");
-            const availableInput = form.querySelector("input[name='roomAvailability']");
-            const priceInput = form.querySelector("input[name='priceOfRoom']");
+        input.classList.add("input-error");
+        input.classList.remove("input-success");
 
-            function setInvalid(input) {
-                input.classList.add("is-invalid");
-                input.classList.remove("is-valid");
-            }
+        const error = document.createElement("span");
+        error.className = "live-error";
+        error.innerText = message;
 
-            function setValid(input) {
-                input.classList.remove("is-invalid");
-                input.classList.add("is-valid");
-            }
+        input.insertAdjacentElement("afterend", error);
+    }
 
-            function validateRoomType() {
-                if (!roomTypeInput) return true;
+    function showFieldSuccess(input) {
+        clearFieldError(input);
 
-                const value = roomTypeInput.value.trim();
+        input.classList.remove("input-error");
+        input.classList.add("input-success");
+    }
 
-                if (value.length < 2 || value.length > 100) {
-                    setInvalid(roomTypeInput);
-                    return false;
-                }
+    function clearFieldError(input) {
+        input.classList.remove("input-error");
 
-                setValid(roomTypeInput);
-                return true;
-            }
+        const next = input.nextElementSibling;
+        if (next && next.classList.contains("live-error")) {
+            next.remove();
+        }
+    }
 
-            function validateTotalRooms() {
-                if (!totalInput) return true;
+    function getInput(form, name) {
+        return form.querySelector("[name='" + name + "']");
+    }
 
-                const total = Number(totalInput.value);
+    function isValidUrl(value) {
+        return /^https?:\/\/.+/i.test((value || "").trim());
+    }
 
-                if (!totalInput.value || total < 1 || total > 1000) {
-                    setInvalid(totalInput);
-                    return false;
-                }
+    function normalizeDecimal(value) {
+        return (value || "").trim().replace(",", ".");
+    }
 
-                setValid(totalInput);
-                return true;
-            }
+    function validateText(input, label, min, max) {
+        if (!input) return true;
 
-            function validateAvailableRooms() {
-                if (!availableInput || !totalInput) return true;
+        const value = input.value.trim();
 
-                const total = Number(totalInput.value);
-                const available = Number(availableInput.value);
+        if (value.length < min) {
+            showFieldError(input, label + " phải có ít nhất " + min + " ký tự.");
+            return false;
+        }
 
-                if (availableInput.value === "" || available < 0 || available > total || available > 1000) {
-                    setInvalid(availableInput);
-                    return false;
-                }
+        if (value.length > max) {
+            showFieldError(input, label + " không được vượt quá " + max + " ký tự.");
+            return false;
+        }
 
-                setValid(availableInput);
-                return true;
-            }
+        showFieldSuccess(input);
+        return true;
+    }
 
-            function validateRoomPrice() {
-                if (!priceInput) return true;
+    function validateUrlInput(input, label) {
+        if (!input) return true;
 
-                const price = Number(priceInput.value);
+        const value = input.value.trim();
 
-                if (!priceInput.value || price < 1000 || price > 100000000) {
-                    setInvalid(priceInput);
-                    return false;
-                }
+        if (value.length === 0) {
+            showFieldError(input, label + " không được để trống.");
+            return false;
+        }
 
-                setValid(priceInput);
-                return true;
-            }
+        if (!isValidUrl(value)) {
+            showFieldError(input, label + " phải bắt đầu bằng http:// hoặc https://.");
+            return false;
+        }
 
-            if (roomTypeInput) {
-                roomTypeInput.addEventListener("input", validateRoomType);
-                roomTypeInput.addEventListener("blur", validateRoomType);
-            }
+        showFieldSuccess(input);
+        return true;
+    }
 
-            if (totalInput) {
-                totalInput.addEventListener("input", function () {
-                    validateTotalRooms();
-                    validateAvailableRooms();
-                });
-                totalInput.addEventListener("blur", function () {
-                    validateTotalRooms();
-                    validateAvailableRooms();
-                });
-            }
+    function validateNumberRange(input, label, min, max, allowDecimal) {
+        if (!input) return true;
 
-            if (availableInput) {
-                availableInput.addEventListener("input", validateAvailableRooms);
-                availableInput.addEventListener("blur", validateAvailableRooms);
-            }
+        const raw = normalizeDecimal(input.value);
+        const number = Number(raw);
 
-            if (priceInput) {
-                priceInput.addEventListener("input", validateRoomPrice);
-                priceInput.addEventListener("blur", validateRoomPrice);
-            }
+        if (raw.length === 0 || Number.isNaN(number)) {
+            showFieldError(input, label + " phải là số hợp lệ.");
+            return false;
+        }
 
-            form.addEventListener("submit", function (event) {
-                const okType = validateRoomType();
-                const okTotal = validateTotalRooms();
-                const okAvailable = validateAvailableRooms();
-                const okPrice = validateRoomPrice();
+        if (!allowDecimal && !Number.isInteger(number)) {
+            showFieldError(input, label + " phải là số nguyên.");
+            return false;
+        }
 
-                if (!okType || !okTotal || !okAvailable || !okPrice) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
+        if (number < min || number > max) {
+            showFieldError(input, label + " phải nằm trong khoảng " + min + " đến " + max + ".");
+            return false;
+        }
+
+        input.value = raw;
+        showFieldSuccess(input);
+        return true;
+    }
+
+    function getNumberValue(input) {
+        if (!input) return null;
+
+        const raw = normalizeDecimal(input.value);
+        const number = Number(raw);
+
+        return Number.isNaN(number) ? null : number;
+    }
+
+    function validateRoomAvailability(form) {
+        const numberOfRooms = getInput(form, "numberOfRooms");
+        const roomAvailability = getInput(form, "roomAvailability");
+
+        if (!numberOfRooms || !roomAvailability) return true;
+
+        const total = getNumberValue(numberOfRooms);
+        const available = getNumberValue(roomAvailability);
+
+        if (total === null || available === null) {
+            return false;
+        }
+
+        if (available > total) {
+            showFieldError(roomAvailability, "Phòng còn trống không được lớn hơn tổng số phòng.");
+            return false;
+        }
+
+        if (available < 0) {
+            showFieldError(roomAvailability, "Phòng còn trống không được nhỏ hơn 0.");
+            return false;
+        }
+
+        showFieldSuccess(roomAvailability);
+        return true;
+    }
+
+    function validateRoomCapacityByBed(form) {
+        const bedCount = getInput(form, "bedCount");
+        const maxAdults = getInput(form, "maxAdults");
+        const maxChildren = getInput(form, "maxChildren");
+
+        if (!bedCount || !maxAdults || !maxChildren) return true;
+
+        const beds = getNumberValue(bedCount);
+        const adults = getNumberValue(maxAdults);
+        const children = getNumberValue(maxChildren);
+
+        if (beds === null || adults === null || children === null) {
+            return false;
+        }
+
+        const totalGuests = adults + children;
+
+        if (beds === 1 && totalGuests > 4) {
+            showFieldError(maxChildren, "1 giường không nên vượt quá 4 khách. Hãy tăng số giường hoặc giảm sức chứa.");
+            return false;
+        }
+
+        if (beds === 2 && totalGuests > 6) {
+            showFieldError(maxChildren, "2 giường không nên vượt quá 6 khách. Hãy kiểm tra lại sức chứa.");
+            return false;
+        }
+
+        showFieldSuccess(maxChildren);
+        return true;
+    }
+
+    function validateRoomForm(form) {
+        let valid = true;
+
+        const roomType = getInput(form, "roomType");
+        const priceOfRoom = getInput(form, "priceOfRoom");
+        const numberOfRooms = getInput(form, "numberOfRooms");
+        const roomAvailability = getInput(form, "roomAvailability");
+        const bedCount = getInput(form, "bedCount");
+        const bedType = getInput(form, "bedType");
+        const maxAdults = getInput(form, "maxAdults");
+        const maxChildren = getInput(form, "maxChildren");
+        const roomSize = getInput(form, "roomSize");
+        const image = getInput(form, "image");
+        const description = getInput(form, "description");
+
+        if (!validateText(roomType, "Loại phòng", 2, 100)) valid = false;
+        if (!validateNumberRange(priceOfRoom, "Giá phòng", 1, 1000000000, true)) valid = false;
+        if (!validateNumberRange(numberOfRooms, "Tổng số phòng", 1, 1000, false)) valid = false;
+        if (!validateNumberRange(roomAvailability, "Phòng còn trống", 0, 1000, false)) valid = false;
+        if (!validateRoomAvailability(form)) valid = false;
+        if (!validateNumberRange(bedCount, "Số giường", 1, 20, false)) valid = false;
+        if (!validateText(bedType, "Loại giường", 2, 50)) valid = false;
+        if (!validateNumberRange(maxAdults, "Người lớn tối đa", 1, 50, false)) valid = false;
+        if (!validateNumberRange(maxChildren, "Trẻ em tối đa", 0, 50, false)) valid = false;
+        if (!validateRoomCapacityByBed(form)) valid = false;
+        if (!validateNumberRange(roomSize, "Diện tích phòng", 1, 1000, true)) valid = false;
+        if (!validateUrlInput(image, "Link ảnh phòng")) valid = false;
+        if (!validateText(description, "Mô tả phòng", 10, 2000)) valid = false;
+
+        return valid;
+    }
+
+    function bindLiveValidation(form, validator) {
+        form.setAttribute("novalidate", "novalidate");
+
+        form.querySelectorAll("input, textarea, select").forEach(function (input) {
+            input.addEventListener("input", function () {
+                validator(form);
             });
+
+            input.addEventListener("change", function () {
+                validator(form);
+            });
+
+            input.addEventListener("blur", function () {
+                validator(form);
+            });
+        });
+
+        form.addEventListener("submit", function (event) {
+            if (!validator(form)) {
+                event.preventDefault();
+
+                const firstError = form.querySelector(".input-error");
+                if (firstError) {
+                    firstError.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+
+                    setTimeout(function () {
+                        firstError.focus();
+                    }, 250);
+                }
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".room-form").forEach(function (form) {
+            bindLiveValidation(form, validateRoomForm);
         });
     });
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
