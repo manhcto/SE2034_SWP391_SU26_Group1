@@ -10,6 +10,7 @@ import vn.edu.fpt.DAO.AccommodationDAO;
 import vn.edu.fpt.DAO.FacilityDAO;
 import vn.edu.fpt.DAO.RoomDAO;
 import vn.edu.fpt.model.Accommodation;
+import vn.edu.fpt.model.Facility;
 import vn.edu.fpt.model.Room;
 
 import java.io.IOException;
@@ -31,8 +32,11 @@ public class AccommodationController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
 
-        if ("/accommodation/detail".equals(request.getServletPath())) {
+        String path = request.getServletPath();
+
+        if ("/accommodation/detail".equals(path)) {
             showAccommodationDetail(request, response);
             return;
         }
@@ -47,7 +51,12 @@ public class AccommodationController extends HttpServlet {
         String province = safeTrim(request.getParameter("province"));
         String district = safeTrim(request.getParameter("district"));
         String type = safeTrim(request.getParameter("type"));
+
         Integer guests = parsePositiveInt(request.getParameter("guests"));
+        Integer facilityId = parsePositiveInt(request.getParameter("facilityId"));
+
+        String facilityName = safeTrim(request.getParameter("facilityName"));
+
         Double minRate = parseNonNegativeDouble(request.getParameter("minRate"));
         BigDecimal minPrice = parseNonNegativeBigDecimal(request.getParameter("minPrice"));
         BigDecimal maxPrice = parseNonNegativeBigDecimal(request.getParameter("maxPrice"));
@@ -64,25 +73,29 @@ public class AccommodationController extends HttpServlet {
                 room.setFacilityList(facilityDAO.getFacilitiesByRoom(room.getRoomID()));
             }
 
+            List<Facility> accommodationFacilities = facilityDAO.getFacilitiesByAccommodation(serviceID);
+
             accommodation.setRoomList(availableRooms);
-            accommodation.setFacilityList(facilityDAO.getFacilitiesByAccommodation(serviceID));
+            accommodation.setFacilityList(accommodationFacilities);
 
             if (!matchesKeyword(accommodation, keyword)) {
                 continue;
             }
 
             if (!isBlank(province)
-                    && !province.equalsIgnoreCase(accommodation.getProvince())) {
+                    && !safeLower(accommodation.getProvince()).contains(safeLower(province))) {
                 continue;
             }
 
             if (!isBlank(district)
-                    && !safeLower(accommodation.getDistrict()).contains(district.toLowerCase())) {
+                    && !safeLower(accommodation.getDistrict()).contains(safeLower(district))
+                    && !safeLower(accommodation.getFullAddress()).contains(safeLower(district))) {
                 continue;
             }
 
             if (!isBlank(type)
-                    && !type.equalsIgnoreCase(accommodation.getType())) {
+                    && !safeLower(accommodation.getType()).contains(safeLower(type))
+                    && !safeLower(accommodation.getDisplayType()).contains(safeLower(type))) {
                 continue;
             }
 
@@ -102,16 +115,27 @@ public class AccommodationController extends HttpServlet {
                 continue;
             }
 
+            if (facilityId != null && !hasFacilityById(accommodationFacilities, facilityId)) {
+                continue;
+            }
+
+            if (!isBlank(facilityName) && !hasFacilityByName(accommodationFacilities, facilityName)) {
+                continue;
+            }
+
             filteredAccommodations.add(accommodation);
         }
 
         request.setAttribute("accommodationList", filteredAccommodations);
+        request.setAttribute("accommodationFacilityOptions", facilityDAO.getAccommodationFacilityOptions());
 
         request.setAttribute("keyword", request.getParameter("keyword"));
         request.setAttribute("selectedProvince", province);
         request.setAttribute("selectedDistrict", district);
         request.setAttribute("selectedType", type);
         request.setAttribute("selectedGuests", guests);
+        request.setAttribute("selectedFacilityId", facilityId);
+        request.setAttribute("selectedFacilityName", facilityName);
         request.setAttribute("selectedMinRate", request.getParameter("minRate"));
         request.setAttribute("selectedMinPrice", request.getParameter("minPrice"));
         request.setAttribute("selectedMaxPrice", request.getParameter("maxPrice"));
@@ -166,15 +190,31 @@ public class AccommodationController extends HttpServlet {
         String district = safeLower(accommodation.getDistrict());
         String ward = safeLower(accommodation.getWard());
         String type = safeLower(accommodation.getType());
+        String displayType = safeLower(accommodation.getDisplayType());
 
-        return name.contains(keyword)
+        boolean matchAccommodationInfo = name.contains(keyword)
                 || address.contains(keyword)
                 || fullAddress.contains(keyword)
                 || description.contains(keyword)
                 || province.contains(keyword)
                 || district.contains(keyword)
                 || ward.contains(keyword)
-                || type.contains(keyword);
+                || type.contains(keyword)
+                || displayType.contains(keyword);
+
+        if (matchAccommodationInfo) {
+            return true;
+        }
+
+        if (accommodation.getFacilityList() != null) {
+            for (Facility facility : accommodation.getFacilityList()) {
+                if (safeLower(facility.getFacilityName()).contains(keyword)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private boolean hasRoomForGuests(List<Room> roomList, int guests) {
@@ -199,7 +239,8 @@ public class AccommodationController extends HttpServlet {
         }
 
         for (Room room : roomList) {
-            if (room.getPriceOfRoom().compareTo(minPrice) >= 0) {
+            if (room.getPriceOfRoom() != null
+                    && room.getPriceOfRoom().compareTo(minPrice) >= 0) {
                 return true;
             }
         }
@@ -213,7 +254,38 @@ public class AccommodationController extends HttpServlet {
         }
 
         for (Room room : roomList) {
-            if (room.getPriceOfRoom().compareTo(maxPrice) <= 0) {
+            if (room.getPriceOfRoom() != null
+                    && room.getPriceOfRoom().compareTo(maxPrice) <= 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasFacilityById(List<Facility> facilityList, int facilityId) {
+        if (facilityList == null || facilityList.isEmpty()) {
+            return false;
+        }
+
+        for (Facility facility : facilityList) {
+            if (facility.getFacilityID() == facilityId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasFacilityByName(List<Facility> facilityList, String facilityName) {
+        if (facilityList == null || facilityList.isEmpty() || isBlank(facilityName)) {
+            return false;
+        }
+
+        String selectedName = safeLower(facilityName);
+
+        for (Facility facility : facilityList) {
+            if (safeLower(facility.getFacilityName()).contains(selectedName)) {
                 return true;
             }
         }

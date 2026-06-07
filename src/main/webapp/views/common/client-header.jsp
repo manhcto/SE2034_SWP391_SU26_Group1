@@ -3,12 +3,14 @@
 <style>
     .site-header {
         width: 100%;
-        background: #ffffff;
-        border-bottom: 1px solid #e5e7eb;
+        background: rgba(255, 255, 255, 0.86);
+        border-bottom: 1px solid rgba(226, 232, 240, 0.9);
         position: sticky;
         top: 0;
         z-index: 9999;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        backdrop-filter: blur(18px);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
     }
 
     .header-inner {
@@ -23,30 +25,42 @@
 
     .logo {
         text-decoration: none;
-        font-size: 31px;
-        font-weight: 900;
-        letter-spacing: -1px;
+        font-size: 32px;
+        font-weight: 950;
+        letter-spacing: -1.3px;
         white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
 
     .logo span {
-        color: #0b63f6;
+        color: #ef7f72;
+        text-shadow: 0 8px 22px rgba(239, 127, 114, 0.16);
     }
 
     .logo strong {
-        color: #ef1023;
+        color: #f4bf4f;
+        text-shadow: 0 8px 22px rgba(244, 191, 79, 0.18);
+    }
+
+    .logo-flag {
+        font-size: 19px;
+        margin-left: 5px;
+        filter: drop-shadow(0 6px 10px rgba(239, 68, 68, 0.20));
     }
 
     .header-search {
         width: 390px;
         height: 50px;
         border-radius: 999px;
-        background: #f1f5f9;
+        background: linear-gradient(135deg, #f8fafc, #eef2ff);
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 0 18px;
         margin-left: 10px;
+        border: 1px solid #e6edf7;
     }
 
     .header-search span {
@@ -74,13 +88,30 @@
         color: #020617;
         text-decoration: none;
         font-size: 13px;
-        font-weight: 700;
+        font-weight: 800;
         white-space: nowrap;
         transition: 0.2s ease;
+        position: relative;
+    }
+
+    .main-nav a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -8px;
+        width: 0;
+        height: 3px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #ef7f72, #f4bf4f);
+        transition: 0.22s ease;
     }
 
     .main-nav a:hover {
         color: #2563eb;
+    }
+
+    .main-nav a:hover::after {
+        width: 100%;
     }
 
     .header-actions {
@@ -114,6 +145,7 @@
         font-size: 15px;
         font-weight: 900;
         white-space: nowrap;
+        transition: 0.2s ease;
     }
 
     .register-btn {
@@ -122,20 +154,15 @@
         border: 1px solid #bfdbfe;
     }
 
-    .register-btn:hover {
-        background: #eff6ff;
-        color: #0b63f6;
-    }
-
     .login-btn {
-        background: #dbeafe;
+        background: linear-gradient(135deg, #eaf3ff, #dbeafe);
         color: #0b4ecb;
         border: 1px solid #dbeafe;
     }
 
+    .register-btn:hover,
     .login-btn:hover {
-        background: #bfdbfe;
-        color: #0b4ecb;
+        transform: translateY(-2px);
     }
 
     .cart-btn {
@@ -150,11 +177,6 @@
         justify-content: center;
         text-decoration: none;
         font-size: 20px;
-        color: #0f172a;
-    }
-
-    .cart-btn:hover {
-        background: #f8fafc;
         color: #0f172a;
     }
 
@@ -187,10 +209,6 @@
     }
 
     @media (max-width: 1200px) {
-        .header-inner {
-            gap: 16px;
-        }
-
         .header-search {
             width: 300px;
         }
@@ -201,7 +219,6 @@
 
         .main-nav a {
             font-size: 12px;
-            font-weight: 700;
         }
     }
 
@@ -233,11 +250,6 @@
             display: flex;
         }
 
-        .main-nav a {
-            font-size: 14px;
-            font-weight: 700;
-        }
-
         .header-actions {
             margin-left: auto;
         }
@@ -259,7 +271,7 @@
 <header class="site-header">
     <div class="header-inner">
         <a class="logo" href="${pageContext.request.contextPath}/home">
-            <span>Wonder</span><strong>VN</strong>
+            <span>Wonder</span><strong>VN</strong><em class="logo-flag">🇻🇳</em>
         </a>
 
         <form class="header-search" action="${pageContext.request.contextPath}/accommodation" method="get">

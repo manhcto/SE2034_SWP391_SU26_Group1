@@ -609,12 +609,12 @@
 
             <button type="button" class="btn-book">
                 <i class="fa-solid fa-cart-plus me-2"></i>
-                Thêm vào giỏ thuê
+                Thêm vào giỏ hàng
             </button>
 
             <a href="${pageContext.request.contextPath}/vehicle" class="btn-back">
                 <i class="fa-solid fa-list me-2"></i>
-                Xem danh sách xe
+                Xem thêm danh sách xe
             </a>
 
             <div class="quick-tips">

@@ -1,381 +1,492 @@
-<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Thuê xe du lịch</title>
+    <title>WonderVN | Thuê xe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --dark: #0f172a;
-            --text: #1e293b;
-            --muted: #64748b;
-            --bg: #f3f6fb;
-            --soft: #f8fafc;
-            --border: #e2e8f0;
-            --shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
-            --shadow-hover: 0 22px 46px rgba(15, 23, 42, 0.14);
-        }
-
         * {
             box-sizing: border-box;
         }
 
         body {
             margin: 0;
-            background: var(--bg);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            color: var(--text);
-            font-size: 15px;
-            line-height: 1.5;
+            font-family: "Be Vietnam Pro", sans-serif;
+            background: #f4f7fb;
+            color: #0f172a;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .vehicle-page {
+            width: min(1540px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 18px 0 50px;
         }
 
         .vehicle-hero {
-            background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
-            color: #ffffff;
-            padding: 54px 0 105px;
+            background: linear-gradient(135deg, #0f172a, #2563eb);
+            color: #fff;
+            border-radius: 28px;
+            padding: 30px 34px 74px;
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.15);
+            position: relative;
         }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 9px 15px;
+            gap: 10px;
+            padding: 10px 16px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.14);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 18px;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.18);
+            font-weight: 800;
+            margin-bottom: 14px;
         }
 
         .vehicle-hero h1 {
-            max-width: 760px;
-            font-size: 40px;
-            line-height: 1.18;
-            font-weight: 800;
-            letter-spacing: -0.6px;
-            margin: 0 0 14px;
+            margin: 0 0 10px;
+            font-size: clamp(30px, 4vw, 52px);
+            line-height: 1.12;
+            font-weight: 900;
+            max-width: 820px;
         }
 
         .vehicle-hero p {
-            max-width: 760px;
-            color: #dbeafe;
-            font-size: 16px;
-            line-height: 1.75;
             margin: 0;
-            font-weight: 400;
-        }
-
-        .content-wrap {
-            margin-top: -62px;
-            position: relative;
-            z-index: 5;
-        }
-
-        .back-toolbar {
-            margin-bottom: 16px;
-        }
-
-        .btn-back-page {
-            display: inline-flex;
-            align-items: center;
-            gap: 9px;
-            padding: 11px 18px;
-            border-radius: 999px;
-            background: #ffffff;
-            color: #0f172a;
-            border: 1px solid #dbe3ef;
-            text-decoration: none;
-            font-weight: 800;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-            cursor: pointer;
-        }
-
-        .btn-back-page:hover {
-            background: #f8fafc;
-            color: var(--primary);
+            max-width: 760px;
+            font-size: 17px;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.88);
         }
 
         .search-panel {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: var(--shadow);
+            width: calc(100% - 64px);
+            margin: -48px auto 24px;
+            background: #fff;
+            border-radius: 26px;
+            padding: 20px;
+            position: relative;
+            z-index: 5;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+            border: 1px solid #e2e8f0;
         }
 
-        .form-label {
+        .search-form {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr 1fr 1fr 0.7fr auto;
+            gap: 14px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-group label {
             font-size: 13px;
-            font-weight: 700;
-            color: #475569;
-            margin-bottom: 7px;
-        }
-
-        .form-control,
-        .form-select {
-            height: 48px;
-            border-radius: 14px;
-            border: 1px solid #dbe3ef;
-            padding: 10px 14px;
-            font-size: 15px;
-            color: var(--text);
-            box-shadow: none;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-        }
-
-        .btn-search {
-            height: 48px;
-            border: none;
-            border-radius: 14px;
-            background: var(--dark);
-            color: #ffffff;
-            font-weight: 700;
-            width: 100%;
-        }
-
-        .btn-search:hover {
-            background: #1e293b;
-            color: #ffffff;
-        }
-
-        .btn-reset-search {
-            height: 48px;
-            border-radius: 14px;
-            border: 1px solid #dbe3ef;
-            background: #ffffff;
-            color: #475569;
             font-weight: 800;
+            color: #334155;
+        }
+
+        .form-control {
             width: 100%;
-            text-decoration: none;
+            height: 50px;
+            border-radius: 16px;
+            border: 1px solid #dbe3f0;
+            padding: 0 15px;
+            font-size: 14px;
+            font-family: inherit;
+            color: #0f172a;
+            outline: none;
+            background: #fff;
+            transition: 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
+        }
+
+        .search-btn {
+            height: 50px;
+            min-width: 132px;
+            border: none;
+            border-radius: 16px;
+            background: #0f172a;
+            color: #fff;
+            font-weight: 900;
+            font-size: 15px;
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 9px;
+            transition: 0.2s ease;
         }
 
-        .btn-reset-search:hover {
-            background: #f8fafc;
+        .search-btn:hover {
+            background: #020617;
+            transform: translateY(-1px);
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 16px;
+            margin: 10px 0 20px;
+        }
+
+        .section-head h2 {
+            margin: 0 0 5px;
+            font-size: clamp(28px, 3vw, 42px);
+            font-weight: 900;
             color: #0f172a;
         }
 
-        .page-heading {
-            margin: 44px 0 22px;
-        }
-
-        .page-heading h2 {
-            font-size: 30px;
-            line-height: 1.25;
-            font-weight: 800;
-            letter-spacing: -0.4px;
-            margin: 0 0 6px;
-            color: var(--dark);
-        }
-
-        .page-heading p {
-            color: var(--muted);
+        .section-head p {
             margin: 0;
-            font-size: 15px;
+            color: #64748b;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .result-badge {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            padding: 11px 15px;
+            border-radius: 16px;
+            font-weight: 800;
+            color: #334155;
+            white-space: nowrap;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        }
+
+        .vehicle-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 18px;
         }
 
         .vehicle-card {
-            height: 100%;
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 24px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 22px;
             overflow: hidden;
-            box-shadow: var(--shadow);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
             transition: 0.22s ease;
         }
 
         .vehicle-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-hover);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 42px rgba(15, 23, 42, 0.12);
         }
 
-        .vehicle-img-box {
-            height: 220px;
+        .vehicle-image-box {
+            height: 150px;
             position: relative;
             overflow: hidden;
-            background: #e2e8f0;
+            background: #e5e7eb;
         }
 
-        .vehicle-img-box img {
+        .vehicle-image-box img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
-            transition: 0.35s ease;
+            transition: 0.32s ease;
         }
 
-        .vehicle-card:hover .vehicle-img-box img {
-            transform: scale(1.05);
+        .vehicle-card:hover .vehicle-image-box img {
+            transform: scale(1.06);
         }
 
-        .type-badge,
-        .available-badge {
+        .vehicle-type-badge {
             position: absolute;
-            top: 16px;
+            top: 12px;
+            left: 12px;
+            background: rgba(15, 23, 42, 0.90);
+            color: #fff;
+            padding: 7px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 900;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            border-radius: 999px;
-            padding: 7px 12px;
-            font-size: 12.5px;
-            font-weight: 700;
-            backdrop-filter: blur(8px);
+            gap: 6px;
+            max-width: calc(100% - 24px);
         }
 
-        .type-badge {
-            left: 16px;
-            background: rgba(15, 23, 42, 0.9);
-            color: #ffffff;
-        }
-
-        .available-badge {
-            right: 16px;
+        .vehicle-status-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
             background: #22c55e;
-            color: #ffffff;
+            color: #fff;
+            padding: 7px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .vehicle-status-badge.maintenance {
+            background: #f59e0b;
+        }
+
+        .vehicle-status-badge.unavailable {
+            background: #ef4444;
         }
 
         .vehicle-body {
-            padding: 21px;
+            padding: 15px 15px 14px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
         }
 
-        .vehicle-name {
-            font-size: 21px;
-            font-weight: 800;
-            line-height: 1.3;
-            margin-bottom: 10px;
-            color: var(--dark);
-            min-height: 54px;
-            letter-spacing: -0.2px;
+        .vehicle-title {
+            font-size: 17px;
+            font-weight: 900;
+            color: #0f172a;
+            margin: 0 0 10px;
+            line-height: 1.35;
+            min-height: 46px;
         }
 
-        .vehicle-location {
+        .location-line {
             display: flex;
             align-items: flex-start;
-            gap: 9px;
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.55;
-            margin-bottom: 14px;
+            gap: 7px;
+            color: #0891b2;
+            font-weight: 800;
+            font-size: 13px;
+            margin-bottom: 4px;
         }
 
-        .vehicle-location i {
-            color: #06b6d4;
-            margin-top: 3px;
+        .location-line i {
+            margin-top: 2px;
         }
 
-        .vehicle-location strong {
-            color: #334155;
-            font-weight: 700;
+        .location-sub {
+            color: #64748b;
+            font-size: 12.5px;
+            line-height: 1.45;
+            margin: 0 0 10px 20px;
+            min-height: 34px;
         }
 
-        .spec-row {
+        .spec-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin: 14px 0 16px;
+            gap: 7px;
+            margin-bottom: 10px;
         }
 
         .spec-pill {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             background: #eef2ff;
-            color: #3730a3;
+            color: #312e81;
+            padding: 6px 8px;
             border-radius: 999px;
-            padding: 7px 10px;
-            font-size: 12.5px;
-            font-weight: 700;
+            font-size: 11.5px;
+            font-weight: 850;
+            max-width: 100%;
         }
 
         .vehicle-desc {
             color: #475569;
-            line-height: 1.65;
-            font-size: 14.5px;
-            min-height: 72px;
-            margin-bottom: 16px;
+            font-size: 12.5px;
+            line-height: 1.55;
+            margin: 0 0 12px;
+            min-height: 40px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        .bottom-row {
-            border-top: 1px solid var(--border);
-            padding-top: 16px;
+        .price-box {
+            margin-top: auto;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 12px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 14px;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .price {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--dark);
+        .price-highlight {
+            background: linear-gradient(135deg, #fff7ed, #ffedd5);
+            border: 1px solid #fed7aa;
+            border-radius: 16px;
+            padding: 10px 12px;
+        }
+
+        .price-label {
+            display: block;
+            color: #9a3412;
+            font-size: 11.5px;
+            font-weight: 850;
+            margin-bottom: 2px;
+        }
+
+        .price-value {
+            color: #ea580c;
+            font-size: 20px;
+            font-weight: 950;
             line-height: 1.1;
-            letter-spacing: -0.2px;
         }
 
         .price-unit {
-            font-size: 13px;
-            color: var(--muted);
-            margin-top: 3px;
+            color: #9a3412;
+            font-size: 12px;
+            font-weight: 750;
+            margin-left: 2px;
         }
 
-        .btn-detail {
-            background: var(--primary);
-            color: #ffffff;
+        .detail-btn {
+            width: 100%;
+            height: 42px;
             border-radius: 14px;
-            text-decoration: none;
-            padding: 10px 14px;
-            font-weight: 700;
-            font-size: 14px;
-            white-space: nowrap;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13.5px;
+            font-weight: 900;
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.20);
+            transition: 0.2s ease;
         }
 
-        .btn-detail:hover {
-            background: var(--primary-dark);
-            color: #ffffff;
+        .detail-btn:hover {
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 26px rgba(37, 99, 235, 0.25);
         }
 
-        .empty-state {
-            background: #ffffff;
-            border: 1px solid var(--border);
+        .empty-box {
+            background: #fff;
+            border: 1px dashed #cbd5e1;
             border-radius: 24px;
-            padding: 56px 20px;
+            padding: 48px 20px;
             text-align: center;
-            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+            color: #64748b;
+        }
+
+        .empty-box i {
+            font-size: 42px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+
+        .empty-box h3 {
+            margin: 0 0 8px;
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .empty-box p {
+            margin: 0;
+        }
+
+        @media (max-width: 1500px) {
+            .vehicle-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 1280px) {
+            .vehicle-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .search-form {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .search-btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .vehicle-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .search-form {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 768px) {
-            .vehicle-hero h1 {
-                font-size: 32px;
+            .vehicle-page {
+                width: calc(100% - 20px);
             }
 
-            .vehicle-img-box {
-                height: 210px;
+            .vehicle-hero {
+                padding: 24px 20px 76px;
             }
 
-            .bottom-row {
-                align-items: flex-start;
+            .search-panel {
+                width: calc(100% - 10px);
+                padding: 15px;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .section-head {
                 flex-direction: column;
+                align-items: flex-start;
             }
 
-            .btn-detail {
-                width: 100%;
-                text-align: center;
+            .vehicle-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 14px;
+            }
+
+            .vehicle-image-box {
+                height: 135px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .vehicle-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .vehicle-image-box {
+                height: 190px;
             }
         }
     </style>
@@ -385,272 +496,235 @@
 
 <jsp:include page="/views/common/client-header.jsp"/>
 
-<section class="vehicle-hero">
-    <div class="container">
+<div class="vehicle-page">
+
+    <section class="vehicle-hero">
         <div class="hero-badge">
             <i class="fa-solid fa-car-side"></i>
-            WonderVN Vehicle Rental
+            <span>WonderVN Vehicle Rental</span>
         </div>
 
         <h1>Thuê xe phù hợp cho hành trình của bạn</h1>
 
         <p>
-            Tìm kiếm phương tiện theo tỉnh/thành, hãng xe, loại xe và số chỗ.
-            Mỗi xe đều có thông tin địa điểm nhận, giá thuê, đặt cọc và lưu ý sử dụng rõ ràng.
+            Tìm phương tiện theo tỉnh/thành, hãng xe, loại xe, số chỗ và địa điểm nhận xe.
+            Giá thuê, đặt cọc và lưu ý sử dụng được hiển thị rõ ràng.
         </p>
-    </div>
-</section>
+    </section>
 
-<div class="container content-wrap">
-    <div class="back-toolbar">
-        <button type="button" class="btn-back-page" onclick="history.back()">
-            <i class="fa-solid fa-arrow-left"></i>
-            Quay lại trang trước
-        </button>
-    </div>
-
-    <form class="search-panel" action="${pageContext.request.contextPath}/vehicle" method="get">
-        <div class="row g-3 align-items-end">
-            <div class="col-xl-3 col-lg-4 col-md-6">
-                <label class="form-label">Tìm kiếm</label>
-                <input type="text"
+    <div class="search-panel">
+        <form class="search-form" action="${pageContext.request.contextPath}/vehicle" method="get">
+            <div class="form-group">
+                <label>Tìm kiếm</label>
+                <input class="form-control"
+                       type="text"
                        name="keyword"
-                       value="${keyword}"
-                       class="form-control"
-                       placeholder="VD: Honda, Lead, biển số, địa chỉ...">
+                       value="${param.keyword}"
+                       placeholder="VD: Honda, Lead, Hà Nội...">
             </div>
 
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label">Tỉnh/thành</label>
-                <input type="text"
+            <div class="form-group">
+                <label>Tỉnh/thành</label>
+                <input class="form-control"
+                       type="text"
                        name="province"
-                       value="${selectedProvince}"
-                       class="form-control"
+                       value="${param.province}"
                        placeholder="VD: Hà Nội">
             </div>
 
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label">Quận/huyện</label>
-                <input type="text"
-                       name="district"
-                       value="${selectedDistrict}"
-                       class="form-control"
-                       placeholder="VD: Hoàn Kiếm">
-            </div>
-
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label">Hãng xe</label>
-                <select name="brandID" class="form-select">
+            <div class="form-group">
+                <label>Hãng xe</label>
+                <select class="form-control" name="brandId">
                     <option value="">Tất cả</option>
-                    <c:forEach var="b" items="${brandList}">
-                        <option value="${b.brandID}"
-                                <c:if test="${selectedBrandID == b.brandID}">selected</c:if>>
-                                ${b.brandName}
+                    <c:forEach var="brand" items="${brandList}">
+                        <option value="${brand.brandID}" ${param.brandId == brand.brandID ? 'selected' : ''}>
+                                ${brand.brandName}
                         </option>
                     </c:forEach>
                 </select>
             </div>
 
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label">Loại xe</label>
-                <select name="vehicleType" class="form-select">
+            <div class="form-group">
+                <label>Loại xe</label>
+                <select class="form-control" name="vehicleType">
                     <option value="">Tất cả</option>
-                    <option value="Motorbike" <c:if test="${selectedVehicleType == 'Motorbike'}">selected</c:if>>Xe máy</option>
-                    <option value="Sedan" <c:if test="${selectedVehicleType == 'Sedan'}">selected</c:if>>Sedan</option>
-                    <option value="SUV" <c:if test="${selectedVehicleType == 'SUV'}">selected</c:if>>SUV</option>
-                    <option value="Luxury Sedan" <c:if test="${selectedVehicleType == 'Luxury Sedan'}">selected</c:if>>Sedan hạng sang</option>
-                    <option value="Bus" <c:if test="${selectedVehicleType == 'Bus'}">selected</c:if>>Xe khách</option>
-                    <option value="Limousine" <c:if test="${selectedVehicleType == 'Limousine'}">selected</c:if>>Limousine</option>
+                    <option value="Motorbike" ${param.vehicleType == 'Motorbike' ? 'selected' : ''}>Xe máy</option>
+                    <option value="Sedan" ${param.vehicleType == 'Sedan' ? 'selected' : ''}>Sedan</option>
+                    <option value="SUV" ${param.vehicleType == 'SUV' ? 'selected' : ''}>SUV</option>
+                    <option value="Luxury Sedan" ${param.vehicleType == 'Luxury Sedan' ? 'selected' : ''}>Sedan hạng sang</option>
+                    <option value="Bus" ${param.vehicleType == 'Bus' ? 'selected' : ''}>Xe khách</option>
                 </select>
             </div>
 
-            <div class="col-xl-1 col-lg-4 col-md-6">
-                <label class="form-label">Số chỗ</label>
-                <input type="number"
+            <div class="form-group">
+                <label>Số chỗ</label>
+                <input class="form-control"
+                       type="number"
                        name="seatCount"
-                       value="${selectedSeatCount}"
                        min="1"
-                       class="form-control"
+                       value="${param.seatCount}"
                        placeholder="4">
             </div>
 
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label">Hộp số</label>
-                <select name="transmission" class="form-select">
-                    <option value="">Tất cả</option>
-                    <option value="Automatic" <c:if test="${selectedTransmission == 'Automatic'}">selected</c:if>>Số tự động</option>
-                    <option value="Manual" <c:if test="${selectedTransmission == 'Manual'}">selected</c:if>>Số sàn</option>
-                </select>
-            </div>
+            <button class="search-btn" type="submit">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Tìm xe
+            </button>
+        </form>
+    </div>
 
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label">Nhiên liệu</label>
-                <select name="fuelType" class="form-select">
-                    <option value="">Tất cả</option>
-                    <option value="Gasoline" <c:if test="${selectedFuelType == 'Gasoline'}">selected</c:if>>Xăng</option>
-                    <option value="Diesel" <c:if test="${selectedFuelType == 'Diesel'}">selected</c:if>>Dầu Diesel</option>
-                    <option value="Electric" <c:if test="${selectedFuelType == 'Electric'}">selected</c:if>>Điện</option>
-                    <option value="Hybrid" <c:if test="${selectedFuelType == 'Hybrid'}">selected</c:if>>Hybrid</option>
-                </select>
-            </div>
-
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label">Giá từ</label>
-                <input type="number"
-                       name="minPrice"
-                       value="${selectedMinPrice}"
-                       min="0"
-                       step="1000"
-                       class="form-control"
-                       placeholder="VD: 200000">
-            </div>
-
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label">Giá đến</label>
-                <input type="number"
-                       name="maxPrice"
-                       value="${selectedMaxPrice}"
-                       min="0"
-                       step="1000"
-                       class="form-control"
-                       placeholder="VD: 1000000">
-            </div>
-
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label d-none d-md-block">&nbsp;</label>
-                <button class="btn btn-search" type="submit">
-                    <i class="fa-solid fa-magnifying-glass me-2"></i>
-                    Tìm xe
-                </button>
-            </div>
-
-            <div class="col-xl-2 col-lg-4 col-md-6">
-                <label class="form-label d-none d-md-block">&nbsp;</label>
-                <a href="${pageContext.request.contextPath}/vehicle" class="btn-reset-search">
-                    <i class="fa-solid fa-rotate-left me-2"></i>
-                    Xóa lọc
-                </a>
-            </div>
+    <div class="section-head">
+        <div>
+            <h2>Danh sách xe cho thuê</h2>
+            <p>Lựa chọn phương tiện phù hợp theo địa điểm nhận xe và nhu cầu di chuyển.</p>
         </div>
-    </form>
 
-    <div class="page-heading">
-        <h2>Danh sách xe cho thuê</h2>
-        <p>Lựa chọn phương tiện phù hợp theo địa điểm nhận xe và nhu cầu di chuyển.</p>
+        <div class="result-badge">
+            <i class="fa-solid fa-layer-group"></i>
+            Tìm thấy <strong>${fn:length(vehicleList)}</strong> phương tiện
+        </div>
     </div>
 
     <c:choose>
-        <c:when test="${empty vehicleList}">
-            <div class="empty-state mb-5">
-                <i class="fa-solid fa-car-burst fa-4x text-secondary opacity-50 mb-4"></i>
-                <h4 class="fw-bold">Không tìm thấy phương tiện phù hợp</h4>
-                <p class="text-muted mb-0">Hãy thử thay đổi tỉnh/thành, hãng xe hoặc loại xe.</p>
-            </div>
-        </c:when>
-
-        <c:otherwise>
-            <div class="row g-4 mb-5">
+        <c:when test="${not empty vehicleList}">
+            <div class="vehicle-grid">
                 <c:forEach var="v" items="${vehicleList}">
-                    <div class="col-xl-4 col-lg-6">
-                        <div class="vehicle-card">
-                            <div class="vehicle-img-box">
-                                <img src="${v.image}"
-                                     alt="${v.displayName}"
-                                     onerror="this.src='https://placehold.co/900x600?text=WonderVN+Vehicle';">
+                    <article class="vehicle-card">
 
-                                <div class="type-badge">
-                                    <i class="fa-solid fa-car-side"></i>
+                        <div class="vehicle-image-box">
+                            <img src="${empty v.image ? 'https://placehold.co/600x400?text=WonderVN+Vehicle' : v.image}"
+                                 alt="${v.vehicleModel}"
+                                 onerror="this.src='https://placehold.co/600x400?text=WonderVN+Vehicle';">
+
+                            <div class="vehicle-type-badge">
+                                <i class="fa-solid fa-car-side"></i>
+                                <span>
                                     <c:choose>
                                         <c:when test="${v.vehicleType == 'Motorbike'}">Xe máy</c:when>
                                         <c:when test="${v.vehicleType == 'Luxury Sedan'}">Sedan hạng sang</c:when>
                                         <c:when test="${v.vehicleType == 'Bus'}">Xe khách</c:when>
                                         <c:otherwise>${v.vehicleType}</c:otherwise>
                                     </c:choose>
-                                </div>
-
-                                <div class="available-badge">
-                                    <i class="fa-solid fa-check"></i>
-                                    Có sẵn
-                                </div>
+                                </span>
                             </div>
 
-                            <div class="vehicle-body">
-                                <div class="vehicle-name">${v.displayName}</div>
-
-                                <div class="vehicle-location">
-                                    <i class="fa-solid fa-location-dot"></i>
-                                    <div>
-                                        <strong>${v.pickupProvince}</strong><br>
-                                        <span>
-                                            ${v.pickupDistrict}
-                                            <c:if test="${not empty v.pickupWard}">
-                                                , ${v.pickupWard}
-                                            </c:if>
-                                        </span>
+                            <c:choose>
+                                <c:when test="${v.status == 'Available'}">
+                                    <div class="vehicle-status-badge">
+                                        <i class="fa-solid fa-check"></i>
+                                        Có sẵn
                                     </div>
-                                </div>
+                                </c:when>
+                                <c:when test="${v.status == 'Maintenance'}">
+                                    <div class="vehicle-status-badge maintenance">
+                                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                                        Bảo trì
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="vehicle-status-badge unavailable">
+                                        <i class="fa-solid fa-xmark"></i>
+                                        Tạm hết
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
 
-                                <div class="spec-row">
-                                    <span class="spec-pill">
-                                        <i class="fa-solid fa-users"></i>
-                                        ${v.seatCount} chỗ
-                                    </span>
+                        <div class="vehicle-body">
+                            <h3 class="vehicle-title">
+                                    ${v.vehicleModel}
+                            </h3>
 
-                                    <span class="spec-pill">
-                                        <i class="fa-solid fa-gears"></i>
-                                        <c:choose>
-                                            <c:when test="${v.transmission == 'Automatic'}">Số tự động</c:when>
-                                            <c:otherwise>Số sàn</c:otherwise>
-                                        </c:choose>
-                                    </span>
+                            <div class="location-line">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span>${empty v.pickupProvince ? 'Chưa cập nhật' : v.pickupProvince}</span>
+                            </div>
 
-                                    <span class="spec-pill">
-                                        <i class="fa-solid fa-gas-pump"></i>
-                                        <c:choose>
-                                            <c:when test="${v.fuelType == 'Gasoline'}">Xăng</c:when>
-                                            <c:when test="${v.fuelType == 'Diesel'}">Dầu Diesel</c:when>
-                                            <c:when test="${v.fuelType == 'Electric'}">Điện</c:when>
-                                            <c:otherwise>Hybrid</c:otherwise>
-                                        </c:choose>
-                                    </span>
-                                </div>
+                            <p class="location-sub">
+                                <c:choose>
+                                    <c:when test="${not empty v.pickupDistrict || not empty v.pickupWard}">
+                                        ${empty v.pickupDistrict ? 'Chưa cập nhật' : v.pickupDistrict},
+                                        ${empty v.pickupWard ? 'Chưa cập nhật' : v.pickupWard}
+                                    </c:when>
+                                    <c:otherwise>
+                                        ${empty v.pickupAddress ? 'Liên hệ nhân viên để xác nhận địa chỉ nhận xe' : v.pickupAddress}
+                                    </c:otherwise>
+                                </c:choose>
+                            </p>
 
-                                <div class="vehicle-desc">
+                            <div class="spec-list">
+                                <span class="spec-pill">
+                                    <i class="fa-solid fa-users"></i>
+                                    ${v.seatCount} chỗ
+                                </span>
+
+                                <span class="spec-pill">
+                                    <i class="fa-solid fa-gears"></i>
                                     <c:choose>
-                                        <c:when test="${not empty v.description}">
-                                            ${v.description}
-                                        </c:when>
-                                        <c:otherwise>
-                                            Phương tiện phù hợp cho nhu cầu di chuyển du lịch và công tác.
-                                        </c:otherwise>
+                                        <c:when test="${v.transmission == 'Automatic'}">Số tự động</c:when>
+                                        <c:when test="${v.transmission == 'Manual'}">Số sàn</c:when>
+                                        <c:otherwise>${v.transmission}</c:otherwise>
                                     </c:choose>
+                                </span>
+
+                                <span class="spec-pill">
+                                    <i class="fa-solid fa-gas-pump"></i>
+                                    <c:choose>
+                                        <c:when test="${v.fuelType == 'Gasoline'}">Xăng</c:when>
+                                        <c:when test="${v.fuelType == 'Diesel'}">Dầu</c:when>
+                                        <c:when test="${v.fuelType == 'Electric'}">Điện</c:when>
+                                        <c:when test="${v.fuelType == 'Hybrid'}">Hybrid</c:when>
+                                        <c:otherwise>${v.fuelType}</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
+
+                            <p class="vehicle-desc">
+                                <c:choose>
+                                    <c:when test="${not empty v.description}">
+                                        ${v.description}
+                                    </c:when>
+                                    <c:otherwise>
+                                        Phương tiện phù hợp cho nhu cầu di chuyển du lịch và công tác.
+                                    </c:otherwise>
+                                </c:choose>
+                            </p>
+
+                            <div class="price-box">
+                                <div class="price-highlight">
+                                    <span class="price-label">Giá thuê nổi bật</span>
+                                    <span class="price-value">
+                                        <fmt:formatNumber value="${v.pricePerDay}" pattern="#,##0"/>
+                                        đ
+                                    </span>
+                                    <span class="price-unit">/ ngày</span>
                                 </div>
 
-                                <div class="bottom-row">
-                                    <div>
-                                        <div class="price">
-                                            <fmt:formatNumber value="${v.pricePerDay}" type="number" maxFractionDigits="0"/> đ
-                                        </div>
-                                        <div class="price-unit">mỗi ngày</div>
-                                    </div>
-
-                                    <a class="btn-detail"
-                                       href="${pageContext.request.contextPath}/vehicle/detail?id=${v.serviceID}">
-                                        Xem chi tiết
-                                    </a>
-                                </div>
+                                <a class="detail-btn"
+                                   href="${pageContext.request.contextPath}/vehicle/detail?id=${v.serviceID}">
+                                    Xem chi tiết
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </a>
                             </div>
                         </div>
-                    </div>
+
+                    </article>
                 </c:forEach>
+            </div>
+        </c:when>
+
+        <c:otherwise>
+            <div class="empty-box">
+                <i class="fa-solid fa-car-side"></i>
+                <h3>Không tìm thấy phương tiện phù hợp</h3>
+                <p>Hãy thử thay đổi từ khóa, địa điểm, loại xe hoặc số chỗ để xem thêm kết quả.</p>
             </div>
         </c:otherwise>
     </c:choose>
+
 </div>
 
 <jsp:include page="/views/common/client-footer.jsp"/>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
