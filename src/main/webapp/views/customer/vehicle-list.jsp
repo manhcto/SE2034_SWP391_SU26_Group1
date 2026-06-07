@@ -38,53 +38,134 @@
             padding: 18px 0 50px;
         }
 
+        /* ================= HERO IMAGE ================= */
         .vehicle-hero {
-            background: linear-gradient(135deg, #0f172a, #2563eb);
-            color: #fff;
-            border-radius: 28px;
-            padding: 30px 34px 74px;
-            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.15);
             position: relative;
+            min-height: 520px;
+            color: #fff;
+            border-radius: 34px;
+            padding: 64px 48px 118px;
+            box-shadow: 0 28px 76px rgba(15, 23, 42, 0.22);
+            overflow: hidden;
+            background:
+                    linear-gradient(
+                            90deg,
+                            rgba(2, 6, 23, 0.90) 0%,
+                            rgba(2, 6, 23, 0.74) 38%,
+                            rgba(2, 6, 23, 0.46) 68%,
+                            rgba(2, 6, 23, 0.20) 100%
+                    ),
+                    url("${pageContext.request.contextPath}/assets/images/vehicle/vehicle.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .vehicle-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.16), transparent 28%),
+                    linear-gradient(to bottom, rgba(15, 23, 42, 0.04), rgba(15, 23, 42, 0.30));
+            pointer-events: none;
+        }
+
+        .vehicle-hero::after {
+            content: "";
+            position: absolute;
+            right: -90px;
+            bottom: -120px;
+            width: 360px;
+            height: 360px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.30);
+            filter: blur(18px);
+            pointer-events: none;
+        }
+
+        .vehicle-hero > * {
+            position: relative;
+            z-index: 2;
         }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 16px;
+            padding: 13px 22px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.14);
-            border: 1px solid rgba(255,255,255,0.18);
-            font-weight: 800;
-            margin-bottom: 14px;
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.30);
+            font-weight: 900;
+            font-size: 15px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22);
+        }
+
+        .hero-badge i {
+            color: #facc15;
         }
 
         .vehicle-hero h1 {
-            margin: 0 0 10px;
-            font-size: clamp(30px, 4vw, 52px);
-            line-height: 1.12;
-            font-weight: 900;
-            max-width: 820px;
+            margin: 0 0 24px;
+            font-size: clamp(42px, 5vw, 76px);
+            line-height: 1.08;
+            font-weight: 950;
+            letter-spacing: -2px;
+            max-width: 920px;
+            color: #ffffff;
+            text-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
         }
 
         .vehicle-hero p {
             margin: 0;
-            max-width: 760px;
-            font-size: 17px;
-            line-height: 1.7;
-            color: rgba(255,255,255,0.88);
+            max-width: 860px;
+            font-size: 21px;
+            line-height: 1.75;
+            font-weight: 600;
+            color: rgba(255,255,255,0.94);
+            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.34);
         }
 
+        .hero-quick-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 34px;
+        }
+
+        .hero-info-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 18px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 800;
+            backdrop-filter: blur(12px);
+        }
+
+        .hero-info-pill i {
+            color: #fde68a;
+        }
+
+        /* ================= SEARCH ================= */
         .search-panel {
-            width: calc(100% - 64px);
-            margin: -48px auto 24px;
-            background: #fff;
-            border-radius: 26px;
-            padding: 20px;
+            width: calc(100% - 96px);
+            margin: -78px auto 28px;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 32px;
+            padding: 24px;
             position: relative;
-            z-index: 5;
-            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
-            border: 1px solid #e2e8f0;
+            z-index: 10;
+            box-shadow: 0 28px 76px rgba(15, 23, 42, 0.18);
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            backdrop-filter: blur(18px);
         }
 
         .search-form {
@@ -108,7 +189,7 @@
 
         .form-control {
             width: 100%;
-            height: 50px;
+            height: 52px;
             border-radius: 16px;
             border: 1px solid #dbe3f0;
             padding: 0 15px;
@@ -126,7 +207,7 @@
         }
 
         .search-btn {
-            height: 50px;
+            height: 52px;
             min-width: 132px;
             border: none;
             border-radius: 16px;
@@ -145,6 +226,7 @@
         .search-btn:hover {
             background: #020617;
             transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
         }
 
         .section-head {
@@ -160,6 +242,7 @@
             font-size: clamp(28px, 3vw, 42px);
             font-weight: 900;
             color: #0f172a;
+            letter-spacing: -0.8px;
         }
 
         .section-head p {
@@ -178,6 +261,10 @@
             color: #334155;
             white-space: nowrap;
             box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        }
+
+        .result-badge i {
+            color: #2563eb;
         }
 
         .vehicle-grid {
@@ -453,12 +540,36 @@
             }
 
             .vehicle-hero {
-                padding: 24px 20px 76px;
+                min-height: 440px;
+                padding: 38px 22px 104px;
+                border-radius: 24px;
+                background-position: center;
+            }
+
+            .vehicle-hero h1 {
+                font-size: 36px;
+                letter-spacing: -1px;
+            }
+
+            .vehicle-hero p {
+                font-size: 16px;
+            }
+
+            .hero-quick-info {
+                gap: 10px;
+                margin-top: 24px;
+            }
+
+            .hero-info-pill {
+                padding: 11px 14px;
+                font-size: 13px;
             }
 
             .search-panel {
-                width: calc(100% - 10px);
-                padding: 15px;
+                width: calc(100% - 12px);
+                margin: -64px auto 22px;
+                padding: 16px;
+                border-radius: 22px;
             }
 
             .search-form {
@@ -510,6 +621,23 @@
             Tìm phương tiện theo tỉnh/thành, hãng xe, loại xe, số chỗ và địa điểm nhận xe.
             Giá thuê, đặt cọc và lưu ý sử dụng được hiển thị rõ ràng.
         </p>
+
+        <div class="hero-quick-info">
+            <div class="hero-info-pill">
+                <i class="fa-solid fa-motorcycle"></i>
+                <span>Xe máy, ô tô, SUV</span>
+            </div>
+
+            <div class="hero-info-pill">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>Nhận xe theo địa điểm</span>
+            </div>
+
+            <div class="hero-info-pill">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span>Giá thuê rõ ràng</span>
+            </div>
+        </div>
     </section>
 
     <div class="search-panel">

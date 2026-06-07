@@ -12,7 +12,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 
     <style>
@@ -33,59 +33,144 @@
         }
 
         .page-shell {
-            width: min(1440px, calc(100% - 32px));
+            width: min(1500px, calc(100% - 32px));
             margin: 0 auto;
         }
 
+        /* ================= HERO IMAGE ================= */
         .hero {
-            margin: 18px auto 16px;
-            background: linear-gradient(135deg, rgba(10, 25, 78, 0.98), rgba(37, 99, 235, 0.92));
-            border-radius: 28px;
-            padding: 34px 34px 86px;
-            color: #fff;
             position: relative;
-            overflow: visible;
-            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.14);
+            margin: 18px auto 0;
+            min-height: 540px;
+            border-radius: 34px;
+            padding: 68px 52px 122px;
+            color: #ffffff;
+            overflow: hidden;
+            background:
+                    linear-gradient(
+                            90deg,
+                            rgba(2, 6, 23, 0.90) 0%,
+                            rgba(2, 6, 23, 0.74) 38%,
+                            rgba(2, 6, 23, 0.46) 68%,
+                            rgba(2, 6, 23, 0.20) 100%
+                    ),
+                    url("${pageContext.request.contextPath}/assets/images/accommodation/hotel.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: 0 28px 76px rgba(15, 23, 42, 0.22);
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.16), transparent 28%),
+                    linear-gradient(to bottom, rgba(15, 23, 42, 0.04), rgba(15, 23, 42, 0.30));
+            pointer-events: none;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            left: -90px;
+            bottom: -120px;
+            width: 360px;
+            height: 360px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.28);
+            filter: blur(18px);
+            pointer-events: none;
+        }
+
+        .hero > * {
+            position: relative;
+            z-index: 2;
         }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 12px 20px;
+            padding: 13px 22px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.14);
-            border: 1px solid rgba(255,255,255,0.18);
-            font-weight: 700;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.30);
+            color: #ffffff;
+            font-weight: 900;
             font-size: 15px;
-            margin-bottom: 18px;
+            margin-bottom: 26px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22);
+        }
+
+        .hero-badge i {
+            color: #facc15;
         }
 
         .hero h1 {
-            margin: 0 0 14px;
-            font-size: clamp(32px, 4vw, 56px);
-            line-height: 1.12;
-            font-weight: 800;
-            max-width: 820px;
+            margin: 0 0 24px;
+            max-width: 950px;
+            font-size: clamp(42px, 5vw, 76px);
+            line-height: 1.08;
+            font-weight: 950;
+            letter-spacing: -2px;
+            color: #ffffff;
+            text-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+        }
+
+        .hero h1 span {
+            color: #fde68a;
         }
 
         .hero p {
             margin: 0;
-            max-width: 760px;
-            font-size: 18px;
-            line-height: 1.8;
-            color: rgba(255,255,255,0.92);
+            max-width: 880px;
+            font-size: 21px;
+            line-height: 1.75;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.94);
+            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.34);
         }
 
+        .hero-quick-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 34px;
+        }
+
+        .hero-info-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 18px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 800;
+            backdrop-filter: blur(12px);
+        }
+
+        .hero-info-pill i {
+            color: #fde68a;
+        }
+
+        /* ================= FILTER ================= */
         .filter-panel {
-            width: calc(100% - 60px);
-            margin: -58px auto 24px;
-            background: #fff;
-            border-radius: 28px;
-            padding: 22px;
+            width: calc(100% - 96px);
+            margin: -78px auto 30px;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 32px;
+            padding: 24px;
             position: relative;
-            z-index: 5;
-            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+            z-index: 10;
+            box-shadow: 0 28px 76px rgba(15, 23, 42, 0.18);
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            backdrop-filter: blur(18px);
         }
 
         .filter-form {
@@ -103,16 +188,16 @@
 
         .form-group label {
             font-size: 14px;
-            font-weight: 700;
-            color: #334155;
+            font-weight: 800;
+            color: #1e293b;
         }
 
         .form-control {
             width: 100%;
-            height: 56px;
+            height: 58px;
             border-radius: 18px;
             border: 1px solid #dbe3f0;
-            background: #fdfefe;
+            background: #ffffff;
             padding: 0 18px;
             font-size: 16px;
             font-family: inherit;
@@ -127,30 +212,35 @@
         }
 
         .search-btn {
-            height: 56px;
-            min-width: 170px;
+            height: 58px;
+            min-width: 176px;
             border: none;
             border-radius: 18px;
             background: linear-gradient(135deg, #0f172a, #0b1f5f);
             color: #fff;
-            font-weight: 800;
+            font-weight: 900;
             font-size: 17px;
             cursor: pointer;
-            padding: 0 26px;
+            padding: 0 28px;
             transition: transform .18s ease, box-shadow .18s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .search-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
+            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
         }
 
+        /* ================= FACILITY FILTER ================= */
         .facility-strip {
             display: flex;
             gap: 12px;
             overflow-x: auto;
-            padding: 4px 0 6px;
-            margin-bottom: 20px;
+            padding: 4px 0 8px;
+            margin-bottom: 22px;
             scrollbar-width: thin;
         }
 
@@ -168,14 +258,15 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 12px 18px;
+            padding: 13px 19px;
             border-radius: 999px;
             background: #fff;
             border: 1px solid #dbe3f0;
             color: #334155;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 14px;
             transition: all .2s ease;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
         }
 
         .facility-chip i {
@@ -192,42 +283,51 @@
             transform: translateY(-1px);
         }
 
+        /* ================= SECTION HEAD ================= */
         .section-head {
             display: flex;
             justify-content: space-between;
             align-items: end;
             gap: 16px;
-            margin: 8px 0 20px;
+            margin: 8px 0 22px;
         }
 
         .section-head h2 {
             margin: 0 0 6px;
-            font-size: clamp(28px, 3vw, 42px);
-            font-weight: 800;
+            font-size: clamp(30px, 3vw, 44px);
+            font-weight: 900;
             color: #0f172a;
+            letter-spacing: -0.8px;
         }
 
         .section-head p {
             margin: 0;
             color: #64748b;
             font-size: 18px;
+            line-height: 1.65;
         }
 
         .result-badge {
             background: #fff;
             border: 1px solid #e2e8f0;
-            padding: 12px 16px;
-            border-radius: 16px;
-            font-weight: 700;
+            padding: 13px 17px;
+            border-radius: 18px;
+            font-weight: 800;
             color: #334155;
             white-space: nowrap;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
         }
 
+        .result-badge i {
+            color: #2563eb;
+        }
+
+        /* ================= ACCOMMODATION GRID ================= */
         .accommodation-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 28px;
-            margin-bottom: 40px;
+            margin-bottom: 44px;
         }
 
         .accommodation-card {
@@ -484,6 +584,7 @@
             font-size: 16px;
         }
 
+        /* ================= RESPONSIVE ================= */
         @media (max-width: 1280px) {
             .accommodation-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -510,12 +611,36 @@
             }
 
             .hero {
-                padding: 26px 20px 78px;
+                min-height: 440px;
+                padding: 38px 22px 104px;
+                border-radius: 24px;
+                background-position: center;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+                letter-spacing: -1px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .hero-quick-info {
+                gap: 10px;
+                margin-top: 24px;
+            }
+
+            .hero-info-pill {
+                padding: 11px 14px;
+                font-size: 13px;
             }
 
             .filter-panel {
                 width: calc(100% - 12px);
+                margin: -64px auto 22px;
                 padding: 16px;
+                border-radius: 22px;
             }
 
             .filter-form {
@@ -553,16 +678,35 @@
 <div class="page-shell">
     <section class="hero">
         <div class="hero-badge">
-            <i class="fa-solid fa-hotel"></i>
-            <span>WonderVN Accommodation</span>
+            <i class="fa-solid fa-location-dot"></i>
+            <span>Khám phá Việt Nam cùng WonderVN</span>
         </div>
 
-        <h1>Tìm homestay, khách sạn và resort phù hợp cho chuyến đi của bạn</h1>
+        <h1>
+            Tìm homestay, khách sạn và resort phù hợp cho chuyến đi của bạn
+        </h1>
 
         <p>
             Tìm nơi lưu trú theo địa điểm, loại hình, mức giá, số khách và tiện ích yêu thích.
             Giao diện hiển thị rõ ràng, hiện đại và dễ chọn hơn cho khách hàng.
         </p>
+
+        <div class="hero-quick-info">
+            <div class="hero-info-pill">
+                <i class="fa-solid fa-hotel"></i>
+                <span>Khách sạn, homestay, resort</span>
+            </div>
+
+            <div class="hero-info-pill">
+                <i class="fa-solid fa-wifi"></i>
+                <span>Lọc theo tiện ích yêu thích</span>
+            </div>
+
+            <div class="hero-info-pill">
+                <i class="fa-solid fa-star"></i>
+                <span>Đánh giá rõ ràng</span>
+            </div>
+        </div>
     </section>
 
     <div class="filter-panel">
