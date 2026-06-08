@@ -120,7 +120,7 @@ public class ManageAccommodationController extends HttpServlet {
         request.setAttribute("accommodationList", accommodationList);
         request.setAttribute("accommodationFacilityOptions", accommodationFacilityOptions);
 
-        request.getRequestDispatcher("/views/admin/accommodation-management.jsp")
+        request.getRequestDispatcher("/views/staff/accommodation-management.jsp")
                 .forward(request, response);
     }
 
@@ -157,7 +157,7 @@ public class ManageAccommodationController extends HttpServlet {
         request.setAttribute("accommodationFacilityOptions", facilityDAO.getAccommodationFacilityOptions());
         request.setAttribute("roomFacilityOptions", facilityDAO.getRoomFacilityOptions());
 
-        request.getRequestDispatcher("/views/admin/accommodation-detail.jsp")
+        request.getRequestDispatcher("/views/staff/accommodation-detail.jsp")
                 .forward(request, response);
     }
 

@@ -76,7 +76,7 @@ public class ManageVehicleController extends HttpServlet {
         request.setAttribute("vehicleList", vehicleList);
         request.setAttribute("brandList", brandList);
 
-        request.getRequestDispatcher("/views/admin/vehicle-management.jsp")
+        request.getRequestDispatcher("/views/staff/vehicle-management.jsp")
                 .forward(request, response);
     }
 

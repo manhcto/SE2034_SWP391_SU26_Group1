@@ -493,7 +493,7 @@
             </div>
 
             <div class="manage-hero-actions">
-                <a class="hero-action-btn" href="${pageContext.request.contextPath}/admin/home">
+                <a class="hero-action-btn" href="${pageContext.request.contextPath}/staff/home">
                     <i class="fa-solid fa-house"></i>
                     Admin Home
                 </a>

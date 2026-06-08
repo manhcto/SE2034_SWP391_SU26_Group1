@@ -242,9 +242,9 @@
         </div>
 
         <div class="d-flex gap-2">
-            <a href="${pageContext.request.contextPath}/admin/home"
+            <a href="${pageContext.request.contextPath}/staff/home"
                class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm">
-                <i class="fa-solid fa-house me-2"></i> Admin Home
+                <i class="fa-solid fa-house me-2"></i> Staff Home
             </a>
 
             <button class="btn btn-light text-primary fw-bold px-4 py-2 shadow-sm"
