@@ -25,7 +25,7 @@
         min-height: 84px;
         padding: 0 28px;
         display: grid;
-        grid-template-columns: 250px 300px minmax(0, 1fr) auto;
+        grid-template-columns: 250px 330px minmax(0, 1fr) auto;
         align-items: center;
         column-gap: 18px;
     }
@@ -131,19 +131,19 @@
     .main-nav {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: clamp(12px, 1.1vw, 20px);
+        justify-content: flex-start;
+        gap: clamp(18px, 1.35vw, 26px);
         min-width: 0;
-        overflow: hidden;
+        overflow: visible;
     }
 
     .main-nav a {
         color: #0f172a;
         text-decoration: none;
-        font-size: clamp(10.5px, 0.68vw, 12px);
-        font-weight: 900;
-        letter-spacing: 0.35px;
-        text-transform: uppercase;
+        font-size: clamp(11px, 0.72vw, 12.5px);
+        font-weight: 700;
+        letter-spacing: 0.1px;
+        text-transform: none;
         white-space: nowrap;
         transition: 0.2s ease;
         position: relative;
@@ -273,7 +273,7 @@
     /* ================= RESPONSIVE ================= */
     @media (max-width: 1450px) {
         .header-inner {
-            grid-template-columns: 230px 260px minmax(0, 1fr) auto;
+            grid-template-columns: 230px 290px minmax(0, 1fr) auto;
             column-gap: 14px;
             padding: 0 22px;
         }
@@ -287,6 +287,15 @@
             height: 22px;
         }
 
+        .main-nav {
+            gap: 16px;
+        }
+
+        .main-nav a {
+            font-size: 11px;
+            font-weight: 700;
+        }
+
         .register-btn,
         .login-btn {
             padding: 0 15px;
@@ -296,17 +305,17 @@
 
     @media (max-width: 1280px) {
         .header-inner {
-            grid-template-columns: 220px 220px minmax(0, 1fr) auto;
+            grid-template-columns: 220px 250px minmax(0, 1fr) auto;
             column-gap: 12px;
         }
 
         .main-nav {
-            gap: 10px;
+            gap: 14px;
         }
 
         .main-nav a {
-            font-size: 10px;
-            letter-spacing: 0.2px;
+            font-size: 10.5px;
+            letter-spacing: 0;
         }
 
         .register-btn {
@@ -354,6 +363,7 @@
 
         .main-nav a {
             font-size: 13px;
+            font-weight: 700;
         }
 
         .register-btn,

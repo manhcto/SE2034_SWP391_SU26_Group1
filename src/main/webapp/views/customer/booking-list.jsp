@@ -28,7 +28,7 @@
         .booking-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 900px;
+            min-width: 980px;
         }
 
         .booking-table th,
@@ -68,6 +68,13 @@
             white-space: nowrap;
         }
 
+        .action-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+
         .action-link {
             display: inline-flex;
             align-items: center;
@@ -84,6 +91,15 @@
 
         .action-link:hover {
             background: #1d4ed8;
+            color: #ffffff;
+        }
+
+        .edit-link {
+            background: #f59e0b;
+        }
+
+        .edit-link:hover {
+            background: #d97706;
             color: #ffffff;
         }
 
@@ -159,10 +175,17 @@
                                 </td>
 
                                 <td>
-                                    <a class="action-link"
-                                       href="${pageContext.request.contextPath}/booking-summary?bookingID=${booking.bookingID}">
-                                        Xem chi tiết
-                                    </a>
+                                    <div class="action-group">
+                                        <a class="action-link"
+                                           href="${pageContext.request.contextPath}/booking-summary?bookingID=${booking.bookingID}">
+                                            Xem chi tiết
+                                        </a>
+
+                                        <a class="action-link edit-link"
+                                           href="${pageContext.request.contextPath}/booking-edit?bookingID=${booking.bookingID}">
+                                            Sửa
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         </c:forEach>

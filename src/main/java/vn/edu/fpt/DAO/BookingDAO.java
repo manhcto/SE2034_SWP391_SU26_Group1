@@ -336,4 +336,100 @@ public class BookingDAO {
 
         return bookings;
     }
+
+    // Get booking by ID
+    public Booking getBookingByID(int bookingID) {
+        String sql = "SELECT bookingID, bookingCode, bookingType, email, phone, "
+                + "numberAdult, numberChildren, note, address, firstName, lastName, "
+                + "userID, status, bookDate, isBookedForOther, totalPrice, voucherID "
+                + "FROM Booking "
+                + "WHERE bookingID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, bookingID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Booking booking = new Booking();
+
+                    booking.setBookingID(rs.getInt("bookingID"));
+                    booking.setBookingCode(rs.getString("bookingCode"));
+                    booking.setBookingType(rs.getString("bookingType"));
+                    booking.setEmail(rs.getString("email"));
+                    booking.setPhone(rs.getString("phone"));
+                    booking.setNumberAdult(rs.getInt("numberAdult"));
+                    booking.setNumberChildren(rs.getInt("numberChildren"));
+                    booking.setNote(rs.getString("note"));
+                    booking.setAddress(rs.getString("address"));
+                    booking.setFirstName(rs.getString("firstName"));
+                    booking.setLastName(rs.getString("lastName"));
+
+                    int userID = rs.getInt("userID");
+                    if (rs.wasNull()) {
+                        booking.setUserID(null);
+                    } else {
+                        booking.setUserID(userID);
+                    }
+
+                    booking.setStatus(rs.getString("status"));
+                    booking.setBookDate(rs.getTimestamp("bookDate"));
+                    booking.setBookedForOther(rs.getBoolean("isBookedForOther"));
+                    booking.setTotalPrice(rs.getDouble("totalPrice"));
+
+                    int voucherID = rs.getInt("voucherID");
+                    if (rs.wasNull()) {
+                        booking.setVoucherID(null);
+                    } else {
+                        booking.setVoucherID(voucherID);
+                    }
+
+                    return booking;
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi lấy booking theo ID: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // Update booking information
+    public boolean updateBooking(Booking booking) {
+        String sql = "UPDATE Booking "
+                + "SET firstName = ?, "
+                + "lastName = ?, "
+                + "email = ?, "
+                + "phone = ?, "
+                + "address = ?, "
+                + "note = ?, "
+                + "isBookedForOther = ?, "
+                + "status = ? "
+                + "WHERE bookingID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, booking.getFirstName());
+            ps.setString(2, booking.getLastName());
+            ps.setString(3, booking.getEmail());
+            ps.setString(4, booking.getPhone());
+            ps.setString(5, booking.getAddress());
+            ps.setString(6, booking.getNote());
+            ps.setBoolean(7, booking.isBookedForOther());
+            ps.setString(8, booking.getStatus());
+            ps.setInt(9, booking.getBookingID());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.out.println("Lỗi cập nhật booking: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }
