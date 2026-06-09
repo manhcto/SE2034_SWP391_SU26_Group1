@@ -445,6 +445,11 @@
             <span>Phê duyệt Tour</span>
         </a>
 
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Xem Booking</span>
+        </a>
+
         <div class="nav-section-title">Xem khu vực Staff</div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
@@ -465,11 +470,6 @@
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
             <i class="fa-solid fa-map-location-dot"></i>
             <span>Xem Tour</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Xem Booking</span>
         </a>
 
         <div class="admin-user">
@@ -593,6 +593,17 @@
                     <span class="module-open">Mở Tour Approval <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
+
+            <div class="col-md-4">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/booking">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <h5>Xem Booking</h5>
+                    <p>Admin xem danh sách booking và chi tiết booking, không chỉnh sửa dữ liệu booking.</p>
+                    <span class="module-open">Mở Booking View <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                </a>
+            </div>
         </div>
 
         <h3 class="section-title">Xem các module vận hành của Staff</h3>
@@ -627,17 +638,6 @@
                     </div>
                     <h5>View Tour</h5>
                     <p>Xem tour, lịch trình, giá và trạng thái mà staff đang quản lý.</p>
-                    <span class="module-open">Xem module</span>
-                </a>
-            </div>
-
-            <div class="col-md-3">
-                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/booking">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-calendar-check"></i>
-                    </div>
-                    <h5>View Booking</h5>
-                    <p>Xem booking, trạng thái xử lý và thông tin đơn đặt dịch vụ.</p>
                     <span class="module-open">Xem module</span>
                 </a>
             </div>
