@@ -1,6 +1,9 @@
 package vn.edu.fpt.model;
 
+import java.sql.Time;
+
 public class Accommodation {
+
     private int serviceID;
     private String name;
     private String image;
@@ -10,13 +13,18 @@ public class Accommodation {
     private double rate;
     private String type;
     private String status;
-    private String checkInTime;
-    private String checkOutTime;
+    private Time checkInTime;
+    private Time checkOutTime;
+
+    private Service serviceDetails;
 
     public Accommodation() {
     }
 
-    public Accommodation(int serviceID, String name, String image, String address, String phone, String description, double rate, String type, String status, String checkInTime, String checkOutTime) {
+    public Accommodation(int serviceID, String name, String image, String address,
+                         String phone, String description, double rate, String type,
+                         String status, Time checkInTime, Time checkOutTime,
+                         Service serviceDetails) {
         this.serviceID = serviceID;
         this.name = name;
         this.image = image;
@@ -28,6 +36,7 @@ public class Accommodation {
         this.status = status;
         this.checkInTime = checkInTime;
         this.checkOutTime = checkOutTime;
+        this.serviceDetails = serviceDetails;
     }
 
     public int getServiceID() {
@@ -78,20 +87,20 @@ public class Accommodation {
         this.description = description;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public double getRate() {
         return rate;
     }
 
     public void setRate(double rate) {
         this.rate = rate;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getStatus() {
@@ -102,19 +111,27 @@ public class Accommodation {
         this.status = status;
     }
 
-    public String getCheckInTime() {
+    public Time getCheckInTime() {
         return checkInTime;
     }
 
-    public void setCheckInTime(String checkInTime) {
+    public void setCheckInTime(Time checkInTime) {
         this.checkInTime = checkInTime;
     }
 
-    public String getCheckOutTime() {
+    public Time getCheckOutTime() {
         return checkOutTime;
     }
 
-    public void setCheckOutTime(String checkOutTime) {
+    public void setCheckOutTime(Time checkOutTime) {
         this.checkOutTime = checkOutTime;
+    }
+
+    public Service getServiceDetails() {
+        return serviceDetails;
+    }
+
+    public void setServiceDetails(Service serviceDetails) {
+        this.serviceDetails = serviceDetails;
     }
 }
