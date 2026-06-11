@@ -8,12 +8,16 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-@WebServlet(name = "AdminHomeController", urlPatterns = {"/admin/home"})
+@WebServlet(name = "AdminHomeController", urlPatterns = {
+        "/admin",
+        "/admin/home"
+})
 public class AdminHomeController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("/views/admin/admin-home.jsp").forward(request, response);
+        request.getRequestDispatcher("/views/admin/admin-home.jsp")
+                .forward(request, response);
     }
 }

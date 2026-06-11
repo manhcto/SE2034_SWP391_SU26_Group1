@@ -1,6 +1,5 @@
 package vn.edu.fpt.model;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 public class Booking {
@@ -15,20 +14,22 @@ public class Booking {
     private String address;
     private String firstName;
     private String lastName;
-    private Integer userID;
+    private Integer userID; // Dùng Integer thay vì int để có thể lưu giá trị null (trường hợp khách vãng lai không đăng nhập)
     private String status;
     private Date bookDate;
     private boolean isBookedForOther;
-    private BigDecimal totalPrice;
+    private double totalPrice;
     private Integer voucherID;
 
+    // 1. Constructor rỗng
     public Booking() {
     }
 
+    // 2. Constructor đầy đủ tham số
     public Booking(int bookingID, String bookingCode, String bookingType, String email, String phone,
                    int numberAdult, int numberChildren, String note, String address, String firstName,
-                   String lastName, Integer userID, String status, Date bookDate,
-                   boolean isBookedForOther, BigDecimal totalPrice, Integer voucherID) {
+                   String lastName, Integer userID, String status, Date bookDate, boolean isBookedForOther,
+                   double totalPrice, Integer voucherID) {
         this.bookingID = bookingID;
         this.bookingCode = bookingCode;
         this.bookingType = bookingType;
@@ -48,7 +49,7 @@ public class Booking {
         this.voucherID = voucherID;
     }
 
-    // --- GETTER & SETTER ---
+    // 3. Các hàm Getters và Setters
     public int getBookingID() { return bookingID; }
     public void setBookingID(int bookingID) { this.bookingID = bookingID; }
 
@@ -92,11 +93,16 @@ public class Booking {
     public void setBookDate(Date bookDate) { this.bookDate = bookDate; }
 
     public boolean isBookedForOther() { return isBookedForOther; }
-    public void setBookedForOther(boolean bookedForOther) { this.isBookedForOther = bookedForOther; }
+    public void setBookedForOther(boolean isBookedForOther) { this.isBookedForOther = isBookedForOther; }
 
-    public BigDecimal getTotalPrice() { return totalPrice; }
-    public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
+    public double getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
 
     public Integer getVoucherID() { return voucherID; }
     public void setVoucherID(Integer voucherID) { this.voucherID = voucherID; }
+
+    @Override
+    public String toString() {
+        return "Booking{" + "bookingCode=" + bookingCode + ", email=" + email + ", totalPrice=" + totalPrice + '}';
+    }
 }

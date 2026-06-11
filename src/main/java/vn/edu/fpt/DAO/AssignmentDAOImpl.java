@@ -400,7 +400,6 @@ public class AssignmentDAOImpl {
                 u.setLastName(rs.getString("lastName"));
                 u.setEmail(rs.getString("email"));
                 u.setPhone(rs.getString("phone"));
-                u.setStatus(rs.getString("status"));
                 u.setRoleID(rs.getInt("roleID"));
 
                 list.add(u);

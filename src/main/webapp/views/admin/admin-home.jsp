@@ -7,12 +7,9 @@
     <title>WonderVN | Admin Home</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Bootstrap + Font Awesome -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-
-    <!-- Font tiếng Việt đẹp -->
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
         * {
@@ -22,7 +19,7 @@
         body {
             margin: 0;
             background: #f4f7fb;
-            font-family: 'Be Vietnam Pro', Arial, sans-serif;
+            font-family: "Be Vietnam Pro", Arial, sans-serif;
             color: #0f172a;
         }
 
@@ -31,25 +28,15 @@
             min-height: 100vh;
         }
 
-        /* SIDEBAR */
-        .sidebar {
+        .admin-sidebar {
             width: 292px;
             background: #0f172a;
-            color: white;
+            color: #ffffff;
             position: fixed;
             inset: 0 auto 0 0;
             overflow-y: auto;
             padding: 26px 18px;
             box-shadow: 8px 0 26px rgba(15, 23, 42, 0.18);
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 7px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 20px;
         }
 
         .brand-box {
@@ -59,21 +46,22 @@
         }
 
         .brand-logo {
-            width: 52px;
-            height: 52px;
+            width: 54px;
+            height: 54px;
             border-radius: 18px;
-            background: linear-gradient(135deg, #06b6d4, #4e46dc);
+            background: linear-gradient(135deg, #f97316, #ef4444);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
+            font-weight: 900;
             font-size: 20px;
             margin-bottom: 12px;
+            box-shadow: 0 12px 24px rgba(239, 68, 68, 0.22);
         }
 
         .brand-box h2 {
             font-size: 26px;
-            font-weight: 800;
+            font-weight: 900;
             margin: 0;
             letter-spacing: -0.6px;
         }
@@ -90,7 +78,7 @@
             color: #94a3b8;
             letter-spacing: 1.2px;
             margin: 22px 12px 10px;
-            font-weight: 800;
+            font-weight: 900;
         }
 
         .sidebar-link {
@@ -115,14 +103,14 @@
 
         .sidebar-link:hover {
             background: #1e293b;
-            color: white;
+            color: #ffffff;
             transform: translateX(4px);
         }
 
         .sidebar-link.active {
-            background: linear-gradient(135deg, #06b6d4, #4e46dc);
-            color: white;
-            box-shadow: 0 10px 22px rgba(6, 182, 212, 0.22);
+            background: linear-gradient(135deg, #f97316, #ef4444);
+            color: #ffffff;
+            box-shadow: 0 10px 22px rgba(239, 68, 68, 0.20);
         }
 
         .admin-user {
@@ -138,11 +126,11 @@
             width: 46px;
             height: 46px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #06b6d4, #22c55e);
+            background: linear-gradient(135deg, #f97316, #ef4444);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
+            font-weight: 900;
             color: white;
         }
 
@@ -150,7 +138,6 @@
             color: #94a3b8;
         }
 
-        /* MAIN */
         .main-content {
             margin-left: 292px;
             width: calc(100% - 292px);
@@ -161,12 +148,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 20px;
             margin-bottom: 26px;
         }
 
         .topbar h1 {
-            font-size: 32px;
-            font-weight: 800;
+            font-size: 34px;
+            font-weight: 900;
             margin: 0;
             letter-spacing: -0.8px;
         }
@@ -187,47 +175,45 @@
             border-radius: 16px;
             padding: 12px 18px;
             text-decoration: none;
-            font-weight: 800;
+            font-weight: 900;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+            white-space: nowrap;
         }
 
-        .btn-home {
-            background: white;
+        .btn-client {
+            background: #ffffff;
             color: #0f172a;
         }
 
-        .btn-logout {
+        .btn-staff {
             background: #0f172a;
-            color: white;
+            color: #ffffff;
+        }
+
+        .btn-client:hover {
+            background: #f8fafc;
+            color: #ef4444;
+        }
+
+        .btn-staff:hover {
+            background: #1e293b;
+            color: #ffffff;
         }
 
         .hero {
             background:
-                    radial-gradient(circle at top right, rgba(6, 182, 212, 0.34), transparent 28%),
-                    linear-gradient(135deg, #0f172a, #4e46dc);
+                    radial-gradient(circle at top right, rgba(249, 115, 22, 0.28), transparent 30%),
+                    linear-gradient(135deg, #0f172a, #991b1b);
             color: white;
             border-radius: 30px;
-            padding: 34px;
+            padding: 36px;
             box-shadow: 0 18px 38px rgba(15, 23, 42, 0.18);
             margin-bottom: 28px;
             position: relative;
             overflow: hidden;
-        }
-
-        .hero h2 {
-            font-size: 34px;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
-
-        .hero p {
-            color: #dbeafe;
-            margin-bottom: 0;
-            max-width: 760px;
-            line-height: 1.7;
         }
 
         .hero-badge {
@@ -238,11 +224,25 @@
             border: 1px solid rgba(255, 255, 255, 0.18);
             padding: 8px 13px;
             border-radius: 999px;
-            font-weight: 700;
+            font-weight: 800;
             margin-bottom: 16px;
         }
 
-        /* STAT */
+        .hero h2 {
+            font-size: 38px;
+            font-weight: 900;
+            margin-bottom: 12px;
+            letter-spacing: -0.8px;
+        }
+
+        .hero p {
+            color: #fee2e2;
+            margin-bottom: 0;
+            max-width: 850px;
+            line-height: 1.8;
+            font-weight: 500;
+        }
+
         .stat-card {
             border: none;
             border-radius: 24px;
@@ -270,25 +270,25 @@
             margin-bottom: 16px;
         }
 
-        .icon-blue {
-            background: linear-gradient(135deg, #2563eb, #4e46dc);
-        }
-
-        .icon-cyan {
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-        }
-
-        .icon-green {
-            background: linear-gradient(135deg, #16a34a, #22c55e);
+        .icon-red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
         }
 
         .icon-orange {
             background: linear-gradient(135deg, #f97316, #f59e0b);
         }
 
+        .icon-blue {
+            background: linear-gradient(135deg, #2563eb, #4e46dc);
+        }
+
+        .icon-green {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
         .stat-card h3 {
             font-size: 28px;
-            font-weight: 800;
+            font-weight: 900;
             margin-bottom: 4px;
         }
 
@@ -299,18 +299,17 @@
         }
 
         .section-title {
-            font-weight: 800;
+            font-weight: 900;
             margin: 34px 0 18px;
             font-size: 24px;
         }
 
-        /* MODULE */
         .module-card {
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 24px;
             padding: 24px;
-            min-height: 205px;
+            min-height: 210px;
             height: 100%;
             box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
             transition: all 0.25s ease;
@@ -329,12 +328,12 @@
             width: 110px;
             height: 110px;
             border-radius: 50%;
-            background: rgba(78, 70, 220, 0.08);
+            background: rgba(239, 68, 68, 0.08);
         }
 
         .module-card:hover {
             transform: translateY(-7px);
-            border-color: #4e46dc;
+            border-color: #ef4444;
             box-shadow: 0 20px 40px rgba(15, 23, 42, 0.14);
             color: #0f172a;
         }
@@ -343,8 +342,8 @@
             width: 62px;
             height: 62px;
             border-radius: 20px;
-            background: #eef2ff;
-            color: #4e46dc;
+            background: #fef2f2;
+            color: #ef4444;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -353,7 +352,7 @@
         }
 
         .module-card h5 {
-            font-weight: 800;
+            font-weight: 900;
             margin-bottom: 9px;
             font-size: 18px;
         }
@@ -366,43 +365,27 @@
         }
 
         .module-open {
-            font-weight: 800;
-            color: #4e46dc;
+            font-weight: 900;
+            color: #ef4444;
             font-size: 14px;
         }
 
-        .highlight-card {
-            border: 2px solid rgba(6, 182, 212, 0.35);
+        .admin-card {
+            border: 2px solid rgba(239, 68, 68, 0.22);
             background:
-                    radial-gradient(circle at top right, rgba(6, 182, 212, 0.12), transparent 30%),
+                    radial-gradient(circle at top right, rgba(239, 68, 68, 0.10), transparent 30%),
                     white;
         }
 
-        .quick-card {
-            background: white;
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            padding: 26px;
-            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-        }
-
-        .quick-btn {
-            border-radius: 17px;
-            padding: 17px;
-            font-weight: 800;
-            text-decoration: none;
-            display: block;
-            text-align: center;
-            transition: all 0.2s ease;
-        }
-
-        .quick-btn:hover {
-            transform: translateY(-3px);
-            opacity: 0.92;
+        .staff-view-card {
+            border: 2px solid rgba(37, 99, 235, 0.18);
+            background:
+                    radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 30%),
+                    white;
         }
 
         @media (max-width: 992px) {
-            .sidebar {
+            .admin-sidebar {
                 position: static;
                 width: 100%;
                 height: auto;
@@ -433,17 +416,16 @@
 <body>
 <div class="admin-layout">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="admin-sidebar">
         <div class="brand-box">
-            <div class="brand-logo">WV</div>
+            <div class="brand-logo">AD</div>
             <h2>WonderVN</h2>
-            <p>Travel ERP System</p>
+            <p>Admin Control Center</p>
         </div>
 
         <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/home">
             <i class="fa-solid fa-house"></i>
-            <span>Trang chủ quản trị</span>
+            <span>Admin Home</span>
         </a>
 
         <div class="nav-section-title">Quản trị hệ thống</div>
@@ -454,144 +436,105 @@
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
-            <i class="fa-solid fa-users"></i>
+            <i class="fa-solid fa-users-gear"></i>
             <span>Quản lý người dùng</span>
         </a>
 
-        <div class="nav-section-title">Dịch vụ du lịch</div>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour-approval">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Phê duyệt Tour</span>
+        </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>Quản lý Tour</span>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Xem Booking</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
+            <i class="fa-solid fa-comments"></i>
+            <span>Xem Feedback</span>
+        </a>
+
+        <div class="nav-section-title">Xem khu vực Staff</div>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
+            <i class="fa-solid fa-user-tie"></i>
+            <span>Staff Home</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
             <i class="fa-solid fa-hotel"></i>
-            <span>Quản lý lưu trú</span>
+            <span>Xem lưu trú</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
             <i class="fa-solid fa-car-side"></i>
-            <span>Quản lý phương tiện</span>
+            <span>Xem phương tiện</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/service">
-            <i class="fa-solid fa-briefcase"></i>
-            <span>Quản lý dịch vụ</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/external-ticket">
-            <i class="fa-solid fa-ticket"></i>
-            <span>Vé tham quan bên ngoài</span>
-        </a>
-
-        <div class="nav-section-title">Vận hành</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Quản lý đặt chỗ</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
-            <i class="fa-solid fa-credit-card"></i>
-            <span>Quản lý thanh toán</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/voucher">
-            <i class="fa-solid fa-gift"></i>
-            <span>Quản lý Voucher</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/assignment">
-            <i class="fa-solid fa-user-tie"></i>
-            <span>Điều phối hướng dẫn viên</span>
-        </a>
-
-        <div class="nav-section-title">Nội dung & CSKH</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/blog">
-            <i class="fa-solid fa-newspaper"></i>
-            <span>Quản lý Blog</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
-            <i class="fa-solid fa-comments"></i>
-            <span>Đánh giá khách hàng</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/notification">
-            <i class="fa-solid fa-bell"></i>
-            <span>Cấu hình thông báo</span>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span>Xem Tour</span>
         </a>
 
         <div class="admin-user">
             <div class="avatar">AD</div>
             <div>
                 <div class="fw-bold">Quản trị viên</div>
-                <small>Admin / Staff</small>
+                <small>Admin</small>
             </div>
         </div>
     </aside>
 
-    <!-- MAIN -->
     <main class="main-content">
 
         <div class="topbar">
             <div>
-                <h1>Bảng điều khiển WonderVN</h1>
-                <p>Chào mừng bạn quay lại hệ thống quản trị du lịch.</p>
+                <h1>Trung tâm quản trị WonderVN</h1>
+                <p>Quản lý hệ thống, người dùng, dashboard và theo dõi toàn bộ hoạt động vận hành của staff.</p>
             </div>
 
             <div class="top-actions">
-                <a class="top-action-btn btn-home" href="${pageContext.request.contextPath}/home">
+                <a class="top-action-btn btn-client" href="${pageContext.request.contextPath}/home">
                     <i class="fa-solid fa-globe"></i>
-                    Trang chủ
+                    Trang khách hàng
                 </a>
 
-                <a class="top-action-btn btn-logout" href="${pageContext.request.contextPath}/logout">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    Đăng xuất
+                <a class="top-action-btn btn-staff" href="${pageContext.request.contextPath}/staff/home">
+                    <i class="fa-solid fa-user-tie"></i>
+                    Staff Home
                 </a>
             </div>
         </div>
 
         <section class="hero">
             <div class="hero-badge">
-                <i class="fa-solid fa-sparkles"></i>
+                <i class="fa-solid fa-shield-halved"></i>
                 Admin Workspace
             </div>
-            <h2>Quản lý toàn bộ dịch vụ du lịch trong một màn hình</h2>
+
+            <h2>Quản trị hệ thống và giám sát toàn bộ hoạt động của WonderVN</h2>
+
             <p>
-                Theo dõi tour, nơi lưu trú, phương tiện, booking, thanh toán và các hoạt động vận hành của WonderVN.
-                Hai module lưu trú và phương tiện đã được liên kết trực tiếp để thao tác nhanh.
+                Admin chịu trách nhiệm quản lý người dùng, theo dõi dashboard, phê duyệt tour và có quyền xem
+                toàn bộ các module vận hành của staff như lưu trú, phương tiện, booking, payment, voucher và nội dung.
             </p>
         </section>
 
-        <!-- STATS -->
         <div class="row g-4">
             <div class="col-md-3">
                 <div class="stat-card">
-                    <div class="stat-icon icon-blue">
-                        <i class="fa-solid fa-sack-dollar"></i>
-                    </div>
-                    <h3>3.060.600.000đ</h3>
-                    <p>Tổng doanh thu</p>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="stat-card">
-                    <div class="stat-icon icon-cyan">
+                    <div class="stat-icon icon-red">
                         <i class="fa-solid fa-users"></i>
                     </div>
                     <h3>1,234</h3>
-                    <p>Người dùng hoạt động</p>
+                    <p>Người dùng hệ thống</p>
                 </div>
             </div>
 
             <div class="col-md-3">
                 <div class="stat-card">
-                    <div class="stat-icon icon-green">
+                    <div class="stat-icon icon-orange">
                         <i class="fa-solid fa-route"></i>
                     </div>
                     <h3>45</h3>
@@ -601,178 +544,162 @@
 
             <div class="col-md-3">
                 <div class="stat-card">
-                    <div class="stat-icon icon-orange">
+                    <div class="stat-icon icon-blue">
                         <i class="fa-solid fa-calendar-check"></i>
                     </div>
                     <h3>23</h3>
                     <p>Booking chờ xử lý</p>
                 </div>
             </div>
-        </div>
 
-        <h3 class="section-title">Module ưu tiên</h3>
-
-        <div class="row g-4">
-            <div class="col-md-6">
-                <a class="module-card highlight-card"
-                   href="${pageContext.request.contextPath}/staff/accommodation?action=list">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-hotel"></i>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon icon-green">
+                        <i class="fa-solid fa-money-bill-wave"></i>
                     </div>
-                    <h5>Quản lý lưu trú & phòng</h5>
-                    <p>
-                        Quản lý khách sạn, homestay, resort, trạng thái hoạt động và danh sách phòng thuộc từng cơ sở lưu trú.
-                    </p>
-                    <span class="module-open">
-                        Mở màn quản lý lưu trú <i class="fa-solid fa-arrow-right ms-1"></i>
-                    </span>
-                </a>
-            </div>
-
-            <div class="col-md-6">
-                <a class="module-card highlight-card"
-                   href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-car-side"></i>
-                    </div>
-                    <h5>Quản lý phương tiện</h5>
-                    <p>
-                        Quản lý xe thuê, biển số, giá thuê theo ngày, tình trạng sử dụng và dữ liệu phục vụ đặt dịch vụ.
-                    </p>
-                    <span class="module-open">
-                        Mở màn quản lý phương tiện <i class="fa-solid fa-arrow-right ms-1"></i>
-                    </span>
-                </a>
+                    <h3>3.06B</h3>
+                    <p>Doanh thu tổng quan</p>
+                </div>
             </div>
         </div>
 
-        <h3 class="section-title">Tất cả chức năng quản lý</h3>
+        <h3 class="section-title">Chức năng chính của Admin</h3>
 
         <div class="row g-4">
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/tour">
+            <div class="col-md-4">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/dashboard">
                     <div class="module-icon">
-                        <i class="fa-solid fa-map-location-dot"></i>
+                        <i class="fa-solid fa-chart-line"></i>
                     </div>
-                    <h5>Quản lý Tour</h5>
-                    <p>Tạo, cập nhật tour, lịch trình, giá bán và trạng thái tour.</p>
-                    <span class="module-open">Mở chức năng</span>
+                    <h5>Dashboard hệ thống</h5>
+                    <p>Xem tổng quan doanh thu, booking, người dùng, tour và hoạt động vận hành.</p>
+                    <span class="module-open">Mở Dashboard <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
 
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/booking">
+            <div class="col-md-4">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/user">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-users-gear"></i>
+                    </div>
+                    <h5>Quản lý người dùng</h5>
+                    <p>Quản lý tài khoản khách hàng, staff, tour guide, trạng thái và phân quyền.</p>
+                    <span class="module-open">Mở Manage User <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/tour-approval">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h5>Phê duyệt Tour</h5>
+                    <p>Xem và phê duyệt các tour trước khi công khai cho khách hàng đặt.</p>
+                    <span class="module-open">Mở Tour Approval <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/booking">
                     <div class="module-icon">
                         <i class="fa-solid fa-calendar-check"></i>
                     </div>
-                    <h5>Quản lý Booking</h5>
-                    <p>Theo dõi đơn đặt chỗ, trạng thái xử lý và lịch sử đặt dịch vụ.</p>
-                    <span class="module-open">Mở chức năng</span>
+                    <h5>Xem Booking</h5>
+                    <p>Admin xem danh sách booking và chi tiết booking, không chỉnh sửa dữ liệu booking.</p>
+                    <span class="module-open">Mở Booking View <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
 
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/payment">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-credit-card"></i>
-                    </div>
-                    <h5>Quản lý Payment</h5>
-                    <p>Kiểm tra thanh toán, trạng thái giao dịch và đối soát.</p>
-                    <span class="module-open">Mở chức năng</span>
-                </a>
-            </div>
-
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/voucher">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-gift"></i>
-                    </div>
-                    <h5>Quản lý Voucher</h5>
-                    <p>Tạo mã giảm giá, chiến dịch ưu đãi và điều kiện áp dụng.</p>
-                    <span class="module-open">Mở chức năng</span>
-                </a>
-            </div>
-
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/service">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-briefcase"></i>
-                    </div>
-                    <h5>Quản lý Service</h5>
-                    <p>Quản lý danh mục và loại dịch vụ trong hệ thống WonderVN.</p>
-                    <span class="module-open">Mở chức năng</span>
-                </a>
-            </div>
-
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/external-ticket">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-ticket"></i>
-                    </div>
-                    <h5>External Ticket</h5>
-                    <p>Quản lý vé tham quan, vé vui chơi và dịch vụ bên ngoài.</p>
-                    <span class="module-open">Mở chức năng</span>
-                </a>
-            </div>
-
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/blog">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-newspaper"></i>
-                    </div>
-                    <h5>Quản lý Blog</h5>
-                    <p>Đăng bài viết, tin tức du lịch và nội dung truyền thông.</p>
-                    <span class="module-open">Mở chức năng</span>
-                </a>
-            </div>
-
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/feedback">
+            <div class="col-md-4">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/feedback">
                     <div class="module-icon">
                         <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h5>Feedback</h5>
-                    <p>Xem đánh giá, phản hồi khách hàng và chất lượng dịch vụ.</p>
-                    <span class="module-open">Mở chức năng</span>
+                    <h5>Xem Feedback</h5>
+                    <p>Admin xem danh sách feedback và chi tiết feedback của khách hàng, không duyệt hoặc chỉnh sửa.</p>
+                    <span class="module-open">Mở Feedback View <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
         </div>
 
-        <h3 class="section-title">Thao tác nhanh</h3>
+        <h3 class="section-title">Xem các module vận hành của Staff</h3>
 
-        <div class="quick-card">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <a class="quick-btn bg-dark text-white"
-                       href="${pageContext.request.contextPath}/staff/accommodation?action=list">
-                        <i class="fa-solid fa-hotel me-2"></i>
-                        Thêm lưu trú
-                    </a>
-                </div>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-hotel"></i>
+                    </div>
+                    <h5>View Accommodation</h5>
+                    <p>Xem danh sách lưu trú, phòng và tiện ích đang được staff quản lý.</p>
+                    <span class="module-open">Xem module</span>
+                </a>
+            </div>
 
-                <div class="col-md-3">
-                    <a class="quick-btn bg-info text-white"
-                       href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-                        <i class="fa-solid fa-car-side me-2"></i>
-                        Thêm xe
-                    </a>
-                </div>
+            <div class="col-md-3">
+                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-car-side"></i>
+                    </div>
+                    <h5>View Vehicle</h5>
+                    <p>Xem danh sách phương tiện, giá thuê, trạng thái và địa điểm nhận xe.</p>
+                    <span class="module-open">Xem module</span>
+                </a>
+            </div>
 
-                <div class="col-md-3">
-                    <a class="quick-btn bg-primary text-white"
-                       href="${pageContext.request.contextPath}/staff/tour">
-                        <i class="fa-solid fa-route me-2"></i>
-                        Quản lý tour
-                    </a>
-                </div>
+            <div class="col-md-3">
+                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/tour">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <h5>View Tour</h5>
+                    <p>Xem tour, lịch trình, giá và trạng thái mà staff đang quản lý.</p>
+                    <span class="module-open">Xem module</span>
+                </a>
+            </div>
 
-                <div class="col-md-3">
-                    <a class="quick-btn bg-secondary text-white"
-                       href="${pageContext.request.contextPath}/home">
-                        <i class="fa-solid fa-globe me-2"></i>
-                        Về trang chủ
-                    </a>
-                </div>
+            <div class="col-md-3">
+                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/payment">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+                    <h5>View Payment</h5>
+                    <p>Xem giao dịch, trạng thái thanh toán và dữ liệu đối soát.</p>
+                    <span class="module-open">Xem module</span>
+                </a>
+            </div>
+
+            <div class="col-md-3">
+                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/service">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <h5>View Service</h5>
+                    <p>Xem danh mục dịch vụ và các dịch vụ cộng thêm trong hệ thống.</p>
+                    <span class="module-open">Xem module</span>
+                </a>
+            </div>
+
+            <div class="col-md-3">
+                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/voucher">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-gift"></i>
+                    </div>
+                    <h5>View Voucher</h5>
+                    <p>Xem voucher, ưu đãi và chiến dịch giảm giá đang hoạt động.</p>
+                    <span class="module-open">Xem module</span>
+                </a>
+            </div>
+
+            <div class="col-md-3">
+                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/feedback">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <h5>View Staff Feedback</h5>
+                    <p>Xem khu vực staff xử lý feedback, duyệt hoặc ẩn đánh giá khách hàng.</p>
+                    <span class="module-open">Xem module</span>
+                </a>
             </div>
         </div>
 

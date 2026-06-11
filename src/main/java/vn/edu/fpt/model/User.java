@@ -1,26 +1,51 @@
 package vn.edu.fpt.model;
 
 public class User {
+
     private int userID;
     private String firstName;
     private String lastName;
     private String email;
-    private String phone;
-    private String status;
+    private String password;
+    private String gender;   // thêm
     private int roleID;
+    private String phone;
+
 
     public User() {
     }
 
-    public User(int userID, String firstName, String lastName, String email, String phone, String status, int roleID) {
+    public User(int userID, String firstName, String lastName,
+                String email, String password,
+                String gender, int roleID) {
         this.userID = userID;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.phone = phone;
-        this.status = status;
+        this.password = password;
+        this.gender = gender;
         this.roleID = roleID;
     }
+
+    // getter setter
+
+    public User(int userID, String firstName, String lastName, String email, String password, int roleID) {
+        this.userID = userID;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.roleID = roleID;
+    }
+
+    public User(int userID, String firstName, String lastName, String email, int roleID) {
+        this.userID = userID;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.roleID = roleID;
+    }
+
 
     public int getUserID() {
         return userID;
@@ -54,22 +79,21 @@ public class User {
         this.email = email;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public String getGender() {return gender;
     }
 
-    public String getStatus() {
-        return status;
+    public void setGender(String gender) {this.gender = gender;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
     public int getRoleID() {
         return roleID;
     }

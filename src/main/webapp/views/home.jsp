@@ -1,48 +1,30 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WonderVN | Trang chủ</title>
-
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
-
-    <style>
-        .admin-entry-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-left: 12px;
-            padding: 12px 18px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 700;
-            color: #0f172a;
-            background: #ffffff;
-            border: 1px solid rgba(15, 23, 42, 0.12);
-            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
-            transition: all 0.2s ease;
-        }
-
-        .admin-entry-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
-        }
-
-        .hero-action-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-            margin-top: 18px;
-        }
-    </style>
 </head>
-
 <body>
-<jsp:include page="/WEB-INF/common/homepage/header.jsp" />
+<c:choose>
+
+    <c:when test="${sessionScope.user != null
+                    && sessionScope.user.roleID ==4}">
+
+        <jsp:include page="/views/common/customer-header.jsp"/>
+
+    </c:when>
+
+    <c:otherwise>
+
+        <jsp:include page="/views/common/client-header.jsp"/>
+
+    </c:otherwise>
+
+</c:choose>
 
 <main>
     <section class="hero">
@@ -50,19 +32,7 @@
             <div class="hero-content">
                 <p class="eyebrow">Khám phá Việt Nam cùng WonderVN</p>
                 <h1>Đặt tour, khách sạn, thuê xe và dịch vụ cộng thêm dễ dàng</h1>
-                <p class="hero-desc">
-                    WonderVN giúp bạn tìm chuyến đi phù hợp, rõ lịch trình, rõ giá và dễ theo dõi trong một hệ thống.
-                </p>
-
-                <div class="hero-action-row">
-                    <a class="primary-btn" href="${pageContext.request.contextPath}/tour">
-                        Khám phá tour
-                    </a>
-
-                    <a class="admin-entry-btn" href="${pageContext.request.contextPath}/admin/home">
-                        ⚙ Vào trang quản trị
-                    </a>
-                </div>
+                <p class="hero-desc">WonderVN giúp bạn tìm chuyến đi phù hợp, rõ lịch trình, rõ giá và dễ theo dõi trong một hệ thống.</p>
 
                 <div class="search-panel">
                     <div class="search-tabs">
@@ -132,10 +102,7 @@
                     <p>Thời lượng: 4 ngày 3 đêm</p>
                     <p>Lịch gần nhất: 15/06/2026</p>
                     <div class="tour-price-row">
-                        <div>
-                            <span>Giá từ</span>
-                            <strong>5.990.000đ</strong>
-                        </div>
+                        <div><span>Giá từ</span><strong>5.990.000đ</strong></div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=1">Xem chi tiết</a>
                     </div>
                 </div>
@@ -149,10 +116,7 @@
                     <p>Thời lượng: 3 ngày 2 đêm</p>
                     <p>Lịch gần nhất: 20/06/2026</p>
                     <div class="tour-price-row">
-                        <div>
-                            <span>Giá từ</span>
-                            <strong>4.590.000đ</strong>
-                        </div>
+                        <div><span>Giá từ</span><strong>4.590.000đ</strong></div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=2">Xem chi tiết</a>
                     </div>
                 </div>
@@ -166,10 +130,7 @@
                     <p>Thời lượng: 3 ngày 2 đêm</p>
                     <p>Lịch gần nhất: 25/06/2026</p>
                     <div class="tour-price-row">
-                        <div>
-                            <span>Giá từ</span>
-                            <strong>6.490.000đ</strong>
-                        </div>
+                        <div><span>Giá từ</span><strong>6.490.000đ</strong></div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=3">Xem chi tiết</a>
                     </div>
                 </div>
@@ -183,10 +144,7 @@
                     <p>Thời lượng: 3 ngày 2 đêm</p>
                     <p>Lịch gần nhất: 28/06/2026</p>
                     <div class="tour-price-row">
-                        <div>
-                            <span>Giá từ</span>
-                            <strong>3.990.000đ</strong>
-                        </div>
+                        <div><span>Giá từ</span><strong>3.990.000đ</strong></div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=4">Xem chi tiết</a>
                     </div>
                 </div>
@@ -214,7 +172,6 @@
 
         <div class="tour-grid">
             <%-- Sau này thay các card mẫu bằng vòng lặp JSTL từ requestScope.packageTours --%>
-
             <article class="tour-card package-card" data-region="north">
                 <div class="tour-image image-moc-chau"></div>
                 <div class="tour-body">
@@ -222,16 +179,9 @@
                     <p>Mã chương trình: <strong>NDHAN120</strong></p>
                     <p>Khởi hành: Hà Nội</p>
                     <p>Thời lượng: 2 ngày 1 đêm</p>
-                    <div class="date-list">
-                        <span>13/06</span>
-                        <span>20/06</span>
-                        <span>27/06</span>
-                    </div>
+                    <div class="date-list"><span>13/06</span><span>20/06</span><span>27/06</span></div>
                     <div class="tour-price-row">
-                        <div>
-                            <span>Giá từ</span>
-                            <strong>2.190.000đ</strong>
-                        </div>
+                        <div><span>Giá từ</span><strong>2.190.000đ</strong></div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=5">Xem chi tiết</a>
                     </div>
                 </div>
@@ -244,16 +194,9 @@
                     <p>Mã chương trình: <strong>NDSGN150</strong></p>
                     <p>Khởi hành: TP. Hồ Chí Minh</p>
                     <p>Thời lượng: 6 ngày 5 đêm</p>
-                    <div class="date-list">
-                        <span>02/06</span>
-                        <span>09/06</span>
-                        <span>16/06</span>
-                    </div>
+                    <div class="date-list"><span>02/06</span><span>09/06</span><span>16/06</span></div>
                     <div class="tour-price-row">
-                        <div>
-                            <span>Giá từ</span>
-                            <strong>13.190.000đ</strong>
-                        </div>
+                        <div><span>Giá từ</span><strong>13.190.000đ</strong></div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=6">Xem chi tiết</a>
                     </div>
                 </div>
@@ -266,16 +209,9 @@
                     <p>Mã chương trình: <strong>WVNMT221</strong></p>
                     <p>Khởi hành: Hà Nội</p>
                     <p>Thời lượng: 4 ngày 3 đêm</p>
-                    <div class="date-list">
-                        <span>18/06</span>
-                        <span>09/07</span>
-                        <span>23/07</span>
-                    </div>
+                    <div class="date-list"><span>18/06</span><span>09/07</span><span>23/07</span></div>
                     <div class="tour-price-row">
-                        <div>
-                            <span>Giá từ</span>
-                            <strong>7.990.000đ</strong>
-                        </div>
+                        <div><span>Giá từ</span><strong>7.990.000đ</strong></div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=7">Xem chi tiết</a>
                     </div>
                 </div>
@@ -288,16 +224,9 @@
                     <p>Mã chương trình: <strong>WVNPQ330</strong></p>
                     <p>Khởi hành: TP. Hồ Chí Minh</p>
                     <p>Thời lượng: 3 ngày 2 đêm</p>
-                    <div class="date-list">
-                        <span>21/06</span>
-                        <span>05/07</span>
-                        <span>19/07</span>
-                    </div>
+                    <div class="date-list"><span>21/06</span><span>05/07</span><span>19/07</span></div>
                     <div class="tour-price-row">
-                        <div>
-                            <span>Giá từ</span>
-                            <strong>6.290.000đ</strong>
-                        </div>
+                        <div><span>Giá từ</span><strong>6.290.000đ</strong></div>
                         <a href="${pageContext.request.contextPath}/tour-detail?id=8">Xem chi tiết</a>
                     </div>
                 </div>
@@ -324,11 +253,11 @@
         </div>
 
         <div class="service-grid">
-            <article class="service-card">
+            <a class="service-card" href="${pageContext.request.contextPath}/accommodation">
                 <span>🏨</span>
                 <h3>Khách sạn</h3>
                 <p>Đặt phòng theo ngày đi và nhu cầu lưu trú.</p>
-            </article>
+            </a>
 
             <article class="service-card">
                 <span>🚗</span>
@@ -347,14 +276,153 @@
                 <h3>Nhà hàng</h3>
                 <p>Gợi ý bữa ăn phù hợp với lịch trình của đoàn.</p>
             </article>
+            <article class="service-card"><span>🏨</span><h3>Khách sạn</h3><p>Đặt phòng theo ngày đi và nhu cầu lưu trú.</p></article>
+            <article class="service-card"><span>🚗</span><h3>Thuê xe</h3><p>Xe du lịch có tài xế, hỗ trợ đón trả theo lịch.</p></article>
+            <article class="service-card"><span>🎟️</span><h3>Vé vui chơi</h3><p>Hỗ trợ đặt vé tham quan, khu vui chơi, trải nghiệm.</p></article>
+            <article class="service-card"><span>🍽️</span><h3>Nhà hàng</h3><p>Gợi ý bữa ăn phù hợp với lịch trình của đoàn.</p></article>
         </div>
     </section>
 </main>
 
-<jsp:include page="/WEB-INF/common/homepage/footer.jsp" />
+<jsp:include page="common/client-footer.jsp" />
 
 <button class="scroll-top" id="scrollTop" type="button">↑</button>
-
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
+
+<c:if test="${not empty sessionScope.successMessage}">
+    <div id="successToast" class="success-toast">
+        <div class="toast-body">
+            <div class="toast-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+            </div>
+            <div class="toast-content">
+                <span class="toast-title">Đặt Tour Thành Công!</span>
+                <p class="toast-desc">${sessionScope.successMessage}</p>
+            </div>
+            <button type="button" class="toast-close-btn" onclick="dismissToast()">×</button>
+        </div>
+        <div class="toast-progress"></div>
+    </div>
+
+    <style>
+        .success-toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 9999;
+            min-width: 320px;
+            max-width: 400px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            animation: slideInToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .toast-body {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .toast-icon {
+            color: #10b981;
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .toast-title {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 15px;
+        }
+
+        .toast-desc {
+            color: #64748b;
+            font-size: 13.5px;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .toast-close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .toast-close-btn:hover {
+            color: #475569;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background-color: #10b981;
+            width: 100%;
+            animation: progressCount 5s linear forwards;
+        }
+
+        @keyframes slideInToast {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutToast {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes progressCount {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+    </style>
+
+    <script>
+        function dismissToast() {
+            const toast = document.getElementById('successToast');
+            if (toast) {
+                toast.style.animation = 'slideOutToast 0.4s ease-in forwards';
+                setTimeout(() => {
+                    toast.remove();
+                }, 400);
+            }
+        }
+        setTimeout(dismissToast, 5000);
+    </script>
+
+    <c:remove var="successMessage" scope="session" />
+</c:if>
 </body>
 </html>

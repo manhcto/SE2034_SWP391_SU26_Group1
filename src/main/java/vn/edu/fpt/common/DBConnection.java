@@ -11,6 +11,8 @@ public class DBConnection {
     private final String userID = "sa";        // Thay bằng username SQL Server của bạn
     private final String password = "FPTk18HE180875";    // Thay bằng password SQL Server của bạn
 
+
+
     public Connection getConnection() throws Exception {
         String url = "jdbc:sqlserver://" + serverName + ":" + portNumber + ";databaseName=" + dbName + ";encrypt=true;trustServerCertificate=true;";
         Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");

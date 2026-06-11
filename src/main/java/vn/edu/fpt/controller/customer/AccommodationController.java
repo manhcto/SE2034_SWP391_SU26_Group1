@@ -1,40 +1,346 @@
 package vn.edu.fpt.controller.customer;
 
-import vn.edu.fpt.DAO.AccommodationDAO;
-import vn.edu.fpt.model.Accommodation;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import vn.edu.fpt.DAO.AccommodationDAO;
+import vn.edu.fpt.DAO.FacilityDAO;
+import vn.edu.fpt.DAO.RoomDAO;
+import vn.edu.fpt.model.Accommodation;
+import vn.edu.fpt.model.Facility;
+import vn.edu.fpt.model.Room;
+
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
-// Đặt name độc nhất để tránh trùng cấu hình servlet với file quản lý bên staff
-@WebServlet(name = "CustomerAccommodationController", urlPatterns = {"/accommodations", "/accommodation-detail"})
-public class AccommodationController extends HttpServlet { // GIỮ NGUYÊN TÊN CLASS CỦA BẠN
+@WebServlet(name = "CustomerAccommodationController", urlPatterns = {
+        "/accommodation",
+        "/accommodation/detail"
+})
+public class AccommodationController extends HttpServlet {
+
+    private final AccommodationDAO accommodationDAO = new AccommodationDAO();
+    private final RoomDAO roomDAO = new RoomDAO();
+    private final FacilityDAO facilityDAO = new FacilityDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String servletPath = request.getServletPath();
-        AccommodationDAO dao = new AccommodationDAO();
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
 
-        // 1. Luồng xem danh sách khách sạn phía Khách hàng
-        if (servletPath.equals("/accommodations")) {
-            List<Accommodation> list = dao.getAllAccommodations();
-            request.setAttribute("accommodationList", list);
-            request.getRequestDispatcher("/views/customer/accommodation-list.jsp").forward(request, response);
+        String path = request.getServletPath();
+
+        if ("/accommodation/detail".equals(path)) {
+            showAccommodationDetail(request, response);
+            return;
         }
-        // 2. Luồng xem chi tiết một khách sạn
-        else if (servletPath.equals("/accommodation-detail")) {
-            String idParam = request.getParameter("id");
-            if (idParam != null && !idParam.isEmpty()) {
-                int id = Integer.parseInt(idParam);
-                Accommodation acc = dao.getAccommodationById(id);
-                request.setAttribute("accommodation", acc);
+
+        showAccommodationList(request, response);
+    }
+
+    private void showAccommodationList(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String keyword = safeLower(request.getParameter("keyword"));
+        String province = safeTrim(request.getParameter("province"));
+        String district = safeTrim(request.getParameter("district"));
+        String type = safeTrim(request.getParameter("type"));
+
+        Integer guests = parsePositiveInt(request.getParameter("guests"));
+        Integer facilityId = parsePositiveInt(request.getParameter("facilityId"));
+
+        String facilityName = safeTrim(request.getParameter("facilityName"));
+
+        Double minRate = parseNonNegativeDouble(request.getParameter("minRate"));
+        BigDecimal minPrice = parseNonNegativeBigDecimal(request.getParameter("minPrice"));
+        BigDecimal maxPrice = parseNonNegativeBigDecimal(request.getParameter("maxPrice"));
+
+        List<Accommodation> allAccommodations = accommodationDAO.getAvailableAccommodationsForCustomer();
+        List<Accommodation> filteredAccommodations = new ArrayList<>();
+
+        for (Accommodation accommodation : allAccommodations) {
+            int serviceID = accommodation.getServiceID();
+
+            List<Room> availableRooms = roomDAO.getAvailableRoomsByAccommodation(serviceID);
+
+            for (Room room : availableRooms) {
+                room.setFacilityList(facilityDAO.getFacilitiesByRoom(room.getRoomID()));
             }
-            request.getRequestDispatcher("/views/customer/accommodation-detail.jsp").forward(request, response);
+
+            List<Facility> accommodationFacilities = facilityDAO.getFacilitiesByAccommodation(serviceID);
+
+            accommodation.setRoomList(availableRooms);
+            accommodation.setFacilityList(accommodationFacilities);
+
+            if (!matchesKeyword(accommodation, keyword)) {
+                continue;
+            }
+
+            if (!isBlank(province)
+                    && !safeLower(accommodation.getProvince()).contains(safeLower(province))) {
+                continue;
+            }
+
+            if (!isBlank(district)
+                    && !safeLower(accommodation.getDistrict()).contains(safeLower(district))
+                    && !safeLower(accommodation.getFullAddress()).contains(safeLower(district))) {
+                continue;
+            }
+
+            if (!isBlank(type)
+                    && !safeLower(accommodation.getType()).contains(safeLower(type))
+                    && !safeLower(accommodation.getDisplayType()).contains(safeLower(type))) {
+                continue;
+            }
+
+            if (minRate != null && accommodation.getRate() < minRate) {
+                continue;
+            }
+
+            if (guests != null && !hasRoomForGuests(availableRooms, guests)) {
+                continue;
+            }
+
+            if (minPrice != null && !hasRoomPriceAtLeast(availableRooms, minPrice)) {
+                continue;
+            }
+
+            if (maxPrice != null && !hasRoomPriceAtMost(availableRooms, maxPrice)) {
+                continue;
+            }
+
+            if (facilityId != null && !hasFacilityById(accommodationFacilities, facilityId)) {
+                continue;
+            }
+
+            if (!isBlank(facilityName) && !hasFacilityByName(accommodationFacilities, facilityName)) {
+                continue;
+            }
+
+            filteredAccommodations.add(accommodation);
         }
+
+        request.setAttribute("accommodationList", filteredAccommodations);
+        request.setAttribute("accommodationFacilityOptions", facilityDAO.getAccommodationFacilityOptions());
+
+        request.setAttribute("keyword", request.getParameter("keyword"));
+        request.setAttribute("selectedProvince", province);
+        request.setAttribute("selectedDistrict", district);
+        request.setAttribute("selectedType", type);
+        request.setAttribute("selectedGuests", guests);
+        request.setAttribute("selectedFacilityId", facilityId);
+        request.setAttribute("selectedFacilityName", facilityName);
+        request.setAttribute("selectedMinRate", request.getParameter("minRate"));
+        request.setAttribute("selectedMinPrice", request.getParameter("minPrice"));
+        request.setAttribute("selectedMaxPrice", request.getParameter("maxPrice"));
+
+        request.getRequestDispatcher("/views/customer/accommodation-list.jsp")
+                .forward(request, response);
+    }
+
+    private void showAccommodationDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        Integer serviceID = parsePositiveInt(request.getParameter("id"));
+
+        if (serviceID == null) {
+            response.sendRedirect(request.getContextPath() + "/accommodation");
+            return;
+        }
+
+        Accommodation accommodation = accommodationDAO.getAccommodationByIdForCustomer(serviceID);
+
+        if (accommodation == null) {
+            response.sendRedirect(request.getContextPath() + "/accommodation?status=notFound");
+            return;
+        }
+
+        List<Room> roomList = roomDAO.getAvailableRoomsByAccommodation(serviceID);
+
+        for (Room room : roomList) {
+            room.setFacilityList(facilityDAO.getFacilitiesByRoom(room.getRoomID()));
+        }
+
+        accommodation.setRoomList(roomList);
+        accommodation.setFacilityList(facilityDAO.getFacilitiesByAccommodation(serviceID));
+
+        request.setAttribute("accommodation", accommodation);
+        request.setAttribute("roomList", roomList);
+
+        request.getRequestDispatcher("/views/customer/accommodation-detail.jsp")
+                .forward(request, response);
+    }
+
+    private boolean matchesKeyword(Accommodation accommodation, String keyword) {
+        if (isBlank(keyword)) {
+            return true;
+        }
+
+        String name = safeLower(accommodation.getName());
+        String address = safeLower(accommodation.getAddress());
+        String fullAddress = safeLower(accommodation.getFullAddress());
+        String description = safeLower(accommodation.getDescription());
+        String province = safeLower(accommodation.getProvince());
+        String district = safeLower(accommodation.getDistrict());
+        String ward = safeLower(accommodation.getWard());
+        String type = safeLower(accommodation.getType());
+        String displayType = safeLower(accommodation.getDisplayType());
+
+        boolean matchAccommodationInfo = name.contains(keyword)
+                || address.contains(keyword)
+                || fullAddress.contains(keyword)
+                || description.contains(keyword)
+                || province.contains(keyword)
+                || district.contains(keyword)
+                || ward.contains(keyword)
+                || type.contains(keyword)
+                || displayType.contains(keyword);
+
+        if (matchAccommodationInfo) {
+            return true;
+        }
+
+        if (accommodation.getFacilityList() != null) {
+            for (Facility facility : accommodation.getFacilityList()) {
+                if (safeLower(facility.getFacilityName()).contains(keyword)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasRoomForGuests(List<Room> roomList, int guests) {
+        if (roomList == null || roomList.isEmpty()) {
+            return false;
+        }
+
+        for (Room room : roomList) {
+            int capacity = room.getMaxAdults() + room.getMaxChildren();
+
+            if (capacity >= guests) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasRoomPriceAtLeast(List<Room> roomList, BigDecimal minPrice) {
+        if (roomList == null || roomList.isEmpty()) {
+            return false;
+        }
+
+        for (Room room : roomList) {
+            if (room.getPriceOfRoom() != null
+                    && room.getPriceOfRoom().compareTo(minPrice) >= 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasRoomPriceAtMost(List<Room> roomList, BigDecimal maxPrice) {
+        if (roomList == null || roomList.isEmpty()) {
+            return false;
+        }
+
+        for (Room room : roomList) {
+            if (room.getPriceOfRoom() != null
+                    && room.getPriceOfRoom().compareTo(maxPrice) <= 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasFacilityById(List<Facility> facilityList, int facilityId) {
+        if (facilityList == null || facilityList.isEmpty()) {
+            return false;
+        }
+
+        for (Facility facility : facilityList) {
+            if (facility.getFacilityID() == facilityId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasFacilityByName(List<Facility> facilityList, String facilityName) {
+        if (facilityList == null || facilityList.isEmpty() || isBlank(facilityName)) {
+            return false;
+        }
+
+        String selectedName = safeLower(facilityName);
+
+        for (Facility facility : facilityList) {
+            if (safeLower(facility.getFacilityName()).contains(selectedName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private Integer parsePositiveInt(String value) {
+        try {
+            if (value == null || value.trim().isEmpty()) {
+                return null;
+            }
+
+            int number = Integer.parseInt(value.trim());
+            return number > 0 ? number : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Double parseNonNegativeDouble(String value) {
+        try {
+            if (value == null || value.trim().isEmpty()) {
+                return null;
+            }
+
+            double number = Double.parseDouble(value.trim());
+            return number >= 0 ? number : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private BigDecimal parseNonNegativeBigDecimal(String value) {
+        try {
+            if (value == null || value.trim().isEmpty()) {
+                return null;
+            }
+
+            BigDecimal number = new BigDecimal(value.trim());
+            return number.compareTo(BigDecimal.ZERO) >= 0 ? number : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String safeLower(String value) {
+        return value == null ? "" : value.trim().toLowerCase();
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }
