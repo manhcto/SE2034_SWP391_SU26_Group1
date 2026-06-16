@@ -450,6 +450,11 @@
             <span>Xem Booking</span>
         </a>
 
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
+            <i class="fa-solid fa-comments"></i>
+            <span>Xem Feedback</span>
+        </a>
+
         <div class="nav-section-title">Xem khu vực Staff</div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
@@ -604,6 +609,17 @@
                     <span class="module-open">Mở Booking View <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
+
+            <div class="col-md-4">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/feedback">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <h5>Xem Feedback</h5>
+                    <p>Admin xem danh sách feedback và chi tiết feedback của khách hàng, không duyệt hoặc chỉnh sửa.</p>
+                    <span class="module-open">Mở Feedback View <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                </a>
+            </div>
         </div>
 
         <h3 class="section-title">Xem các module vận hành của Staff</h3>
@@ -680,8 +696,8 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h5>View Feedback</h5>
-                    <p>Xem đánh giá, phản hồi và dữ liệu chăm sóc khách hàng.</p>
+                    <h5>View Staff Feedback</h5>
+                    <p>Xem khu vực staff xử lý feedback, duyệt hoặc ẩn đánh giá khách hàng.</p>
                     <span class="module-open">Xem module</span>
                 </a>
             </div>
