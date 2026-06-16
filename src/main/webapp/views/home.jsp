@@ -9,6 +9,7 @@
     <title>WonderVN | Trang chủ</title>
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=999">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 
 <body>
@@ -23,7 +24,7 @@
         <div class="home-container hero-layout">
             <div class="hero-left">
                 <div class="hero-pill">
-                    <span>🇻🇳</span>
+                    <span class="facility-icon small"><i class="fa-solid fa-location-dot"></i></span>
                     <strong>Khám phá Việt Nam cùng WonderVN</strong>
                 </div>
 
@@ -117,7 +118,7 @@
                     <div class="photo-gradient"></div>
 
                     <div class="floating-badge top">
-                        <span>⭐</span>
+                        <span class="facility-icon"><i class="fa-solid fa-star"></i></span>
                         <div>
                             <strong>4.9/5</strong>
                             <small>Trải nghiệm nổi bật</small>
@@ -125,7 +126,7 @@
                     </div>
 
                     <div class="floating-badge bottom">
-                        <span>📍</span>
+                        <span class="facility-icon"><i class="fa-solid fa-map-location-dot"></i></span>
                         <div>
                             <strong>Bà Nà Hills, Đà Nẵng</strong>
                             <small>Check-in Cầu Vàng cực hot</small>
@@ -134,15 +135,15 @@
                 </div>
 
                 <div class="mini-card mini-card-one">
-                    <span>🏨</span>
+                    <span class="facility-icon"><i class="fa-solid fa-wifi"></i></span>
                     <strong>Khách sạn đẹp</strong>
-                    <small>Tìm nhanh theo tiện ích</small>
+                    <small>WiFi, hồ bơi, bãi đỗ xe</small>
                 </div>
 
                 <div class="mini-card mini-card-two">
-                    <span>🚗</span>
+                    <span class="facility-icon"><i class="fa-solid fa-car-side"></i></span>
                     <strong>Thuê xe dễ dàng</strong>
-                    <small>Nhận xe theo địa điểm</small>
+                    <small>Đưa đón, tự lái, theo địa điểm</small>
                 </div>
             </div>
         </div>
@@ -160,25 +161,25 @@
 
             <div class="service-grid">
                 <a class="service-card" href="${pageContext.request.contextPath}/tour">
-                    <span class="service-icon">🧳</span>
+                    <span class="service-icon facility-icon"><i class="fa-solid fa-route"></i></span>
                     <h3>Tour trọn gói</h3>
                     <p>Lịch trình rõ ràng, giá minh bạch, phù hợp nhóm bạn và gia đình.</p>
                 </a>
 
                 <a class="service-card" href="${pageContext.request.contextPath}/accommodation">
-                    <span class="service-icon">🏨</span>
+                    <span class="service-icon facility-icon"><i class="fa-solid fa-hotel"></i></span>
                     <h3>Khách sạn & Homestay</h3>
                     <p>Lọc theo địa điểm, tiện ích, số khách, giá phòng và đánh giá.</p>
                 </a>
 
                 <a class="service-card" href="${pageContext.request.contextPath}/vehicle">
-                    <span class="service-icon">🚗</span>
+                    <span class="service-icon facility-icon"><i class="fa-solid fa-car-side"></i></span>
                     <h3>Thuê xe</h3>
                     <p>Xe máy, ô tô, SUV, xe du lịch với giá thuê nổi bật từng ngày.</p>
                 </a>
 
                 <a class="service-card" href="${pageContext.request.contextPath}/service">
-                    <span class="service-icon">🎉</span>
+                    <span class="service-icon facility-icon"><i class="fa-solid fa-ticket"></i></span>
                     <h3>Dịch vụ cộng thêm</h3>
                     <p>Vé vui chơi, nhà hàng, trải nghiệm và tiện ích đi kèm.</p>
                 </a>

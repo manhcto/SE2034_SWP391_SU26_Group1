@@ -384,7 +384,7 @@ public class ManageVehicleController extends HttpServlet {
             double value = Double.parseDouble(raw);
 
             if (value < 0 || value > maximum) {
-                errors.add(fieldName + " không được âm và không vượt quá " + maximum + ".");
+                errors.add(fieldName + " không được âm và khô ng vượt quá " + maximum + ".");
             }
 
         } catch (Exception e) {
