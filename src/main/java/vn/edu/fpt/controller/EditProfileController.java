@@ -36,40 +36,55 @@ public class EditProfileController
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session =
-                request.getSession();
+        request.setCharacterEncoding("UTF-8");
 
-        User user =
-                (User) session.getAttribute("user");
+        HttpSession session = request.getSession();
 
-        String firstName =
-                request.getParameter("firstName");
+        User user = (User) session.getAttribute("user");
 
-        String lastName =
-                request.getParameter("lastName");
+        String firstName = request.getParameter("firstName");
+        String lastName = request.getParameter("lastName");
+        String phone = request.getParameter("phone");
+        String gender = request.getParameter("gender");
+        String dob = request.getParameter("dob");
+        String address = request.getParameter("address");
 
-        String gender =
-                request.getParameter("gender");
-
-        userDAO.updateProfile(
+        boolean success = userDAO.updateProfile(
                 user.getUserID(),
                 firstName,
                 lastName,
-                gender
+                phone,
+                gender,
+                dob,
+                address
         );
 
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setGender(gender);
+        if (success) {
 
-        session.setAttribute(
-                "user",
-                user
-        );
+            // cập nhật session
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setPhone(phone);
+            user.setGender(gender);
+            user.setDob(dob);
+            user.setAddress(address);
 
-        response.sendRedirect(
-                request.getContextPath()
-                        + "/home"
-        );
+            session.setAttribute("user", user);
+
+            response.sendRedirect(
+                    request.getContextPath() + "/profile"
+            );
+
+        } else {
+
+            request.setAttribute(
+                    "error",
+                    "Cập nhật hồ sơ thất bại!"
+            );
+
+            request.getRequestDispatcher(
+                    "/views/edit-profile.jsp"
+            ).forward(request, response);
+        }
     }
 }

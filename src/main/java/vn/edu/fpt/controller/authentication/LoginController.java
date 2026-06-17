@@ -32,27 +32,73 @@ public class LoginController extends HttpServlet {
         if (user != null) {
 
             HttpSession session = request.getSession();
-
-            // Lưu thông tin user đăng nhập
             session.setAttribute("user", user);
 
-            // Nếu muốn hiện thông báo ở Home sau khi login
-            // session.setAttribute("successMsg", "Đăng nhập thành công!");
+            int roleID = user.getRoleID();
 
-            response.sendRedirect(
-                    request.getContextPath() + "/home"
+            if (roleID == 1) {
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/views/admin/admin-home.jsp");
+            }
+            else if (roleID == 2) {
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/views/staff/staff-home.jsp");
+            }
+            else if (roleID == 3) {
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/views/guide/tour-guide-home.jsp");
+            }
+            else {
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/home");
+            }
+
+            return;
+        }
+
+        User existingUser = userDAO.getUserByEmail(email);
+
+        if (existingUser == null) {
+
+            request.setAttribute(
+                    "error",
+                    "Email không tồn tại!"
             );
 
         } else {
 
-            request.setAttribute(
-                    "error",
-                    "Sai email hoặc password!"
-            );
+            String status = existingUser.getStatus();
 
-            request.getRequestDispatcher("/views/login.jsp")
-                    .forward(request, response);
+            if ("Inactive".equalsIgnoreCase(status)) {
+
+                request.setAttribute(
+                        "error",
+                        "Tài khoản chưa được kích hoạt!"
+                );
+
+            } else if ("Blocked".equalsIgnoreCase(status)) {
+
+                request.setAttribute(
+                        "error",
+                        "Tài khoản đã bị khóa!"
+                );
+
+            } else {
+
+                request.setAttribute(
+                        "error",
+                        "Sai mật khẩu!"
+                );
+            }
         }
+
+        request.getRequestDispatcher("/views/login.jsp")
+                .forward(request, response);
+
     }
 
     @Override

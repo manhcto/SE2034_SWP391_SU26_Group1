@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -168,33 +169,128 @@
     }
 
     /* DROPDOWN */
+    /* ===== USER BOX ===== */
+    .user-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: .25s;
+    }
+
+    .user-box:hover {
+        background: #f8fafc;
+    }
+
+    .avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e2e8f0;
+    }
+
+    /* ===== DROPDOWN ===== */
     .dropdown-menu {
         position: absolute;
-        top: 52px;
+        top: 60px;
         right: 0;
+
+        width: 260px;
+
         background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        width: 160px;
-        display: none;
-        flex-direction: column;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border-radius: 18px;
+
+        border: 1px solid #edf2f7;
+
+        box-shadow:
+                0 20px 40px rgba(15, 23, 42, 0.12),
+                0 4px 12px rgba(15, 23, 42, 0.08);
+
         overflow: hidden;
+
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(12px);
+
+        transition: all .25s ease;
+
+        z-index: 9999;
     }
 
     .user-box:hover .dropdown-menu {
-        display: flex;
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
     }
 
+    /* HEADER USER */
+    .dropdown-user {
+        padding: 16px;
+        background: linear-gradient(
+                135deg,
+                #3b82f6,
+                #2563eb
+        );
+
+        color: white;
+    }
+
+    .dropdown-user-name {
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .dropdown-user-role {
+        font-size: 12px;
+        opacity: .9;
+        margin-top: 3px;
+    }
+
+    /* MENU ITEMS */
     .dropdown-menu a {
-        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        padding: 14px 16px;
+
         text-decoration: none;
         color: #334155;
-        font-size: 13px;
+
+        font-size: 14px;
+        font-weight: 500;
+
+        transition: .2s;
     }
 
     .dropdown-menu a:hover {
-        background: #f1f5f9;
+        background: #f8fafc;
+        color: #2563eb;
+    }
+
+    .dropdown-menu a i {
+        width: 18px;
+        text-align: center;
+    }
+
+    /* DIVIDER */
+    .dropdown-divider {
+        height: 1px;
+        background: #edf2f7;
+        margin: 4px 0;
+    }
+
+    /* LOGOUT */
+    .logout-link {
+        color: #dc2626 !important;
+    }
+
+    .logout-link:hover {
+        background: #fef2f2 !important;
     }
 
     /* MOBILE */
@@ -206,6 +302,23 @@
         border: 1px solid #e5e7eb;
         background: #fff;
         cursor: pointer;
+    }
+    .dropdown-menu a {
+        padding: 12px 14px;
+        text-decoration: none;
+        color: #334155;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .dropdown-menu a:hover {
+        background: #f1f5f9;
+    }
+
+    .dropdown-menu a i {
+        width: 16px;
     }
 
     @media (max-width: 1024px) {
@@ -270,15 +383,40 @@
             </a>
 
             <!-- USER -->
+            <!-- USER -->
             <div class="user-box">
                 <img class="avatar"
-                     src="${pageContext.request.contextPath}/assets/images/default-avatar.jpg">
+                     src="${pageContext.request.contextPath}/assets/images/default-avatar.jpg"
+                     alt="Avatar">
 
-                <span>${sessionScope.user.firstName}</span>
+                <span>${sessionScope.user.lastName}</span>
+
+                <i class="fa-solid fa-chevron-down"
+                   style="font-size:12px;color:#64748b;"></i>
 
                 <div class="dropdown-menu">
-                    <a href="${pageContext.request.contextPath}/edit-profile">Profile</a>
-                    <a href="${pageContext.request.contextPath}/logout">Logout</a>
+                    <c:choose>
+                        <c:when test="${sessionScope.user != null && sessionScope.user.roleID == 1}">
+                            <a href="${pageContext.request.contextPath}/admin/home">
+                                Quay về trang Admin
+                            </a>
+                        </c:when>
+
+                        <c:when test="${sessionScope.user != null && sessionScope.user.roleID == 2}">
+                            <a href="${pageContext.request.contextPath}/staff/home">
+                                Quay về trang Staff
+                            </a>
+                        </c:when>
+                    </c:choose>
+                    <a href="${pageContext.request.contextPath}/profile">
+                        <i class="fa-solid fa-user"></i>
+                        Xem hồ sơ
+                    </a>
+
+                    <a href="${pageContext.request.contextPath}/logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        Đăng xuất
+                    </a>
                 </div>
             </div>
 

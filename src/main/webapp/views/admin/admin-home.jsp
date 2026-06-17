@@ -459,7 +459,7 @@
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
             <i class="fa-solid fa-user-tie"></i>
-            <span>Staff Home</span>
+            <span>Trang Staff</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
@@ -500,10 +500,6 @@
                     Trang khách hàng
                 </a>
 
-                <a class="top-action-btn btn-staff" href="${pageContext.request.contextPath}/staff/home">
-                    <i class="fa-solid fa-user-tie"></i>
-                    Staff Home
-                </a>
             </div>
         </div>
 

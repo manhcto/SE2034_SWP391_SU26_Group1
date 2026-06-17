@@ -527,8 +527,8 @@
         <div class="admin-user">
             <div class="avatar">AD</div>
             <div>
-                <div class="fw-bold">Quản trị viên</div>
-                <small>Admin / Staff</small>
+                <div class="fw-bold">Nhân viên</div>
+                <small>Staff</small>
             </div>
         </div>
     </aside>
@@ -545,7 +545,7 @@
             <div class="top-actions">
                 <a class="top-action-btn btn-home" href="${pageContext.request.contextPath}/home">
                     <i class="fa-solid fa-globe"></i>
-                    Trang chủ
+                    Trang khách hàng
                 </a>
 
                 <a class="top-action-btn btn-logout" href="${pageContext.request.contextPath}/logout">

@@ -115,25 +115,25 @@
 
     <form action="register" method="post" onsubmit="return validateAge()">
 
-        <input type="text" name="firstName" placeholder="First Name" required />
-        <input type="text" name="lastName" placeholder="Last Name" required />
+        <input type="text" name="firstName" placeholder="Họ" required />
+        <input type="text" name="lastName" placeholder="Tên" required />
         <input type="email" name="email" placeholder="Email" required />
-        <input type="password" name="password" placeholder="Password" required />
+        <input type="password" name="password" placeholder="Mật khẩu" required />
         <input
                 type="text"
                 name="phone"
                 id="phone"
-                placeholder="Phone (10 digits)"
+                placeholder="Số điện thoai (10 ký tự)"
                 pattern="^[0-9]{10}$"
                 maxlength="10"
                 required
         />
 
         <select name="gender">
-            <option value="">-- Gender --</option>
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
+            <option value="">-- Giới tính --</option>
+            <option>Nam</option>
+            <option>Nữ</option>
+            <option>Khác</option>
         </select>
 
         <input type="date" name="dob" id="dob" required />

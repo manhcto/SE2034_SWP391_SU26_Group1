@@ -579,10 +579,6 @@
 
         <div class="nav-section-title">Tài khoản</div>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/home">
-            <i class="fa-solid fa-globe"></i>
-            <span>Trang khách hàng</span>
-        </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
             <i class="fa-solid fa-right-from-bracket"></i>
