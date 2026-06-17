@@ -6,26 +6,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WonderVN | Trang chủ</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=999">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=1000">
 </head>
 <body>
-<c:choose>
 
-    <c:when test="${sessionScope.user != null}">
-
-        <jsp:include page="/views/common/customer-header.jsp"/>
-
-    </c:when>
-
-    <c:otherwise>
-
-        <jsp:include page="/views/common/client-header.jsp"/>
-
-    </c:otherwise>
-
-</c:choose>
-
-
+<jsp:include page="/views/common/client-header.jsp" />
 
 <main class="home-page">
 
@@ -399,9 +384,6 @@
     </div>
     <c:remove var="successMessage" scope="session" />
 </c:if>
-
-</body>
-</html>
 
 </body>
 </html>

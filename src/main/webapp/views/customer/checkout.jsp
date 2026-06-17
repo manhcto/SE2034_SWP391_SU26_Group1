@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WonderVN | Thanh toán & Đặt Tour</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=1000">
 
     <style>
         .checkout-container {
@@ -153,11 +153,9 @@
 
         <form action="${pageContext.request.contextPath}/booking" method="POST" novalidate>
 
-            <%-- Dữ liệu tour được gửi từ booking.jsp sang checkout.jsp --%>
             <input type="hidden" name="tourScheduleID" value="${param.tourScheduleID}">
             <input type="hidden" name="tourName" value="${param.tourName}">
 
-            <%-- Hiển thị thông tin tour đang đặt --%>
             <div class="form-card">
                 <h3>Tour đang đặt</h3>
 

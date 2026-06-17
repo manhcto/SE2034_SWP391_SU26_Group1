@@ -2,6 +2,7 @@ package vn.edu.fpt.controller.customer;
 
 import vn.edu.fpt.DAO.BookingDAO;
 import vn.edu.fpt.model.Booking;
+import vn.edu.fpt.model.User;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -248,17 +249,19 @@ public class BookingController extends HttpServlet {
             booking.setTotalPrice(totalPrice);
             booking.setBookedForOther(isBookedForOther);
 
-            HttpSession session = request.getSession();
+            HttpSession session = request.getSession(false);
 
-            if (session.getAttribute("userID") != null) {
-                booking.setUserID((Integer) session.getAttribute("userID"));
+            if (session != null && session.getAttribute("user") != null) {
+                User currentUser = (User) session.getAttribute("user");
+                booking.setUserID(currentUser.getUserID());
             }
 
             // Save booking and redirect to summary
             int bookingID = dao.insertBookingTransactionReturnID(booking, tourScheduleID, unitPriceForDetail);
 
             if (bookingID > 0) {
-                session.setAttribute("successMessage", "Đặt tour thành công! Mã đơn: " + bookingCode);
+                HttpSession currentSession = request.getSession();
+                currentSession.setAttribute("successMessage", "Đặt tour thành công! Mã đơn: " + bookingCode);
                 response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
             } else {
                 request.setAttribute("error", "Không thể lưu đơn hàng. Có thể số chỗ vừa được người khác đặt hết. Vui lòng thử lại!");
