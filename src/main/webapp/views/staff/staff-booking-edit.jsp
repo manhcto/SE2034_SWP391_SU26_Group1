@@ -441,7 +441,6 @@
     <div class="topbar">
       <div>
         <h1>Sửa Booking</h1>
-        <p>Staff có quyền cập nhật thông tin booking và trạng thái xử lý booking.</p>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/booking">
@@ -551,6 +550,28 @@
             </div>
 
             <div class="col-md-6">
+              <label for="numberAdult" class="form-label">Số người lớn</label>
+              <input type="text"
+                     class="form-control"
+                     id="numberAdult"
+                     name="numberAdult"
+                     value="${booking.numberAdult}"
+                     inputmode="numeric"
+                     pattern="[0-9]*">
+            </div>
+
+            <div class="col-md-6">
+              <label for="numberChildren" class="form-label">Số trẻ em</label>
+              <input type="text"
+                     class="form-control"
+                     id="numberChildren"
+                     name="numberChildren"
+                     value="${booking.numberChildren}"
+                     inputmode="numeric"
+                     pattern="[0-9]*">
+            </div>
+
+            <div class="col-md-6">
               <label for="isBookedForOther" class="form-label">Đặt hộ người khác</label>
               <select class="form-select" id="isBookedForOther" name="isBookedForOther">
                 <option value="false" ${booking.bookedForOther == false ? 'selected' : ''}>Không</option>
@@ -561,10 +582,10 @@
             <div class="col-md-6">
               <label for="status" class="form-label">Trạng thái Booking</label>
               <select class="form-select" id="status" name="status">
-                <option value="Pending" ${booking.status == 'Pending' ? 'selected' : ''}>Pending - Chờ xử lý</option>
-                <option value="Confirmed" ${booking.status == 'Confirmed' ? 'selected' : ''}>Confirmed - Đã xác nhận</option>
-                <option value="Cancelled" ${booking.status == 'Cancelled' ? 'selected' : ''}>Cancelled - Đã hủy</option>
-                <option value="Completed" ${booking.status == 'Completed' ? 'selected' : ''}>Completed - Hoàn thành</option>
+                <option value="Pending" ${booking.status == 'Pending' ? 'selected' : ''}>Chờ xử lý</option>
+                <option value="Confirmed" ${booking.status == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
+                <option value="Cancelled" ${booking.status == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
+                <option value="Completed" ${booking.status == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
               </select>
             </div>
 

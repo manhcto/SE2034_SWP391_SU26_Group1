@@ -68,12 +68,15 @@ public class BookingEditController extends HttpServlet {
         String phone = getTrimValue(request, "phone");
         String address = getTrimValue(request, "address");
         String note = getTrimValue(request, "note");
+        String numberAdultRaw = getTrimValue(request, "numberAdult");
+        String numberChildrenRaw = getTrimValue(request, "numberChildren");
         String isBookedForOtherRaw = request.getParameter("isBookedForOther");
-        String status = getTrimValue(request, "status");
 
         int bookingID = parseBookingID(bookingIDRaw, errors);
+        int numberAdult = parseNaturalNumber(numberAdultRaw, "Số người lớn", 1, errors);
+        int numberChildren = parseNaturalNumber(numberChildrenRaw, "Số trẻ em", 0, errors);
 
-        validateBookingForm(firstName, lastName, email, phone, address, note, status, errors);
+        validateBookingForm(firstName, lastName, email, phone, address, note, errors);
 
         BookingDAO bookingDAO = new BookingDAO();
         Booking oldBooking = null;
@@ -83,6 +86,8 @@ public class BookingEditController extends HttpServlet {
 
             if (oldBooking == null) {
                 errors.add("Booking không tồn tại trong hệ thống.");
+            } else if (!"Pending".equals(oldBooking.getStatus())) {
+                errors.add("Chỉ có thể sửa booking khi trạng thái đang là Pending.");
             }
         }
 
@@ -97,31 +102,33 @@ public class BookingEditController extends HttpServlet {
         booking.setPhone(phone);
         booking.setAddress(address);
         booking.setNote(note);
+        booking.setNumberAdult(numberAdult);
+        booking.setNumberChildren(numberChildren);
         booking.setBookedForOther(isBookedForOther);
-        booking.setStatus(status);
+
+        if (oldBooking != null) {
+            booking.setBookingCode(oldBooking.getBookingCode());
+            booking.setBookingType(oldBooking.getBookingType());
+            booking.setStatus(oldBooking.getStatus());
+            booking.setBookDate(oldBooking.getBookDate());
+            booking.setTotalPrice(oldBooking.getTotalPrice());
+            booking.setUserID(oldBooking.getUserID());
+            booking.setVoucherID(oldBooking.getVoucherID());
+        }
 
         if (!errors.isEmpty()) {
-            if (oldBooking != null) {
-                booking.setBookingCode(oldBooking.getBookingCode());
-                booking.setBookingType(oldBooking.getBookingType());
-                booking.setNumberAdult(oldBooking.getNumberAdult());
-                booking.setNumberChildren(oldBooking.getNumberChildren());
-                booking.setBookDate(oldBooking.getBookDate());
-                booking.setTotalPrice(oldBooking.getTotalPrice());
-            }
-
             request.setAttribute("errors", errors);
             request.setAttribute("booking", booking);
             request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
             return;
         }
 
-        boolean updated = bookingDAO.updateBooking(booking);
+        boolean updated = bookingDAO.updateCustomerBooking(booking);
 
         if (updated) {
             response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
         } else {
-            errors.add("Cập nhật booking thất bại. Vui lòng thử lại.");
+            errors.add("Cập nhật booking thất bại. Có thể số chỗ còn lại không đủ hoặc booking không còn ở trạng thái Pending.");
 
             request.setAttribute("errors", errors);
             request.setAttribute("booking", booking);
@@ -156,28 +163,61 @@ public class BookingEditController extends HttpServlet {
         }
     }
 
+    private int parseNaturalNumber(String rawValue, String fieldName, int minValue, List<String> errors) {
+        if (rawValue == null || rawValue.trim().isEmpty()) {
+            errors.add(fieldName + " không được để trống.");
+            return 0;
+        }
+
+        String valueText = rawValue.trim();
+
+        if (!valueText.matches("\\d+")) {
+            errors.add(fieldName + " chỉ được nhập số tự nhiên.");
+            return 0;
+        }
+
+        try {
+            int value = Integer.parseInt(valueText);
+
+            if (value < minValue) {
+                errors.add(fieldName + " phải lớn hơn hoặc bằng " + minValue + ".");
+                return 0;
+            }
+
+            return value;
+
+        } catch (NumberFormatException e) {
+            errors.add(fieldName + " không hợp lệ.");
+            return 0;
+        }
+    }
+
     private void validateBookingForm(String firstName, String lastName, String email,
                                      String phone, String address, String note,
-                                     String status, List<String> errors) {
+                                     List<String> errors) {
 
         if (firstName.isEmpty()) {
             errors.add("Vui lòng nhập họ.");
         } else if (firstName.length() > 100) {
             errors.add("Họ không được vượt quá 100 ký tự.");
+        } else if (!firstName.matches("^[\\p{L}\\s]+$")) {
+            errors.add("Họ chỉ được chứa chữ cái và khoảng trắng.");
         }
 
         if (lastName.isEmpty()) {
             errors.add("Vui lòng nhập tên.");
         } else if (lastName.length() > 100) {
             errors.add("Tên không được vượt quá 100 ký tự.");
+        } else if (!lastName.matches("^[\\p{L}\\s]+$")) {
+            errors.add("Tên chỉ được chứa chữ cái và khoảng trắng.");
         }
 
         if (email.isEmpty()) {
             errors.add("Vui lòng nhập email.");
         } else if (email.length() > 255) {
             errors.add("Email không được vượt quá 255 ký tự.");
-        } else if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-            errors.add("Email không đúng định dạng.");
+        } else if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            errors.add("Email không đúng định dạng. Ví dụ đúng: example@gmail.com.");
         }
 
         if (phone.isEmpty()) {
@@ -188,21 +228,12 @@ public class BookingEditController extends HttpServlet {
 
         if (address.length() > 255) {
             errors.add("Địa chỉ không được vượt quá 255 ký tự.");
+        } else if (!address.isEmpty() && !address.matches("^[\\p{L}0-9\\s,./-]+$")) {
+            errors.add("Địa chỉ chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
         }
 
         if (note.length() > 1000) {
             errors.add("Ghi chú không được vượt quá 1000 ký tự.");
         }
-
-        if (!isValidStatus(status)) {
-            errors.add("Trạng thái booking không hợp lệ.");
-        }
-    }
-
-    private boolean isValidStatus(String status) {
-        return "Pending".equals(status)
-                || "Confirmed".equals(status)
-                || "Cancelled".equals(status)
-                || "Completed".equals(status);
     }
 }

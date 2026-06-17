@@ -204,70 +204,168 @@
       margin-bottom: 20px;
     }
 
+    .error-box {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      border-radius: 18px;
+      padding: 16px 20px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
     .content-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 24px;
       padding: 24px;
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+      max-width: 1180px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    .table-responsive {
+      overflow-x: visible;
+      width: 100%;
     }
 
     .table {
+      width: 100%;
+      table-layout: fixed;
       margin-bottom: 0;
     }
 
     .table thead th {
       background: #f8fafc;
       color: #334155;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 900;
       border-bottom: 1px solid #e2e8f0;
-      padding: 16px 14px;
-      white-space: nowrap;
+      padding: 14px 10px;
+      white-space: normal;
+      vertical-align: middle;
     }
 
     .table tbody td {
-      padding: 15px 14px;
+      padding: 14px 10px;
       vertical-align: middle;
       color: #0f172a;
-      font-size: 14px;
+      font-size: 13px;
+      word-break: break-word;
+    }
+
+    .table th:nth-child(1),
+    .table td:nth-child(1) {
+      width: 10%;
+    }
+
+    .table th:nth-child(2),
+    .table td:nth-child(2) {
+      width: 13%;
+    }
+
+    .table th:nth-child(3),
+    .table td:nth-child(3) {
+      width: 22%;
+    }
+
+    .table th:nth-child(4),
+    .table td:nth-child(4) {
+      width: 12%;
+    }
+
+    .table th:nth-child(5),
+    .table td:nth-child(5) {
+      width: 11%;
+    }
+
+    .table th:nth-child(6),
+    .table td:nth-child(6) {
+      width: 10%;
+    }
+
+    .table th:nth-child(7),
+    .table td:nth-child(7) {
+      width: 10%;
+    }
+
+    .table th:nth-child(8),
+    .table td:nth-child(8) {
+      width: 12%;
     }
 
     .booking-code {
       font-weight: 900;
       color: #4e46dc;
+      word-break: break-word;
     }
 
     .status-badge {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 6px 12px;
+      padding: 6px 10px;
       border-radius: 999px;
       background: #e0f2fe;
       color: #075985;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
+    }
+
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
     .btn-edit {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
-      padding: 9px 14px;
+      gap: 5px;
+      padding: 8px 11px;
       border-radius: 999px;
       background: #4e46dc;
       color: #ffffff;
       text-decoration: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 900;
       white-space: nowrap;
+      border: none;
     }
 
     .btn-edit:hover {
       background: #3730a3;
       color: #ffffff;
+    }
+
+    .btn-delete {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: #dc2626;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-delete:hover {
+      background: #b91c1c;
+      color: #ffffff;
+    }
+
+    .delete-form {
+      margin: 0;
+      display: inline;
     }
 
     .empty-box {
@@ -303,6 +401,14 @@
 
       .top-action-btn {
         margin-top: 16px;
+      }
+
+      .table-responsive {
+        overflow-x: auto;
+      }
+
+      .table {
+        min-width: 900px;
       }
     }
   </style>
@@ -414,7 +520,6 @@
     <div class="topbar">
       <div>
         <h1>Staff Booking Management</h1>
-        <p>Staff có thể xem và cập nhật thông tin booking, kể cả booking đang Pending hoặc đã thanh toán.</p>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/home">
@@ -427,6 +532,20 @@
       <div class="success-box">
         <i class="fa-solid fa-circle-check me-2"></i>
         Cập nhật booking thành công.
+      </div>
+    </c:if>
+
+    <c:if test="${param.success == 'deleted'}">
+      <div class="success-box">
+        <i class="fa-solid fa-circle-check me-2"></i>
+        Xóa booking thành công.
+      </div>
+    </c:if>
+
+    <c:if test="${param.error == 'deleteFailed'}">
+      <div class="error-box">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+        Xóa booking thất bại. Booking có thể đang liên kết với dữ liệu khác.
       </div>
     </c:if>
 
@@ -461,17 +580,38 @@
                     <fmt:formatDate value="${booking.bookDate}" pattern="dd/MM/yyyy HH:mm"/>
                   </td>
                   <td>
-                    <span class="status-badge">${booking.status}</span>
+                    <span class="status-badge">
+                      <c:choose>
+                        <c:when test="${booking.status == 'Pending'}">Chờ xử lý</c:when>
+                        <c:when test="${booking.status == 'Confirmed'}">Đã xác nhận</c:when>
+                        <c:when test="${booking.status == 'Cancelled'}">Đã hủy</c:when>
+                        <c:when test="${booking.status == 'Completed'}">Hoàn thành</c:when>
+                        <c:otherwise>${booking.status}</c:otherwise>
+                      </c:choose>
+                    </span>
                   </td>
                   <td>
                     <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
                   </td>
                   <td>
-                    <a class="btn-edit"
-                       href="${pageContext.request.contextPath}/staff/booking-edit?bookingID=${booking.bookingID}">
-                      <i class="fa-solid fa-pen-to-square"></i>
-                      Sửa
-                    </a>
+                    <div class="action-group">
+                      <a class="btn-edit"
+                         href="${pageContext.request.contextPath}/staff/booking-edit?bookingID=${booking.bookingID}">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        Sửa
+                      </a>
+
+                      <form class="delete-form"
+                            action="${pageContext.request.contextPath}/staff/booking-delete"
+                            method="post"
+                            onsubmit="return confirm('Bạn có chắc chắn muốn xóa booking này không?');">
+                        <input type="hidden" name="bookingID" value="${booking.bookingID}">
+                        <button type="submit" class="btn-delete">
+                          <i class="fa-solid fa-trash"></i>
+                          Xóa
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               </c:forEach>

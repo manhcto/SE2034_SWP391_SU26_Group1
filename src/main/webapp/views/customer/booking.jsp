@@ -45,11 +45,19 @@
             margin: 0;
         }
 
-        .price {
-            font-size: 24px;
-            color: #dc2626;
-            font-weight: bold;
+        .price-note {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
             margin: 20px 0;
+            color: #374151;
+            font-weight: 700;
+        }
+
+        .price-note span {
+            color: #2563eb;
+            font-weight: 800;
         }
 
         .booking-actions {
@@ -84,7 +92,7 @@
             <div>
                 <p class="section-kicker">Booking</p>
                 <h2>Đặt Tour Ngay</h2>
-                <p>Đây là trang Booking trước khi khách chuyển sang bước Checkout.</p>
+                <p>Vui lòng kiểm tra thông tin tour trước khi chuyển sang bước Checkout.</p>
             </div>
         </div>
 
@@ -105,13 +113,12 @@
                 <p><strong>Số chỗ còn nhận:</strong> 20</p>
             </div>
 
-            <div class="price">
-                5.990.000 VNĐ / người
+            <div class="price-note">
+                <span>Giá tour sẽ được hệ thống tính theo lịch trình đã chọn.</span>
             </div>
 
             <form action="${pageContext.request.contextPath}/views/customer/checkout.jsp" method="get" class="booking-actions">
                 <input type="hidden" name="tourScheduleID" value="1">
-                <input type="hidden" name="unitPrice" value="5990000">
                 <input type="hidden" name="tourName" value="Hà Nội - Ninh Bình - Hạ Long 4N3Đ">
 
                 <button type="submit">Tiếp tục đến Checkout</button>

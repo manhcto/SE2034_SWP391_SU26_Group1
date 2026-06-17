@@ -165,7 +165,15 @@
                                 </td>
 
                                 <td>
-                                    <span class="status-badge">${booking.status}</span>
+                                    <span class="status-badge">
+                                        <c:choose>
+                                            <c:when test="${booking.status == 'Pending'}">Chờ xử lý</c:when>
+                                            <c:when test="${booking.status == 'Confirmed'}">Đã xác nhận</c:when>
+                                            <c:when test="${booking.status == 'Cancelled'}">Đã hủy</c:when>
+                                            <c:when test="${booking.status == 'Completed'}">Hoàn thành</c:when>
+                                            <c:otherwise>${booking.status}</c:otherwise>
+                                        </c:choose>
+                                    </span>
                                 </td>
 
                                 <td>
