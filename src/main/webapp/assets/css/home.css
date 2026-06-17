@@ -223,6 +223,26 @@ select {
     font-size: 20px;
 }
 
+.facility-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #eff6ff, #fff7ed);
+    color: var(--blue-dark);
+    font-size: 18px;
+    flex: 0 0 auto;
+}
+
+.facility-icon.small {
+    width: 30px;
+    height: 30px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
 .hero-left h1 {
     margin: 0;
     max-width: 780px;
@@ -440,7 +460,7 @@ select {
     backdrop-filter: blur(16px);
 }
 
-.floating-badge span {
+.floating-badge > span {
     width: 42px;
     height: 42px;
     border-radius: 15px;
@@ -486,10 +506,8 @@ select {
     box-shadow: var(--shadow-md);
 }
 
-.mini-card span {
-    font-size: 28px;
-    display: block;
-    margin-bottom: 8px;
+.mini-card > span {
+    margin-bottom: 10px;
 }
 
 .mini-card strong {
@@ -553,7 +571,8 @@ select {
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #eff6ff, #fff7ed);
-    font-size: 30px;
+    color: var(--blue-dark);
+    font-size: 24px;
     margin-bottom: 18px;
 }
 

@@ -399,34 +399,352 @@ public class BookingDAO {
 
     // Update booking information
     public boolean updateBooking(Booking booking) {
-        String sql = "UPDATE Booking "
+        String sqlGetDetail = "SELECT bd.tourScheduleID, bd.quantity, t.adultPrice, t.childrenPrice "
+                + "FROM Booking_Detail bd "
+                + "JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID "
+                + "JOIN Tour t ON ts.tourID = t.tourID "
+                + "WHERE bd.bookingID = ?";
+
+        String sqlUpdateScheduleIncrease = "UPDATE Tour_Scheduler "
+                + "SET quantity = quantity + ? "
+                + "WHERE tourScheduleID = ? "
+                + "AND quantity + ? <= maxParticipants";
+
+        String sqlUpdateScheduleDecrease = "UPDATE Tour_Scheduler "
+                + "SET quantity = CASE "
+                + "WHEN quantity - ? < 0 THEN 0 "
+                + "ELSE quantity - ? "
+                + "END "
+                + "WHERE tourScheduleID = ?";
+
+        String sqlUpdateBooking = "UPDATE Booking "
                 + "SET firstName = ?, "
                 + "lastName = ?, "
                 + "email = ?, "
                 + "phone = ?, "
                 + "address = ?, "
                 + "note = ?, "
+                + "numberAdult = ?, "
+                + "numberChildren = ?, "
                 + "isBookedForOther = ?, "
-                + "status = ? "
+                + "status = ?, "
+                + "totalPrice = ? "
                 + "WHERE bookingID = ?";
 
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sqlUpdateDetail = "UPDATE Booking_Detail "
+                + "SET quantity = ?, "
+                + "unitPrice = ?, "
+                + "subTotal = ? "
+                + "WHERE bookingID = ?";
 
-            ps.setString(1, booking.getFirstName());
-            ps.setString(2, booking.getLastName());
-            ps.setString(3, booking.getEmail());
-            ps.setString(4, booking.getPhone());
-            ps.setString(5, booking.getAddress());
-            ps.setString(6, booking.getNote());
-            ps.setBoolean(7, booking.isBookedForOther());
-            ps.setString(8, booking.getStatus());
-            ps.setInt(9, booking.getBookingID());
+        try (Connection conn = new DBConnection().getConnection()) {
+            conn.setAutoCommit(false);
 
-            return ps.executeUpdate() > 0;
+            int tourScheduleID = -1;
+            int oldQuantity = 0;
+            double adultPrice = 0;
+            double childrenPrice = 0;
+
+            try (PreparedStatement psGetDetail = conn.prepareStatement(sqlGetDetail)) {
+                psGetDetail.setInt(1, booking.getBookingID());
+
+                try (ResultSet rs = psGetDetail.executeQuery()) {
+                    if (rs.next()) {
+                        tourScheduleID = rs.getInt("tourScheduleID");
+                        oldQuantity = rs.getInt("quantity");
+                        adultPrice = rs.getDouble("adultPrice");
+                        childrenPrice = rs.getDouble("childrenPrice");
+                    } else {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            int newQuantity = booking.getNumberAdult() + booking.getNumberChildren();
+            int quantityDifference = newQuantity - oldQuantity;
+
+            if (quantityDifference > 0) {
+                try (PreparedStatement psUpdateSchedule = conn.prepareStatement(sqlUpdateScheduleIncrease)) {
+                    psUpdateSchedule.setInt(1, quantityDifference);
+                    psUpdateSchedule.setInt(2, tourScheduleID);
+                    psUpdateSchedule.setInt(3, quantityDifference);
+
+                    int updatedRows = psUpdateSchedule.executeUpdate();
+
+                    if (updatedRows == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            } else if (quantityDifference < 0) {
+                int decreaseAmount = Math.abs(quantityDifference);
+
+                try (PreparedStatement psUpdateSchedule = conn.prepareStatement(sqlUpdateScheduleDecrease)) {
+                    psUpdateSchedule.setInt(1, decreaseAmount);
+                    psUpdateSchedule.setInt(2, decreaseAmount);
+                    psUpdateSchedule.setInt(3, tourScheduleID);
+                    psUpdateSchedule.executeUpdate();
+                }
+            }
+
+            double totalPrice = booking.getNumberAdult() * adultPrice
+                    + booking.getNumberChildren() * childrenPrice;
+
+            double unitPrice = newQuantity > 0 ? totalPrice / newQuantity : adultPrice;
+
+            try (PreparedStatement psUpdateBooking = conn.prepareStatement(sqlUpdateBooking)) {
+                psUpdateBooking.setString(1, booking.getFirstName());
+                psUpdateBooking.setString(2, booking.getLastName());
+                psUpdateBooking.setString(3, booking.getEmail());
+                psUpdateBooking.setString(4, booking.getPhone());
+                psUpdateBooking.setString(5, booking.getAddress());
+                psUpdateBooking.setString(6, booking.getNote());
+                psUpdateBooking.setInt(7, booking.getNumberAdult());
+                psUpdateBooking.setInt(8, booking.getNumberChildren());
+                psUpdateBooking.setBoolean(9, booking.isBookedForOther());
+                psUpdateBooking.setString(10, booking.getStatus());
+                psUpdateBooking.setDouble(11, totalPrice);
+                psUpdateBooking.setInt(12, booking.getBookingID());
+
+                int updatedBookingRows = psUpdateBooking.executeUpdate();
+
+                if (updatedBookingRows == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            try (PreparedStatement psUpdateDetail = conn.prepareStatement(sqlUpdateDetail)) {
+                psUpdateDetail.setInt(1, newQuantity);
+                psUpdateDetail.setDouble(2, unitPrice);
+                psUpdateDetail.setDouble(3, totalPrice);
+                psUpdateDetail.setInt(4, booking.getBookingID());
+                psUpdateDetail.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
 
         } catch (Exception e) {
             System.out.println("Lỗi cập nhật booking: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    // Update customer booking, quantity and total price
+    public boolean updateCustomerBooking(Booking booking) {
+        String sqlGetDetail = "SELECT bd.tourScheduleID, bd.quantity, t.adultPrice, t.childrenPrice "
+                + "FROM Booking_Detail bd "
+                + "JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID "
+                + "JOIN Tour t ON ts.tourID = t.tourID "
+                + "WHERE bd.bookingID = ?";
+
+        String sqlUpdateScheduleIncrease = "UPDATE Tour_Scheduler "
+                + "SET quantity = quantity + ? "
+                + "WHERE tourScheduleID = ? "
+                + "AND quantity + ? <= maxParticipants";
+
+        String sqlUpdateScheduleDecrease = "UPDATE Tour_Scheduler "
+                + "SET quantity = CASE "
+                + "WHEN quantity - ? < 0 THEN 0 "
+                + "ELSE quantity - ? "
+                + "END "
+                + "WHERE tourScheduleID = ?";
+
+        String sqlUpdateBooking = "UPDATE Booking "
+                + "SET firstName = ?, "
+                + "lastName = ?, "
+                + "email = ?, "
+                + "phone = ?, "
+                + "address = ?, "
+                + "note = ?, "
+                + "numberAdult = ?, "
+                + "numberChildren = ?, "
+                + "isBookedForOther = ?, "
+                + "totalPrice = ? "
+                + "WHERE bookingID = ? "
+                + "AND status = 'Pending'";
+
+        String sqlUpdateDetail = "UPDATE Booking_Detail "
+                + "SET quantity = ?, "
+                + "unitPrice = ?, "
+                + "subTotal = ? "
+                + "WHERE bookingID = ?";
+
+        try (Connection conn = new DBConnection().getConnection()) {
+            conn.setAutoCommit(false);
+
+            int tourScheduleID = -1;
+            int oldQuantity = 0;
+            double adultPrice = 0;
+            double childrenPrice = 0;
+
+            try (PreparedStatement psGetDetail = conn.prepareStatement(sqlGetDetail)) {
+                psGetDetail.setInt(1, booking.getBookingID());
+
+                try (ResultSet rs = psGetDetail.executeQuery()) {
+                    if (rs.next()) {
+                        tourScheduleID = rs.getInt("tourScheduleID");
+                        oldQuantity = rs.getInt("quantity");
+                        adultPrice = rs.getDouble("adultPrice");
+                        childrenPrice = rs.getDouble("childrenPrice");
+                    } else {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            int newQuantity = booking.getNumberAdult() + booking.getNumberChildren();
+            int quantityDifference = newQuantity - oldQuantity;
+
+            if (quantityDifference > 0) {
+                try (PreparedStatement psUpdateSchedule = conn.prepareStatement(sqlUpdateScheduleIncrease)) {
+                    psUpdateSchedule.setInt(1, quantityDifference);
+                    psUpdateSchedule.setInt(2, tourScheduleID);
+                    psUpdateSchedule.setInt(3, quantityDifference);
+
+                    int updatedRows = psUpdateSchedule.executeUpdate();
+
+                    if (updatedRows == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            } else if (quantityDifference < 0) {
+                int decreaseAmount = Math.abs(quantityDifference);
+
+                try (PreparedStatement psUpdateSchedule = conn.prepareStatement(sqlUpdateScheduleDecrease)) {
+                    psUpdateSchedule.setInt(1, decreaseAmount);
+                    psUpdateSchedule.setInt(2, decreaseAmount);
+                    psUpdateSchedule.setInt(3, tourScheduleID);
+                    psUpdateSchedule.executeUpdate();
+                }
+            }
+
+            double totalPrice = booking.getNumberAdult() * adultPrice
+                    + booking.getNumberChildren() * childrenPrice;
+
+            double unitPrice = newQuantity > 0 ? totalPrice / newQuantity : adultPrice;
+
+            try (PreparedStatement psUpdateBooking = conn.prepareStatement(sqlUpdateBooking)) {
+                psUpdateBooking.setString(1, booking.getFirstName());
+                psUpdateBooking.setString(2, booking.getLastName());
+                psUpdateBooking.setString(3, booking.getEmail());
+                psUpdateBooking.setString(4, booking.getPhone());
+                psUpdateBooking.setString(5, booking.getAddress());
+                psUpdateBooking.setString(6, booking.getNote());
+                psUpdateBooking.setInt(7, booking.getNumberAdult());
+                psUpdateBooking.setInt(8, booking.getNumberChildren());
+                psUpdateBooking.setBoolean(9, booking.isBookedForOther());
+                psUpdateBooking.setDouble(10, totalPrice);
+                psUpdateBooking.setInt(11, booking.getBookingID());
+
+                int updatedBookingRows = psUpdateBooking.executeUpdate();
+
+                if (updatedBookingRows == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            try (PreparedStatement psUpdateDetail = conn.prepareStatement(sqlUpdateDetail)) {
+                psUpdateDetail.setInt(1, newQuantity);
+                psUpdateDetail.setDouble(2, unitPrice);
+                psUpdateDetail.setDouble(3, totalPrice);
+                psUpdateDetail.setInt(4, booking.getBookingID());
+                psUpdateDetail.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("Lỗi cập nhật customer booking: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    // Delete booking by ID
+    public boolean deleteBookingByID(int bookingID) {
+        String sqlGetDetail = "SELECT tourScheduleID, quantity "
+                + "FROM Booking_Detail "
+                + "WHERE bookingID = ?";
+
+        String sqlDeleteFeedback = "DELETE FROM Feedback "
+                + "WHERE bookingID = ?";
+
+        String sqlDeleteDetail = "DELETE FROM Booking_Detail "
+                + "WHERE bookingID = ?";
+
+        String sqlUpdateSchedule = "UPDATE Tour_Scheduler "
+                + "SET quantity = CASE "
+                + "WHEN quantity - ? < 0 THEN 0 "
+                + "ELSE quantity - ? "
+                + "END "
+                + "WHERE tourScheduleID = ?";
+
+        String sqlDeleteBooking = "DELETE FROM Booking "
+                + "WHERE bookingID = ?";
+
+        try (Connection conn = new DBConnection().getConnection()) {
+            conn.setAutoCommit(false);
+
+            int tourScheduleID = -1;
+            int quantity = 0;
+
+            try (PreparedStatement psGetDetail = conn.prepareStatement(sqlGetDetail)) {
+                psGetDetail.setInt(1, bookingID);
+
+                try (ResultSet rs = psGetDetail.executeQuery()) {
+                    if (rs.next()) {
+                        tourScheduleID = rs.getInt("tourScheduleID");
+                        quantity = rs.getInt("quantity");
+                    }
+                }
+            }
+
+            try (PreparedStatement psDeleteFeedback = conn.prepareStatement(sqlDeleteFeedback)) {
+                psDeleteFeedback.setInt(1, bookingID);
+                psDeleteFeedback.executeUpdate();
+            }
+
+            try (PreparedStatement psDeleteDetail = conn.prepareStatement(sqlDeleteDetail)) {
+                psDeleteDetail.setInt(1, bookingID);
+                psDeleteDetail.executeUpdate();
+            }
+
+            if (tourScheduleID > 0 && quantity > 0) {
+                try (PreparedStatement psUpdateSchedule = conn.prepareStatement(sqlUpdateSchedule)) {
+                    psUpdateSchedule.setInt(1, quantity);
+                    psUpdateSchedule.setInt(2, quantity);
+                    psUpdateSchedule.setInt(3, tourScheduleID);
+                    psUpdateSchedule.executeUpdate();
+                }
+            }
+
+            int deletedRows;
+
+            try (PreparedStatement psDeleteBooking = conn.prepareStatement(sqlDeleteBooking)) {
+                psDeleteBooking.setInt(1, bookingID);
+                deletedRows = psDeleteBooking.executeUpdate();
+            }
+
+            if (deletedRows == 0) {
+                conn.rollback();
+                return false;
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("Lỗi xóa booking: " + e.getMessage());
             e.printStackTrace();
         }
 

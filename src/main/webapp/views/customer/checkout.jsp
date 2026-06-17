@@ -70,7 +70,8 @@
         }
 
         .form-group input,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group select {
             padding: 12px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
@@ -78,10 +79,12 @@
             font-size: 15px;
             outline: none;
             transition: 0.2s;
+            background-color: #ffffff;
         }
 
         .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             border-color: #2563eb;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
@@ -102,10 +105,19 @@
             margin-bottom: 10px;
         }
 
-        .tour-price {
-            color: #dc2626;
-            font-weight: bold;
-            font-size: 18px;
+        .price-info {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 14px;
+            color: #374151;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        .price-info span {
+            color: #2563eb;
+            font-weight: 800;
         }
     </style>
 </head>
@@ -143,7 +155,6 @@
 
             <%-- Dữ liệu tour được gửi từ booking.jsp sang checkout.jsp --%>
             <input type="hidden" name="tourScheduleID" value="${param.tourScheduleID}">
-            <input type="hidden" name="unitPrice" value="${param.unitPrice}">
             <input type="hidden" name="tourName" value="${param.tourName}">
 
             <%-- Hiển thị thông tin tour đang đặt --%>
@@ -155,7 +166,7 @@
                         <div class="tour-name">${param.tourName}</div>
                     </c:when>
                     <c:otherwise>
-                        <div class="tour-name">Hà Nội - Ninh Bình - Hạ Long 4N3Đ</div>
+                        <div class="tour-name">Tour đã chọn</div>
                     </c:otherwise>
                 </c:choose>
 
@@ -164,10 +175,9 @@
                     ${param.tourScheduleID}
                 </p>
 
-                <p>
-                    <strong>Đơn giá:</strong>
-                    <span class="tour-price">${param.unitPrice} VNĐ / người</span>
-                </p>
+                <div class="price-info">
+                    <span>Giá tour và tổng tiền sẽ được hệ thống tính theo lịch trình và số lượng khách.</span>
+                </div>
             </div>
 
             <div class="form-card">
@@ -200,7 +210,7 @@
                                id="email"
                                name="email"
                                value="${email}"
-                               placeholder="nguyenvena@gmail.com">
+                               placeholder="nguyenvana@gmail.com">
                     </div>
 
                     <div class="form-group">
@@ -214,12 +224,54 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="address">Địa chỉ liên hệ</label>
+                    <label for="streetAddress">Số nhà, đường *</label>
                     <input type="text"
-                           id="address"
-                           name="address"
-                           value="${address}"
-                           placeholder="Số nhà, đường, quận, thành phố...">
+                           id="streetAddress"
+                           name="streetAddress"
+                           value="${streetAddress}"
+                           placeholder="VD: Số 10 Nguyễn Trãi">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="district">Quận / Huyện *</label>
+                        <select id="district" name="district">
+                            <option value="">-- Chọn quận / huyện --</option>
+                            <option value="Quận Ba Đình" ${district == 'Quận Ba Đình' ? 'selected' : ''}>Quận Ba Đình</option>
+                            <option value="Quận Hoàn Kiếm" ${district == 'Quận Hoàn Kiếm' ? 'selected' : ''}>Quận Hoàn Kiếm</option>
+                            <option value="Quận Tây Hồ" ${district == 'Quận Tây Hồ' ? 'selected' : ''}>Quận Tây Hồ</option>
+                            <option value="Quận Long Biên" ${district == 'Quận Long Biên' ? 'selected' : ''}>Quận Long Biên</option>
+                            <option value="Quận Cầu Giấy" ${district == 'Quận Cầu Giấy' ? 'selected' : ''}>Quận Cầu Giấy</option>
+                            <option value="Quận Đống Đa" ${district == 'Quận Đống Đa' ? 'selected' : ''}>Quận Đống Đa</option>
+                            <option value="Quận Hai Bà Trưng" ${district == 'Quận Hai Bà Trưng' ? 'selected' : ''}>Quận Hai Bà Trưng</option>
+                            <option value="Quận Hoàng Mai" ${district == 'Quận Hoàng Mai' ? 'selected' : ''}>Quận Hoàng Mai</option>
+                            <option value="Quận Thanh Xuân" ${district == 'Quận Thanh Xuân' ? 'selected' : ''}>Quận Thanh Xuân</option>
+                            <option value="Quận Nam Từ Liêm" ${district == 'Quận Nam Từ Liêm' ? 'selected' : ''}>Quận Nam Từ Liêm</option>
+                            <option value="Quận Bắc Từ Liêm" ${district == 'Quận Bắc Từ Liêm' ? 'selected' : ''}>Quận Bắc Từ Liêm</option>
+                            <option value="Quận Hà Đông" ${district == 'Quận Hà Đông' ? 'selected' : ''}>Quận Hà Đông</option>
+                            <option value="Huyện Thanh Trì" ${district == 'Huyện Thanh Trì' ? 'selected' : ''}>Huyện Thanh Trì</option>
+                            <option value="Huyện Gia Lâm" ${district == 'Huyện Gia Lâm' ? 'selected' : ''}>Huyện Gia Lâm</option>
+                            <option value="Huyện Đông Anh" ${district == 'Huyện Đông Anh' ? 'selected' : ''}>Huyện Đông Anh</option>
+                            <option value="Huyện Sóc Sơn" ${district == 'Huyện Sóc Sơn' ? 'selected' : ''}>Huyện Sóc Sơn</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">Tỉnh / Thành phố *</label>
+                        <select id="city" name="city">
+                            <option value="">-- Chọn tỉnh / thành phố --</option>
+                            <option value="Hà Nội" ${city == 'Hà Nội' ? 'selected' : ''}>Hà Nội</option>
+                            <option value="Hồ Chí Minh" ${city == 'Hồ Chí Minh' ? 'selected' : ''}>Hồ Chí Minh</option>
+                            <option value="Đà Nẵng" ${city == 'Đà Nẵng' ? 'selected' : ''}>Đà Nẵng</option>
+                            <option value="Hải Phòng" ${city == 'Hải Phòng' ? 'selected' : ''}>Hải Phòng</option>
+                            <option value="Cần Thơ" ${city == 'Cần Thơ' ? 'selected' : ''}>Cần Thơ</option>
+                            <option value="Quảng Ninh" ${city == 'Quảng Ninh' ? 'selected' : ''}>Quảng Ninh</option>
+                            <option value="Ninh Bình" ${city == 'Ninh Bình' ? 'selected' : ''}>Ninh Bình</option>
+                            <option value="Huế" ${city == 'Huế' ? 'selected' : ''}>Huế</option>
+                            <option value="Khánh Hòa" ${city == 'Khánh Hòa' ? 'selected' : ''}>Khánh Hòa</option>
+                            <option value="Lâm Đồng" ${city == 'Lâm Đồng' ? 'selected' : ''}>Lâm Đồng</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -239,20 +291,24 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="numberAdult">Số người lớn *</label>
-                        <input type="number"
+                        <input type="text"
                                id="numberAdult"
                                name="numberAdult"
                                value="${not empty param.numberAdult ? param.numberAdult : 1}"
-                               min="1">
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               placeholder="VD: 1">
                     </div>
 
                     <div class="form-group">
                         <label for="numberChildren">Số trẻ em</label>
-                        <input type="number"
+                        <input type="text"
                                id="numberChildren"
                                name="numberChildren"
                                value="${not empty param.numberChildren ? param.numberChildren : 0}"
-                               min="0">
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               placeholder="VD: 0">
                     </div>
                 </div>
 
@@ -265,11 +321,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="totalPrice">Tổng tiền tạm tính (VNĐ)</label>
-                    <input type="number"
+                    <label for="totalPrice">Tổng tiền</label>
+                    <input type="text"
                            id="totalPrice"
-                           name="totalPrice"
-                           value="${param.unitPrice}"
+                           value="Hệ thống sẽ tự động tính sau khi xác nhận đặt tour"
                            readonly
                            style="background-color: #f9fafb; font-weight: bold; color: #111827;">
                 </div>

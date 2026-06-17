@@ -15,7 +15,8 @@ import java.util.List;
 
 @WebServlet(name = "ManageBookingController", urlPatterns = {
         "/staff/booking",
-        "/staff/booking-edit"
+        "/staff/booking-edit",
+        "/staff/booking-delete"
 })
 public class ManageBookingController extends HttpServlet {
 
@@ -58,6 +59,10 @@ public class ManageBookingController extends HttpServlet {
         switch (path) {
             case "/staff/booking-edit":
                 updateBooking(request, response);
+                break;
+
+            case "/staff/booking-delete":
+                deleteBooking(request, response);
                 break;
 
             default:
@@ -118,10 +123,14 @@ public class ManageBookingController extends HttpServlet {
         String phone = getTrimValue(request, "phone");
         String address = getTrimValue(request, "address");
         String note = getTrimValue(request, "note");
+        String numberAdultRaw = getTrimValue(request, "numberAdult");
+        String numberChildrenRaw = getTrimValue(request, "numberChildren");
         String isBookedForOtherRaw = getTrimValue(request, "isBookedForOther");
         String status = getTrimValue(request, "status");
 
         int bookingID = parsePositiveInt(bookingIDRaw, "Booking ID", errors);
+        int numberAdult = parseNumberWithMinValue(numberAdultRaw, "Số người lớn", 1, errors);
+        int numberChildren = parseNumberWithMinValue(numberChildrenRaw, "Số trẻ em", 0, errors);
 
         validateRequired(firstName, "Tên", errors);
         validateRequired(lastName, "Họ", errors);
@@ -132,16 +141,33 @@ public class ManageBookingController extends HttpServlet {
         validateLength(firstName, "Tên", 100, errors);
         validateLength(lastName, "Họ", 100, errors);
         validateLength(email, "Email", 150, errors);
-        validateLength(phone, "Số điện thoại", 20, errors);
+        validateLength(phone, "Số điện thoại", 10, errors);
         validateLength(address, "Địa chỉ", 255, errors);
         validateLength(note, "Ghi chú", 1000, errors);
 
-        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-            errors.add("Email không đúng định dạng.");
+        if (!firstName.isEmpty() && !firstName.matches("^[\\p{L}\\s]+$")) {
+            errors.add("Tên chỉ được chứa chữ cái và khoảng trắng.");
         }
 
-        if (!phone.matches("\\d{9,11}")) {
-            errors.add("Số điện thoại chỉ được nhập số và phải có từ 9 đến 11 chữ số.");
+        if (!lastName.isEmpty() && !lastName.matches("^[\\p{L}\\s]+$")) {
+            errors.add("Họ chỉ được chứa chữ cái và khoảng trắng.");
+        }
+
+        if (!email.isEmpty()
+                && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            errors.add("Email không đúng định dạng. Ví dụ đúng: example@gmail.com.");
+        }
+
+        if (!phone.isEmpty() && !phone.matches("^0\\d{9}$")) {
+            errors.add("Số điện thoại phải có đúng 10 chữ số và bắt đầu bằng số 0.");
+        }
+
+        if (!address.isEmpty() && !address.matches("^[\\p{L}0-9\\s,./-]+$")) {
+            errors.add("Địa chỉ chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
+        }
+
+        if (!isValidBookedForOther(isBookedForOtherRaw)) {
+            errors.add("Giá trị đặt hộ người khác không hợp lệ.");
         }
 
         if (!isValidStatus(status)) {
@@ -167,14 +193,14 @@ public class ManageBookingController extends HttpServlet {
         booking.setPhone(phone);
         booking.setAddress(address);
         booking.setNote(note);
+        booking.setNumberAdult(numberAdult);
+        booking.setNumberChildren(numberChildren);
         booking.setBookedForOther("true".equals(isBookedForOtherRaw));
         booking.setStatus(status);
 
         if (oldBooking != null) {
             booking.setBookingCode(oldBooking.getBookingCode());
             booking.setBookingType(oldBooking.getBookingType());
-            booking.setNumberAdult(oldBooking.getNumberAdult());
-            booking.setNumberChildren(oldBooking.getNumberChildren());
             booking.setUserID(oldBooking.getUserID());
             booking.setBookDate(oldBooking.getBookDate());
             booking.setTotalPrice(oldBooking.getTotalPrice());
@@ -198,6 +224,29 @@ public class ManageBookingController extends HttpServlet {
             request.setAttribute("errors", errors);
             request.setAttribute("booking", booking);
             request.getRequestDispatcher(STAFF_BOOKING_EDIT_PAGE).forward(request, response);
+        }
+    }
+
+    private void deleteBooking(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        List<String> errors = new ArrayList<>();
+        String bookingIDRaw = getTrimValue(request, "bookingID");
+
+        int bookingID = parsePositiveInt(bookingIDRaw, "Booking ID", errors);
+
+        if (!errors.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/staff/booking?error=deleteFailed");
+            return;
+        }
+
+        BookingDAO bookingDAO = new BookingDAO();
+        boolean deleted = bookingDAO.deleteBookingByID(bookingID);
+
+        if (deleted) {
+            response.sendRedirect(request.getContextPath() + "/staff/booking?success=deleted");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/staff/booking?error=deleteFailed");
         }
     }
 
@@ -235,6 +284,35 @@ public class ManageBookingController extends HttpServlet {
         }
     }
 
+    private int parseNumberWithMinValue(String rawValue, String fieldName, int minValue, List<String> errors) {
+        if (rawValue == null || rawValue.trim().isEmpty()) {
+            errors.add(fieldName + " không được để trống.");
+            return 0;
+        }
+
+        String valueText = rawValue.trim();
+
+        if (!valueText.matches("\\d+")) {
+            errors.add(fieldName + " chỉ được nhập số tự nhiên.");
+            return 0;
+        }
+
+        try {
+            int value = Integer.parseInt(valueText);
+
+            if (value < minValue) {
+                errors.add(fieldName + " phải lớn hơn hoặc bằng " + minValue + ".");
+                return 0;
+            }
+
+            return value;
+
+        } catch (NumberFormatException e) {
+            errors.add(fieldName + " không hợp lệ.");
+            return 0;
+        }
+    }
+
     private void validateRequired(String value, String fieldName, List<String> errors) {
         if (value == null || value.trim().isEmpty()) {
             errors.add(fieldName + " không được để trống.");
@@ -245,6 +323,10 @@ public class ManageBookingController extends HttpServlet {
         if (value != null && value.length() > maxLength) {
             errors.add(fieldName + " không được vượt quá " + maxLength + " ký tự.");
         }
+    }
+
+    private boolean isValidBookedForOther(String value) {
+        return "true".equals(value) || "false".equals(value);
     }
 
     private boolean isValidStatus(String status) {

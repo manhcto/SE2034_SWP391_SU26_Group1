@@ -345,7 +345,6 @@
     <div class="topbar">
       <div>
         <h1>Chi tiết Booking</h1>
-        <p>Admin chỉ xem thông tin booking, không chỉnh sửa booking.</p>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/admin/booking">
@@ -382,7 +381,15 @@
 
           <div class="col-md-4 detail-item">
             <span class="detail-label">Trạng thái</span>
-            <span class="status-badge">${bookingDetail.status}</span>
+            <span class="status-badge">
+              <c:choose>
+                <c:when test="${bookingDetail.status == 'Pending'}">Chờ xử lý</c:when>
+                <c:when test="${bookingDetail.status == 'Confirmed'}">Đã xác nhận</c:when>
+                <c:when test="${bookingDetail.status == 'Cancelled'}">Đã hủy</c:when>
+                <c:when test="${bookingDetail.status == 'Completed'}">Hoàn thành</c:when>
+                <c:otherwise>${bookingDetail.status}</c:otherwise>
+              </c:choose>
+            </span>
           </div>
 
           <div class="col-md-4 detail-item">

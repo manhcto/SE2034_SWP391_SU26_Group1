@@ -78,7 +78,6 @@
     }
 
     .form-group input,
-    .form-group select,
     .form-group textarea {
       width: 100%;
       border: 1px solid #d1d5db;
@@ -91,7 +90,6 @@
     }
 
     .form-group input:focus,
-    .form-group select:focus,
     .form-group textarea:focus {
       border-color: #2563eb;
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
@@ -215,7 +213,6 @@
       <div>
         <p class="section-kicker">Edit Booking</p>
         <h2>Sửa thông tin Booking</h2>
-        <p>Cập nhật thông tin khách hàng và trạng thái của đơn đặt tour.</p>
       </div>
     </div>
 
@@ -252,20 +249,33 @@
             <div class="info-item">
               <span class="info-label">Ngày đặt</span>
               <span class="info-value">
-                                <fmt:formatDate value="${booking.bookDate}" pattern="dd/MM/yyyy HH:mm"/>
-                            </span>
+                <fmt:formatDate value="${booking.bookDate}" pattern="dd/MM/yyyy HH:mm"/>
+              </span>
             </div>
 
             <div class="info-item">
-              <span class="info-label">Tổng tiền</span>
+              <span class="info-label">Trạng thái</span>
               <span class="info-value">
-                                <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
-                            </span>
+                <c:choose>
+                  <c:when test="${booking.status == 'Pending'}">Chờ xử lý</c:when>
+                  <c:when test="${booking.status == 'Confirmed'}">Đã xác nhận</c:when>
+                  <c:when test="${booking.status == 'Cancelled'}">Đã hủy</c:when>
+                  <c:when test="${booking.status == 'Completed'}">Hoàn thành</c:when>
+                  <c:otherwise>${booking.status}</c:otherwise>
+                </c:choose>
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Tổng tiền hiện tại</span>
+              <span class="info-value">
+                <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
+              </span>
             </div>
           </div>
         </div>
 
-        <form action="${pageContext.request.contextPath}/booking-edit" method="post">
+        <form action="${pageContext.request.contextPath}/booking-edit" method="post" novalidate>
           <input type="hidden" name="bookingID" value="${booking.bookingID}">
 
           <div class="edit-form-grid">
@@ -319,13 +329,25 @@
             </div>
 
             <div class="form-group">
-              <label for="status">Trạng thái</label>
-              <select id="status" name="status">
-                <option value="Pending" ${booking.status == 'Pending' ? 'selected' : ''}>Pending</option>
-                <option value="Confirmed" ${booking.status == 'Confirmed' ? 'selected' : ''}>Confirmed</option>
-                <option value="Cancelled" ${booking.status == 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                <option value="Completed" ${booking.status == 'Completed' ? 'selected' : ''}>Completed</option>
-              </select>
+              <label for="numberAdult">Số người lớn</label>
+              <input type="text"
+                     id="numberAdult"
+                     name="numberAdult"
+                     value="${booking.numberAdult}"
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     required>
+            </div>
+
+            <div class="form-group">
+              <label for="numberChildren">Số trẻ em</label>
+              <input type="text"
+                     id="numberChildren"
+                     name="numberChildren"
+                     value="${booking.numberChildren}"
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     required>
             </div>
 
             <div class="form-group">

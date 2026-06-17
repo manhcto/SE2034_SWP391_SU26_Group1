@@ -33,20 +33,21 @@ public class BookingController extends HttpServlet {
         List<String> errors = new ArrayList<>();
 
         try {
-            String firstName = request.getParameter("firstName");
-            String lastName = request.getParameter("lastName");
-            String email = request.getParameter("email");
-            String phone = request.getParameter("phone");
-            String address = request.getParameter("address");
-            String note = request.getParameter("note");
+            String firstName = getTrimValue(request, "firstName");
+            String lastName = getTrimValue(request, "lastName");
+            String email = getTrimValue(request, "email");
+            String phone = getTrimValue(request, "phone");
+
+            String streetAddress = getTrimValue(request, "streetAddress");
+            String district = getTrimValue(request, "district");
+            String city = getTrimValue(request, "city");
+
+            String note = getTrimValue(request, "note");
             String isBookedForOtherStr = request.getParameter("isBookedForOther");
 
-            firstName = firstName == null ? "" : firstName.trim();
-            lastName = lastName == null ? "" : lastName.trim();
-            email = email == null ? "" : email.trim();
-            phone = phone == null ? "" : phone.trim();
-            address = address == null ? "" : address.trim();
-            note = note == null ? "" : note.trim();
+            String numberAdultRaw = getTrimValue(request, "numberAdult");
+            String numberChildrenRaw = getTrimValue(request, "numberChildren");
+            String tourScheduleIDRaw = getTrimValue(request, "tourScheduleID");
 
             // Validate customer information
             if (firstName.isEmpty()) {
@@ -79,8 +80,35 @@ public class BookingController extends HttpServlet {
                 errors.add("Số điện thoại phải có đúng 10 chữ số và bắt đầu bằng số 0.");
             }
 
-            if (address.length() > 255) {
-                errors.add("Địa chỉ không được vượt quá 255 ký tự.");
+            // Validate address parts
+            if (streetAddress.isEmpty()) {
+                errors.add("Số nhà, đường không được để trống.");
+            } else if (streetAddress.length() > 120) {
+                errors.add("Số nhà, đường không được vượt quá 120 ký tự.");
+            } else if (!streetAddress.matches("^[\\p{L}0-9\\s,./-]+$")) {
+                errors.add("Số nhà, đường chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
+            }
+
+            if (district.isEmpty()) {
+                errors.add("Vui lòng chọn quận / huyện.");
+            } else if (!isValidDistrict(district)) {
+                errors.add("Quận / huyện không hợp lệ.");
+            }
+
+            if (city.isEmpty()) {
+                errors.add("Vui lòng chọn tỉnh / thành phố.");
+            } else if (!isValidCity(city)) {
+                errors.add("Tỉnh / thành phố không hợp lệ.");
+            }
+
+            String address = "";
+
+            if (!streetAddress.isEmpty() && !district.isEmpty() && !city.isEmpty()) {
+                address = streetAddress + ", " + district + ", " + city;
+
+                if (address.length() > 255) {
+                    errors.add("Địa chỉ đầy đủ không được vượt quá 255 ký tự.");
+                }
             }
 
             if (note.length() > 1000) {
@@ -91,26 +119,58 @@ public class BookingController extends HttpServlet {
             int numberChildren = 0;
             int tourScheduleID = 0;
 
-            // Validate booking quantity and schedule ID
-            try {
-                numberAdult = Integer.parseInt(request.getParameter("numberAdult"));
-                numberChildren = Integer.parseInt(request.getParameter("numberChildren"));
-                tourScheduleID = Integer.parseInt(request.getParameter("tourScheduleID"));
+            // Validate numberAdult
+            if (numberAdultRaw.isEmpty()) {
+                errors.add("Số người lớn không được để trống.");
+            } else if (!numberAdultRaw.matches("\\d+")) {
+                errors.add("Số người lớn chỉ được nhập số tự nhiên 1, 2, 3... Không nhập số thập phân hoặc ký tự khác.");
+            } else {
+                try {
+                    numberAdult = Integer.parseInt(numberAdultRaw);
 
-                if (numberAdult < 1) {
-                    errors.add("Số lượng người lớn tối thiểu phải là 1.");
+                    if (numberAdult < 1) {
+                        errors.add("Số người lớn phải lớn hơn hoặc bằng 1.");
+                    }
+
+                } catch (NumberFormatException e) {
+                    errors.add("Số người lớn không hợp lệ.");
                 }
+            }
 
-                if (numberChildren < 0) {
-                    errors.add("Số lượng trẻ em không hợp lệ.");
+            // Validate numberChildren
+            if (numberChildrenRaw.isEmpty()) {
+                errors.add("Số trẻ em không được để trống.");
+            } else if (!numberChildrenRaw.matches("\\d+")) {
+                errors.add("Số trẻ em chỉ được nhập số tự nhiên 0, 1, 2, 3... Không nhập số thập phân hoặc ký tự khác.");
+            } else {
+                try {
+                    numberChildren = Integer.parseInt(numberChildrenRaw);
+
+                    if (numberChildren < 0) {
+                        errors.add("Số trẻ em không được nhỏ hơn 0.");
+                    }
+
+                } catch (NumberFormatException e) {
+                    errors.add("Số trẻ em không hợp lệ.");
                 }
+            }
 
-                if (tourScheduleID <= 0) {
+            // Validate tourScheduleID
+            if (tourScheduleIDRaw.isEmpty()) {
+                errors.add("Mã lịch trình tour không được để trống.");
+            } else if (!tourScheduleIDRaw.matches("\\d+")) {
+                errors.add("Mã lịch trình tour không hợp lệ.");
+            } else {
+                try {
+                    tourScheduleID = Integer.parseInt(tourScheduleIDRaw);
+
+                    if (tourScheduleID <= 0) {
+                        errors.add("Mã lịch trình tour không hợp lệ.");
+                    }
+
+                } catch (NumberFormatException e) {
                     errors.add("Mã lịch trình tour không hợp lệ.");
                 }
-
-            } catch (NumberFormatException e) {
-                errors.add("Dữ liệu số hoặc ID tour bị sai định dạng.");
             }
 
             BookingDAO dao = new BookingDAO();
@@ -160,7 +220,11 @@ public class BookingController extends HttpServlet {
                 request.setAttribute("lastName", lastName);
                 request.setAttribute("email", email);
                 request.setAttribute("phone", phone);
-                request.setAttribute("address", address);
+
+                request.setAttribute("streetAddress", streetAddress);
+                request.setAttribute("district", district);
+                request.setAttribute("city", city);
+
                 request.setAttribute("note", note);
 
                 request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
@@ -177,7 +241,7 @@ public class BookingController extends HttpServlet {
             booking.setLastName(lastName);
             booking.setEmail(email);
             booking.setPhone(phone);
-            booking.setAddress(address.isEmpty() ? null : address);
+            booking.setAddress(address);
             booking.setNote(note.isEmpty() ? null : note);
             booking.setNumberAdult(numberAdult);
             booking.setNumberChildren(numberChildren);
@@ -206,5 +270,42 @@ public class BookingController extends HttpServlet {
             request.setAttribute("error", "Đã xảy ra lỗi hệ thống nghiêm trọng!");
             request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
         }
+    }
+
+    private String getTrimValue(HttpServletRequest request, String paramName) {
+        String value = request.getParameter(paramName);
+        return value == null ? "" : value.trim();
+    }
+
+    private boolean isValidDistrict(String district) {
+        return "Quận Ba Đình".equals(district)
+                || "Quận Hoàn Kiếm".equals(district)
+                || "Quận Tây Hồ".equals(district)
+                || "Quận Long Biên".equals(district)
+                || "Quận Cầu Giấy".equals(district)
+                || "Quận Đống Đa".equals(district)
+                || "Quận Hai Bà Trưng".equals(district)
+                || "Quận Hoàng Mai".equals(district)
+                || "Quận Thanh Xuân".equals(district)
+                || "Quận Nam Từ Liêm".equals(district)
+                || "Quận Bắc Từ Liêm".equals(district)
+                || "Quận Hà Đông".equals(district)
+                || "Huyện Thanh Trì".equals(district)
+                || "Huyện Gia Lâm".equals(district)
+                || "Huyện Đông Anh".equals(district)
+                || "Huyện Sóc Sơn".equals(district);
+    }
+
+    private boolean isValidCity(String city) {
+        return "Hà Nội".equals(city)
+                || "Hồ Chí Minh".equals(city)
+                || "Đà Nẵng".equals(city)
+                || "Hải Phòng".equals(city)
+                || "Cần Thơ".equals(city)
+                || "Quảng Ninh".equals(city)
+                || "Ninh Bình".equals(city)
+                || "Huế".equals(city)
+                || "Khánh Hòa".equals(city)
+                || "Lâm Đồng".equals(city);
     }
 }
