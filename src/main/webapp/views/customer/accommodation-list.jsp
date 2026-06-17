@@ -37,7 +37,6 @@
             margin: 0 auto;
         }
 
-        /* ================= HERO IMAGE ================= */
         .hero {
             position: relative;
             margin: 18px auto 0;
@@ -159,7 +158,6 @@
             color: #fde68a;
         }
 
-        /* ================= FILTER ================= */
         .filter-panel {
             width: calc(100% - 96px);
             margin: -78px auto 30px;
@@ -175,7 +173,15 @@
 
         .filter-form {
             display: grid;
-            grid-template-columns: 1.4fr 1fr 1fr 1fr auto;
+            grid-template-columns: 1.4fr 1fr 1fr 0.9fr 0.9fr;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .filter-form-row-2 {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
             gap: 16px;
             align-items: end;
         }
@@ -211,6 +217,17 @@
             box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
         }
 
+        .required-note {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .required-note i {
+            color: #2563eb;
+        }
+
         .search-btn {
             height: 58px;
             min-width: 176px;
@@ -234,7 +251,6 @@
             box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
         }
 
-        /* ================= FACILITY FILTER ================= */
         .facility-strip {
             display: flex;
             gap: 12px;
@@ -283,7 +299,6 @@
             transform: translateY(-1px);
         }
 
-        /* ================= SECTION HEAD ================= */
         .section-head {
             display: flex;
             justify-content: space-between;
@@ -322,7 +337,30 @@
             color: #2563eb;
         }
 
-        /* ================= ACCOMMODATION GRID ================= */
+        .selected-trip-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+            border-radius: 20px;
+            padding: 16px 18px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            font-weight: 800;
+        }
+
+        .selected-trip-box span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .selected-trip-box i {
+            color: #2563eb;
+        }
+
         .accommodation-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -584,7 +622,6 @@
             font-size: 16px;
         }
 
-        /* ================= RESPONSIVE ================= */
         @media (max-width: 1280px) {
             .accommodation-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -592,7 +629,8 @@
         }
 
         @media (max-width: 1080px) {
-            .filter-form {
+            .filter-form,
+            .filter-form-row-2 {
                 grid-template-columns: repeat(2, 1fr);
             }
 
@@ -643,7 +681,8 @@
                 border-radius: 22px;
             }
 
-            .filter-form {
+            .filter-form,
+            .filter-form-row-2 {
                 grid-template-columns: 1fr;
             }
 
@@ -687,19 +726,18 @@
         </h1>
 
         <p>
-            Tìm nơi lưu trú theo địa điểm, loại hình, mức giá, số khách và tiện ích yêu thích.
-            Giao diện hiển thị rõ ràng, hiện đại và dễ chọn hơn cho khách hàng.
+            Chọn ngày nhận phòng, ngày trả phòng, số khách và số phòng để hệ thống hiển thị các nơi lưu trú phù hợp.
         </p>
 
         <div class="hero-quick-info">
             <div class="hero-info-pill">
-                <i class="fa-solid fa-hotel"></i>
-                <span>Khách sạn, homestay, resort</span>
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Tìm theo ngày lưu trú</span>
             </div>
 
             <div class="hero-info-pill">
-                <i class="fa-solid fa-wifi"></i>
-                <span>Lọc theo tiện ích yêu thích</span>
+                <i class="fa-solid fa-bed"></i>
+                <span>Kiểm tra phòng còn trống</span>
             </div>
 
             <div class="hero-info-pill">
@@ -710,67 +748,150 @@
     </section>
 
     <div class="filter-panel">
-        <form action="${pageContext.request.contextPath}/accommodation" method="get" class="filter-form">
-            <div class="form-group">
-                <label>Từ khóa</label>
-                <input type="text"
-                       class="form-control"
-                       name="keyword"
-                       value="${keyword}"
-                       placeholder="VD: Hạ Long, homestay view biển...">
+        <form action="${pageContext.request.contextPath}/accommodation" method="get" id="accommodationSearchForm">
+            <div class="filter-form">
+                <div class="form-group">
+                    <label>Từ khóa / địa điểm</label>
+                    <input type="text"
+                           class="form-control"
+                           name="keyword"
+                           value="${keyword}"
+                           placeholder="VD: Hạ Long, Cao Bằng, homestay view biển...">
+                </div>
+
+                <div class="form-group">
+                    <label>Tỉnh/thành</label>
+                    <input type="text"
+                           class="form-control"
+                           name="province"
+                           value="${selectedProvince}"
+                           placeholder="VD: Hà Nội">
+                </div>
+
+                <div class="form-group">
+                    <label>Loại lưu trú</label>
+                    <select class="form-control" name="type">
+                        <option value="">Tất cả</option>
+                        <option value="Homestay" ${selectedType == 'Homestay' ? 'selected' : ''}>Homestay</option>
+                        <option value="Khách sạn" ${selectedType == 'Khách sạn' ? 'selected' : ''}>Khách sạn</option>
+                        <option value="Hotel" ${selectedType == 'Hotel' ? 'selected' : ''}>Hotel</option>
+                        <option value="Resort" ${selectedType == 'Resort' ? 'selected' : ''}>Resort</option>
+                        <option value="Căn hộ" ${selectedType == 'Căn hộ' ? 'selected' : ''}>Căn hộ</option>
+                        <option value="Apartment" ${selectedType == 'Apartment' ? 'selected' : ''}>Apartment</option>
+                        <option value="Villa" ${selectedType == 'Villa' ? 'selected' : ''}>Villa</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Người lớn</label>
+                    <input type="number"
+                           class="form-control"
+                           min="1"
+                           name="adults"
+                           value="${empty selectedAdults ? 2 : selectedAdults}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label>Trẻ em</label>
+                    <input type="number"
+                           class="form-control"
+                           min="0"
+                           name="children"
+                           value="${empty selectedChildren ? 0 : selectedChildren}"
+                           required>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Tỉnh/thành</label>
-                <input type="text"
-                       class="form-control"
-                       name="province"
-                       value="${selectedProvince}"
-                       placeholder="VD: Hà Nội">
+            <div class="filter-form-row-2">
+                <div class="form-group">
+                    <label>Ngày nhận phòng</label>
+                    <input type="date"
+                           class="form-control"
+                           name="checkIn"
+                           id="checkInInput"
+                           value="${selectedCheckIn}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label>Ngày trả phòng</label>
+                    <input type="date"
+                           class="form-control"
+                           name="checkOut"
+                           id="checkOutInput"
+                           value="${selectedCheckOut}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label>Số phòng</label>
+                    <input type="number"
+                           class="form-control"
+                           min="1"
+                           name="rooms"
+                           value="${empty selectedRooms ? 1 : selectedRooms}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label>Số khách tổng</label>
+                    <input type="number"
+                           class="form-control"
+                           min="1"
+                           name="guests"
+                           value="${empty selectedGuests ? 2 : selectedGuests}"
+                           placeholder="VD: 2">
+                </div>
+
+                <button type="submit" class="search-btn">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Tìm phòng
+                </button>
             </div>
 
-            <div class="form-group">
-                <label>Loại lưu trú</label>
-                <select class="form-control" name="type">
-                    <option value="">Tất cả</option>
-                    <option value="Homestay" ${selectedType == 'Homestay' ? 'selected' : ''}>Homestay</option>
-                    <option value="Khách sạn" ${selectedType == 'Khách sạn' ? 'selected' : ''}>Khách sạn</option>
-                    <option value="Hotel" ${selectedType == 'Hotel' ? 'selected' : ''}>Hotel</option>
-                    <option value="Resort" ${selectedType == 'Resort' ? 'selected' : ''}>Resort</option>
-                    <option value="Căn hộ" ${selectedType == 'Căn hộ' ? 'selected' : ''}>Căn hộ</option>
-                    <option value="Apartment" ${selectedType == 'Apartment' ? 'selected' : ''}>Apartment</option>
-                    <option value="Villa" ${selectedType == 'Villa' ? 'selected' : ''}>Villa</option>
-                </select>
+            <div class="required-note">
+                <i class="fa-solid fa-circle-info"></i>
+                Vui lòng chọn ngày nhận phòng và ngày trả phòng để kiểm tra nơi lưu trú còn phòng.
             </div>
-
-            <div class="form-group">
-                <label>Số khách</label>
-                <input type="number"
-                       class="form-control"
-                       min="1"
-                       name="guests"
-                       value="${selectedGuests}"
-                       placeholder="VD: 2">
-            </div>
-
-            <button type="submit" class="search-btn">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                Tìm kiếm
-            </button>
         </form>
     </div>
+
+    <c:if test="${not empty selectedCheckIn && not empty selectedCheckOut}">
+        <div class="selected-trip-box">
+            <span>
+                <i class="fa-solid fa-calendar-check"></i>
+                Nhận phòng: ${selectedCheckIn}
+            </span>
+
+            <span>
+                <i class="fa-solid fa-calendar-xmark"></i>
+                Trả phòng: ${selectedCheckOut}
+            </span>
+
+            <span>
+                <i class="fa-solid fa-user-group"></i>
+                ${selectedAdults} người lớn, ${selectedChildren} trẻ em
+            </span>
+
+            <span>
+                <i class="fa-solid fa-bed"></i>
+                ${selectedRooms} phòng
+            </span>
+        </div>
+    </c:if>
 
     <c:if test="${not empty accommodationFacilityOptions}">
         <div class="facility-strip">
             <a class="facility-chip ${empty selectedFacilityId ? 'active' : ''}"
-               href="${pageContext.request.contextPath}/accommodation?keyword=${fn:escapeXml(keyword)}&province=${fn:escapeXml(selectedProvince)}&district=${fn:escapeXml(selectedDistrict)}&type=${fn:escapeXml(selectedType)}&guests=${selectedGuests}&minRate=${selectedMinRate}&minPrice=${selectedMinPrice}&maxPrice=${selectedMaxPrice}">
+               href="${pageContext.request.contextPath}/accommodation?keyword=${fn:escapeXml(keyword)}&province=${fn:escapeXml(selectedProvince)}&district=${fn:escapeXml(selectedDistrict)}&type=${fn:escapeXml(selectedType)}&guests=${selectedGuests}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&minRate=${selectedMinRate}&minPrice=${selectedMinPrice}&maxPrice=${selectedMaxPrice}">
                 <i class="fa-solid fa-house"></i>
                 <span>Tất cả</span>
             </a>
 
             <c:forEach var="facility" items="${accommodationFacilityOptions}">
                 <a class="facility-chip ${selectedFacilityId == facility.facilityID ? 'active' : ''}"
-                   href="${pageContext.request.contextPath}/accommodation?keyword=${fn:escapeXml(keyword)}&province=${fn:escapeXml(selectedProvince)}&district=${fn:escapeXml(selectedDistrict)}&type=${fn:escapeXml(selectedType)}&guests=${selectedGuests}&minRate=${selectedMinRate}&minPrice=${selectedMinPrice}&maxPrice=${selectedMaxPrice}&facilityId=${facility.facilityID}">
+                   href="${pageContext.request.contextPath}/accommodation?keyword=${fn:escapeXml(keyword)}&province=${fn:escapeXml(selectedProvince)}&district=${fn:escapeXml(selectedDistrict)}&type=${fn:escapeXml(selectedType)}&guests=${selectedGuests}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&minRate=${selectedMinRate}&minPrice=${selectedMinPrice}&maxPrice=${selectedMaxPrice}&facilityId=${facility.facilityID}">
 
                     <c:choose>
                         <c:when test="${empty facility.icon}">
@@ -911,7 +1032,7 @@
 
                             <div class="card-actions">
                                 <a class="detail-btn"
-                                   href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.serviceID}">
+                                   href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.serviceID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">
                                     Xem chi tiết
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </a>
@@ -926,13 +1047,62 @@
             <div class="empty-box">
                 <i class="fa-solid fa-hotel"></i>
                 <h3>Không tìm thấy nơi lưu trú phù hợp</h3>
-                <p>Hãy thử thay đổi từ khóa, loại hình hoặc khu vực tìm kiếm để xem thêm kết quả khác.</p>
+                <p>Hãy thử thay đổi từ khóa, ngày lưu trú, số khách hoặc khu vực tìm kiếm để xem thêm kết quả khác.</p>
             </div>
         </c:otherwise>
     </c:choose>
 </div>
 
 <jsp:include page="/views/common/client-footer.jsp" />
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("accommodationSearchForm");
+        const checkInInput = document.getElementById("checkInInput");
+        const checkOutInput = document.getElementById("checkOutInput");
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        const todayText = yyyy + "-" + mm + "-" + dd;
+
+        if (checkInInput) {
+            checkInInput.min = todayText;
+        }
+
+        if (checkOutInput) {
+            checkOutInput.min = todayText;
+        }
+
+        if (checkInInput && checkOutInput) {
+            checkInInput.addEventListener("change", function () {
+                checkOutInput.min = checkInInput.value;
+
+                if (checkOutInput.value && checkOutInput.value <= checkInInput.value) {
+                    checkOutInput.value = "";
+                }
+            });
+        }
+
+        if (form) {
+            form.addEventListener("submit", function (event) {
+                if (!checkInInput.value || !checkOutInput.value) {
+                    event.preventDefault();
+                    alert("Vui lòng chọn ngày nhận phòng và ngày trả phòng trước khi tìm kiếm.");
+                    return;
+                }
+
+                if (checkOutInput.value <= checkInInput.value) {
+                    event.preventDefault();
+                    alert("Ngày trả phòng phải sau ngày nhận phòng.");
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

@@ -1,4 +1,20 @@
 package vn.edu.fpt.controller.authentication;
 
-public class LogoutController {
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.*;
+
+import java.io.IOException;
+
+@WebServlet("/logout")
+public class LogoutController extends HttpServlet {
+
+    protected void doGet(HttpServletRequest request,
+                         HttpServletResponse response)
+            throws IOException {
+
+        request.getSession().invalidate();
+
+        response.sendRedirect(
+                request.getContextPath() + "/home");
+    }
 }

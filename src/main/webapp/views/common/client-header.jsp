@@ -428,10 +428,29 @@
                 Đăng nhập
             </a>
 
-            <a class="cart-btn" href="${pageContext.request.contextPath}/cart" aria-label="Giỏ hàng">
+            <c:set var="isLogin" value="${not empty sessionScope.user}" />
+
+            <a class="cart-btn"
+               href="#"
+               onclick="handleCartClick(${isLogin})"
+               aria-label="Giỏ hàng">
+
                 <i class="fa-solid fa-cart-shopping"></i>
-                <span class="cart-count">${empty sessionScope.cartCount ? 0 : sessionScope.cartCount}</span>
+                <span class="cart-count">
+                    ${empty sessionScope.cartCount ? 0 : sessionScope.cartCount}
+                </span>
             </a>
+
+            <script>
+                function handleCartClick(isLogin) {
+                    if (!isLogin) {
+                        alert("Bạn cần đăng nhập để tiếp tục!");
+                        window.location.href = "${pageContext.request.contextPath}/login";
+                    } else {
+                        window.location.href = "${pageContext.request.contextPath}/cart";
+                    }
+                }
+            </script>
 
             <button class="menu-btn" id="menuBtn" type="button" aria-label="Mở menu">
                 <i class="fa-solid fa-bars"></i>
