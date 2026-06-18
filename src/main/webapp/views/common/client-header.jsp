@@ -290,7 +290,7 @@
         position: absolute;
         top: 56px;
         right: 0;
-        width: 250px;
+        width: 260px;
         background: #ffffff;
         border-radius: 18px;
         border: 1px solid #edf2f7;
@@ -504,7 +504,7 @@
 
         .dropdown-menu {
             right: -8px;
-            width: 235px;
+            width: 240px;
         }
     }
 </style>
@@ -551,20 +551,51 @@
                                 <div class="dropdown-user-name">
                                         ${sessionScope.user.firstName} ${sessionScope.user.lastName}
                                 </div>
+
                                 <div class="dropdown-user-role">
-                                    Tài khoản khách hàng
+                                    <c:choose>
+                                        <c:when test="${sessionScope.user.roleID == 1}">
+                                            Tài khoản quản trị
+                                        </c:when>
+
+                                        <c:when test="${sessionScope.user.roleID == 2}">
+                                            Tài khoản nhân viên
+                                        </c:when>
+
+                                        <c:otherwise>
+                                            Tài khoản khách hàng
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </div>
 
-                            <a href="${pageContext.request.contextPath}/profile">
-                                <i class="fa-solid fa-user"></i>
-                                Xem hồ sơ
-                            </a>
+                            <c:choose>
+                                <c:when test="${sessionScope.user.roleID == 1}">
+                                    <a href="${pageContext.request.contextPath}/views/admin/admin-home.jsp">
+                                        <i class="fa-solid fa-gauge-high"></i>
+                                        Quay về trang admin
+                                    </a>
+                                </c:when>
 
-                            <a href="${pageContext.request.contextPath}/booking-list">
-                                <i class="fa-solid fa-receipt"></i>
-                                Đơn của tôi
-                            </a>
+                                <c:when test="${sessionScope.user.roleID == 2}">
+                                    <a href="${pageContext.request.contextPath}/views/staff/staff-home.jsp">
+                                        <i class="fa-solid fa-briefcase"></i>
+                                        Quay về trang staff
+                                    </a>
+                                </c:when>
+
+                                <c:otherwise>
+                                    <a href="${pageContext.request.contextPath}/profile">
+                                        <i class="fa-solid fa-user"></i>
+                                        Xem hồ sơ
+                                    </a>
+
+                                    <a href="${pageContext.request.contextPath}/booking-list">
+                                        <i class="fa-solid fa-receipt"></i>
+                                        Đơn của tôi
+                                    </a>
+                                </c:otherwise>
+                            </c:choose>
 
                             <div class="dropdown-divider"></div>
 
