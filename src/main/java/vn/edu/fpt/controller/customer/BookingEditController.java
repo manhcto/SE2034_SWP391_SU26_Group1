@@ -44,6 +44,8 @@ public class BookingEditController extends HttpServlet {
                 return;
             }
 
+            setAddressPartsToRequest(request, booking.getAddress());
+
             request.setAttribute("booking", booking);
             request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
 
@@ -66,7 +68,12 @@ public class BookingEditController extends HttpServlet {
         String lastName = getTrimValue(request, "lastName");
         String email = getTrimValue(request, "email");
         String phone = getTrimValue(request, "phone");
-        String address = getTrimValue(request, "address");
+
+        String streetAddress = getTrimValue(request, "streetAddress");
+        String district = getTrimValue(request, "district");
+        String city = getTrimValue(request, "city");
+        String address = buildFullAddress(streetAddress, district, city);
+
         String note = getTrimValue(request, "note");
         String numberAdultRaw = getTrimValue(request, "numberAdult");
         String numberChildrenRaw = getTrimValue(request, "numberChildren");
@@ -76,7 +83,7 @@ public class BookingEditController extends HttpServlet {
         int numberAdult = parseNaturalNumber(numberAdultRaw, "Số người lớn", 1, errors);
         int numberChildren = parseNaturalNumber(numberChildrenRaw, "Số trẻ em", 0, errors);
 
-        validateBookingForm(firstName, lastName, email, phone, address, note, errors);
+        validateBookingForm(firstName, lastName, email, phone, streetAddress, district, city, address, note, errors);
 
         BookingDAO bookingDAO = new BookingDAO();
         Booking oldBooking = null;
@@ -119,6 +126,9 @@ public class BookingEditController extends HttpServlet {
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
             request.setAttribute("booking", booking);
+            request.setAttribute("streetAddress", streetAddress);
+            request.setAttribute("district", district);
+            request.setAttribute("city", city);
             request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
             return;
         }
@@ -132,6 +142,9 @@ public class BookingEditController extends HttpServlet {
 
             request.setAttribute("errors", errors);
             request.setAttribute("booking", booking);
+            request.setAttribute("streetAddress", streetAddress);
+            request.setAttribute("district", district);
+            request.setAttribute("city", city);
             request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
         }
     }
@@ -193,7 +206,8 @@ public class BookingEditController extends HttpServlet {
     }
 
     private void validateBookingForm(String firstName, String lastName, String email,
-                                     String phone, String address, String note,
+                                     String phone, String streetAddress, String district,
+                                     String city, String address, String note,
                                      List<String> errors) {
 
         if (firstName.isEmpty()) {
@@ -226,14 +240,148 @@ public class BookingEditController extends HttpServlet {
             errors.add("Số điện thoại phải có 10 chữ số và bắt đầu bằng 0.");
         }
 
+        if (streetAddress.isEmpty()) {
+            errors.add("Số nhà, đường không được để trống.");
+        } else if (streetAddress.length() > 120) {
+            errors.add("Số nhà, đường không được vượt quá 120 ký tự.");
+        } else if (!streetAddress.matches("^[\\p{L}0-9\\s,./-]+$")) {
+            errors.add("Số nhà, đường chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
+        }
+
+        if (district.isEmpty()) {
+            errors.add("Vui lòng chọn quận / huyện.");
+        } else if (!isValidDistrict(district)) {
+            errors.add("Quận / huyện không hợp lệ.");
+        }
+
+        if (city.isEmpty()) {
+            errors.add("Vui lòng chọn tỉnh / thành phố.");
+        } else if (!isValidCity(city)) {
+            errors.add("Tỉnh / thành phố không hợp lệ.");
+        }
+
         if (address.length() > 255) {
-            errors.add("Địa chỉ không được vượt quá 255 ký tự.");
-        } else if (!address.isEmpty() && !address.matches("^[\\p{L}0-9\\s,./-]+$")) {
-            errors.add("Địa chỉ chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
+            errors.add("Địa chỉ đầy đủ không được vượt quá 255 ký tự.");
         }
 
         if (note.length() > 1000) {
             errors.add("Ghi chú không được vượt quá 1000 ký tự.");
         }
+    }
+
+    private String buildFullAddress(String streetAddress, String district, String city) {
+        if (streetAddress.isEmpty() || district.isEmpty() || city.isEmpty()) {
+            return "";
+        }
+
+        return streetAddress + ", " + district + ", " + city;
+    }
+
+    private void setAddressPartsToRequest(HttpServletRequest request, String address) {
+        String[] parts = splitAddress(address);
+
+        request.setAttribute("streetAddress", parts[0]);
+        request.setAttribute("district", parts[1]);
+        request.setAttribute("city", parts[2]);
+    }
+
+    private String[] splitAddress(String address) {
+        String streetAddress = address == null ? "" : address.trim();
+        String district = "";
+        String city = "";
+
+        if (!streetAddress.isEmpty()) {
+            String foundCity = findCityFromAddress(streetAddress);
+
+            if (!foundCity.isEmpty()) {
+                city = foundCity;
+                streetAddress = removeLastAddressPart(streetAddress, foundCity);
+            }
+
+            String foundDistrict = findDistrictFromAddress(streetAddress);
+
+            if (!foundDistrict.isEmpty()) {
+                district = foundDistrict;
+                streetAddress = removeLastAddressPart(streetAddress, foundDistrict);
+            }
+        }
+
+        return new String[]{streetAddress.trim(), district, city};
+    }
+
+    private String findCityFromAddress(String address) {
+        String[] cities = {
+                "Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Cần Thơ",
+                "Quảng Ninh", "Ninh Bình", "Huế", "Khánh Hòa", "Lâm Đồng"
+        };
+
+        for (String city : cities) {
+            if (address.endsWith(", " + city) || address.equals(city)) {
+                return city;
+            }
+        }
+
+        return "";
+    }
+
+    private String findDistrictFromAddress(String address) {
+        String[] districts = {
+                "Quận Ba Đình", "Quận Hoàn Kiếm", "Quận Tây Hồ", "Quận Long Biên",
+                "Quận Cầu Giấy", "Quận Đống Đa", "Quận Hai Bà Trưng", "Quận Hoàng Mai",
+                "Quận Thanh Xuân", "Quận Nam Từ Liêm", "Quận Bắc Từ Liêm", "Quận Hà Đông",
+                "Huyện Thanh Trì", "Huyện Gia Lâm", "Huyện Đông Anh", "Huyện Sóc Sơn"
+        };
+
+        for (String district : districts) {
+            if (address.endsWith(", " + district) || address.equals(district)) {
+                return district;
+            }
+        }
+
+        return "";
+    }
+
+    private String removeLastAddressPart(String address, String part) {
+        if (address.endsWith(", " + part)) {
+            return address.substring(0, address.length() - part.length() - 2).trim();
+        }
+
+        if (address.equals(part)) {
+            return "";
+        }
+
+        return address;
+    }
+
+    private boolean isValidDistrict(String district) {
+        return "Quận Ba Đình".equals(district)
+                || "Quận Hoàn Kiếm".equals(district)
+                || "Quận Tây Hồ".equals(district)
+                || "Quận Long Biên".equals(district)
+                || "Quận Cầu Giấy".equals(district)
+                || "Quận Đống Đa".equals(district)
+                || "Quận Hai Bà Trưng".equals(district)
+                || "Quận Hoàng Mai".equals(district)
+                || "Quận Thanh Xuân".equals(district)
+                || "Quận Nam Từ Liêm".equals(district)
+                || "Quận Bắc Từ Liêm".equals(district)
+                || "Quận Hà Đông".equals(district)
+                || "Huyện Thanh Trì".equals(district)
+                || "Huyện Gia Lâm".equals(district)
+                || "Huyện Đông Anh".equals(district)
+                || "Huyện Sóc Sơn".equals(district);
+    }
+
+    private boolean isValidCity(String city) {
+        return "Hà Nội".equals(city)
+                || "Hồ Chí Minh".equals(city)
+                || "Đà Nẵng".equals(city)
+                || "Hải Phòng".equals(city)
+                || "Cần Thơ".equals(city)
+                || "Quảng Ninh".equals(city)
+                || "Ninh Bình".equals(city)
+                || "Huế".equals(city)
+                || "Khánh Hòa".equals(city)
+                || "Lâm Đồng".equals(city);
     }
 }
