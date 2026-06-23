@@ -89,6 +89,34 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
+        .form-group input.input-error {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+        }
+
+        .form-group input.input-error:focus {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+        }
+
+        .form-group input.input-valid:focus {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+        }
+
+        .field-error-message {
+            display: none;
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 5px;
+            line-height: 1.35;
+        }
+
+        .field-error-message.show {
+            display: block;
+        }
+
         .checkout-btn {
             width: 100%;
             padding: 16px;
@@ -189,6 +217,7 @@
                                name="firstName"
                                value="${firstName}"
                                placeholder="VD: Nguyễn Văn">
+                        <span class="field-error-message" id="firstNameError"></span>
                     </div>
 
                     <div class="form-group">
@@ -198,6 +227,7 @@
                                name="lastName"
                                value="${lastName}"
                                placeholder="VD: A">
+                        <span class="field-error-message" id="lastNameError"></span>
                     </div>
                 </div>
 
@@ -209,6 +239,7 @@
                                name="email"
                                value="${email}"
                                placeholder="nguyenvana@gmail.com">
+                        <span class="field-error-message" id="emailError"></span>
                     </div>
 
                     <div class="form-group">
@@ -218,6 +249,7 @@
                                name="phone"
                                value="${phone}"
                                placeholder="0987654321">
+                        <span class="field-error-message" id="phoneError"></span>
                     </div>
                 </div>
 
@@ -228,6 +260,7 @@
                            name="streetAddress"
                            value="${streetAddress}"
                            placeholder="VD: Số 10 Nguyễn Trãi">
+                    <span class="field-error-message" id="streetAddressError"></span>
                 </div>
 
                 <div class="form-row">
@@ -296,6 +329,7 @@
                                inputmode="numeric"
                                pattern="[0-9]*"
                                placeholder="VD: 1">
+                        <span class="field-error-message" id="numberAdultError"></span>
                     </div>
 
                     <div class="form-group">
@@ -307,6 +341,7 @@
                                inputmode="numeric"
                                pattern="[0-9]*"
                                placeholder="VD: 0">
+                        <span class="field-error-message" id="numberChildrenError"></span>
                     </div>
                 </div>
 
@@ -341,6 +376,228 @@
 
 <button class="scroll-top" id="scrollTop" type="button">↑</button>
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkoutForm = document.querySelector("form[action$='/booking']");
+
+        const fields = {
+            firstName: {
+                element: document.getElementById("firstName"),
+                error: document.getElementById("firstNameError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập họ và tên đệm.";
+                    }
+
+                    if (value.trim().length < 2) {
+                        return "Họ và tên đệm phải có ít nhất 2 ký tự.";
+                    }
+
+                    if (value.trim().length > 100) {
+                        return "Họ và tên đệm không được vượt quá 100 ký tự.";
+                    }
+
+                    if (!/^[A-Za-zÀ-ỹ\s]+$/.test(value.trim())) {
+                        return "Họ và tên đệm chỉ được chứa chữ cái và khoảng trắng.";
+                    }
+
+                    return "";
+                }
+            },
+
+            lastName: {
+                element: document.getElementById("lastName"),
+                error: document.getElementById("lastNameError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập tên.";
+                    }
+
+                    if (value.trim().length > 100) {
+                        return "Tên không được vượt quá 100 ký tự.";
+                    }
+
+                    if (!/^[A-Za-zÀ-ỹ\s]+$/.test(value.trim())) {
+                        return "Tên chỉ được chứa chữ cái và khoảng trắng.";
+                    }
+
+                    return "";
+                }
+            },
+
+            email: {
+                element: document.getElementById("email"),
+                error: document.getElementById("emailError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập email.";
+                    }
+
+                    if (value.trim().length > 255) {
+                        return "Email không được vượt quá 255 ký tự.";
+                    }
+
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+                        return "Email không đúng định dạng. Ví dụ: example@gmail.com.";
+                    }
+
+                    return "";
+                }
+            },
+
+            phone: {
+                element: document.getElementById("phone"),
+                error: document.getElementById("phoneError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập số điện thoại.";
+                    }
+
+                    if (!/^0\d{9}$/.test(value.trim())) {
+                        return "Số điện thoại phải có 10 chữ số và bắt đầu bằng 0.";
+                    }
+
+                    return "";
+                }
+            },
+
+            streetAddress: {
+                element: document.getElementById("streetAddress"),
+                error: document.getElementById("streetAddressError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập số nhà, đường.";
+                    }
+
+                    if (value.trim().length > 255) {
+                        return "Số nhà, đường không được vượt quá 255 ký tự.";
+                    }
+
+                    return "";
+                }
+            },
+
+            numberAdult: {
+                element: document.getElementById("numberAdult"),
+                error: document.getElementById("numberAdultError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập số người lớn.";
+                    }
+
+                    if (!/^\d+$/.test(value.trim())) {
+                        return "Số người lớn chỉ được nhập số.";
+                    }
+
+                    if (parseInt(value.trim(), 10) < 1) {
+                        return "Số người lớn phải lớn hơn hoặc bằng 1.";
+                    }
+
+                    return "";
+                }
+            },
+
+            numberChildren: {
+                element: document.getElementById("numberChildren"),
+                error: document.getElementById("numberChildrenError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập số trẻ em.";
+                    }
+
+                    if (!/^\d+$/.test(value.trim())) {
+                        return "Số trẻ em chỉ được nhập số.";
+                    }
+
+                    if (parseInt(value.trim(), 10) < 0) {
+                        return "Số trẻ em không được nhỏ hơn 0.";
+                    }
+
+                    return "";
+                }
+            }
+        };
+
+        function showError(field, message) {
+            field.element.classList.add("input-error");
+            field.element.classList.remove("input-valid");
+
+            field.error.textContent = message;
+            field.error.classList.add("show");
+        }
+
+        function showValid(field) {
+            field.element.classList.remove("input-error");
+
+            if (document.activeElement === field.element) {
+                field.element.classList.add("input-valid");
+            } else {
+                field.element.classList.remove("input-valid");
+            }
+
+            field.error.textContent = "";
+            field.error.classList.remove("show");
+        }
+
+        function validateField(field) {
+            const message = field.validate(field.element.value);
+
+            if (message) {
+                showError(field, message);
+                return false;
+            }
+
+            showValid(field);
+            return true;
+        }
+
+        Object.keys(fields).forEach(function (key) {
+            const field = fields[key];
+
+            field.element.addEventListener("input", function () {
+                validateField(field);
+            });
+
+            field.element.addEventListener("focus", function () {
+                validateField(field);
+            });
+
+            field.element.addEventListener("blur", function () {
+                validateField(field);
+                field.element.classList.remove("input-valid");
+            });
+        });
+
+        if (checkoutForm) {
+            checkoutForm.addEventListener("submit", function (event) {
+                let isValid = true;
+                let firstInvalidElement = null;
+
+                Object.keys(fields).forEach(function (key) {
+                    const field = fields[key];
+                    const valid = validateField(field);
+
+                    if (!valid && firstInvalidElement === null) {
+                        firstInvalidElement = field.element;
+                    }
+
+                    if (!valid) {
+                        isValid = false;
+                    }
+                });
+
+                if (!isValid) {
+                    event.preventDefault();
+
+                    if (firstInvalidElement) {
+                        firstInvalidElement.focus();
+                    }
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 </html>
