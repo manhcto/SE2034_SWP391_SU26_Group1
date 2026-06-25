@@ -41,10 +41,10 @@
         /* ================= HERO IMAGE ================= */
         .vehicle-hero {
             position: relative;
-            min-height: 520px;
+            min-height: 400px;
             color: #fff;
             border-radius: 34px;
-            padding: 64px 48px 118px;
+            padding: 46px 48px 88px;
             box-shadow: 0 28px 76px rgba(15, 23, 42, 0.22);
             overflow: hidden;
             background:
@@ -93,13 +93,13 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 13px 22px;
+            padding: 11px 18px;
             border-radius: 999px;
             background: rgba(255,255,255,0.18);
             border: 1px solid rgba(255,255,255,0.30);
             font-weight: 900;
-            font-size: 15px;
-            margin-bottom: 24px;
+            font-size: 14px;
+            margin-bottom: 18px;
             backdrop-filter: blur(14px);
             box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22);
         }
@@ -109,21 +109,21 @@
         }
 
         .vehicle-hero h1 {
-            margin: 0 0 24px;
-            font-size: clamp(42px, 5vw, 76px);
+            margin: 0 0 18px;
+            font-size: clamp(34px, 4.2vw, 58px);
             line-height: 1.08;
             font-weight: 950;
             letter-spacing: -2px;
-            max-width: 920px;
+            max-width: 820px;
             color: #ffffff;
             text-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
         }
 
         .vehicle-hero p {
             margin: 0;
-            max-width: 860px;
-            font-size: 21px;
-            line-height: 1.75;
+            max-width: 760px;
+            font-size: 18px;
+            line-height: 1.65;
             font-weight: 600;
             color: rgba(255,255,255,0.94);
             text-shadow: 0 5px 20px rgba(0, 0, 0, 0.34);
@@ -132,20 +132,20 @@
         .hero-quick-info {
             display: flex;
             flex-wrap: wrap;
-            gap: 14px;
-            margin-top: 34px;
+            gap: 12px;
+            margin-top: 26px;
         }
 
         .hero-info-pill {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 13px 18px;
+            padding: 11px 15px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.16);
             border: 1px solid rgba(255, 255, 255, 0.26);
             color: #ffffff;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 800;
             backdrop-filter: blur(12px);
         }
@@ -157,7 +157,7 @@
         /* ================= SEARCH ================= */
         .search-panel {
             width: calc(100% - 96px);
-            margin: -78px auto 28px;
+            margin: -58px auto 28px;
             background: rgba(255, 255, 255, 0.97);
             border-radius: 32px;
             padding: 24px;
@@ -540,8 +540,8 @@
             }
 
             .vehicle-hero {
-                min-height: 440px;
-                padding: 38px 22px 104px;
+                min-height: 340px;
+                padding: 30px 22px 78px;
                 border-radius: 24px;
                 background-position: center;
             }
@@ -567,7 +567,7 @@
 
             .search-panel {
                 width: calc(100% - 12px);
-                margin: -64px auto 22px;
+                margin: -48px auto 22px;
                 padding: 16px;
                 border-radius: 22px;
             }
@@ -662,10 +662,10 @@
 
             <div class="form-group">
                 <label>Hãng xe</label>
-                <select class="form-control" name="brandId">
+                <select class="form-control" name="brandID">
                     <option value="">Tất cả</option>
                     <c:forEach var="brand" items="${brandList}">
-                        <option value="${brand.brandID}" ${param.brandId == brand.brandID ? 'selected' : ''}>
+                        <option value="${brand.brandID}" ${param.brandID == brand.brandID ? 'selected' : ''}>
                                 ${brand.brandName}
                         </option>
                     </c:forEach>
@@ -747,6 +747,12 @@
                                     <div class="vehicle-status-badge maintenance">
                                         <i class="fa-solid fa-screwdriver-wrench"></i>
                                         Bảo trì
+                                    </div>
+                                </c:when>
+                                <c:when test="${v.status == 'Rented'}">
+                                    <div class="vehicle-status-badge unavailable">
+                                        <i class="fa-solid fa-key"></i>
+                                        Đã thuê
                                     </div>
                                 </c:when>
                                 <c:otherwise>

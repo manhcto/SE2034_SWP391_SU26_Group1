@@ -478,7 +478,7 @@
 
                     <div class="available-badge">
                         <i class="fa-solid fa-circle-check"></i>
-                        Sẵn sàng cho thuê
+                        Còn trống
                     </div>
                 </div>
             </div>

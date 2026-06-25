@@ -92,6 +92,48 @@ public class RoomDAO {
         return list;
     }
 
+    public List<Room> getAvailableRoomsByAccommodationAndDate(int serviceID, String checkIn, String checkOut) {
+        List<Room> list = new ArrayList<>();
+
+        String sql =
+                "SELECT r.roomID, r.roomType, r.numberOfRooms, r.priceOfRoom, r.[status], r.serviceID, " +
+                        "(r.roomAvailability - ISNULL(booked.bookedQuantity, 0)) AS roomAvailability, " +
+                        "r.[image], r.[description], r.bedCount, r.bedType, " +
+                        "r.maxAdults, r.maxChildren, r.roomSize " +
+                        "FROM [dbo].[Room] r " +
+                        "LEFT JOIN ( " +
+                        "    SELECT roomID, SUM(quantity) AS bookedQuantity " +
+                        "    FROM [dbo].[Room_Booking] " +
+                        "    WHERE [status] IN (N'Pending', N'Confirmed', N'CheckedIn') " +
+                        "    AND checkInDate < CONVERT(date, ?) " +
+                        "    AND checkOutDate > CONVERT(date, ?) " +
+                        "    GROUP BY roomID " +
+                        ") booked ON booked.roomID = r.roomID " +
+                        "WHERE r.serviceID = ? " +
+                        "AND r.[status] = N'Available' " +
+                        "AND (r.roomAvailability - ISNULL(booked.bookedQuantity, 0)) > 0 " +
+                        "ORDER BY r.priceOfRoom ASC, r.roomID DESC";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, checkOut);
+            ps.setString(2, checkIn);
+            ps.setInt(3, serviceID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRoom(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     public Room getRoomById(int roomID) {
         String sql = BASE_SELECT +
                 "WHERE roomID = ?";

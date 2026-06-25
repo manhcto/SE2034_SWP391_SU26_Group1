@@ -103,7 +103,9 @@ public class AccommodationController extends HttpServlet {
              * Sau này khi nhóm code booking theo ngày, thay dòng này bằng:
              * roomDAO.getAvailableRoomsByAccommodationAndDate(serviceID, checkIn, checkOut, rooms);
              */
-            List<Room> availableRooms = roomDAO.getAvailableRoomsByAccommodation(serviceID);
+            List<Room> availableRooms = hasDateRange(checkIn, checkOut)
+                    ? roomDAO.getAvailableRoomsByAccommodationAndDate(serviceID, checkIn, checkOut)
+                    : roomDAO.getAvailableRoomsByAccommodation(serviceID);
 
             for (Room room : availableRooms) {
                 room.setFacilityList(facilityDAO.getFacilitiesByRoom(room.getRoomID()));
@@ -234,7 +236,9 @@ public class AccommodationController extends HttpServlet {
          * Hiện tại vẫn lấy room theo accommodation.
          * Sau này khi có bảng booking theo ngày, thay bằng hàm lọc theo checkIn/checkOut.
          */
-        List<Room> roomList = roomDAO.getAvailableRoomsByAccommodation(serviceID);
+        List<Room> roomList = hasDateRange(checkIn, checkOut)
+                ? roomDAO.getAvailableRoomsByAccommodationAndDate(serviceID, checkIn, checkOut)
+                : roomDAO.getAvailableRoomsByAccommodation(serviceID);
 
         List<Room> filteredRooms = new ArrayList<>();
 
@@ -311,7 +315,9 @@ public class AccommodationController extends HttpServlet {
             return;
         }
 
-        List<Room> roomList = roomDAO.getAvailableRoomsByAccommodation(accommodationID);
+        List<Room> roomList = hasDateRange(checkIn, checkOut)
+                ? roomDAO.getAvailableRoomsByAccommodationAndDate(accommodationID, checkIn, checkOut)
+                : roomDAO.getAvailableRoomsByAccommodation(accommodationID);
         Room selectedRoom = null;
 
         for (Room room : roomList) {
@@ -503,6 +509,20 @@ public class AccommodationController extends HttpServlet {
             return nights > 0 ? nights : 1;
         } catch (Exception e) {
             return 1;
+        }
+    }
+
+    private boolean hasDateRange(String checkIn, String checkOut) {
+        if (isBlank(checkIn) || isBlank(checkOut)) {
+            return false;
+        }
+
+        try {
+            LocalDate inDate = LocalDate.parse(checkIn);
+            LocalDate outDate = LocalDate.parse(checkOut);
+            return outDate.isAfter(inDate);
+        } catch (Exception e) {
+            return false;
         }
     }
 

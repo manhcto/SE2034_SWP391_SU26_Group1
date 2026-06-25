@@ -250,6 +250,26 @@ public class Vehicle {
         return brandName;
     }
 
+    public String getDisplayStatus() {
+        if ("Available".equalsIgnoreCase(status)) {
+            return "Còn trống";
+        }
+
+        if ("Rented".equalsIgnoreCase(status)) {
+            return "Đã được thuê";
+        }
+
+        if ("Maintenance".equalsIgnoreCase(status)) {
+            return "Bảo trì";
+        }
+
+        if ("Unavailable".equalsIgnoreCase(status)) {
+            return "Tạm ngưng";
+        }
+
+        return status;
+    }
+
     public String getFullPickupAddress() {
         if (pickupAddress != null && !pickupAddress.trim().isEmpty()) {
             return pickupAddress.trim();

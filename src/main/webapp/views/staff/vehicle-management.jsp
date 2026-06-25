@@ -80,6 +80,11 @@
             color: #166534;
         }
 
+        .badge-soft-primary {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
         .badge-soft-danger {
             background: #fee2e2;
             color: #991b1b;
@@ -298,6 +303,7 @@
                 <select class="form-select" id="vehicleStatusFilter">
                     <option value="">Tất cả trạng thái</option>
                     <option value="Available">Có sẵn</option>
+                    <option value="Rented">Đã được thuê</option>
                     <option value="Unavailable">Tạm ngưng</option>
                     <option value="Maintenance">Bảo trì</option>
                 </select>
@@ -427,6 +433,12 @@
                                                 </span>
                                             </c:when>
 
+                                            <c:when test="${v.status == 'Rented'}">
+                                                <span class="badge badge-soft-primary rounded-pill px-3 py-2">
+                                                    <i class="fa-solid fa-key me-1"></i>Đã được thuê
+                                                </span>
+                                            </c:when>
+
                                             <c:when test="${v.status == 'Unavailable'}">
                                                 <span class="badge badge-soft-danger rounded-pill px-3 py-2">
                                                     <i class="fa-solid fa-circle-xmark me-1"></i>Tạm ngưng
@@ -528,9 +540,10 @@
                                                         <div class="col-md-4">
                                                             <label class="form-label fw-bold small text-secondary">Trạng thái</label>
                                                             <select name="status" class="form-select" required>
-                                                                <option value="Available" <c:if test="${v.status == 'Available'}">selected</c:if>>Có sẵn</option>
-                                                                <option value="Unavailable" <c:if test="${v.status == 'Unavailable'}">selected</c:if>>Tạm ngưng</option>
-                                                                <option value="Maintenance" <c:if test="${v.status == 'Maintenance'}">selected</c:if>>Bảo trì</option>
+                                                                  <option value="Available" <c:if test="${v.status == 'Available'}">selected</c:if>>Có sẵn</option>
+                                                                  <option value="Rented" <c:if test="${v.status == 'Rented'}">selected</c:if>>Đã được thuê</option>
+                                                                  <option value="Unavailable" <c:if test="${v.status == 'Unavailable'}">selected</c:if>>Tạm ngưng</option>
+                                                                  <option value="Maintenance" <c:if test="${v.status == 'Maintenance'}">selected</c:if>>Bảo trì</option>
                                                             </select>
                                                             <div class="invalid-feedback">Vui lòng chọn trạng thái.</div>
                                                         </div>
@@ -720,6 +733,7 @@
                             <label class="form-label fw-bold small text-secondary">Trạng thái</label>
                             <select name="status" class="form-select" required>
                                 <option value="Available">Có sẵn</option>
+                                <option value="Rented">Đã được thuê</option>
                                 <option value="Unavailable">Tạm ngưng</option>
                                 <option value="Maintenance">Bảo trì</option>
                             </select>

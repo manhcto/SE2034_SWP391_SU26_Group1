@@ -362,6 +362,7 @@ public class ManageVehicleController extends HttpServlet {
 
     private boolean isValidVehicleStatus(String status) {
         return "Available".equals(status)
+                || "Rented".equals(status)
                 || "Unavailable".equals(status)
                 || "Maintenance".equals(status);
     }

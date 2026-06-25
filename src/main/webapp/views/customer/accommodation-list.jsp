@@ -40,9 +40,9 @@
         .hero {
             position: relative;
             margin: 18px auto 0;
-            min-height: 540px;
+            min-height: 420px;
             border-radius: 34px;
-            padding: 68px 52px 122px;
+            padding: 48px 52px 92px;
             color: #ffffff;
             overflow: hidden;
             background:
@@ -92,14 +92,14 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 13px 22px;
+            padding: 11px 18px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.18);
             border: 1px solid rgba(255, 255, 255, 0.30);
             color: #ffffff;
             font-weight: 900;
-            font-size: 15px;
-            margin-bottom: 26px;
+            font-size: 14px;
+            margin-bottom: 20px;
             backdrop-filter: blur(14px);
             box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22);
         }
@@ -109,9 +109,9 @@
         }
 
         .hero h1 {
-            margin: 0 0 24px;
-            max-width: 950px;
-            font-size: clamp(42px, 5vw, 76px);
+            margin: 0 0 18px;
+            max-width: 880px;
+            font-size: clamp(34px, 4.2vw, 58px);
             line-height: 1.08;
             font-weight: 950;
             letter-spacing: -2px;
@@ -125,9 +125,9 @@
 
         .hero p {
             margin: 0;
-            max-width: 880px;
-            font-size: 21px;
-            line-height: 1.75;
+            max-width: 760px;
+            font-size: 18px;
+            line-height: 1.65;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.94);
             text-shadow: 0 5px 20px rgba(0, 0, 0, 0.34);
@@ -136,20 +136,20 @@
         .hero-quick-info {
             display: flex;
             flex-wrap: wrap;
-            gap: 14px;
-            margin-top: 34px;
+            gap: 12px;
+            margin-top: 26px;
         }
 
         .hero-info-pill {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 13px 18px;
+            padding: 11px 15px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.16);
             border: 1px solid rgba(255, 255, 255, 0.26);
             color: #ffffff;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 800;
             backdrop-filter: blur(12px);
         }
@@ -160,7 +160,7 @@
 
         .filter-panel {
             width: calc(100% - 96px);
-            margin: -78px auto 30px;
+            margin: -58px auto 30px;
             background: rgba(255, 255, 255, 0.97);
             border-radius: 32px;
             padding: 24px;
@@ -649,8 +649,8 @@
             }
 
             .hero {
-                min-height: 440px;
-                padding: 38px 22px 104px;
+                min-height: 360px;
+                padding: 30px 22px 82px;
                 border-radius: 24px;
                 background-position: center;
             }
@@ -676,7 +676,7 @@
 
             .filter-panel {
                 width: calc(100% - 12px);
-                margin: -64px auto 22px;
+                margin: -48px auto 22px;
                 padding: 16px;
                 border-radius: 22px;
             }

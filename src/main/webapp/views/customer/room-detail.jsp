@@ -399,6 +399,35 @@
         <span>${room.roomType}</span>
     </div>
 
+    <c:if test="${not empty param.status}">
+        <c:choose>
+            <c:when test="${param.status == 'bookingSuccess'}">
+                <div class="alert alert-success rounded-4 border-0 shadow-sm">
+                    <i class="fa-solid fa-circle-check me-2"></i>
+                    Đặt phòng thành công. Phòng đã được ghi nhận theo ngày bạn chọn.
+                </div>
+            </c:when>
+            <c:when test="${param.status == 'roomUnavailable'}">
+                <div class="alert alert-warning rounded-4 border-0 shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    Phòng vừa được người khác đặt hoặc không còn đủ số lượng cho ngày này.
+                </div>
+            </c:when>
+            <c:when test="${param.status == 'invalidBooking'}">
+                <div class="alert alert-danger rounded-4 border-0 shadow-sm">
+                    <i class="fa-solid fa-circle-xmark me-2"></i>
+                    Thông tin đặt phòng chưa hợp lệ. Vui lòng kiểm tra lại ngày và số phòng.
+                </div>
+            </c:when>
+            <c:otherwise>
+                <div class="alert alert-danger rounded-4 border-0 shadow-sm">
+                    <i class="fa-solid fa-circle-xmark me-2"></i>
+                    Chưa thể đặt phòng lúc này. Vui lòng thử lại sau.
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </c:if>
+
     <div class="room-layout">
         <div>
             <div class="main-card">
@@ -667,7 +696,7 @@
 
                     <button type="submit" class="btn-cart">
                         <i class="fa-solid fa-cart-plus me-2"></i>
-                        Thêm vào giỏ hàng
+                        Đặt phòng
                     </button>
                 </form>
             </c:if>
