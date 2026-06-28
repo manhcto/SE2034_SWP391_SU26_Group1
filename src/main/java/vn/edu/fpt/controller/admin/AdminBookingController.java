@@ -1,15 +1,15 @@
 package vn.edu.fpt.controller.admin;
 
-import vn.edu.fpt.DAO.BookingDAO;
-import vn.edu.fpt.model.Booking;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import vn.edu.fpt.DAO.BookingDAO;
+import vn.edu.fpt.model.Booking;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,8 +19,8 @@ import java.util.Map;
 })
 public class AdminBookingController extends HttpServlet {
 
-    private static final String BOOKING_LIST_PAGE = "/views/admin/admin-booking-list.jsp";
-    private static final String BOOKING_DETAIL_PAGE = "/views/admin/admin-booking-detail.jsp";
+    private static final String ADMIN_BOOKING_LIST_PAGE = "/views/admin/admin-booking-list.jsp";
+    private static final String ADMIN_BOOKING_DETAIL_PAGE = "/views/admin/admin-booking-detail.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -49,20 +49,28 @@ public class AdminBookingController extends HttpServlet {
     private void showBookingList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        String selectedBookingType = normalizeBookingType(request.getParameter("type"));
+
         BookingDAO bookingDAO = new BookingDAO();
-        List<Booking> bookingList = bookingDAO.getAllBookings();
+        List<Booking> allBookings = bookingDAO.getAllBookings();
+        List<Booking> bookingList = filterBookingsByType(allBookings, selectedBookingType);
 
         request.setAttribute("bookingList", bookingList);
-        request.getRequestDispatcher(BOOKING_LIST_PAGE).forward(request, response);
+        request.setAttribute("selectedBookingType", selectedBookingType);
+        request.setAttribute("bookingPageTitle", getBookingPageTitle(selectedBookingType));
+        request.setAttribute("bookingPageSubtitle", getBookingPageSubtitle(selectedBookingType));
+
+        request.getRequestDispatcher(ADMIN_BOOKING_LIST_PAGE).forward(request, response);
     }
 
     private void showBookingDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        String selectedBookingType = normalizeBookingType(request.getParameter("type"));
         String bookingIDRaw = request.getParameter("bookingID");
 
         if (bookingIDRaw == null || bookingIDRaw.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/admin/booking");
+            response.sendRedirect(request.getContextPath() + buildAdminBookingListPath(selectedBookingType));
             return;
         }
 
@@ -72,17 +80,109 @@ public class AdminBookingController extends HttpServlet {
             BookingDAO bookingDAO = new BookingDAO();
             Map<String, Object> bookingDetail = bookingDAO.getBookingSummaryByID(bookingID);
 
-            if (bookingDetail == null) {
-                request.setAttribute("error", "Không tìm thấy booking.");
-                request.getRequestDispatcher(BOOKING_DETAIL_PAGE).forward(request, response);
+            if (bookingDetail == null || bookingDetail.isEmpty()) {
+                request.setAttribute("error", "Không tìm thấy booking cần xem.");
+                request.setAttribute("selectedBookingType", selectedBookingType);
+                request.setAttribute("backToBookingListUrl", request.getContextPath() + buildAdminBookingListPath(selectedBookingType));
+                request.getRequestDispatcher(ADMIN_BOOKING_DETAIL_PAGE).forward(request, response);
                 return;
             }
 
+            if (selectedBookingType.isEmpty() && bookingDetail.get("bookingType") != null) {
+                selectedBookingType = normalizeBookingType(String.valueOf(bookingDetail.get("bookingType")));
+            }
+
             request.setAttribute("bookingDetail", bookingDetail);
-            request.getRequestDispatcher(BOOKING_DETAIL_PAGE).forward(request, response);
+            request.setAttribute("selectedBookingType", selectedBookingType);
+            request.setAttribute("backToBookingListUrl", request.getContextPath() + buildAdminBookingListPath(selectedBookingType));
+
+            request.getRequestDispatcher(ADMIN_BOOKING_DETAIL_PAGE).forward(request, response);
 
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/booking");
+            response.sendRedirect(request.getContextPath() + buildAdminBookingListPath(selectedBookingType));
         }
+    }
+
+    private List<Booking> filterBookingsByType(List<Booking> allBookings, String bookingType) {
+        List<Booking> filteredBookings = new ArrayList<>();
+
+        if (allBookings == null) {
+            return filteredBookings;
+        }
+
+        if (bookingType == null || bookingType.trim().isEmpty()) {
+            return allBookings;
+        }
+
+        for (Booking booking : allBookings) {
+            if (booking.getBookingType() != null
+                    && booking.getBookingType().equalsIgnoreCase(bookingType)) {
+                filteredBookings.add(booking);
+            }
+        }
+
+        return filteredBookings;
+    }
+
+    private String normalizeBookingType(String bookingType) {
+        if (bookingType == null) {
+            return "";
+        }
+
+        String value = bookingType.trim();
+
+        if ("Tour".equalsIgnoreCase(value)) {
+            return "Tour";
+        }
+
+        if ("Accommodation".equalsIgnoreCase(value)) {
+            return "Accommodation";
+        }
+
+        if ("Vehicle".equalsIgnoreCase(value)) {
+            return "Vehicle";
+        }
+
+        return "";
+    }
+
+    private String getBookingPageTitle(String bookingType) {
+        if ("Tour".equalsIgnoreCase(bookingType)) {
+            return "Xem đặt tour";
+        }
+
+        if ("Accommodation".equalsIgnoreCase(bookingType)) {
+            return "Xem đặt phòng";
+        }
+
+        if ("Vehicle".equalsIgnoreCase(bookingType)) {
+            return "Xem đặt xe";
+        }
+
+        return "Xem booking";
+    }
+
+    private String getBookingPageSubtitle(String bookingType) {
+        if ("Tour".equalsIgnoreCase(bookingType)) {
+            return "Admin chỉ xem danh sách các đơn đặt tour trong hệ thống.";
+        }
+
+        if ("Accommodation".equalsIgnoreCase(bookingType)) {
+            return "Admin chỉ xem danh sách các đơn đặt phòng / lưu trú trong hệ thống.";
+        }
+
+        if ("Vehicle".equalsIgnoreCase(bookingType)) {
+            return "Admin chỉ xem danh sách các đơn thuê xe trong hệ thống.";
+        }
+
+        return "Admin chỉ xem danh sách booking, không sửa hoặc xóa dữ liệu.";
+    }
+
+    private String buildAdminBookingListPath(String bookingType) {
+        if (bookingType == null || bookingType.trim().isEmpty()) {
+            return "/admin/booking";
+        }
+
+        return "/admin/booking?type=" + bookingType;
     }
 }

@@ -16,12 +16,15 @@ import java.util.Map;
 @WebServlet(name = "ManageFeedbackController", urlPatterns = {
         "/staff/feedback",
         "/staff/feedback-detail",
+        "/staff/feedback-delete",
         "/staff/feedback-status"
 })
 public class ManageFeedbackController extends HttpServlet {
 
     private static final String STAFF_FEEDBACK_LIST_PAGE = "/views/staff/staff-feedback-list.jsp";
     private static final String STAFF_FEEDBACK_DETAIL_PAGE = "/views/staff/staff-feedback-detail.jsp";
+
+    private final FeedbackDAO feedbackDAO = new FeedbackDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -41,6 +44,10 @@ public class ManageFeedbackController extends HttpServlet {
                 showFeedbackDetail(request, response);
                 break;
 
+            case "/staff/feedback-delete":
+                deleteFeedback(request, response);
+                break;
+
             default:
                 response.sendRedirect(request.getContextPath() + "/staff/feedback");
                 break;
@@ -57,6 +64,10 @@ public class ManageFeedbackController extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
+            case "/staff/feedback-delete":
+                deleteFeedback(request, response);
+                break;
+
             case "/staff/feedback-status":
                 updateFeedbackStatus(request, response);
                 break;
@@ -70,97 +81,204 @@ public class ManageFeedbackController extends HttpServlet {
     private void showFeedbackList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        FeedbackDAO feedbackDAO = new FeedbackDAO();
-        List<Feedback> feedbackList = feedbackDAO.getAllFeedbacks();
+        String type = normalizeServiceType(request.getParameter("type"));
+        List<Feedback> feedbackList = feedbackDAO.getFeedbacksByType(type);
 
         request.setAttribute("feedbackList", feedbackList);
+        request.setAttribute("type", type);
+        request.setAttribute("typeText", convertServiceTypeToVietnamese(type));
+
         request.getRequestDispatcher(STAFF_FEEDBACK_LIST_PAGE).forward(request, response);
     }
 
     private void showFeedbackDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String feedbackIDRaw = request.getParameter("feedbackID");
+        String type = normalizeServiceType(request.getParameter("type"));
+        int feedbackID = parsePositiveIntValue(request.getParameter("feedbackID"));
 
-        if (feedbackIDRaw == null || feedbackIDRaw.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/staff/feedback");
+        if (feedbackID <= 0) {
+            response.sendRedirect(request.getContextPath()
+                    + buildStaffFeedbackListUrl(type)
+                    + "&error=invalid");
             return;
         }
 
-        try {
-            int feedbackID = Integer.parseInt(feedbackIDRaw.trim());
+        Map<String, Object> feedbackDetail = feedbackDAO.getFeedbackDetailByID(feedbackID);
 
-            FeedbackDAO feedbackDAO = new FeedbackDAO();
-            Map<String, Object> feedbackDetail = feedbackDAO.getFeedbackDetailByID(feedbackID);
+        if (feedbackDetail == null) {
+            response.sendRedirect(request.getContextPath()
+                    + buildStaffFeedbackListUrl(type)
+                    + "&error=notfound");
+            return;
+        }
 
-            if (feedbackDetail == null) {
-                request.setAttribute("error", "Không tìm thấy feedback.");
-                request.getRequestDispatcher(STAFF_FEEDBACK_DETAIL_PAGE).forward(request, response);
-                return;
-            }
+        String detailType = normalizeServiceType(String.valueOf(feedbackDetail.get("serviceType")));
 
-            request.setAttribute("feedbackDetail", feedbackDetail);
-            request.getRequestDispatcher(STAFF_FEEDBACK_DETAIL_PAGE).forward(request, response);
+        if ("All".equals(type) && !"All".equals(detailType)) {
+            type = detailType;
+        }
 
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/staff/feedback");
+        request.setAttribute("feedbackDetail", feedbackDetail);
+        request.setAttribute("type", type);
+        request.setAttribute("typeText", convertServiceTypeToVietnamese(type));
+
+        request.getRequestDispatcher(STAFF_FEEDBACK_DETAIL_PAGE).forward(request, response);
+    }
+
+    private void deleteFeedback(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String type = normalizeServiceType(request.getParameter("type"));
+        int feedbackID = parsePositiveIntValue(request.getParameter("feedbackID"));
+
+        if (feedbackID <= 0) {
+            response.sendRedirect(request.getContextPath()
+                    + buildStaffFeedbackListUrl(type)
+                    + "&error=invalid");
+            return;
+        }
+
+        boolean deleted = feedbackDAO.deleteFeedback(feedbackID);
+
+        if (deleted) {
+            response.sendRedirect(request.getContextPath()
+                    + buildStaffFeedbackListUrl(type)
+                    + "&success=delete");
+        } else {
+            response.sendRedirect(request.getContextPath()
+                    + buildStaffFeedbackListUrl(type)
+                    + "&error=delete");
         }
     }
 
     private void updateFeedbackStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        String feedbackIDRaw = request.getParameter("feedbackID");
-        String newStatus = request.getParameter("status");
-        String redirectTo = request.getParameter("redirectTo");
+        String type = normalizeServiceType(request.getParameter("type"));
+        int feedbackID = parsePositiveIntValue(request.getParameter("feedbackID"));
+        String status = normalizeStatus(request.getParameter("status"));
+        String redirectTo = getTrimValue(request, "redirectTo");
 
-        if (feedbackIDRaw == null || feedbackIDRaw.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/staff/feedback?error=invalid");
+        if (feedbackID <= 0) {
+            response.sendRedirect(request.getContextPath()
+                    + buildStaffFeedbackListUrl(type)
+                    + "&error=invalid");
             return;
         }
 
-        if (!isValidStatus(newStatus)) {
-            response.sendRedirect(request.getContextPath() + "/staff/feedback?error=status");
-            return;
-        }
+        boolean updated = feedbackDAO.updateFeedbackStatus(feedbackID, status);
 
-        try {
-            int feedbackID = Integer.parseInt(feedbackIDRaw.trim());
-
-            FeedbackDAO feedbackDAO = new FeedbackDAO();
-            Feedback feedback = feedbackDAO.getFeedbackByID(feedbackID);
-
-            if (feedback == null) {
-                response.sendRedirect(request.getContextPath() + "/staff/feedback?error=notfound");
-                return;
-            }
-
-            feedback.setStatus(newStatus);
-
-            boolean updated = feedbackDAO.updateFeedback(feedback);
-
+        if ("detail".equalsIgnoreCase(redirectTo)) {
             if (updated) {
-                if ("detail".equals(redirectTo)) {
-                    response.sendRedirect(request.getContextPath()
-                            + "/staff/feedback-detail?feedbackID=" + feedbackID + "&success=status");
-                } else {
-                    response.sendRedirect(request.getContextPath() + "/staff/feedback?success=status");
-                }
+                response.sendRedirect(request.getContextPath()
+                        + buildStaffFeedbackDetailUrl(feedbackID, type)
+                        + "&success=status");
             } else {
-                if ("detail".equals(redirectTo)) {
-                    response.sendRedirect(request.getContextPath()
-                            + "/staff/feedback-detail?feedbackID=" + feedbackID + "&error=update");
-                } else {
-                    response.sendRedirect(request.getContextPath() + "/staff/feedback?error=update");
-                }
+                response.sendRedirect(request.getContextPath()
+                        + buildStaffFeedbackDetailUrl(feedbackID, type)
+                        + "&error=status");
             }
 
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/staff/feedback?error=invalid");
+            return;
+        }
+
+        if (updated) {
+            response.sendRedirect(request.getContextPath()
+                    + buildStaffFeedbackListUrl(type)
+                    + "&success=status");
+        } else {
+            response.sendRedirect(request.getContextPath()
+                    + buildStaffFeedbackListUrl(type)
+                    + "&error=status");
         }
     }
 
-    private boolean isValidStatus(String status) {
-        return "Visible".equals(status) || "Hidden".equals(status);
+    private String buildStaffFeedbackListUrl(String type) {
+        return "/staff/feedback?type=" + normalizeServiceType(type);
+    }
+
+    private String buildStaffFeedbackDetailUrl(int feedbackID, String type) {
+        return "/staff/feedback-detail?feedbackID=" + feedbackID
+                + "&type=" + normalizeServiceType(type);
+    }
+
+    private String getTrimValue(HttpServletRequest request, String paramName) {
+        String value = request.getParameter(paramName);
+        return value == null ? "" : value.trim();
+    }
+
+    private int parsePositiveIntValue(String value) {
+        try {
+            int number = Integer.parseInt(value);
+            return number > 0 ? number : 0;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return "Hidden";
+        }
+
+        if ("Visible".equalsIgnoreCase(status.trim())) {
+            return "Visible";
+        }
+
+        return "Hidden";
+    }
+
+    private String normalizeServiceType(String type) {
+        if (type == null || type.trim().isEmpty()) {
+            return "All";
+        }
+
+        String value = type.trim().toLowerCase();
+
+        if ("all".equals(value) || "tatca".equals(value) || "tất cả".equals(value)) {
+            return "All";
+        }
+
+        if ("accommodation".equals(value)
+                || "hotel".equals(value)
+                || "khachsan".equals(value)
+                || "khách sạn".equals(value)
+                || "luutru".equals(value)
+                || "lưu trú".equals(value)) {
+            return "Accommodation";
+        }
+
+        if ("vehicle".equals(value)
+                || "car".equals(value)
+                || "xe".equals(value)
+                || "thuexe".equals(value)
+                || "thuê xe".equals(value)) {
+            return "Vehicle";
+        }
+
+        if ("tour".equals(value)) {
+            return "Tour";
+        }
+
+        return type.trim();
+    }
+
+    private String convertServiceTypeToVietnamese(String type) {
+        String serviceType = normalizeServiceType(type);
+
+        if ("Accommodation".equals(serviceType)) {
+            return "Khách sạn";
+        }
+
+        if ("Vehicle".equals(serviceType)) {
+            return "Xe";
+        }
+
+        if ("Tour".equals(serviceType)) {
+            return "Tour";
+        }
+
+        return "Tất cả";
     }
 }

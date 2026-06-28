@@ -365,6 +365,29 @@
             color: var(--primary-dark);
         }
 
+        .btn-review {
+            width: 100%;
+            border: none;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 14px 18px;
+            font-weight: 800;
+            font-size: 15.5px;
+            margin-top: 12px;
+            box-shadow: 0 12px 24px rgba(13, 148, 136, 0.20);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            gap: 8px;
+        }
+
+        .btn-review:hover {
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: #ffffff;
+        }
+
         .btn-back {
             width: 100%;
             border: 1px solid #cbd5e1;
@@ -655,6 +678,12 @@
                     Thêm vào giỏ hàng
                 </button>
             </form>
+
+            <a href="${pageContext.request.contextPath}/feedback-list?type=Vehicle&serviceID=${vehicle.serviceID}"
+               class="btn-review">
+                <i class="fa-solid fa-star"></i>
+                Xem đánh giá
+            </a>
 
             <a href="${pageContext.request.contextPath}/vehicle" class="btn-back">
                 <i class="fa-solid fa-list me-2"></i>

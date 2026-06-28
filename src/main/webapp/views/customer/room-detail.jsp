@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -416,24 +416,28 @@
                     Đặt phòng thành công. Phòng đã được ghi nhận theo ngày bạn chọn.
                 </div>
             </c:when>
+
             <c:when test="${param.status == 'roomUnavailable'}">
                 <div class="alert alert-warning rounded-4 border-0 shadow-sm">
                     <i class="fa-solid fa-triangle-exclamation me-2"></i>
                     Phòng vừa được người khác đặt hoặc không còn đủ số lượng cho ngày này.
                 </div>
             </c:when>
+
             <c:when test="${param.status == 'invalidBooking'}">
                 <div class="alert alert-danger rounded-4 border-0 shadow-sm">
                     <i class="fa-solid fa-circle-xmark me-2"></i>
                     Thông tin đặt phòng chưa hợp lệ. Vui lòng kiểm tra lại ngày và số phòng.
                 </div>
             </c:when>
+
             <c:when test="${param.status == 'cartAdded'}">
                 <div class="alert alert-success rounded-4 border-0 shadow-sm">
                     <i class="fa-solid fa-cart-plus me-2"></i>
                     Đã thêm phòng vào giỏ hàng tạm.
                 </div>
             </c:when>
+
             <c:otherwise>
                 <div class="alert alert-danger rounded-4 border-0 shadow-sm">
                     <i class="fa-solid fa-circle-xmark me-2"></i>
@@ -507,9 +511,11 @@
                                             <c:when test="${empty rf.icon}">
                                                 <i class="fa-solid fa-circle-check"></i>
                                             </c:when>
+
                                             <c:when test="${rf.icon.contains('fa-solid') || rf.icon.contains('fa-regular') || rf.icon.contains('fa-brands')}">
                                                 <i class="${rf.icon}"></i>
                                             </c:when>
+
                                             <c:otherwise>
                                                 <i class="fa-solid ${rf.icon}"></i>
                                             </c:otherwise>
@@ -679,7 +685,7 @@
                     <c:otherwise>
                         <div class="missing-date-alert">
                             <i class="fa-solid fa-triangle-exclamation"></i>
-                            Bạn chưa chọn ngày nhận phòng và ngày trả phòng. Chọn lịch ngay tại đây để xem tạm tính và thêm phòng vào giỏ hàng.
+                            Bạn chưa chọn ngày nhận phòng và ngày trả phòng. Chọn lịch ngay tại đây để xem tạm tính và đặt phòng.
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -694,9 +700,10 @@
                 </div>
 
                 <form id="roomBookingForm"
-                      action="${pageContext.request.contextPath}/booking/accommodation/form"
+                      action="${pageContext.request.contextPath}/booking"
                       method="get"
                       class="m-0">
+                    <input type="hidden" name="type" value="accommodation">
                     <input type="hidden" name="accommodationID" value="${accommodation.serviceID}">
                     <input type="hidden" name="roomID" value="${room.roomID}">
                     <input type="hidden" name="checkIn" value="${checkIn}">

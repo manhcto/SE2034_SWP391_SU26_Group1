@@ -690,11 +690,11 @@ public class BookingDAO {
 
             if (isTourBooking) {
                 try (PreparedStatement psUpdateDetail = conn.prepareStatement(sqlUpdateDetail)) {
-                psUpdateDetail.setInt(1, newQuantity);
-                psUpdateDetail.setDouble(2, unitPrice);
-                psUpdateDetail.setDouble(3, totalPrice);
-                psUpdateDetail.setInt(4, booking.getBookingID());
-                psUpdateDetail.executeUpdate();
+                    psUpdateDetail.setInt(1, newQuantity);
+                    psUpdateDetail.setDouble(2, unitPrice);
+                    psUpdateDetail.setDouble(3, totalPrice);
+                    psUpdateDetail.setInt(4, booking.getBookingID());
+                    psUpdateDetail.executeUpdate();
                 }
             }
 
@@ -847,9 +847,10 @@ public class BookingDAO {
 
     // Delete booking by ID
     public boolean deleteBookingByID(int bookingID) {
-        String sqlGetDetail = "SELECT tourScheduleID, quantity "
-                + "FROM Booking_Detail "
-                + "WHERE bookingID = ?";
+        String sqlGetDetail = "SELECT b.bookingType, bd.tourScheduleID, bd.serviceID, bd.quantity "
+                + "FROM Booking b "
+                + "LEFT JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
+                + "WHERE b.bookingID = ?";
 
         String sqlDeleteFeedback = "DELETE FROM Feedback "
                 + "WHERE bookingID = ?";
@@ -864,13 +865,20 @@ public class BookingDAO {
                 + "END "
                 + "WHERE tourScheduleID = ?";
 
+        String sqlUpdateVehicle = "UPDATE Vehicle "
+                + "SET status = N'Available' "
+                + "WHERE serviceID = ? "
+                + "AND status = N'Rented'";
+
         String sqlDeleteBooking = "DELETE FROM Booking "
                 + "WHERE bookingID = ?";
 
         try (Connection conn = new DBConnection().getConnection()) {
             conn.setAutoCommit(false);
 
+            String bookingType = "";
             int tourScheduleID = -1;
+            int serviceID = -1;
             int quantity = 0;
 
             try (PreparedStatement psGetDetail = conn.prepareStatement(sqlGetDetail)) {
@@ -878,8 +886,22 @@ public class BookingDAO {
 
                 try (ResultSet rs = psGetDetail.executeQuery()) {
                     if (rs.next()) {
+                        bookingType = rs.getString("bookingType");
+
                         tourScheduleID = rs.getInt("tourScheduleID");
+                        if (rs.wasNull()) {
+                            tourScheduleID = -1;
+                        }
+
+                        serviceID = rs.getInt("serviceID");
+                        if (rs.wasNull()) {
+                            serviceID = -1;
+                        }
+
                         quantity = rs.getInt("quantity");
+                    } else {
+                        conn.rollback();
+                        return false;
                     }
                 }
             }
@@ -900,6 +922,13 @@ public class BookingDAO {
                     psUpdateSchedule.setInt(2, quantity);
                     psUpdateSchedule.setInt(3, tourScheduleID);
                     psUpdateSchedule.executeUpdate();
+                }
+            }
+
+            if ("Vehicle".equalsIgnoreCase(bookingType) && serviceID > 0) {
+                try (PreparedStatement psUpdateVehicle = conn.prepareStatement(sqlUpdateVehicle)) {
+                    psUpdateVehicle.setInt(1, serviceID);
+                    psUpdateVehicle.executeUpdate();
                 }
             }
 

@@ -38,7 +38,6 @@
             padding: 18px 0 50px;
         }
 
-        /* ================= HERO IMAGE ================= */
         .vehicle-hero {
             position: relative;
             min-height: 400px;
@@ -154,7 +153,6 @@
             color: #fde68a;
         }
 
-        /* ================= SEARCH ================= */
         .search-panel {
             width: calc(100% - 96px);
             margin: -58px auto 28px;
@@ -465,11 +463,14 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            font-size: 13.5px;
+            gap: 7px;
+            font-size: 12.5px;
             font-weight: 900;
             box-shadow: 0 10px 22px rgba(37, 99, 235, 0.20);
             transition: 0.2s ease;
+            text-align: center;
+            white-space: nowrap;
+            padding: 0 8px;
         }
 
         .detail-btn:hover {
@@ -481,10 +482,26 @@
         .detail-btn.book-now-btn {
             background: linear-gradient(135deg, #0f172a, #334155);
             box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
+            font-size: 13.5px;
         }
 
         .detail-btn.book-now-btn:hover {
             box-shadow: 0 14px 26px rgba(15, 23, 42, 0.24);
+        }
+
+        .secondary-action-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .detail-btn.review-btn {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            box-shadow: 0 10px 22px rgba(13, 148, 136, 0.20);
+        }
+
+        .detail-btn.review-btn:hover {
+            box-shadow: 0 14px 26px rgba(13, 148, 136, 0.25);
         }
 
         .empty-box {
@@ -849,11 +866,19 @@
                                     <i class="fa-solid fa-calendar-check"></i>
                                 </a>
 
-                                <a class="detail-btn"
-                                   href="${pageContext.request.contextPath}/vehicle/detail?id=${v.serviceID}">
-                                    Xem chi tiết
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                </a>
+                                <div class="secondary-action-row">
+                                    <a class="detail-btn"
+                                       href="${pageContext.request.contextPath}/vehicle/detail?id=${v.serviceID}">
+                                        Xem chi tiết
+                                        <i class="fa-solid fa-arrow-right"></i>
+                                    </a>
+
+                                    <a class="detail-btn review-btn"
+                                       href="${pageContext.request.contextPath}/feedback-list?type=Vehicle&serviceID=${v.serviceID}">
+                                        Xem đánh giá
+                                        <i class="fa-solid fa-star"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
