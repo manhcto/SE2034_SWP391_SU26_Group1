@@ -376,21 +376,9 @@
             <p>Travel ERP System</p>
         </div>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
             <i class="fa-solid fa-house"></i>
-            <span>Trang chủ quản trị</span>
-        </a>
-
-        <div class="nav-section-title">Quản trị hệ thống</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>Dashboard</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
-            <i class="fa-solid fa-users"></i>
-            <span>Quản lý người dùng</span>
+            <span>Trang chủ nhân viên</span>
         </a>
 
         <div class="nav-section-title">Dịch vụ du lịch</div>
@@ -463,7 +451,7 @@
             <div class="avatar">AD</div>
             <div>
                 <div class="fw-bold">Quản trị viên</div>
-                <small>Admin / Staff</small>
+                <small>Staff</small>
             </div>
         </div>
     </aside>
@@ -527,6 +515,45 @@
                             <span class="info-value">
                                 <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
                             </span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-2">
+                            <span class="info-label">Loại booking</span>
+                            <span class="info-value">${booking.displayType}</span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <span class="info-label">Dịch vụ</span>
+                            <span class="info-value">
+                                <c:choose>
+                                    <c:when test="${not empty booking.serviceName}">
+                                        ${booking.serviceName}
+                                    </c:when>
+                                    <c:otherwise>Chưa có dịch vụ</c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <span class="info-label">Lịch sử dụng</span>
+                            <span class="info-value">
+                                <c:choose>
+                                    <c:when test="${not empty booking.serviceStartDate || not empty booking.serviceEndDate}">
+                                        <fmt:formatDate value="${booking.serviceStartDate}" pattern="dd/MM/yyyy"/>
+                                        <c:if test="${not empty booking.serviceEndDate}">
+                                            - <fmt:formatDate value="${booking.serviceEndDate}" pattern="dd/MM/yyyy"/>
+                                        </c:if>
+                                    </c:when>
+                                    <c:otherwise>Chưa có lịch</c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <span class="info-label">Số khách</span>
+                            <span class="info-value">${booking.totalGuests} khách (${booking.numberAdult} NL, ${booking.numberChildren} TE)</span>
                         </div>
                     </div>
                 </div>
@@ -789,7 +816,7 @@
                 error: document.getElementById("streetAddressError"),
                 validate: function (value) {
                     if (value.trim() === "") {
-                        return "Vui lòng nhập số nhà, đường.";
+                        return "";
                     }
 
                     if (value.trim().length > 120) {
@@ -809,7 +836,7 @@
                 error: document.getElementById("districtError"),
                 validate: function (value) {
                     if (value.trim() === "") {
-                        return "Vui lòng chọn quận / huyện.";
+                        return "";
                     }
 
                     return "";
@@ -821,7 +848,7 @@
                 error: document.getElementById("cityError"),
                 validate: function (value) {
                     if (value.trim() === "") {
-                        return "Vui lòng chọn tỉnh / thành phố.";
+                        return "";
                     }
 
                     return "";

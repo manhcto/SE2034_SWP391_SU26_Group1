@@ -35,7 +35,7 @@ public class BookingSummaryController extends HttpServlet {
             Map<String, Object> bookingSummary = dao.getBookingSummaryByID(bookingID);
 
             if (bookingSummary == null) {
-                request.setAttribute("error", "Không tìm thấy thông tin đặt tour.");
+                request.setAttribute("error", "Khong tim thay thong tin booking.");
                 request.getRequestDispatcher("/views/customer/booking-summary.jsp").forward(request, response);
                 return;
             }

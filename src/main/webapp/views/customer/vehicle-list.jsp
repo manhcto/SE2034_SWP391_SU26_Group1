@@ -478,6 +478,15 @@
             box-shadow: 0 14px 26px rgba(37, 99, 235, 0.25);
         }
 
+        .detail-btn.book-now-btn {
+            background: linear-gradient(135deg, #0f172a, #334155);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
+        }
+
+        .detail-btn.book-now-btn:hover {
+            box-shadow: 0 14px 26px rgba(15, 23, 42, 0.24);
+        }
+
         .empty-box {
             background: #fff;
             border: 1px dashed #cbd5e1;
@@ -826,13 +835,19 @@
 
                             <div class="price-box">
                                 <div class="price-highlight">
-                                    <span class="price-label">Giá thuê nổi bật</span>
+                                    <span class="price-label">Giá thuê</span>
                                     <span class="price-value">
                                         <fmt:formatNumber value="${v.pricePerDay}" pattern="#,##0"/>
                                         đ
                                     </span>
                                     <span class="price-unit">/ ngày</span>
                                 </div>
+
+                                <a class="detail-btn book-now-btn"
+                                   href="${pageContext.request.contextPath}/booking?type=vehicle&vehicleID=${v.serviceID}">
+                                    Đặt xe ngay
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </a>
 
                                 <a class="detail-btn"
                                    href="${pageContext.request.contextPath}/vehicle/detail?id=${v.serviceID}">

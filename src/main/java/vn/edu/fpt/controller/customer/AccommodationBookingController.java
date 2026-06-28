@@ -41,6 +41,13 @@ public class AccommodationBookingController extends HttpServlet {
         int rooms = parsePositiveInt(request.getParameter("rooms"));
         String checkIn = safeTrim(request.getParameter("checkIn"));
         String checkOut = safeTrim(request.getParameter("checkOut"));
+        String firstName = safeTrim(request.getParameter("firstName"));
+        String lastName = safeTrim(request.getParameter("lastName"));
+        String email = safeTrim(request.getParameter("email"));
+        String phone = safeTrim(request.getParameter("phone"));
+        String address = safeTrim(request.getParameter("address"));
+        String identityNumber = safeTrim(request.getParameter("identityNumber"));
+        String note = safeTrim(request.getParameter("note"));
 
         String detailUrl = request.getContextPath()
                 + "/accommodation/room/detail?id=" + roomID
@@ -53,6 +60,7 @@ public class AccommodationBookingController extends HttpServlet {
                 + "&guests=" + (adults + children);
 
         if (user == null) {
+            request.getSession().setAttribute("redirectAfterLogin", stripContextPath(detailUrl, request));
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -60,6 +68,13 @@ public class AccommodationBookingController extends HttpServlet {
         if (accommodationID <= 0 || roomID <= 0 || adults <= 0 || children < 0 || rooms <= 0
                 || !hasValidDateRange(checkIn, checkOut)) {
             response.sendRedirect(detailUrl + "&status=invalidBooking");
+            return;
+        }
+
+        if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || phone.isEmpty()
+                || address.isEmpty() || !isValidIdentityNumber(identityNumber)) {
+            response.sendRedirect(buildBookingFormUrl(request, accommodationID, roomID, checkIn, checkOut,
+                    adults, children, rooms) + "&status=invalidCustomerInfo");
             return;
         }
 
@@ -86,10 +101,10 @@ public class AccommodationBookingController extends HttpServlet {
 
         int bookingID = roomBookingDAO.createAccommodationBooking(
                 user.getUserID(),
-                fallback(user.getFirstName(), "Guest"),
-                fallback(user.getLastName(), "Customer"),
-                fallback(user.getEmail(), "guest@example.com"),
-                fallback(user.getPhone(), "0000000000"),
+                firstName,
+                lastName,
+                email,
+                phone,
                 accommodationID,
                 roomID,
                 Date.valueOf(checkIn),
@@ -98,7 +113,9 @@ public class AccommodationBookingController extends HttpServlet {
                 children,
                 rooms,
                 unitPrice,
-                totalPrice);
+                totalPrice,
+                address,
+                buildBookingNote(identityNumber, note));
 
         if (bookingID <= 0) {
             response.sendRedirect(detailUrl + "&status=bookingFail");
@@ -107,6 +124,33 @@ public class AccommodationBookingController extends HttpServlet {
 
         session.setAttribute("successMessage", "Dat phong thanh cong. Ma don: #" + bookingID);
         response.sendRedirect(detailUrl + "&status=bookingSuccess");
+    }
+
+    private boolean isValidIdentityNumber(String identityNumber) {
+        return identityNumber.matches("^[0-9]{9}$|^[0-9]{12}$");
+    }
+
+    private String buildBookingNote(String identityNumber, String note) {
+        StringBuilder builder = new StringBuilder("CCCD/CMND: ").append(identityNumber);
+
+        if (!note.isEmpty()) {
+            builder.append(" | Ghi chú: ").append(note);
+        }
+
+        return builder.toString();
+    }
+
+    private String buildBookingFormUrl(HttpServletRequest request, int accommodationID, int roomID,
+                                       String checkIn, String checkOut, int adults, int children, int rooms) {
+        return request.getContextPath()
+                + "/booking/accommodation/form?accommodationID=" + accommodationID
+                + "&roomID=" + roomID
+                + "&checkIn=" + checkIn
+                + "&checkOut=" + checkOut
+                + "&adults=" + adults
+                + "&children=" + children
+                + "&rooms=" + rooms
+                + "&guests=" + (adults + children);
     }
 
     private boolean hasValidDateRange(String checkIn, String checkOut) {
@@ -147,5 +191,15 @@ public class AccommodationBookingController extends HttpServlet {
 
     private String fallback(String value, String fallbackValue) {
         return value == null || value.trim().isEmpty() ? fallbackValue : value.trim();
+    }
+
+    private String stripContextPath(String url, HttpServletRequest request) {
+        String contextPath = request.getContextPath();
+
+        if (contextPath != null && !contextPath.isEmpty() && url.startsWith(contextPath)) {
+            return url.substring(contextPath.length());
+        }
+
+        return url;
     }
 }

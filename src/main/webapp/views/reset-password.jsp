@@ -1,131 +1,76 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Đặt lại mật khẩu</title>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(135deg, #e0f2fe, #f8fafc);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .container {
-      width: 380px;
-      background: #ffffff;
-      padding: 30px;
-      border-radius: 14px;
-      box-shadow: 0 20px 50px rgba(2, 132, 199, 0.15);
-      border: 1px solid #e0f2fe;
-    }
-
-    h2 {
-      text-align: center;
-      color: #0284c7;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .title-line {
-      width: 60px;
-      height: 4px;
-      margin: 0 auto 18px auto;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #2563eb, #0ea5e9);
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #334155;
-    }
-
-    input {
-      width: 100%;
-      height: 44px;
-      padding: 0 12px;
-      border-radius: 10px;
-      border: 1px solid #dbeafe;
-      background: #f8fafc;
-      font-size: 14px;
-      outline: none;
-      transition: 0.2s;
-    }
-
-    input:focus {
-      border-color: #3b82f6;
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
-    }
-
-    button {
-      margin-top: 6px;
-      height: 46px;
-      border: none;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #2563eb, #0ea5e9);
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 20px rgba(37,99,235,0.25);
-    }
-
-    .error {
-      color: #ef4444;
-      text-align: center;
-      font-size: 14px;
-      margin-top: 10px;
-      font-weight: 600;
-    }
-
-    .hint {
-      font-size: 12px;
-      color: #64748b;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt lại mật khẩu - WonderVN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css">
 </head>
+<body class="auth-body">
+<main class="auth-page">
+    <section class="auth-brand" aria-label="WonderVN">
+        <div class="auth-logo">
+            <span>Wonder</span><span>VN</span><span class="auth-flag"><i class="fa-solid fa-star"></i></span>
+        </div>
+        <h1>Thiết lập mật khẩu mới</h1>
+        <p>Chọn mật khẩu đủ mạnh để bảo vệ lịch trình, đơn đặt phòng và thông tin thanh toán của bạn.</p>
+    </section>
 
-<body>
+    <section class="auth-panel">
+        <div class="auth-card compact">
+            <h2>Đặt lại mật khẩu</h2>
+            <p class="auth-subtitle">Nhập mật khẩu mới và xác nhận lại để hoàn tất.</p>
 
-<div class="container">
+            <c:if test="${not empty error}">
+                <div class="auth-alert error">${error}</div>
+            </c:if>
 
-  <h2>Đặt lại mật khẩu</h2>
-  <div class="title-line"></div>
+            <form class="auth-form" action="${pageContext.request.contextPath}/reset-password" method="post">
+                <div class="auth-field">
+                    <label for="password">Mật khẩu mới</label>
+                    <div class="password-wrap">
+                        <input class="auth-input" id="password" type="password" name="password" placeholder="Nhập mật khẩu mới" required>
+                        <button class="password-toggle" type="button" data-password-toggle="password" aria-label="Hiện mật khẩu">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
 
-  <form action="${pageContext.request.contextPath}/reset-password" method="post">
+                <div class="auth-field">
+                    <label for="confirmPassword">Nhập lại mật khẩu</label>
+                    <div class="password-wrap">
+                        <input class="auth-input" id="confirmPassword" type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu mới" required>
+                        <button class="password-toggle" type="button" data-password-toggle="confirmPassword" aria-label="Hiện mật khẩu">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
 
-    <label>Mật khẩu mới</label>
-    <input type="password" name="password" placeholder="Nhập mật khẩu mới" required>
+                <button class="auth-button" type="submit">Cập nhật mật khẩu</button>
+            </form>
 
-    <label>Xác nhận mật khẩu</label>
-    <input type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
+            <div class="auth-links center">
+                <a class="auth-link" href="${pageContext.request.contextPath}/login">Quay lại đăng nhập</a>
+            </div>
+        </div>
+    </section>
+</main>
 
-    <button type="submit">Đặt lại mật khẩu</button>
-  </form>
-
-  <c:if test="${not empty error}">
-    <p class="error">${error}</p>
-  </c:if>
-
-</div>
-
+<script>
+    document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const input = document.getElementById(button.dataset.passwordToggle);
+            const icon = button.querySelector("i");
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
+            icon.className = isHidden ? "fa-regular fa-eye-slash" : "fa-regular fa-eye";
+            button.setAttribute("aria-label", isHidden ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+        });
+    });
+</script>
 </body>
 </html>

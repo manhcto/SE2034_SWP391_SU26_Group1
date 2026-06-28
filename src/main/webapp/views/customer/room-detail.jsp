@@ -293,7 +293,8 @@
             color: #1d4ed8;
         }
 
-        .btn-cart {
+        .btn-cart,
+        .btn-direct-book {
             width: 100%;
             border: none;
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
@@ -304,7 +305,15 @@
             margin-top: 16px;
         }
 
-        .btn-cart:hover {
+        .btn-cart {
+            background: white;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            margin-top: 10px;
+        }
+
+        .btn-cart:hover,
+        .btn-direct-book:hover {
             filter: brightness(0.95);
         }
 
@@ -417,6 +426,12 @@
                 <div class="alert alert-danger rounded-4 border-0 shadow-sm">
                     <i class="fa-solid fa-circle-xmark me-2"></i>
                     Thông tin đặt phòng chưa hợp lệ. Vui lòng kiểm tra lại ngày và số phòng.
+                </div>
+            </c:when>
+            <c:when test="${param.status == 'cartAdded'}">
+                <div class="alert alert-success rounded-4 border-0 shadow-sm">
+                    <i class="fa-solid fa-cart-plus me-2"></i>
+                    Đã thêm phòng vào giỏ hàng tạm.
                 </div>
             </c:when>
             <c:otherwise>
@@ -678,11 +693,10 @@
                     </div>
                 </div>
 
-                <form id="addRoomToCartForm"
-                      action="${pageContext.request.contextPath}/booking/accommodation"
-                      method="post"
+                <form id="roomBookingForm"
+                      action="${pageContext.request.contextPath}/booking/accommodation/form"
+                      method="get"
                       class="m-0">
-                    <input type="hidden" name="action" value="addToCart">
                     <input type="hidden" name="accommodationID" value="${accommodation.serviceID}">
                     <input type="hidden" name="roomID" value="${room.roomID}">
                     <input type="hidden" name="checkIn" value="${checkIn}">
@@ -691,12 +705,35 @@
                     <input type="hidden" name="children" value="${children}">
                     <input type="hidden" name="rooms" value="${rooms}">
                     <input type="hidden" name="guests" value="${guests}">
+
+                    <button type="submit" class="btn-direct-book">
+                        <i class="fa-solid fa-calendar-check me-2"></i>
+                        Đặt phòng
+                    </button>
+                </form>
+
+                <form id="addRoomToCartForm"
+                      action="${pageContext.request.contextPath}/cart/add"
+                      method="post"
+                      class="m-0">
+                    <input type="hidden" name="type" value="room">
+                    <input type="hidden" name="accommodationID" value="${accommodation.serviceID}">
+                    <input type="hidden" name="accommodationName" value="${accommodation.name}">
+                    <input type="hidden" name="roomID" value="${room.roomID}">
+                    <input type="hidden" name="roomType" value="${room.roomType}">
+                    <input type="hidden" name="checkIn" value="${checkIn}">
+                    <input type="hidden" name="checkOut" value="${checkOut}">
+                    <input type="hidden" name="adults" value="${adults}">
+                    <input type="hidden" name="children" value="${children}">
+                    <input type="hidden" name="rooms" value="${rooms}">
+                    <input type="hidden" name="guests" value="${guests}">
                     <input type="hidden" name="nights" value="${nights}">
                     <input type="hidden" name="totalPrice" value="${totalPrice}">
+                    <input type="hidden" name="redirect" value="/accommodation/room/detail?id=${room.roomID}&accommodationId=${accommodation.serviceID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
 
                     <button type="submit" class="btn-cart">
                         <i class="fa-solid fa-cart-plus me-2"></i>
-                        Đặt phòng
+                        Thêm vào giỏ hàng
                     </button>
                 </form>
             </c:if>

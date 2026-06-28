@@ -341,10 +341,28 @@
             font-size: 15.5px;
             margin-top: 8px;
             box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         .btn-book:hover {
             background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            color: #ffffff;
+        }
+
+        .btn-cart {
+            background: #ffffff;
+            color: var(--primary);
+            border: 1px solid #bfdbfe;
+            box-shadow: none;
+        }
+
+        .btn-cart:hover {
+            background: #eff6ff;
+            color: var(--primary-dark);
         }
 
         .btn-back {
@@ -457,6 +475,13 @@
 
         <span>${vehicle.displayName}</span>
     </div>
+
+    <c:if test="${param.status == 'cartAdded'}">
+        <div class="alert alert-success rounded-4 border-0 shadow-sm">
+            <i class="fa-solid fa-cart-plus me-2"></i>
+            Đã thêm xe vào giỏ hàng tạm.
+        </div>
+    </c:if>
 
     <div class="detail-layout">
         <div class="main-card">
@@ -607,10 +632,29 @@
                 </div>
             </div>
 
-            <button type="button" class="btn-book">
-                <i class="fa-solid fa-cart-plus me-2"></i>
-                Thêm vào giỏ hàng
-            </button>
+            <a href="${pageContext.request.contextPath}/booking?type=vehicle&vehicleID=${vehicle.serviceID}"
+               class="btn-book">
+                <i class="fa-solid fa-calendar-check me-2"></i>
+                Đặt xe ngay
+            </a>
+
+            <form action="${pageContext.request.contextPath}/cart/add" method="post" class="m-0">
+                <input type="hidden" name="type" value="vehicle">
+                <input type="hidden" name="vehicleID" value="${vehicle.serviceID}">
+                <input type="hidden" name="vehicleName" value="${vehicle.displayName}">
+                <input type="hidden" name="pricePerDay" value="${vehicle.pricePerDay}">
+                <input type="hidden" name="depositAmount" value="${vehicle.depositAmount}">
+                <input type="hidden" name="pickupProvince" value="${vehicle.pickupProvince}">
+                <input type="hidden" name="pickupDistrict" value="${vehicle.pickupDistrict}">
+                <input type="hidden" name="pickupWard" value="${vehicle.pickupWard}">
+                <input type="hidden" name="pickupAddress" value="${vehicle.pickupAddress}">
+                <input type="hidden" name="redirect" value="/vehicle/detail?id=${vehicle.serviceID}">
+
+                <button type="submit" class="btn-book btn-cart">
+                    <i class="fa-solid fa-cart-plus me-2"></i>
+                    Thêm vào giỏ hàng
+                </button>
+            </form>
 
             <a href="${pageContext.request.contextPath}/vehicle" class="btn-back">
                 <i class="fa-solid fa-list me-2"></i>

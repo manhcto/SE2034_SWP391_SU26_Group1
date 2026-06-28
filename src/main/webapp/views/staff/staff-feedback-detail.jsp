@@ -424,21 +424,9 @@
       <p>Travel ERP System</p>
     </div>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
       <i class="fa-solid fa-house"></i>
-      <span>Trang chủ quản trị</span>
-    </a>
-
-    <div class="nav-section-title">Quản trị hệ thống</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
-      <i class="fa-solid fa-chart-line"></i>
-      <span>Dashboard</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
-      <i class="fa-solid fa-users"></i>
-      <span>Quản lý người dùng</span>
+      <span>Trang chủ nhân viên</span>
     </a>
 
     <div class="nav-section-title">Dịch vụ du lịch</div>
@@ -511,7 +499,7 @@
       <div class="avatar">AD</div>
       <div>
         <div class="fw-bold">Quản trị viên</div>
-        <small>Admin / Staff</small>
+        <small>Staff</small>
       </div>
     </div>
   </aside>

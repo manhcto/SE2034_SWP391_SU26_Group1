@@ -13,9 +13,20 @@
 
     <style>
         body {
+            margin: 0;
             background: #f4f7fb;
             font-family: Arial, sans-serif;
             color: #0f172a;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-main {
+            flex: 1;
+            min-width: 0;
         }
 
         .page-header {
@@ -161,6 +172,10 @@
         }
 
         @media (max-width: 992px) {
+            .admin-layout {
+                display: block;
+            }
+
             .page-header {
                 flex-direction: column;
                 align-items: flex-start !important;
@@ -180,6 +195,10 @@
 </head>
 
 <body>
+<div class="admin-layout">
+    <jsp:include page="/views/common/admin-sidebar.jsp"/>
+
+    <main class="admin-main">
 <div class="container-fluid py-4 px-4">
 
     <c:if test="${not empty sessionScope.errors}">
@@ -1234,5 +1253,7 @@
         });
     });
 </script>
+</main>
+</div>
 </body>
 </html>

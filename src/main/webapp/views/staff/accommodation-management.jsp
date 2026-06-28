@@ -58,6 +58,37 @@
             box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
         }
 
+        .manage-hero {
+            display: none;
+        }
+
+        .staff-page-topbar {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 22px 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .staff-page-topbar h1 {
+            margin: 0;
+            color: var(--dark);
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.4px;
+        }
+
+        .staff-page-topbar p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
         .manage-hero-title {
             display: flex;
             align-items: center;
@@ -424,6 +455,11 @@
         }
 
         @media (max-width: 992px) {
+            .staff-page-topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
             .manage-hero {
                 flex-direction: column;
                 align-items: flex-start;
@@ -503,6 +539,18 @@
                     Thêm nơi lưu trú
                 </button>
             </div>
+        </div>
+
+        <div class="staff-page-topbar">
+            <div>
+                <h1>Quản lý lưu trú</h1>
+                <p>Quản lý khách sạn, homestay, resort, căn hộ, phòng và tiện ích.</p>
+            </div>
+
+            <button class="btn-main" data-bs-toggle="modal" data-bs-target="#addAccommodationModal">
+                <i class="fa-solid fa-plus"></i>
+                Thêm nơi lưu trú
+            </button>
         </div>
 
         <c:if test="${not empty sessionScope.errors}">

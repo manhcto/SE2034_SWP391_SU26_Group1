@@ -143,10 +143,6 @@ public class ManageBookingController extends HttpServlet {
         validateRequired(lastName, "Họ", errors);
         validateRequired(email, "Email", errors);
         validateRequired(phone, "Số điện thoại", errors);
-        validateRequired(streetAddress, "Số nhà, đường", errors);
-        validateRequired(district, "Quận / Huyện", errors);
-        validateRequired(city, "Tỉnh / Thành phố", errors);
-
         validateLength(firstName, "Tên", 100, errors);
         validateLength(lastName, "Họ", 100, errors);
         validateLength(email, "Email", 150, errors);
@@ -154,6 +150,12 @@ public class ManageBookingController extends HttpServlet {
         validateLength(streetAddress, "Số nhà, đường", 120, errors);
         validateLength(address, "Địa chỉ đầy đủ", 255, errors);
         validateLength(note, "Ghi chú", 1000, errors);
+
+        boolean hasAnyAddressPart = !streetAddress.isEmpty() || !district.isEmpty() || !city.isEmpty();
+
+        if (hasAnyAddressPart && (streetAddress.isEmpty() || district.isEmpty() || city.isEmpty())) {
+            errors.add("Nếu cập nhật địa chỉ, vui lòng nhập đủ số nhà, quận / huyện và tỉnh / thành phố.");
+        }
 
         if (!firstName.isEmpty() && !firstName.matches("^[\\p{L}\\s]+$")) {
             errors.add("Tên chỉ được chứa chữ cái và khoảng trắng.");

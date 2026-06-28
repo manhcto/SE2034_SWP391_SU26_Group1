@@ -5,8 +5,10 @@ import vn.edu.fpt.model.Room;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,6 +97,20 @@ public class RoomDAO {
     public List<Room> getAvailableRoomsByAccommodationAndDate(int serviceID, String checkIn, String checkOut) {
         List<Room> list = new ArrayList<>();
 
+        LocalDate checkInDate;
+        LocalDate checkOutDate;
+
+        try {
+            checkInDate = LocalDate.parse(checkIn);
+            checkOutDate = LocalDate.parse(checkOut);
+
+            if (!checkOutDate.isAfter(checkInDate)) {
+                return list;
+            }
+        } catch (Exception e) {
+            return list;
+        }
+
         String sql =
                 "SELECT r.roomID, r.roomType, r.numberOfRooms, r.priceOfRoom, r.[status], r.serviceID, " +
                         "(r.roomAvailability - ISNULL(booked.bookedQuantity, 0)) AS roomAvailability, " +
@@ -102,12 +118,16 @@ public class RoomDAO {
                         "r.maxAdults, r.maxChildren, r.roomSize " +
                         "FROM [dbo].[Room] r " +
                         "LEFT JOIN ( " +
-                        "    SELECT roomID, SUM(quantity) AS bookedQuantity " +
-                        "    FROM [dbo].[Room_Booking] " +
-                        "    WHERE [status] IN (N'Pending', N'Confirmed', N'CheckedIn') " +
-                        "    AND checkInDate < CONVERT(date, ?) " +
-                        "    AND checkOutDate > CONVERT(date, ?) " +
-                        "    GROUP BY roomID " +
+                        "    SELECT bookedRoom.roomID, SUM(bd.quantity) AS bookedQuantity " +
+                        "    FROM [dbo].[Booking_Detail] bd " +
+                        "    INNER JOIN [dbo].[Booking] b ON bd.bookingID = b.bookingID " +
+                        "    INNER JOIN [dbo].[Room] bookedRoom ON bookedRoom.serviceID = bd.serviceID " +
+                        "    AND bd.note LIKE CONCAT(N'ROOM_ID=', bookedRoom.roomID, N';%') " +
+                        "    WHERE b.bookingType = N'Accommodation' " +
+                        "    AND b.[status] IN (N'Pending', N'Confirmed') " +
+                        "    AND bd.startDate < ? " +
+                        "    AND bd.endDate > ? " +
+                        "    GROUP BY bookedRoom.roomID " +
                         ") booked ON booked.roomID = r.roomID " +
                         "WHERE r.serviceID = ? " +
                         "AND r.[status] = N'Available' " +
@@ -117,8 +137,8 @@ public class RoomDAO {
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, checkOut);
-            ps.setString(2, checkIn);
+            ps.setDate(1, Date.valueOf(checkOutDate));
+            ps.setDate(2, Date.valueOf(checkInDate));
             ps.setInt(3, serviceID);
 
             try (ResultSet rs = ps.executeQuery()) {

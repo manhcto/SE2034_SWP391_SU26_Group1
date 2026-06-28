@@ -5,240 +5,222 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đăng kí - WonderVN</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-        }
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(135deg, #e0f2fe, #f8fafc);
-            min-height: 100vh;
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            width: 460px;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 14px;
-            box-shadow: 0 20px 50px rgba(2, 132, 199, 0.15);
-            border: 1px solid #e0f2fe;
-        }
-
-        h2 {
-            text-align: center;
-            color: #0284c7;
-            margin-bottom: 6px;
-            font-weight: 800;
-        }
-
-        .title-line {
-            width: 60px;
-            height: 4px;
-            margin: 0 auto 18px auto;
-            border-radius: 999px;
-            background: linear-gradient(90deg, #2563eb, #0ea5e9);
-        }
-
-        .error {
-            color: #ef4444;
-            text-align: center;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        input, select {
-            width: 100%;
-            height: 44px;
-            padding: 0 12px;
-            border-radius: 10px;
-            border: 1px solid #dbeafe;
-            background: #f8fafc;
-            font-size: 14px;
-            outline: none;
-            transition: 0.2s;
-        }
-
-        input:focus, select:focus {
-            border-color: #3b82f6;
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
-        }
-
-        button {
-            width: 100%;
-            height: 46px;
-            border: none;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #2563eb, #0ea5e9);
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 20px rgba(37,99,235,0.25);
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - WonderVN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css">
 </head>
+<body class="auth-body">
+<main class="auth-page">
+    <section class="auth-brand" aria-label="WonderVN">
+        <div class="auth-logo">
+            <span>Wonder</span><span>VN</span><span class="auth-flag"><i class="fa-solid fa-star"></i></span>
+        </div>
+        <h1>Bắt đầu chuyến đi theo cách của bạn</h1>
+        <p>Tạo tài khoản để lưu thông tin cá nhân, đặt dịch vụ nhanh hơn và theo dõi toàn bộ lịch trình dễ dàng.</p>
+    </section>
 
-<body>
+    <section class="auth-panel">
+        <div class="auth-card">
+            <h2>Đăng ký tài khoản</h2>
+            <p class="auth-subtitle">Điền thông tin chính xác để WonderVN hỗ trợ bạn tốt hơn khi đặt phòng, tour và phương tiện.</p>
 
-<div class="container">
+            <c:if test="${not empty error}">
+                <div class="auth-alert error">${error}</div>
+            </c:if>
 
-    <h2>Đăng ký tài khoản</h2>
-    <div class="title-line"></div>
+            <form class="auth-form" action="${pageContext.request.contextPath}/register" method="post" onsubmit="return validateRegisterForm()">
+                <div class="auth-grid">
+                    <div class="auth-field">
+                        <label for="firstName">Họ</label>
+                        <input class="auth-input" id="firstName" type="text" name="firstName" value="${param.firstName}" placeholder="Nguyễn" required>
+                    </div>
+                    <div class="auth-field">
+                        <label for="lastName">Tên</label>
+                        <input class="auth-input" id="lastName" type="text" name="lastName" value="${param.lastName}" placeholder="Minh Anh" required>
+                    </div>
+                </div>
 
-    <c:if test="${not empty error}">
-        <p class="error">${error}</p>
-    </c:if>
+                <div class="auth-grid">
+                    <div class="auth-field">
+                        <label for="email">Email</label>
+                        <input class="auth-input" id="email" type="email" name="email" value="${param.email}" placeholder="you@example.com" required>
+                    </div>
+                    <div class="auth-field">
+                        <label for="phone">Số điện thoại</label>
+                        <input class="auth-input" id="phone" type="text" name="phone" value="${param.phone}" placeholder="10 chữ số" pattern="^[0-9]{10}$" maxlength="10" required>
+                    </div>
+                </div>
 
-    <form action="register" method="post" onsubmit="return validateAge()">
+                <div class="auth-grid">
+                    <div class="auth-field">
+                        <label for="password">Mật khẩu</label>
+                        <div class="password-wrap">
+                            <input class="auth-input" id="password" type="password" name="password" placeholder="Tạo mật khẩu" required>
+                            <button class="password-toggle" type="button" data-password-toggle="password" aria-label="Hiện mật khẩu">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="confirmPassword">Nhập lại mật khẩu</label>
+                        <div class="password-wrap">
+                            <input class="auth-input" id="confirmPassword" type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
+                            <button class="password-toggle" type="button" data-password-toggle="confirmPassword" aria-label="Hiện mật khẩu">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-        <input type="text" name="firstName" placeholder="Họ" required />
-        <input type="text" name="lastName" placeholder="Tên" required />
-        <input type="email" name="email" placeholder="Email" required />
-        <input type="password" name="password" placeholder="Mật khẩu" required />
-        <input
-                type="text"
-                name="phone"
-                id="phone"
-                placeholder="Số điện thoai (10 ký tự)"
-                pattern="^[0-9]{10}$"
-                maxlength="10"
-                required
-        />
+                <div class="auth-grid">
+                    <div class="auth-field">
+                        <label for="gender">Giới tính</label>
+                        <select class="auth-select" id="gender" name="gender">
+                            <option value="">-- Chọn giới tính --</option>
+                            <option value="Nam" ${param.gender == 'Nam' ? 'selected' : ''}>Nam</option>
+                            <option value="Nữ" ${param.gender == 'Nữ' ? 'selected' : ''}>Nữ</option>
+                            <option value="Khác" ${param.gender == 'Khác' ? 'selected' : ''}>Khác</option>
+                        </select>
+                    </div>
+                    <div class="auth-field">
+                        <label for="dob">Ngày sinh</label>
+                        <input class="auth-input" id="dob" type="date" name="dob" value="${param.dob}" required>
+                    </div>
+                </div>
 
-        <select name="gender">
-            <option value="">-- Giới tính --</option>
-            <option>Nam</option>
-            <option>Nữ</option>
-            <option>Khác</option>
-        </select>
+                <div class="auth-field">
+                    <label for="address">Tỉnh / thành</label>
+                    <select class="auth-select" id="address" name="address" required>
+                        <option value="">-- Chọn tỉnh/thành --</option>
+                        <option>Hà Nội</option>
+                        <option>TP Hồ Chí Minh</option>
+                        <option>Đà Nẵng</option>
+                        <option>Cần Thơ</option>
+                        <option>Hải Phòng</option>
+                        <option>An Giang</option>
+                        <option>Bà Rịa - Vũng Tàu</option>
+                        <option>Bắc Giang</option>
+                        <option>Bắc Kạn</option>
+                        <option>Bạc Liêu</option>
+                        <option>Bắc Ninh</option>
+                        <option>Bến Tre</option>
+                        <option>Bình Định</option>
+                        <option>Bình Dương</option>
+                        <option>Bình Phước</option>
+                        <option>Bình Thuận</option>
+                        <option>Cà Mau</option>
+                        <option>Cao Bằng</option>
+                        <option>Đắk Lắk</option>
+                        <option>Đắk Nông</option>
+                        <option>Điện Biên</option>
+                        <option>Đồng Nai</option>
+                        <option>Đồng Tháp</option>
+                        <option>Gia Lai</option>
+                        <option>Hà Giang</option>
+                        <option>Hà Nam</option>
+                        <option>Hà Tĩnh</option>
+                        <option>Hải Dương</option>
+                        <option>Hậu Giang</option>
+                        <option>Hòa Bình</option>
+                        <option>Hưng Yên</option>
+                        <option>Khánh Hòa</option>
+                        <option>Kiên Giang</option>
+                        <option>Kon Tum</option>
+                        <option>Lai Châu</option>
+                        <option>Lâm Đồng</option>
+                        <option>Lạng Sơn</option>
+                        <option>Lào Cai</option>
+                        <option>Long An</option>
+                        <option>Nam Định</option>
+                        <option>Nghệ An</option>
+                        <option>Ninh Bình</option>
+                        <option>Ninh Thuận</option>
+                        <option>Phú Thọ</option>
+                        <option>Phú Yên</option>
+                        <option>Quảng Bình</option>
+                        <option>Quảng Nam</option>
+                        <option>Quảng Ngãi</option>
+                        <option>Quảng Ninh</option>
+                        <option>Quảng Trị</option>
+                        <option>Sóc Trăng</option>
+                        <option>Sơn La</option>
+                        <option>Tây Ninh</option>
+                        <option>Thái Bình</option>
+                        <option>Thái Nguyên</option>
+                        <option>Thanh Hóa</option>
+                        <option>Thừa Thiên Huế</option>
+                        <option>Tiền Giang</option>
+                        <option>Trà Vinh</option>
+                        <option>Tuyên Quang</option>
+                        <option>Vĩnh Long</option>
+                        <option>Vĩnh Phúc</option>
+                        <option>Yên Bái</option>
+                    </select>
+                </div>
 
-        <input type="date" name="dob" id="dob" required />
+                <input type="hidden" name="roleID" value="4">
+                <button class="auth-button" type="submit">Tạo tài khoản</button>
+            </form>
 
-        <select name="address" required>
-            <option value="">-- Chọn tỉnh/thành --</option>
-            <option>Hà Nội</option>
-            <option>TP Hồ Chí Minh</option>
-            <option>Đà Nẵng</option>
-            <option>Cần Thơ</option>
-            <option>Hải Phòng</option>
-            <option>An Giang</option>
-            <option>Bà Rịa - Vũng Tàu</option>
-            <option>Bắc Giang</option>
-            <option>Bắc Kạn</option>
-            <option>Bạc Liêu</option>
-            <option>Bắc Ninh</option>
-            <option>Bến Tre</option>
-            <option>Bình Định</option>
-            <option>Bình Dương</option>
-            <option>Bình Phước</option>
-            <option>Bình Thuận</option>
-            <option>Cà Mau</option>
-            <option>Cao Bằng</option>
-            <option>Đắk Lắk</option>
-            <option>Đắk Nông</option>
-            <option>Điện Biên</option>
-            <option>Đồng Nai</option>
-            <option>Đồng Tháp</option>
-            <option>Gia Lai</option>
-            <option>Hà Giang</option>
-            <option>Hà Nam</option>
-            <option>Hà Tĩnh</option>
-            <option>Hải Dương</option>
-            <option>Hậu Giang</option>
-            <option>Hòa Bình</option>
-            <option>Hưng Yên</option>
-            <option>Khánh Hòa</option>
-            <option>Kiên Giang</option>
-            <option>Kon Tum</option>
-            <option>Lai Châu</option>
-            <option>Lâm Đồng</option>
-            <option>Lạng Sơn</option>
-            <option>Lào Cai</option>
-            <option>Long An</option>
-            <option>Nam Định</option>
-            <option>Nghệ An</option>
-            <option>Ninh Bình</option>
-            <option>Ninh Thuận</option>
-            <option>Phú Thọ</option>
-            <option>Phú Yên</option>
-            <option>Quảng Bình</option>
-            <option>Quảng Nam</option>
-            <option>Quảng Ngãi</option>
-            <option>Quảng Ninh</option>
-            <option>Quảng Trị</option>
-            <option>Sóc Trăng</option>
-            <option>Sơn La</option>
-            <option>Tây Ninh</option>
-            <option>Thái Bình</option>
-            <option>Thái Nguyên</option>
-            <option>Thanh Hóa</option>
-            <option>Thừa Thiên Huế</option>
-            <option>Tiền Giang</option>
-            <option>Trà Vinh</option>
-            <option>Tuyên Quang</option>
-            <option>Vĩnh Long</option>
-            <option>Vĩnh Phúc</option>
-            <option>Yên Bái</option>
-        </select>
-
-        <input type="hidden" name="roleID" value="4" />
-
-        <button type="submit">Tạo tài khoản</button>
-    </form>
-</div>
+            <div class="auth-links center">
+                <span>Đã có tài khoản? <a class="auth-link" href="${pageContext.request.contextPath}/login">Đăng nhập</a></span>
+            </div>
+        </div>
+    </section>
+</main>
 
 <script>
-    function validateAge() {
-        const dob = new Date(document.getElementById("dob").value);
+    const selectedAddress = "${param.address}";
+    if (selectedAddress) {
+        document.querySelectorAll("#address option").forEach(function (option) {
+            option.selected = option.value === selectedAddress || option.textContent === selectedAddress;
+        });
+    }
+
+    document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const input = document.getElementById(button.dataset.passwordToggle);
+            const icon = button.querySelector("i");
+            const isHidden = input.type === "password";
+            input.type = isHidden ? "text" : "password";
+            icon.className = isHidden ? "fa-regular fa-eye-slash" : "fa-regular fa-eye";
+            button.setAttribute("aria-label", isHidden ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+        });
+    });
+
+    function validateRegisterForm() {
+        const dobValue = document.getElementById("dob").value;
+        const phone = document.getElementById("phone").value;
+        const password = document.getElementById("password").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        if (!/^[0-9]{10}$/.test(phone)) {
+            alert("Số điện thoại phải đúng 10 chữ số.");
+            return false;
+        }
+
+        if (password !== confirmPassword) {
+            alert("Mật khẩu nhập lại không khớp.");
+            return false;
+        }
+
+        const dob = new Date(dobValue);
         const today = new Date();
-
         let age = today.getFullYear() - dob.getFullYear();
-        const m = today.getMonth() - dob.getMonth();
+        const monthDiff = today.getMonth() - dob.getMonth();
 
-        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
             age--;
         }
 
         if (age < 18) {
-            alert("Bạn phải đủ 18 tuổi để đăng ký!");
-            return false;
-        }
-
-        const phone = document.getElementById("phone").value;
-
-        if (!/^[0-9]{10}$/.test(phone)) {
-            alert("Số điện thoại phải đúng 10 chữ số!");
+            alert("Bạn phải đủ 18 tuổi để đăng ký.");
             return false;
         }
 
         return true;
     }
-
 </script>
-
 </body>
 </html>

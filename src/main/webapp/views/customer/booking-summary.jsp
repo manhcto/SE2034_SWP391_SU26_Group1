@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Tóm tắt đặt tour</title>
+    <title>WonderVN | Tóm tắt booking</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
 
     <style>
@@ -156,7 +156,7 @@
         <div class="section-head" style="justify-content: center; text-align: center; margin-bottom: 36px;">
             <div>
                 <p class="section-kicker">Booking Summary</p>
-                <h2>Tóm tắt đơn đặt tour</h2>
+                <h2>Tóm tắt đơn booking</h2>
                 <p>Thông tin dưới đây được lấy từ dữ liệu đơn hàng đã lưu trong hệ thống.</p>
             </div>
         </div>
@@ -240,70 +240,141 @@
             </div>
 
             <div class="summary-card">
-                <h3>3. Thông tin tour</h3>
+                <c:choose>
+                    <c:when test="${bookingSummary.bookingType == 'Vehicle'}">
+                        <h3>3. Thông tin xe</h3>
 
-                <div class="summary-grid">
-                    <div class="summary-item">
-                        <span class="summary-label">Tên tour</span>
-                        <span class="summary-value">${bookingSummary.tourName}</span>
-                    </div>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="summary-label">Tên xe</span>
+                                <span class="summary-value">${bookingSummary.itemName}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Tour Schedule ID</span>
-                        <span class="summary-value">${bookingSummary.tourScheduleID}</span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Biển số</span>
+                                <span class="summary-value">${bookingSummary.licensePlate}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Điểm khởi hành</span>
-                        <span class="summary-value">${bookingSummary.startPlace}</span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Service ID</span>
+                                <span class="summary-value">${bookingSummary.serviceID}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Điểm đến</span>
-                        <span class="summary-value">${bookingSummary.endPlace}</span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Địa điểm nhận xe</span>
+                                <span class="summary-value">
+                                    <c:choose>
+                                        <c:when test="${not empty bookingSummary.pickupAddress}">
+                                            ${bookingSummary.pickupAddress}
+                                        </c:when>
+                                        <c:otherwise>
+                                            ${bookingSummary.pickupDistrict}, ${bookingSummary.pickupProvince}
+                                        </c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Ngày bắt đầu</span>
-                        <span class="summary-value">
-                            <fmt:formatDate value="${bookingSummary.startDate}" pattern="dd/MM/yyyy HH:mm"/>
-                        </span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày nhận xe</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.startDate}" pattern="dd/MM/yyyy"/>
+                                </span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Ngày kết thúc</span>
-                        <span class="summary-value">
-                            <fmt:formatDate value="${bookingSummary.endDate}" pattern="dd/MM/yyyy HH:mm"/>
-                        </span>
-                    </div>
-                </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày trả xe</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.endDate}" pattern="dd/MM/yyyy"/>
+                                </span>
+                            </div>
+                        </div>
+                    </c:when>
+
+                    <c:otherwise>
+                        <h3>3. Thông tin tour</h3>
+
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="summary-label">Tên tour</span>
+                                <span class="summary-value">${bookingSummary.tourName}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Tour Schedule ID</span>
+                                <span class="summary-value">${bookingSummary.tourScheduleID}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Điểm khởi hành</span>
+                                <span class="summary-value">${bookingSummary.startPlace}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Điểm đến</span>
+                                <span class="summary-value">${bookingSummary.endPlace}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày bắt đầu</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.startDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                </span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày kết thúc</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.endDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                </span>
+                            </div>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </div>
 
             <div class="summary-card">
                 <h3>4. Chi tiết thanh toán</h3>
 
                 <div class="summary-grid">
-                    <div class="summary-item">
-                        <span class="summary-label">Số người lớn</span>
-                        <span class="summary-value">${bookingSummary.numberAdult}</span>
-                    </div>
+                    <c:choose>
+                        <c:when test="${bookingSummary.bookingType == 'Vehicle'}">
+                            <div class="summary-item">
+                                <span class="summary-label">Số ngày thuê</span>
+                                <span class="summary-value">${bookingSummary.quantity}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Số trẻ em</span>
-                        <span class="summary-value">${bookingSummary.numberChildren}</span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Đơn giá/ngày</span>
+                                <span class="summary-value">
+                                    <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
+                                </span>
+                            </div>
+                        </c:when>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Tổng số khách</span>
-                        <span class="summary-value">${bookingSummary.quantity}</span>
-                    </div>
+                        <c:otherwise>
+                            <div class="summary-item">
+                                <span class="summary-label">Số người lớn</span>
+                                <span class="summary-value">${bookingSummary.numberAdult}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Đơn giá trung bình</span>
-                        <span class="summary-value">
-                            <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
-                        </span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Số trẻ em</span>
+                                <span class="summary-value">${bookingSummary.numberChildren}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Tổng số khách</span>
+                                <span class="summary-value">${bookingSummary.quantity}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Đơn giá trung bình</span>
+                                <span class="summary-value">
+                                    <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
+                                </span>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
 
                     <div class="summary-item">
                         <span class="summary-label">Tạm tính</span>

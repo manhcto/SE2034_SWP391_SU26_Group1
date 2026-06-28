@@ -23,15 +23,32 @@ public class RegisterController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         String firstName = request.getParameter("firstName");
-        String lastName  = request.getParameter("lastName");
-        String email     = request.getParameter("email");
-        String password  = request.getParameter("password");
-        String phone     = request.getParameter("phone");
-        String gender    = request.getParameter("gender");
-        String dob       = request.getParameter("dob");
-        String address   = request.getParameter("address");
+        String lastName = request.getParameter("lastName");
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+        String confirmPassword = request.getParameter("confirmPassword");
+        String phone = request.getParameter("phone");
+        String gender = request.getParameter("gender");
+        String dob = request.getParameter("dob");
+        String address = request.getParameter("address");
 
         int roleID = 4; // Customer
+
+        if (password == null || confirmPassword == null
+                || password.isBlank()
+                || !password.equals(confirmPassword)) {
+
+            request.setAttribute(
+                    "error",
+                    "Mật khẩu nhập lại không khớp!"
+            );
+
+            request.getRequestDispatcher(
+                    "/views/register.jsp"
+            ).forward(request, response);
+
+            return;
+        }
 
         // Email đang được tài khoản Active hoặc Blocked sử dụng
         if (userDAO.isEmailExist(email)) {

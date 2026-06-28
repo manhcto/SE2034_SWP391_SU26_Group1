@@ -612,7 +612,7 @@
                         Đăng ký
                     </a>
 
-                    <a class="login-btn" href="${pageContext.request.contextPath}/login">
+                    <a class="login-btn" id="headerLoginLink" href="${pageContext.request.contextPath}/login">
                         <i class="fa-solid fa-user"></i>
                         Đăng nhập
                     </a>
@@ -643,13 +643,21 @@
     function handleCartClick(isLogin) {
         if (!isLogin) {
             alert("Bạn cần đăng nhập để tiếp tục!");
-            window.location.href = "${pageContext.request.contextPath}/login";
+            window.location.href = "${pageContext.request.contextPath}/login?redirect="
+                + encodeURIComponent(window.location.pathname + window.location.search);
         } else {
             window.location.href = "${pageContext.request.contextPath}/cart";
         }
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+        const headerLoginLink = document.getElementById("headerLoginLink");
+
+        if (headerLoginLink) {
+            headerLoginLink.href = "${pageContext.request.contextPath}/login?redirect="
+                + encodeURIComponent(window.location.pathname + window.location.search);
+        }
+
         const menuBtn = document.getElementById("menuBtn");
         const mainNav = document.getElementById("mainNav");
 
