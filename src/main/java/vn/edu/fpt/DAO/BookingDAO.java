@@ -218,7 +218,7 @@ public class BookingDAO {
                 "INSERT INTO [dbo].[Booking] "
                         + "(bookingCode, bookingType, firstName, lastName, email, phone, [address], note, "
                         + "numberAdult, numberChildren, totalPrice, isBookedForOther, userID, [status], bookDate) "
-                        + "VALUES (?, N'Vehicle', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, N'Confirmed', GETDATE())";
+                        + "VALUES (?, N'Vehicle', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, N'Pending', GETDATE())";
 
         String sqlDetail =
                 "INSERT INTO [dbo].[Booking_Detail] "
@@ -703,6 +703,27 @@ public class BookingDAO {
 
         } catch (Exception e) {
             System.out.println("Lỗi cập nhật booking: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean updateBookingStatus(int bookingID, String status) {
+        String sql = "UPDATE Booking "
+                + "SET [status] = ? "
+                + "WHERE bookingID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, status);
+            ps.setInt(2, bookingID);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.out.println("Loi cap nhat trang thai booking: " + e.getMessage());
             e.printStackTrace();
         }
 

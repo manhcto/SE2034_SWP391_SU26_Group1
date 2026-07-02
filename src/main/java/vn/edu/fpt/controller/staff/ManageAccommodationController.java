@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import vn.edu.fpt.DAO.AccommodationDAO;
 import vn.edu.fpt.DAO.FacilityDAO;
-import vn.edu.fpt.DAO.RoomBookingDAO;
 import vn.edu.fpt.DAO.RoomDAO;
 import vn.edu.fpt.model.Accommodation;
 import vn.edu.fpt.model.Facility;
@@ -29,7 +28,6 @@ public class ManageAccommodationController extends HttpServlet {
     private final AccommodationDAO accommodationDAO = new AccommodationDAO();
     private final RoomDAO roomDAO = new RoomDAO();
     private final FacilityDAO facilityDAO = new FacilityDAO();
-    private final RoomBookingDAO roomBookingDAO = new RoomBookingDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -156,7 +154,6 @@ public class ManageAccommodationController extends HttpServlet {
 
         request.setAttribute("accommodation", accommodation);
         request.setAttribute("roomList", roomList);
-        request.setAttribute("roomBookingList", roomBookingDAO.getRoomBookingsByAccommodation(serviceID));
         request.setAttribute("accommodationFacilityOptions", facilityDAO.getAccommodationFacilityOptions());
         request.setAttribute("roomFacilityOptions", facilityDAO.getRoomFacilityOptions());
 

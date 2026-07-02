@@ -328,7 +328,6 @@ public class BookingController extends HttpServlet {
         }
 
         prepareVehicleBookingPage(request, vehicle);
-        fillCustomerInfoFromSession(request);
 
         request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
     }
@@ -502,28 +501,6 @@ public class BookingController extends HttpServlet {
         request.setAttribute("returnDate", returnDate);
         request.setAttribute("note", note);
         request.setAttribute("isBookedForOther", isBookedForOther);
-    }
-
-    private void fillCustomerInfoFromSession(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("user") == null) {
-            return;
-        }
-
-        User user = (User) session.getAttribute("user");
-
-        setAttributeIfNotBlank(request, "firstName", user.getFirstName());
-        setAttributeIfNotBlank(request, "lastName", user.getLastName());
-        setAttributeIfNotBlank(request, "email", user.getEmail());
-        setAttributeIfNotBlank(request, "phone", user.getPhone());
-        setAttributeIfNotBlank(request, "address", user.getAddress());
-    }
-
-    private void setAttributeIfNotBlank(HttpServletRequest request, String name, String value) {
-        if (request.getAttribute(name) == null && value != null && !value.trim().isEmpty()) {
-            request.setAttribute(name, value.trim());
-        }
     }
 
     private int parsePositiveIntValue(String value) {

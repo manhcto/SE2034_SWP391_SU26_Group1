@@ -326,22 +326,22 @@
                 <div class="booking-form-grid">
                     <div class="field">
                         <label for="firstName">Họ</label>
-                        <input class="form-control" id="firstName" name="firstName" value="${user.firstName}" required>
+                        <input class="form-control" id="firstName" name="firstName" placeholder="Nhập họ" required>
                     </div>
 
                     <div class="field">
                         <label for="lastName">Tên</label>
-                        <input class="form-control" id="lastName" name="lastName" value="${user.lastName}" required>
+                        <input class="form-control" id="lastName" name="lastName" placeholder="Nhập tên" required>
                     </div>
 
                     <div class="field">
                         <label for="email">Email</label>
-                        <input class="form-control" id="email" type="email" name="email" value="${user.email}" required>
+                        <input class="form-control" id="email" type="email" name="email" placeholder="example@gmail.com" required>
                     </div>
 
                     <div class="field">
                         <label for="phone">Số điện thoại</label>
-                        <input class="form-control" id="phone" name="phone" value="${user.phone}" required>
+                        <input class="form-control" id="phone" name="phone" placeholder="Nhập số điện thoại" required>
                     </div>
 
                     <div class="field">
@@ -357,12 +357,12 @@
 
                     <div class="field">
                         <label for="bookedFor">Người đại diện nhận phòng</label>
-                        <input class="form-control" id="bookedFor" value="${user.firstName} ${user.lastName}" readonly>
+                        <input class="form-control" id="bookedFor" value="Khách hàng tự nhập thông tin bên trên" readonly>
                     </div>
 
                     <div class="field full">
                         <label for="address">Địa chỉ liên hệ</label>
-                        <input class="form-control" id="address" name="address" value="${user.address}" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" required>
+                        <input class="form-control" id="address" name="address" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" required>
                     </div>
 
                     <div class="field full">

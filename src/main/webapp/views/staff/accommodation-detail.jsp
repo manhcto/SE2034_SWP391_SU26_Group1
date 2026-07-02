@@ -673,68 +673,6 @@
             </div>
         </div>
 
-        <div class="section-card mt-4">
-            <div class="section-head">
-                <h2>Lich dat phong theo ngay</h2>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                    <tr>
-                        <th>Ma booking</th>
-                        <th>Loai phong</th>
-                        <th>Ngay nhan</th>
-                        <th>Ngay tra</th>
-                        <th>So phong</th>
-                        <th>Trang thai</th>
-                        <th>Tong tien</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <c:choose>
-                        <c:when test="${empty roomBookingList}">
-                            <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
-                                    Chua co lich dat phong cho noi luu tru nay.
-                                </td>
-                            </tr>
-                        </c:when>
-                        <c:otherwise>
-                            <c:forEach var="rb" items="${roomBookingList}">
-                                <tr>
-                                    <td class="fw-bold">${rb.bookingCode}</td>
-                                    <td>${rb.roomType}</td>
-                                    <td><fmt:formatDate value="${rb.checkInDate}" pattern="dd/MM/yyyy"/></td>
-                                    <td><fmt:formatDate value="${rb.checkOutDate}" pattern="dd/MM/yyyy"/></td>
-                                    <td>${rb.quantity}</td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${rb.status == 'CheckedIn'}">
-                                                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">${rb.displayStatus}</span>
-                                            </c:when>
-                                            <c:when test="${rb.status == 'Confirmed'}">
-                                                <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">${rb.displayStatus}</span>
-                                            </c:when>
-                                            <c:when test="${rb.status == 'Cancelled'}">
-                                                <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">${rb.displayStatus}</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2">${rb.displayStatus}</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <fmt:formatNumber value="${rb.totalPrice}" type="number" maxFractionDigits="0"/> VND
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </c:otherwise>
-                    </c:choose>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </main>
 </div>
 

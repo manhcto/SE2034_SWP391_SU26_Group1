@@ -89,7 +89,7 @@ public class RoomBookingDAO {
                 "INSERT INTO [dbo].[Booking] " +
                         "(bookingCode, bookingType, email, phone, numberAdult, numberChildren, note, " +
                         "[address], firstName, lastName, userID, [status], bookDate, isBookedForOther, totalPrice) " +
-                        "VALUES (?, N'Accommodation', ?, ?, ?, ?, ?, ?, ?, ?, ?, N'Confirmed', GETDATE(), 0, ?)";
+                        "VALUES (?, N'Accommodation', ?, ?, ?, ?, ?, ?, ?, ?, ?, N'Pending', GETDATE(), 0, ?)";
 
         String sqlDetail =
                 "INSERT INTO [dbo].[Booking_Detail] " +
