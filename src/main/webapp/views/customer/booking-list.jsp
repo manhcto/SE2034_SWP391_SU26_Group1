@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Danh sách Booking</title>
+    <title>WonderVN | Danh sách đơn đặt chỗ</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
 
     <style>
@@ -28,7 +28,7 @@
         .booking-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 980px;
+            min-width: 900px;
         }
 
         .booking-table th,
@@ -54,12 +54,26 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 999px;
-            background: #fef3c7;
-            color: #92400e;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .status-badge.confirmed {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-badge.cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-badge.completed {
+            background: #dcfce7;
+            color: #166534;
         }
 
         .price-text {
@@ -84,7 +98,7 @@
             background: #2563eb;
             color: #ffffff;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 800;
             text-decoration: none;
             white-space: nowrap;
         }
@@ -94,20 +108,12 @@
             color: #ffffff;
         }
 
-        .edit-link {
-            background: #f59e0b;
-        }
-
-        .edit-link:hover {
-            background: #d97706;
-            color: #ffffff;
-        }
-
         .empty-box {
             text-align: center;
             padding: 40px 20px;
             color: #6b7280;
             font-size: 16px;
+            font-weight: 700;
         }
     </style>
 </head>
@@ -120,9 +126,9 @@
     <section class="booking-list-container">
         <div class="section-head" style="justify-content: center; text-align: center; margin-bottom: 36px;">
             <div>
-                <p class="section-kicker">Booking</p>
-                <h2>Danh sách Booking</h2>
-                <p>Danh sách các đơn đặt tour đã được ghi nhận trong hệ thống.</p>
+                <p class="section-kicker">Đơn đặt chỗ</p>
+                <h2>Danh sách đơn đặt chỗ</h2>
+                <p>Danh sách các đơn đặt tour, đặt xe và đặt phòng của bạn trên hệ thống WonderVN.</p>
             </div>
         </div>
 
@@ -130,7 +136,7 @@
             <c:choose>
                 <c:when test="${empty bookingList}">
                     <div class="empty-box">
-                        Chưa có đơn đặt tour nào.
+                        Bạn chưa có đơn đặt chỗ nào.
                     </div>
                 </c:when>
 
@@ -138,7 +144,7 @@
                     <table class="booking-table">
                         <thead>
                         <tr>
-                            <th>Mã Booking</th>
+                            <th>Mã đặt chỗ</th>
                             <th>Khách hàng</th>
                             <th>Email</th>
                             <th>Số điện thoại</th>
@@ -165,15 +171,19 @@
                                 </td>
 
                                 <td>
-                                    <span class="status-badge">
-                                        <c:choose>
-                                            <c:when test="${booking.status == 'Pending'}">Chờ xử lý</c:when>
-                                            <c:when test="${booking.status == 'Confirmed'}">Đã xác nhận</c:when>
-                                            <c:when test="${booking.status == 'Cancelled'}">Đã hủy</c:when>
-                                            <c:when test="${booking.status == 'Completed'}">Hoàn thành</c:when>
-                                            <c:otherwise>${booking.status}</c:otherwise>
-                                        </c:choose>
-                                    </span>
+                                    <c:choose>
+                                        <c:when test="${booking.status == 'Cancelled'}">
+                                            <span class="status-badge cancelled">Đã hủy</span>
+                                        </c:when>
+
+                                        <c:when test="${booking.status == 'Completed'}">
+                                            <span class="status-badge completed">Đã hoàn thành</span>
+                                        </c:when>
+
+                                        <c:otherwise>
+                                            <span class="status-badge confirmed">Đang diễn ra</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </td>
 
                                 <td>
@@ -187,11 +197,6 @@
                                         <a class="action-link"
                                            href="${pageContext.request.contextPath}/booking-summary?bookingID=${booking.bookingID}">
                                             Xem chi tiết
-                                        </a>
-
-                                        <a class="action-link edit-link"
-                                           href="${pageContext.request.contextPath}/booking-edit?bookingID=${booking.bookingID}">
-                                            Sửa
                                         </a>
                                     </div>
                                 </td>

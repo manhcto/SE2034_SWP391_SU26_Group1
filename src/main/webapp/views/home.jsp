@@ -7,10 +7,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WonderVN | Trang chủ</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=1000">
+
+    <style>
+        .success-toast {
+            position: fixed;
+            top: 92px;
+            right: 24px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 420px;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+            border-radius: 18px;
+            padding: 15px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 14px 34px rgba(22, 101, 52, 0.18);
+            font-weight: 800;
+            pointer-events: none;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .success-toast.hide {
+            opacity: 0;
+            transform: translateY(-14px);
+        }
+
+        .success-toast-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #22c55e;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .success-toast-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .success-toast-title {
+            display: block;
+            font-size: 15px;
+            font-weight: 900;
+            margin-bottom: 3px;
+        }
+
+        .success-toast-message {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #166534;
+        }
+
+        .success-toast-progress {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 4px;
+            width: 100%;
+            background: #22c55e;
+            border-radius: 0 0 18px 18px;
+            animation: successToastProgress 5s linear forwards;
+        }
+
+        @keyframes successToastProgress {
+            from {
+                width: 100%;
+            }
+
+            to {
+                width: 0;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .success-toast {
+                left: 16px;
+                right: 16px;
+                top: 82px;
+                min-width: 0;
+                max-width: none;
+            }
+        }
+    </style>
 </head>
 <body>
 
 <jsp:include page="/views/common/client-header.jsp" />
+
+<c:if test="${not empty sessionScope.successMessage}">
+    <div id="successToast" class="success-toast">
+        <div class="success-toast-icon">✓</div>
+        <div class="success-toast-content">
+            <span class="success-toast-title">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.successTitle}">
+                        ${sessionScope.successTitle}
+                    </c:when>
+                    <c:otherwise>
+                        Đặt chỗ thành công
+                    </c:otherwise>
+                </c:choose>
+            </span>
+
+            <p class="success-toast-message">${sessionScope.successMessage}</p>
+        </div>
+        <div class="success-toast-progress"></div>
+    </div>
+
+    <c:remove var="successTitle" scope="session" />
+    <c:remove var="successMessage" scope="session" />
+</c:if>
 
 <main class="home-page">
 
@@ -370,20 +487,22 @@
 
 <button class="scroll-top" id="scrollTop" type="button">↑</button>
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
-<c:if test="${not empty sessionScope.successMessage}">
-    <div id="successToast" class="success-toast">
-        <div class="toast-body">
-            <div class="toast-icon">✓</div>
-            <div class="toast-content">
-                <span class="toast-title">Đặt Tour Thành Công!</span>
-                <p class="toast-desc">${sessionScope.successMessage}</p>
-            </div>
-            <button type="button" class="toast-close-btn" onclick="dismissToast()">×</button>
-        </div>
-        <div class="toast-progress"></div>
-    </div>
-    <c:remove var="successMessage" scope="session" />
-</c:if>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const successToast = document.getElementById("successToast");
+
+        if (successToast) {
+            setTimeout(function () {
+                successToast.classList.add("hide");
+
+                setTimeout(function () {
+                    successToast.remove();
+                }, 500);
+            }, 5000);
+        }
+    });
+</script>
 
 </body>
 </html>

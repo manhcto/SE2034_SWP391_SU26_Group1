@@ -16,12 +16,13 @@ import java.util.List;
 @WebServlet(name = "ManageBookingController", urlPatterns = {
         "/staff/booking",
         "/staff/booking-edit",
-        "/staff/booking-delete"
+        "/staff/booking-delete",
+        "/staff/booking-cancel",
+        "/staff/booking-complete"
 })
 public class ManageBookingController extends HttpServlet {
 
     private static final String STAFF_BOOKING_LIST_PAGE = "/views/staff/staff-booking-list.jsp";
-    private static final String STAFF_BOOKING_EDIT_PAGE = "/views/staff/staff-booking-edit.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -38,7 +39,7 @@ public class ManageBookingController extends HttpServlet {
                 break;
 
             case "/staff/booking-edit":
-                showEditBookingForm(request, response);
+                redirectToBookingList(request, response);
                 break;
 
             default:
@@ -57,12 +58,13 @@ public class ManageBookingController extends HttpServlet {
         String path = request.getServletPath();
 
         switch (path) {
-            case "/staff/booking-edit":
-                updateBooking(request, response);
+            case "/staff/booking-delete":
+            case "/staff/booking-cancel":
+                cancelBooking(request, response);
                 break;
 
-            case "/staff/booking-delete":
-                deleteBooking(request, response);
+            case "/staff/booking-complete":
+                completeBooking(request, response);
                 break;
 
             default:
@@ -80,229 +82,33 @@ public class ManageBookingController extends HttpServlet {
         List<Booking> allBookings = bookingDAO.getAllBookings();
         List<Booking> bookingList = filterBookingsByType(allBookings, selectedBookingType);
 
+        int activeBookingCount;
+        int cancelledBookingCount;
+        int completedBookingCount;
+
+        if (selectedBookingType.isEmpty()) {
+            activeBookingCount = bookingDAO.countBookingsByStatus("Confirmed");
+            cancelledBookingCount = bookingDAO.countBookingsByStatus("Cancelled");
+            completedBookingCount = bookingDAO.countBookingsByStatus("Completed");
+        } else {
+            activeBookingCount = bookingDAO.countBookingsByTypeAndStatus(selectedBookingType, "Confirmed");
+            cancelledBookingCount = bookingDAO.countBookingsByTypeAndStatus(selectedBookingType, "Cancelled");
+            completedBookingCount = bookingDAO.countBookingsByTypeAndStatus(selectedBookingType, "Completed");
+        }
+
         request.setAttribute("bookingList", bookingList);
         request.setAttribute("selectedBookingType", selectedBookingType);
         request.setAttribute("bookingPageTitle", getBookingPageTitle(selectedBookingType));
         request.setAttribute("bookingPageSubtitle", getBookingPageSubtitle(selectedBookingType));
 
+        request.setAttribute("activeBookingCount", activeBookingCount);
+        request.setAttribute("cancelledBookingCount", cancelledBookingCount);
+        request.setAttribute("completedBookingCount", completedBookingCount);
+
         request.getRequestDispatcher(STAFF_BOOKING_LIST_PAGE).forward(request, response);
     }
 
-    private void showEditBookingForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        String selectedBookingType = normalizeBookingType(request.getParameter("type"));
-        String bookingIDRaw = request.getParameter("bookingID");
-
-        if (bookingIDRaw == null || bookingIDRaw.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + buildBookingListPath(selectedBookingType));
-            return;
-        }
-
-        try {
-            int bookingID = Integer.parseInt(bookingIDRaw.trim());
-
-            BookingDAO bookingDAO = new BookingDAO();
-            Booking booking = bookingDAO.getBookingByID(bookingID);
-
-            if (booking == null) {
-                request.setAttribute("error", "Không tìm thấy booking cần sửa.");
-                request.setAttribute("selectedBookingType", selectedBookingType);
-                request.setAttribute("backToBookingListUrl", request.getContextPath() + buildBookingListPath(selectedBookingType));
-                request.getRequestDispatcher(STAFF_BOOKING_EDIT_PAGE).forward(request, response);
-                return;
-            }
-
-            if (selectedBookingType.isEmpty()) {
-                selectedBookingType = normalizeBookingType(booking.getBookingType());
-            }
-
-            setAddressPartsToRequest(request, booking.getAddress());
-
-            request.setAttribute("booking", booking);
-            request.setAttribute("selectedBookingType", selectedBookingType);
-            request.setAttribute("backToBookingListUrl", request.getContextPath() + buildBookingListPath(selectedBookingType));
-
-            request.getRequestDispatcher(STAFF_BOOKING_EDIT_PAGE).forward(request, response);
-
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + buildBookingListPath(selectedBookingType));
-        }
-    }
-
-    private void updateBooking(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        List<String> errors = new ArrayList<>();
-
-        String selectedBookingType = normalizeBookingType(request.getParameter("type"));
-        String bookingIDRaw = getTrimValue(request, "bookingID");
-
-        int bookingID = parsePositiveInt(bookingIDRaw, "Booking ID", errors);
-
-        BookingDAO bookingDAO = new BookingDAO();
-        Booking oldBooking = null;
-
-        if (bookingID > 0) {
-            oldBooking = bookingDAO.getBookingByID(bookingID);
-
-            if (oldBooking == null) {
-                errors.add("Booking không tồn tại trong hệ thống.");
-            }
-        }
-
-        if (selectedBookingType.isEmpty() && oldBooking != null) {
-            selectedBookingType = normalizeBookingType(oldBooking.getBookingType());
-        }
-
-        String bookingType = oldBooking == null ? selectedBookingType : normalizeBookingType(oldBooking.getBookingType());
-
-        String firstName = getTrimValue(request, "firstName");
-        String lastName = getTrimValue(request, "lastName");
-        String email = getTrimValue(request, "email");
-        String phone = getTrimValue(request, "phone");
-
-        String streetAddress = getTrimValue(request, "streetAddress");
-        String district = getTrimValue(request, "district");
-        String city = getTrimValue(request, "city");
-        String simpleAddress = getTrimValue(request, "address");
-
-        String note = getTrimValue(request, "note");
-        String numberAdultRaw = getTrimValue(request, "numberAdult");
-        String numberChildrenRaw = getTrimValue(request, "numberChildren");
-        String isBookedForOtherRaw = getTrimValue(request, "isBookedForOther");
-        String status = getTrimValue(request, "status");
-
-        int numberAdult = parseNumberWithMinValue(numberAdultRaw, "Số người lớn", 1, errors);
-        int numberChildren = parseNumberWithMinValue(numberChildrenRaw, "Số trẻ em", 0, errors);
-
-        validateRequired(firstName, "Họ và tên đệm", errors);
-        validateRequired(lastName, "Tên", errors);
-        validateRequired(email, "Email", errors);
-        validateRequired(phone, "Số điện thoại", errors);
-
-        validateLength(firstName, "Họ và tên đệm", 100, errors);
-        validateLength(lastName, "Tên", 100, errors);
-        validateLength(email, "Email", 255, errors);
-        validateLength(phone, "Số điện thoại", 10, errors);
-        validateLength(note, "Ghi chú", 1000, errors);
-
-        if (!firstName.isEmpty() && !firstName.matches("^[\\p{L}\\s]+$")) {
-            errors.add("Họ và tên đệm chỉ được chứa chữ cái và khoảng trắng.");
-        }
-
-        if (!lastName.isEmpty() && !lastName.matches("^[\\p{L}\\s]+$")) {
-            errors.add("Tên chỉ được chứa chữ cái và khoảng trắng.");
-        }
-
-        if (!email.isEmpty()
-                && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            errors.add("Email không đúng định dạng. Ví dụ đúng: example@gmail.com.");
-        }
-
-        if (!phone.isEmpty() && !phone.matches("^0\\d{9}$")) {
-            errors.add("Số điện thoại phải có đúng 10 chữ số và bắt đầu bằng số 0.");
-        }
-
-        String address;
-
-        if ("Tour".equalsIgnoreCase(bookingType)) {
-            validateRequired(streetAddress, "Số nhà, đường", errors);
-            validateRequired(district, "Quận / Huyện", errors);
-            validateRequired(city, "Tỉnh / Thành phố", errors);
-
-            validateLength(streetAddress, "Số nhà, đường", 120, errors);
-
-            if (!streetAddress.isEmpty() && !streetAddress.matches("^[\\p{L}0-9\\s,./-]+$")) {
-                errors.add("Số nhà, đường chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
-            }
-
-            if (!district.isEmpty() && !isValidDistrict(district)) {
-                errors.add("Quận / Huyện không hợp lệ.");
-            }
-
-            if (!city.isEmpty() && !isValidCity(city)) {
-                errors.add("Tỉnh / Thành phố không hợp lệ.");
-            }
-
-            address = buildFullAddress(streetAddress, district, city);
-        } else {
-            address = simpleAddress;
-
-            if (address.isEmpty()) {
-                address = buildFullAddress(streetAddress, district, city);
-            }
-
-            if (address.isEmpty() && oldBooking != null) {
-                address = oldBooking.getAddress();
-            }
-
-            validateRequired(address, "Địa chỉ liên hệ", errors);
-        }
-
-        validateLength(address, "Địa chỉ liên hệ", 255, errors);
-
-        if (!isValidBookedForOther(isBookedForOtherRaw)) {
-            errors.add("Giá trị đặt hộ người khác không hợp lệ.");
-        }
-
-        if (!isValidStatus(status)) {
-            errors.add("Trạng thái booking không hợp lệ.");
-        }
-
-        Booking booking = new Booking();
-        booking.setBookingID(bookingID);
-        booking.setFirstName(firstName);
-        booking.setLastName(lastName);
-        booking.setEmail(email);
-        booking.setPhone(phone);
-        booking.setAddress(address);
-        booking.setNote(note.isEmpty() ? null : note);
-        booking.setNumberAdult(numberAdult);
-        booking.setNumberChildren(numberChildren);
-        booking.setBookedForOther("true".equals(isBookedForOtherRaw));
-        booking.setStatus(status);
-
-        if (oldBooking != null) {
-            booking.setBookingCode(oldBooking.getBookingCode());
-            booking.setBookingType(oldBooking.getBookingType());
-            booking.setUserID(oldBooking.getUserID());
-            booking.setBookDate(oldBooking.getBookDate());
-            booking.setTotalPrice(oldBooking.getTotalPrice());
-            booking.setVoucherID(oldBooking.getVoucherID());
-        }
-
-        if (!errors.isEmpty()) {
-            request.setAttribute("errors", errors);
-            request.setAttribute("booking", booking);
-            request.setAttribute("streetAddress", streetAddress);
-            request.setAttribute("district", district);
-            request.setAttribute("city", city);
-            request.setAttribute("selectedBookingType", selectedBookingType);
-            request.setAttribute("backToBookingListUrl", request.getContextPath() + buildBookingListPath(selectedBookingType));
-            request.getRequestDispatcher(STAFF_BOOKING_EDIT_PAGE).forward(request, response);
-            return;
-        }
-
-        boolean updated = bookingDAO.updateBooking(booking);
-
-        if (updated) {
-            response.sendRedirect(request.getContextPath() + buildBookingListPathWithMessage(selectedBookingType, "success", "updated"));
-        } else {
-            errors.add("Cập nhật booking thất bại. Vui lòng thử lại.");
-
-            request.setAttribute("errors", errors);
-            request.setAttribute("booking", booking);
-            request.setAttribute("streetAddress", streetAddress);
-            request.setAttribute("district", district);
-            request.setAttribute("city", city);
-            request.setAttribute("selectedBookingType", selectedBookingType);
-            request.setAttribute("backToBookingListUrl", request.getContextPath() + buildBookingListPath(selectedBookingType));
-            request.getRequestDispatcher(STAFF_BOOKING_EDIT_PAGE).forward(request, response);
-        }
-    }
-
-    private void deleteBooking(HttpServletRequest request, HttpServletResponse response)
+    private void cancelBooking(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         List<String> errors = new ArrayList<>();
@@ -313,18 +119,56 @@ public class ManageBookingController extends HttpServlet {
         int bookingID = parsePositiveInt(bookingIDRaw, "Booking ID", errors);
 
         if (!errors.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + buildBookingListPathWithMessage(selectedBookingType, "error", "deleteFailed"));
+            response.sendRedirect(request.getContextPath()
+                    + buildBookingListPathWithMessage(selectedBookingType, "error", "cancelFailed"));
             return;
         }
 
         BookingDAO bookingDAO = new BookingDAO();
-        boolean deleted = bookingDAO.deleteBookingByID(bookingID);
+        boolean cancelled = bookingDAO.cancelBookingByID(bookingID);
 
-        if (deleted) {
-            response.sendRedirect(request.getContextPath() + buildBookingListPathWithMessage(selectedBookingType, "success", "deleted"));
+        if (cancelled) {
+            response.sendRedirect(request.getContextPath()
+                    + buildBookingListPathWithMessage(selectedBookingType, "success", "cancelled"));
         } else {
-            response.sendRedirect(request.getContextPath() + buildBookingListPathWithMessage(selectedBookingType, "error", "deleteFailed"));
+            response.sendRedirect(request.getContextPath()
+                    + buildBookingListPathWithMessage(selectedBookingType, "error", "cancelFailed"));
         }
+    }
+
+    private void completeBooking(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        List<String> errors = new ArrayList<>();
+
+        String selectedBookingType = normalizeBookingType(request.getParameter("type"));
+        String bookingIDRaw = getTrimValue(request, "bookingID");
+
+        int bookingID = parsePositiveInt(bookingIDRaw, "Booking ID", errors);
+
+        if (!errors.isEmpty()) {
+            response.sendRedirect(request.getContextPath()
+                    + buildBookingListPathWithMessage(selectedBookingType, "error", "completeFailed"));
+            return;
+        }
+
+        BookingDAO bookingDAO = new BookingDAO();
+        boolean completed = bookingDAO.completeBookingByID(bookingID);
+
+        if (completed) {
+            response.sendRedirect(request.getContextPath()
+                    + buildBookingListPathWithMessage(selectedBookingType, "success", "completed"));
+        } else {
+            response.sendRedirect(request.getContextPath()
+                    + buildBookingListPathWithMessage(selectedBookingType, "error", "completeFailed"));
+        }
+    }
+
+    private void redirectToBookingList(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String selectedBookingType = normalizeBookingType(request.getParameter("type"));
+        response.sendRedirect(request.getContextPath() + buildBookingListPath(selectedBookingType));
     }
 
     private List<Booking> filterBookingsByType(List<Booking> allBookings, String bookingType) {
@@ -379,23 +223,23 @@ public class ManageBookingController extends HttpServlet {
             return "Quản lý đặt xe";
         }
 
-        return "Quản lý đặt chỗ";
+        return "Quản lý booking";
     }
 
     private String getBookingPageSubtitle(String bookingType) {
         if ("Tour".equalsIgnoreCase(bookingType)) {
-            return "Theo dõi, sửa và xóa các đơn đặt tour trong hệ thống.";
+            return "Theo dõi, xem chi tiết, hủy và hoàn thành các đơn đặt tour.";
         }
 
         if ("Accommodation".equalsIgnoreCase(bookingType)) {
-            return "Theo dõi, sửa và xóa các đơn đặt phòng / lưu trú trong hệ thống.";
+            return "Theo dõi, xem chi tiết, hủy và hoàn thành các đơn đặt phòng / lưu trú.";
         }
 
         if ("Vehicle".equalsIgnoreCase(bookingType)) {
-            return "Theo dõi, sửa và xóa các đơn thuê xe trong hệ thống.";
+            return "Theo dõi, xem chi tiết, hủy và hoàn thành các đơn đặt xe.";
         }
 
-        return "Theo dõi booking tour, đặt phòng và thuê xe trong hệ thống.";
+        return "Theo dõi, xem chi tiết, hủy và hoàn thành các đơn booking trong hệ thống.";
     }
 
     private String buildBookingListPath(String bookingType) {
@@ -448,156 +292,5 @@ public class ManageBookingController extends HttpServlet {
             errors.add(fieldName + " không hợp lệ.");
             return -1;
         }
-    }
-
-    private int parseNumberWithMinValue(String rawValue, String fieldName, int minValue, List<String> errors) {
-        if (rawValue == null || rawValue.trim().isEmpty()) {
-            errors.add(fieldName + " không được để trống.");
-            return 0;
-        }
-
-        String valueText = rawValue.trim();
-
-        if (!valueText.matches("\\d+")) {
-            errors.add(fieldName + " chỉ được nhập số tự nhiên.");
-            return 0;
-        }
-
-        try {
-            int value = Integer.parseInt(valueText);
-
-            if (value < minValue) {
-                errors.add(fieldName + " phải lớn hơn hoặc bằng " + minValue + ".");
-                return 0;
-            }
-
-            return value;
-
-        } catch (NumberFormatException e) {
-            errors.add(fieldName + " không hợp lệ.");
-            return 0;
-        }
-    }
-
-    private void validateRequired(String value, String fieldName, List<String> errors) {
-        if (value == null || value.trim().isEmpty()) {
-            errors.add(fieldName + " không được để trống.");
-        }
-    }
-
-    private void validateLength(String value, String fieldName, int maxLength, List<String> errors) {
-        if (value != null && value.length() > maxLength) {
-            errors.add(fieldName + " không được vượt quá " + maxLength + " ký tự.");
-        }
-    }
-
-    private String buildFullAddress(String streetAddress, String district, String city) {
-        if (streetAddress == null) {
-            streetAddress = "";
-        }
-
-        if (district == null) {
-            district = "";
-        }
-
-        if (city == null) {
-            city = "";
-        }
-
-        streetAddress = streetAddress.trim();
-        district = district.trim();
-        city = city.trim();
-
-        if (streetAddress.isEmpty() && district.isEmpty() && city.isEmpty()) {
-            return "";
-        }
-
-        return streetAddress + ", " + district + ", " + city;
-    }
-
-    private void setAddressPartsToRequest(HttpServletRequest request, String address) {
-        if (address == null || address.trim().isEmpty()) {
-            request.setAttribute("streetAddress", "");
-            request.setAttribute("district", "");
-            request.setAttribute("city", "");
-            request.setAttribute("simpleAddress", "");
-            return;
-        }
-
-        String value = address.trim();
-        String[] parts = value.split(",");
-
-        if (parts.length >= 3) {
-            String city = parts[parts.length - 1].trim();
-            String district = parts[parts.length - 2].trim();
-
-            StringBuilder streetBuilder = new StringBuilder();
-
-            for (int i = 0; i < parts.length - 2; i++) {
-                if (i > 0) {
-                    streetBuilder.append(", ");
-                }
-
-                streetBuilder.append(parts[i].trim());
-            }
-
-            request.setAttribute("streetAddress", streetBuilder.toString());
-            request.setAttribute("district", district);
-            request.setAttribute("city", city);
-            request.setAttribute("simpleAddress", value);
-            return;
-        }
-
-        request.setAttribute("streetAddress", value);
-        request.setAttribute("district", "");
-        request.setAttribute("city", "");
-        request.setAttribute("simpleAddress", value);
-    }
-
-    private boolean isValidBookedForOther(String value) {
-        return value == null
-                || value.trim().isEmpty()
-                || "true".equals(value)
-                || "false".equals(value)
-                || "on".equals(value);
-    }
-
-    private boolean isValidStatus(String status) {
-        return "Pending".equals(status)
-                || "Confirmed".equals(status)
-                || "Cancelled".equals(status)
-                || "Completed".equals(status);
-    }
-
-    private boolean isValidDistrict(String district) {
-        return "Quận Ba Đình".equals(district)
-                || "Quận Hoàn Kiếm".equals(district)
-                || "Quận Tây Hồ".equals(district)
-                || "Quận Long Biên".equals(district)
-                || "Quận Cầu Giấy".equals(district)
-                || "Quận Đống Đa".equals(district)
-                || "Quận Hai Bà Trưng".equals(district)
-                || "Quận Hoàng Mai".equals(district)
-                || "Quận Thanh Xuân".equals(district)
-                || "Quận Nam Từ Liêm".equals(district)
-                || "Quận Bắc Từ Liêm".equals(district)
-                || "Quận Hà Đông".equals(district)
-                || "Huyện Thanh Trì".equals(district)
-                || "Huyện Gia Lâm".equals(district)
-                || "Huyện Đông Anh".equals(district)
-                || "Huyện Sóc Sơn".equals(district);
-    }
-
-    private boolean isValidCity(String city) {
-        return "Hà Nội".equals(city)
-                || "Hồ Chí Minh".equals(city)
-                || "Đà Nẵng".equals(city)
-                || "Hải Phòng".equals(city)
-                || "Cần Thơ".equals(city)
-                || "Quảng Ninh".equals(city)
-                || "Ninh Bình".equals(city)
-                || "Huế".equals(city)
-                || "Khánh Hòa".equals(city)
-                || "Lâm Đồng".equals(city);
     }
 }

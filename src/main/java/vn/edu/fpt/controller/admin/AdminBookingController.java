@@ -55,10 +55,28 @@ public class AdminBookingController extends HttpServlet {
         List<Booking> allBookings = bookingDAO.getAllBookings();
         List<Booking> bookingList = filterBookingsByType(allBookings, selectedBookingType);
 
+        int activeBookingCount;
+        int cancelledBookingCount;
+        int completedBookingCount;
+
+        if (selectedBookingType.isEmpty()) {
+            activeBookingCount = bookingDAO.countBookingsByStatus("Confirmed");
+            cancelledBookingCount = bookingDAO.countBookingsByStatus("Cancelled");
+            completedBookingCount = bookingDAO.countBookingsByStatus("Completed");
+        } else {
+            activeBookingCount = bookingDAO.countBookingsByTypeAndStatus(selectedBookingType, "Confirmed");
+            cancelledBookingCount = bookingDAO.countBookingsByTypeAndStatus(selectedBookingType, "Cancelled");
+            completedBookingCount = bookingDAO.countBookingsByTypeAndStatus(selectedBookingType, "Completed");
+        }
+
         request.setAttribute("bookingList", bookingList);
         request.setAttribute("selectedBookingType", selectedBookingType);
         request.setAttribute("bookingPageTitle", getBookingPageTitle(selectedBookingType));
         request.setAttribute("bookingPageSubtitle", getBookingPageSubtitle(selectedBookingType));
+
+        request.setAttribute("activeBookingCount", activeBookingCount);
+        request.setAttribute("cancelledBookingCount", cancelledBookingCount);
+        request.setAttribute("completedBookingCount", completedBookingCount);
 
         request.getRequestDispatcher(ADMIN_BOOKING_LIST_PAGE).forward(request, response);
     }
@@ -81,16 +99,29 @@ public class AdminBookingController extends HttpServlet {
             Map<String, Object> bookingDetail = bookingDAO.getBookingSummaryByID(bookingID);
 
             if (bookingDetail == null || bookingDetail.isEmpty()) {
-                request.setAttribute("error", "Không tìm thấy booking cần xem.");
+                request.setAttribute("error", "Không tìm thấy đơn đặt chỗ cần xem.");
                 request.setAttribute("selectedBookingType", selectedBookingType);
                 request.setAttribute("backToBookingListUrl", request.getContextPath() + buildAdminBookingListPath(selectedBookingType));
                 request.getRequestDispatcher(ADMIN_BOOKING_DETAIL_PAGE).forward(request, response);
                 return;
             }
 
-            if (selectedBookingType.isEmpty() && bookingDetail.get("bookingType") != null) {
-                selectedBookingType = normalizeBookingType(String.valueOf(bookingDetail.get("bookingType")));
+            String bookingType = "";
+
+            if (bookingDetail.get("bookingType") != null) {
+                bookingType = normalizeBookingType(String.valueOf(bookingDetail.get("bookingType")));
             }
+
+            if (selectedBookingType.isEmpty()) {
+                selectedBookingType = bookingType;
+            }
+
+            String status = bookingDetail.get("status") == null
+                    ? ""
+                    : String.valueOf(bookingDetail.get("status"));
+
+            bookingDetail.put("displayStatusVietnamese", getVietnameseStatus(status));
+            bookingDetail.put("displayTypeVietnamese", getVietnameseBookingType(bookingType));
 
             request.setAttribute("bookingDetail", bookingDetail);
             request.setAttribute("selectedBookingType", selectedBookingType);
@@ -148,34 +179,66 @@ public class AdminBookingController extends HttpServlet {
 
     private String getBookingPageTitle(String bookingType) {
         if ("Tour".equalsIgnoreCase(bookingType)) {
-            return "Xem đặt tour";
+            return "Xem đơn đặt tour";
         }
 
         if ("Accommodation".equalsIgnoreCase(bookingType)) {
-            return "Xem đặt phòng";
+            return "Xem đơn đặt phòng";
         }
 
         if ("Vehicle".equalsIgnoreCase(bookingType)) {
-            return "Xem đặt xe";
+            return "Xem đơn đặt xe";
         }
 
-        return "Xem booking";
+        return "Xem đơn đặt chỗ";
     }
 
     private String getBookingPageSubtitle(String bookingType) {
         if ("Tour".equalsIgnoreCase(bookingType)) {
-            return "Admin chỉ xem danh sách các đơn đặt tour trong hệ thống.";
+            return "Quản trị viên chỉ xem danh sách các đơn đặt tour trong hệ thống.";
         }
 
         if ("Accommodation".equalsIgnoreCase(bookingType)) {
-            return "Admin chỉ xem danh sách các đơn đặt phòng / lưu trú trong hệ thống.";
+            return "Quản trị viên chỉ xem danh sách các đơn đặt phòng và lưu trú trong hệ thống.";
         }
 
         if ("Vehicle".equalsIgnoreCase(bookingType)) {
-            return "Admin chỉ xem danh sách các đơn thuê xe trong hệ thống.";
+            return "Quản trị viên chỉ xem danh sách các đơn đặt xe trong hệ thống.";
         }
 
-        return "Admin chỉ xem danh sách booking, không sửa hoặc xóa dữ liệu.";
+        return "Quản trị viên chỉ xem danh sách đơn đặt chỗ, không sửa hoặc xóa dữ liệu.";
+    }
+
+    private String getVietnameseStatus(String status) {
+        if ("Confirmed".equalsIgnoreCase(status)) {
+            return "Đang diễn ra";
+        }
+
+        if ("Cancelled".equalsIgnoreCase(status)) {
+            return "Đã hủy";
+        }
+
+        if ("Completed".equalsIgnoreCase(status)) {
+            return "Đã hoàn thành";
+        }
+
+        return "Đang diễn ra";
+    }
+
+    private String getVietnameseBookingType(String bookingType) {
+        if ("Tour".equalsIgnoreCase(bookingType)) {
+            return "Đặt tour";
+        }
+
+        if ("Accommodation".equalsIgnoreCase(bookingType)) {
+            return "Đặt phòng";
+        }
+
+        if ("Vehicle".equalsIgnoreCase(bookingType)) {
+            return "Đặt xe";
+        }
+
+        return "Đặt chỗ";
     }
 
     private String buildAdminBookingListPath(String bookingType) {

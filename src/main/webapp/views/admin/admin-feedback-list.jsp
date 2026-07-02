@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Xem Feedback</title>
+    <title>WonderVN | Đánh giá khách hàng</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -30,7 +30,7 @@
             min-height: 100vh;
         }
 
-        .sidebar {
+        .admin-sidebar {
             width: 292px;
             background: #0f172a;
             color: #ffffff;
@@ -41,11 +41,11 @@
             box-shadow: 8px 0 26px rgba(15, 23, 42, 0.18);
         }
 
-        .sidebar::-webkit-scrollbar {
+        .admin-sidebar::-webkit-scrollbar {
             width: 7px;
         }
 
-        .sidebar::-webkit-scrollbar-thumb {
+        .admin-sidebar::-webkit-scrollbar-thumb {
             background: #334155;
             border-radius: 20px;
         }
@@ -67,12 +67,14 @@
             font-weight: 900;
             font-size: 20px;
             margin-bottom: 12px;
+            box-shadow: 0 12px 24px rgba(239, 68, 68, 0.22);
         }
 
         .brand-box h2 {
             font-size: 26px;
             font-weight: 900;
             margin: 0;
+            letter-spacing: -0.6px;
         }
 
         .brand-box p {
@@ -168,6 +170,14 @@
             letter-spacing: -0.8px;
         }
 
+        .topbar p {
+            margin: 8px 0 0;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.6;
+        }
+
         .top-action-btn {
             border: none;
             border-radius: 16px;
@@ -229,6 +239,8 @@
             border-bottom: 1px solid #e2e8f0;
             padding: 16px 14px;
             white-space: nowrap;
+            text-align: center;
+            vertical-align: middle;
         }
 
         .table tbody td {
@@ -236,6 +248,7 @@
             vertical-align: middle;
             color: #0f172a;
             font-size: 14px;
+            text-align: center;
         }
 
         .feedback-id {
@@ -287,6 +300,7 @@
             white-space: nowrap;
             color: #475569;
             font-weight: 600;
+            text-align: left;
         }
 
         .btn-view {
@@ -327,7 +341,7 @@
         }
 
         @media (max-width: 992px) {
-            .sidebar {
+            .admin-sidebar {
                 position: static;
                 width: 100%;
                 height: auto;
@@ -357,23 +371,23 @@
 <body>
 <div class="admin-layout">
 
-    <aside class="sidebar">
+    <aside class="admin-sidebar">
         <div class="brand-box">
-            <div class="brand-logo">AD</div>
+            <div class="brand-logo">QT</div>
             <h2>WonderVN</h2>
-            <p>Admin Control Center</p>
+            <p>Trung tâm quản trị hệ thống</p>
         </div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
             <i class="fa-solid fa-house"></i>
-            <span>Admin Home</span>
+            <span>Trang chủ quản trị</span>
         </a>
 
         <div class="nav-section-title">Quản trị hệ thống</div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
             <i class="fa-solid fa-chart-line"></i>
-            <span>Dashboard</span>
+            <span>Bảng thống kê</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
@@ -381,50 +395,48 @@
             <span>Quản lý người dùng</span>
         </a>
 
-        <div class="nav-section-title">Xem booking</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking?type=Tour">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>Xem đặt tour</span>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour-approval">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Phê duyệt tour</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking?type=Accommodation">
-            <i class="fa-solid fa-hotel"></i>
-            <span>Xem đặt phòng</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking?type=Vehicle">
-            <i class="fa-solid fa-car-side"></i>
-            <span>Xem đặt xe</span>
-        </a>
-
-        <div class="nav-section-title">Xem khu vực Staff</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
-            <i class="fa-solid fa-user-tie"></i>
-            <span>Staff Home</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking?type=Tour">
-            <i class="fa-solid fa-pen-to-square"></i>
-            <span>Staff Booking</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
-            <i class="fa-solid fa-comments"></i>
-            <span>Staff Feedback</span>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Đơn đặt</span>
         </a>
 
         <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/feedback">
             <i class="fa-solid fa-comments"></i>
-            <span>Xem Feedback</span>
+            <span>Đánh giá khách hàng</span>
+        </a>
+
+        <div class="nav-section-title">Khu vực nhân viên</div>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
+            <i class="fa-solid fa-user-tie"></i>
+            <span>Trang nhân viên</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
+            <i class="fa-solid fa-hotel"></i>
+            <span>Lưu trú</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
+            <i class="fa-solid fa-car-side"></i>
+            <span>Phương tiện</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span>Tour</span>
         </a>
 
         <div class="admin-user">
-            <div class="avatar">AD</div>
+            <div class="avatar">QT</div>
             <div>
                 <div class="fw-bold">Quản trị viên</div>
-                <small>Admin</small>
+                <small>Tài khoản quản trị</small>
             </div>
         </div>
     </aside>
@@ -432,7 +444,8 @@
     <main class="main-content">
         <div class="topbar">
             <div>
-                <h1>Xem Feedback</h1>
+                <h1>Đánh giá khách hàng</h1>
+                <p>Quản trị viên xem danh sách đánh giá khách hàng đã gửi trong hệ thống.</p>
             </div>
 
             <a class="top-action-btn" href="${pageContext.request.contextPath}/admin/home">
@@ -444,7 +457,7 @@
         <div class="content-card">
             <div class="content-card-header">
                 <div>
-                    <h2>Danh sách feedback</h2>
+                    <h2>Danh sách đánh giá khách hàng</h2>
                     <p>Hiển thị các đánh giá khách hàng đã gửi trong hệ thống.</p>
                 </div>
             </div>
@@ -455,13 +468,13 @@
                         <table class="table align-middle">
                             <thead>
                             <tr>
-                                <th>Mã feedback</th>
+                                <th>Mã đánh giá</th>
                                 <th>Số sao</th>
                                 <th>Nội dung</th>
                                 <th>Ngày tạo</th>
                                 <th>Trạng thái</th>
-                                <th>User ID</th>
-                                <th>Booking ID</th>
+                                <th>Mã người dùng</th>
+                                <th>Mã đơn</th>
                                 <th>Thao tác</th>
                             </tr>
                             </thead>
@@ -529,7 +542,7 @@
                 <c:otherwise>
                     <div class="empty-box">
                         <i class="fa-regular fa-comment-dots"></i>
-                        Chưa có feedback nào trong hệ thống.
+                        Chưa có đánh giá khách hàng nào trong hệ thống.
                     </div>
                 </c:otherwise>
             </c:choose>

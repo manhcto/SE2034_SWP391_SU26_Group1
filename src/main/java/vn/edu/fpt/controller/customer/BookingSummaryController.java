@@ -39,7 +39,7 @@ public class BookingSummaryController extends HttpServlet {
         if (currentUser == null) {
             request.getSession().setAttribute(
                     "redirectAfterLogin",
-                    request.getContextPath() + "/booking-summary?bookingID=" + bookingID
+                    buildCurrentSummaryUrl(request)
             );
             response.sendRedirect(request.getContextPath() + "/login");
             return;
@@ -68,7 +68,16 @@ public class BookingSummaryController extends HttpServlet {
             return;
         }
 
+        String bookingStatus = safe((String) bookingSummary.get("status"));
+        String bookingType = safe((String) bookingSummary.get("bookingType"));
+
+        bookingSummary.put("displayStatusVietnamese", getVietnameseStatus(bookingStatus));
+        bookingSummary.put("displayTypeVietnamese", getVietnameseBookingType(bookingType));
+
         request.setAttribute("bookingSummary", bookingSummary);
+        request.setAttribute("backUrl", buildBackUrl(request, currentUser));
+        request.setAttribute("backLabel", buildBackLabel(request, currentUser));
+
         request.getRequestDispatcher(SUMMARY_PAGE).forward(request, response);
     }
 
@@ -93,14 +102,14 @@ public class BookingSummaryController extends HttpServlet {
             return false;
         }
 
-        int bookingUserID = booking.getUserID();
+        Integer bookingUserID = booking.getUserID();
         int currentUserID = currentUser.getUserID();
 
-        if (bookingUserID > 0 && currentUserID > 0 && bookingUserID == currentUserID) {
+        if (bookingUserID != null && bookingUserID > 0 && currentUserID > 0 && bookingUserID == currentUserID) {
             return true;
         }
 
-        return bookingUserID <= 0
+        return (bookingUserID == null || bookingUserID <= 0)
                 && !safe(currentUser.getEmail()).isEmpty()
                 && safe(currentUser.getEmail()).equalsIgnoreCase(safe(booking.getEmail()));
     }
@@ -126,6 +135,115 @@ public class BookingSummaryController extends HttpServlet {
         } catch (NumberFormatException e) {
             return -1;
         }
+    }
+
+    private String buildCurrentSummaryUrl(HttpServletRequest request) {
+        String queryString = request.getQueryString();
+
+        if (queryString == null || queryString.trim().isEmpty()) {
+            return request.getContextPath() + "/booking-summary";
+        }
+
+        return request.getContextPath() + "/booking-summary?" + queryString;
+    }
+
+    private String buildBackUrl(HttpServletRequest request, User currentUser) {
+        String back = safe(request.getParameter("back"));
+        String type = normalizeBookingType(request.getParameter("type"));
+
+        if ("staff".equalsIgnoreCase(back) && isStaffOrAdmin(currentUser)) {
+            return request.getContextPath() + buildStaffBookingPath(type);
+        }
+
+        if ("admin".equalsIgnoreCase(back) && isStaffOrAdmin(currentUser)) {
+            return request.getContextPath() + buildAdminBookingPath(type);
+        }
+
+        return request.getContextPath() + "/";
+    }
+
+    private String buildBackLabel(HttpServletRequest request, User currentUser) {
+        String back = safe(request.getParameter("back"));
+
+        if ("staff".equalsIgnoreCase(back) && isStaffOrAdmin(currentUser)) {
+            return "Quay lại quản lý đặt chỗ";
+        }
+
+        if ("admin".equalsIgnoreCase(back) && isStaffOrAdmin(currentUser)) {
+            return "Quay lại danh sách đơn đặt chỗ";
+        }
+
+        return "Về trang chủ";
+    }
+
+    private String buildStaffBookingPath(String bookingType) {
+        if (bookingType == null || bookingType.trim().isEmpty()) {
+            return "/staff/booking";
+        }
+
+        return "/staff/booking?type=" + bookingType;
+    }
+
+    private String buildAdminBookingPath(String bookingType) {
+        if (bookingType == null || bookingType.trim().isEmpty()) {
+            return "/admin/booking";
+        }
+
+        return "/admin/booking?type=" + bookingType;
+    }
+
+    private String normalizeBookingType(String bookingType) {
+        if (bookingType == null) {
+            return "";
+        }
+
+        String value = bookingType.trim();
+
+        if ("Tour".equalsIgnoreCase(value)) {
+            return "Tour";
+        }
+
+        if ("Accommodation".equalsIgnoreCase(value)) {
+            return "Accommodation";
+        }
+
+        if ("Vehicle".equalsIgnoreCase(value)) {
+            return "Vehicle";
+        }
+
+        return "";
+    }
+
+    private String getVietnameseStatus(String status) {
+        if ("Confirmed".equalsIgnoreCase(status)) {
+            return "Đang diễn ra";
+        }
+
+        if ("Cancelled".equalsIgnoreCase(status)) {
+            return "Đã hủy";
+        }
+
+        if ("Completed".equalsIgnoreCase(status)) {
+            return "Đã hoàn thành";
+        }
+
+        return "Đang diễn ra";
+    }
+
+    private String getVietnameseBookingType(String bookingType) {
+        if ("Tour".equalsIgnoreCase(bookingType)) {
+            return "Đặt tour";
+        }
+
+        if ("Accommodation".equalsIgnoreCase(bookingType)) {
+            return "Đặt phòng";
+        }
+
+        if ("Vehicle".equalsIgnoreCase(bookingType)) {
+            return "Đặt xe";
+        }
+
+        return "Đặt chỗ";
     }
 
     private String safe(String value) {

@@ -190,16 +190,6 @@
             color: #1d4ed8;
         }
 
-        .status-badge {
-            background: #e0f2fe;
-            color: #075985;
-        }
-
-        .status-badge.pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
         .status-badge.confirmed {
             background: #dbeafe;
             color: #1d4ed8;
@@ -409,52 +399,50 @@
                 </div>
 
                 <div class="action-row">
-                    <c:if test="${param.back == 'staff'}">
-                        <a href="${pageContext.request.contextPath}/staff/booking?type=${param.type}" class="btn-staff-back">
-                            <i class="fa-solid fa-arrow-left"></i>
-                            Quay lại danh sách Staff
-                        </a>
-                    </c:if>
+                    <c:choose>
+                        <c:when test="${not empty backUrl}">
+                            <a href="${backUrl}" class="btn-staff-back">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                    ${backLabel}
+                            </a>
+                        </c:when>
 
-                    <a href="${pageContext.request.contextPath}/home" class="btn-main">
-                        <i class="fa-solid fa-house"></i>
-                        Về trang chủ
-                    </a>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/home" class="btn-main">
+                                <i class="fa-solid fa-house"></i>
+                                Về trang chủ
+                            </a>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </c:when>
 
             <c:otherwise>
-                <c:set var="statusClass" value="" />
-                <c:if test="${bookingSummary.status == 'Pending'}">
-                    <c:set var="statusClass" value="pending" />
-                </c:if>
-                <c:if test="${bookingSummary.status == 'Confirmed'}">
-                    <c:set var="statusClass" value="confirmed" />
+                <c:set var="statusClass" value="confirmed" />
+                <c:if test="${bookingSummary.status == 'Cancelled'}">
+                    <c:set var="statusClass" value="cancelled" />
                 </c:if>
                 <c:if test="${bookingSummary.status == 'Completed'}">
                     <c:set var="statusClass" value="completed" />
-                </c:if>
-                <c:if test="${bookingSummary.status == 'Cancelled'}">
-                    <c:set var="statusClass" value="cancelled" />
                 </c:if>
 
                 <div class="success-hero">
                     <div class="success-left">
                         <div class="success-icon">
-                            <i class="fa-solid fa-circle-check"></i>
+                            <i class="fa-solid fa-receipt"></i>
                         </div>
 
                         <div>
-                            <h1>Đặt chỗ thành công</h1>
+                            <h1>Chi tiết đơn đặt chỗ</h1>
                             <p>
-                                Cảm ơn bạn đã sử dụng WonderVN. Dưới đây là thông tin chi tiết đơn đặt chỗ của bạn.
-                                Vui lòng lưu lại mã booking để tiện tra cứu hoặc liên hệ hỗ trợ.
+                                Dưới đây là thông tin chi tiết đơn đặt chỗ trên hệ thống WonderVN.
+                                Vui lòng lưu lại mã đặt chỗ để tiện tra cứu hoặc liên hệ hỗ trợ khi cần.
                             </p>
                         </div>
                     </div>
 
                     <div class="hero-code">
-                        <span>Mã booking</span>
+                        <span>Mã đặt chỗ</span>
                         <strong>${bookingSummary.bookingCode}</strong>
                     </div>
                 </div>
@@ -469,17 +457,17 @@
 
                             <div class="detail-grid">
                                 <div class="detail-item">
-                                    <span class="detail-label">Booking ID</span>
+                                    <span class="detail-label">Mã đơn</span>
                                     <span class="detail-value">${bookingSummary.bookingID}</span>
                                 </div>
 
                                 <div class="detail-item">
-                                    <span class="detail-label">Mã booking</span>
+                                    <span class="detail-label">Mã đặt chỗ</span>
                                     <span class="detail-value">${bookingSummary.bookingCode}</span>
                                 </div>
 
                                 <div class="detail-item">
-                                    <span class="detail-label">Loại booking</span>
+                                    <span class="detail-label">Loại đặt chỗ</span>
                                     <span class="detail-value">
                                         <span class="type-pill">
                                             <c:choose>
@@ -497,7 +485,7 @@
                                                 </c:when>
                                                 <c:otherwise>
                                                     <i class="fa-solid fa-briefcase"></i>
-                                                    ${bookingSummary.bookingType}
+                                                    Đặt chỗ
                                                 </c:otherwise>
                                             </c:choose>
                                         </span>
@@ -509,11 +497,18 @@
                                     <span class="detail-value">
                                         <span class="status-badge ${statusClass}">
                                             <c:choose>
-                                                <c:when test="${bookingSummary.status == 'Pending'}">Chờ xử lý</c:when>
-                                                <c:when test="${bookingSummary.status == 'Confirmed'}">Đã xác nhận</c:when>
-                                                <c:when test="${bookingSummary.status == 'Completed'}">Hoàn thành</c:when>
-                                                <c:when test="${bookingSummary.status == 'Cancelled'}">Đã hủy</c:when>
-                                                <c:otherwise>${bookingSummary.status}</c:otherwise>
+                                                <c:when test="${not empty bookingSummary.displayStatusVietnamese}">
+                                                    ${bookingSummary.displayStatusVietnamese}
+                                                </c:when>
+                                                <c:when test="${bookingSummary.status == 'Cancelled'}">
+                                                    Đã hủy
+                                                </c:when>
+                                                <c:when test="${bookingSummary.status == 'Completed'}">
+                                                    Đã hoàn thành
+                                                </c:when>
+                                                <c:otherwise>
+                                                    Đang diễn ra
+                                                </c:otherwise>
                                             </c:choose>
                                         </span>
                                     </span>
@@ -601,7 +596,7 @@
                                         </div>
 
                                         <div class="detail-item">
-                                            <span class="detail-label">Service ID</span>
+                                            <span class="detail-label">Mã dịch vụ</span>
                                             <span class="detail-value">${bookingSummary.serviceID}</span>
                                         </div>
 
@@ -680,7 +675,7 @@
                                         </div>
 
                                         <div class="detail-item">
-                                            <span class="detail-label">Service ID</span>
+                                            <span class="detail-label">Mã dịch vụ</span>
                                             <span class="detail-value">${bookingSummary.serviceID}</span>
                                         </div>
 
@@ -735,7 +730,7 @@
                                         </div>
 
                                         <div class="detail-item">
-                                            <span class="detail-label">Tour Schedule ID</span>
+                                            <span class="detail-label">Mã lịch tour</span>
                                             <span class="detail-value">${bookingSummary.tourScheduleID}</span>
                                         </div>
 
@@ -809,7 +804,7 @@
                         <div class="price-header">
                             <h3>
                                 <i class="fa-solid fa-money-bill-wave me-2"></i>
-                                Thanh toán
+                                Thông tin thanh toán
                             </h3>
                         </div>
 
@@ -822,16 +817,16 @@
                                     </div>
 
                                     <div class="price-line">
-                                        <span>Đơn giá/phòng/đêm</span>
+                                        <span>Đơn giá mỗi phòng / đêm</span>
                                         <strong>
-                                            <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> đ
+                                            <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
                                         </strong>
                                     </div>
 
                                     <div class="price-line">
                                         <span>Tạm tính</span>
                                         <strong>
-                                            <fmt:formatNumber value="${bookingSummary.subTotal}" type="number" maxFractionDigits="0"/> đ
+                                            <fmt:formatNumber value="${bookingSummary.subTotal}" type="number" maxFractionDigits="0"/> VNĐ
                                         </strong>
                                     </div>
                                 </c:when>
@@ -843,16 +838,16 @@
                                     </div>
 
                                     <div class="price-line">
-                                        <span>Đơn giá/ngày</span>
+                                        <span>Đơn giá mỗi ngày</span>
                                         <strong>
-                                            <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> đ
+                                            <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
                                         </strong>
                                     </div>
 
                                     <div class="price-line">
                                         <span>Tạm tính</span>
                                         <strong>
-                                            <fmt:formatNumber value="${bookingSummary.subTotal}" type="number" maxFractionDigits="0"/> đ
+                                            <fmt:formatNumber value="${bookingSummary.subTotal}" type="number" maxFractionDigits="0"/> VNĐ
                                         </strong>
                                     </div>
                                 </c:when>
@@ -876,14 +871,14 @@
                                     <div class="price-line">
                                         <span>Đơn giá trung bình</span>
                                         <strong>
-                                            <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> đ
+                                            <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
                                         </strong>
                                     </div>
 
                                     <div class="price-line">
                                         <span>Tạm tính</span>
                                         <strong>
-                                            <fmt:formatNumber value="${bookingSummary.subTotal}" type="number" maxFractionDigits="0"/> đ
+                                            <fmt:formatNumber value="${bookingSummary.subTotal}" type="number" maxFractionDigits="0"/> VNĐ
                                         </strong>
                                     </div>
                                 </c:otherwise>
@@ -892,7 +887,7 @@
                             <div class="total-box">
                                 <div class="total-label">Tổng tiền</div>
                                 <div class="total-value">
-                                    <fmt:formatNumber value="${bookingSummary.totalPrice}" type="number" maxFractionDigits="0"/> đ
+                                    <fmt:formatNumber value="${bookingSummary.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
                                 </div>
                             </div>
                         </div>
@@ -900,12 +895,21 @@
                 </div>
 
                 <div class="action-row">
-                    <c:if test="${param.back == 'staff'}">
-                        <a href="${pageContext.request.contextPath}/staff/booking?type=${param.type}" class="btn-staff-back">
-                            <i class="fa-solid fa-arrow-left"></i>
-                            Quay lại danh sách Staff
-                        </a>
-                    </c:if>
+                    <c:choose>
+                        <c:when test="${not empty backUrl}">
+                            <a href="${backUrl}" class="btn-staff-back">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                    ${backLabel}
+                            </a>
+                        </c:when>
+
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/home" class="btn-main">
+                                <i class="fa-solid fa-house"></i>
+                                Về trang chủ
+                            </a>
+                        </c:otherwise>
+                    </c:choose>
 
                     <a href="${pageContext.request.contextPath}/home" class="btn-main">
                         <i class="fa-solid fa-house"></i>
@@ -916,7 +920,7 @@
                         <c:when test="${bookingSummary.bookingType == 'Accommodation'}">
                             <a href="${pageContext.request.contextPath}/accommodation" class="btn-secondary-soft">
                                 <i class="fa-solid fa-hotel"></i>
-                                Xem thêm lưu trú
+                                Xem thêm nơi lưu trú
                             </a>
                         </c:when>
 

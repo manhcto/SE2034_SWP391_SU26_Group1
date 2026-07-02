@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>WonderVN | Admin Booking Detail</title>
+  <title>WonderVN | Chi tiết đơn đặt</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -67,12 +67,14 @@
       font-weight: 900;
       font-size: 20px;
       margin-bottom: 12px;
+      box-shadow: 0 12px 24px rgba(239, 68, 68, 0.22);
     }
 
     .brand-box h2 {
       font-size: 26px;
       font-weight: 900;
       margin: 0;
+      letter-spacing: -0.6px;
     }
 
     .brand-box p {
@@ -166,6 +168,14 @@
       font-weight: 900;
       margin: 0;
       letter-spacing: -0.8px;
+    }
+
+    .topbar p {
+      color: #64748b;
+      margin: 8px 0 0;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.6;
     }
 
     .top-action-btn {
@@ -272,16 +282,6 @@
       color: #334155;
     }
 
-    .status-badge {
-      background: #e0f2fe;
-      color: #075985;
-    }
-
-    .status-badge.pending {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
     .status-badge.confirmed {
       background: #dbeafe;
       color: #1d4ed8;
@@ -382,21 +382,21 @@
 
   <aside class="admin-sidebar">
     <div class="brand-box">
-      <div class="brand-logo">AD</div>
+      <div class="brand-logo">QT</div>
       <h2>WonderVN</h2>
-      <p>Admin Control Center</p>
+      <p>Trung tâm quản trị hệ thống</p>
     </div>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
       <i class="fa-solid fa-house"></i>
-      <span>Admin Home</span>
+      <span>Trang chủ quản trị</span>
     </a>
 
     <div class="nav-section-title">Quản trị hệ thống</div>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
       <i class="fa-solid fa-chart-line"></i>
-      <span>Dashboard</span>
+      <span>Bảng thống kê</span>
     </a>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
@@ -404,61 +404,69 @@
       <span>Quản lý người dùng</span>
     </a>
 
-    <div class="nav-section-title">Xem booking</div>
-
-    <a class="sidebar-link ${selectedBookingType == 'Tour' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/admin/booking?type=Tour">
-      <i class="fa-solid fa-map-location-dot"></i>
-      <span>Xem đặt tour</span>
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour-approval">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>Phê duyệt tour</span>
     </a>
 
-    <a class="sidebar-link ${selectedBookingType == 'Accommodation' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/admin/booking?type=Accommodation">
-      <i class="fa-solid fa-hotel"></i>
-      <span>Xem đặt phòng</span>
+    <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/booking">
+      <i class="fa-solid fa-calendar-check"></i>
+      <span>Đơn đặt</span>
     </a>
 
-    <a class="sidebar-link ${selectedBookingType == 'Vehicle' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/admin/booking?type=Vehicle">
-      <i class="fa-solid fa-car-side"></i>
-      <span>Xem đặt xe</span>
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
+      <i class="fa-solid fa-comments"></i>
+      <span>Đánh giá khách hàng</span>
     </a>
 
-    <div class="nav-section-title">Xem khu vực Staff</div>
+    <div class="nav-section-title">Khu vực nhân viên</div>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
       <i class="fa-solid fa-user-tie"></i>
-      <span>Staff Home</span>
+      <span>Trang nhân viên</span>
     </a>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking?type=Tour">
-      <i class="fa-solid fa-pen-to-square"></i>
-      <span>Staff Booking</span>
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
+      <i class="fa-solid fa-hotel"></i>
+      <span>Lưu trú</span>
     </a>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
-      <i class="fa-solid fa-comments"></i>
-      <span>Staff Feedback</span>
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
+      <i class="fa-solid fa-car-side"></i>
+      <span>Phương tiện</span>
+    </a>
+
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <span>Tour</span>
     </a>
 
     <div class="admin-user">
-      <div class="avatar">AD</div>
+      <div class="avatar">QT</div>
       <div>
         <div class="fw-bold">Quản trị viên</div>
-        <small>Admin</small>
+        <small>Tài khoản quản trị</small>
       </div>
     </div>
   </aside>
 
-  <c:set var="backUrl" value="${backToBookingListUrl}" />
-  <c:if test="${empty backUrl}">
-    <c:set var="backUrl" value="${pageContext.request.contextPath}/admin/booking?type=${selectedBookingType}" />
-  </c:if>
+  <c:choose>
+    <c:when test="${not empty backToBookingListUrl}">
+      <c:set var="backUrl" value="${backToBookingListUrl}" />
+    </c:when>
+    <c:when test="${not empty selectedBookingType}">
+      <c:set var="backUrl" value="${pageContext.request.contextPath}/admin/booking?type=${selectedBookingType}" />
+    </c:when>
+    <c:otherwise>
+      <c:set var="backUrl" value="${pageContext.request.contextPath}/admin/booking" />
+    </c:otherwise>
+  </c:choose>
 
   <main class="main-content">
     <div class="topbar">
       <div>
-        <h1>Chi tiết booking</h1>
+        <h1>Chi tiết đơn đặt</h1>
+        <p>Quản trị viên chỉ xem thông tin đơn đặt, không sửa, không hủy và không xóa dữ liệu.</p>
       </div>
 
       <a class="top-action-btn" href="${backUrl}">
@@ -475,25 +483,42 @@
     </c:if>
 
     <c:if test="${not empty bookingDetail}">
+      <c:set var="statusClass" value="confirmed" />
+      <c:set var="statusText" value="Đang diễn ra" />
+
+      <c:if test="${bookingDetail.status == 'Cancelled'}">
+        <c:set var="statusClass" value="cancelled" />
+        <c:set var="statusText" value="Đã hủy" />
+      </c:if>
+
+      <c:if test="${bookingDetail.status == 'Completed'}">
+        <c:set var="statusClass" value="completed" />
+        <c:set var="statusText" value="Đã hoàn thành" />
+      </c:if>
+
+      <c:if test="${not empty bookingDetail.displayStatusVietnamese}">
+        <c:set var="statusText" value="${bookingDetail.displayStatusVietnamese}" />
+      </c:if>
+
       <div class="detail-card">
         <h3>
           <i class="fa-solid fa-receipt"></i>
-          1. Thông tin đơn booking
+          1. Thông tin đơn đặt
         </h3>
 
         <div class="detail-grid">
           <div class="detail-item">
-            <span class="detail-label">Booking ID</span>
+            <span class="detail-label">Mã đơn</span>
             <span class="detail-value">${bookingDetail.bookingID}</span>
           </div>
 
           <div class="detail-item">
-            <span class="detail-label">Mã booking</span>
+            <span class="detail-label">Mã đặt chỗ</span>
             <span class="detail-value booking-code">${bookingDetail.bookingCode}</span>
           </div>
 
           <div class="detail-item">
-            <span class="detail-label">Loại booking</span>
+            <span class="detail-label">Loại đơn đặt</span>
             <span class="detail-value">
               <span class="type-pill">
                 <c:choose>
@@ -511,7 +536,7 @@
                   </c:when>
                   <c:otherwise>
                     <i class="fa-solid fa-briefcase"></i>
-                    ${bookingDetail.bookingType}
+                    Đơn đặt
                   </c:otherwise>
                 </c:choose>
               </span>
@@ -521,14 +546,8 @@
           <div class="detail-item">
             <span class="detail-label">Trạng thái</span>
             <span class="detail-value">
-              <span class="status-badge ${bookingDetail.status == 'Pending' ? 'pending' : bookingDetail.status == 'Confirmed' ? 'confirmed' : bookingDetail.status == 'Completed' ? 'completed' : bookingDetail.status == 'Cancelled' ? 'cancelled' : ''}">
-                <c:choose>
-                  <c:when test="${bookingDetail.status == 'Pending'}">Chờ xử lý</c:when>
-                  <c:when test="${bookingDetail.status == 'Confirmed'}">Đã xác nhận</c:when>
-                  <c:when test="${bookingDetail.status == 'Completed'}">Hoàn thành</c:when>
-                  <c:when test="${bookingDetail.status == 'Cancelled'}">Đã hủy</c:when>
-                  <c:otherwise>${bookingDetail.status}</c:otherwise>
-                </c:choose>
+              <span class="status-badge ${statusClass}">
+                  ${statusText}
               </span>
             </span>
           </div>
@@ -595,7 +614,7 @@
           <c:when test="${bookingDetail.bookingType == 'Vehicle'}">
             <h3>
               <i class="fa-solid fa-car-side"></i>
-              3. Thông tin xe
+              3. Thông tin đặt xe
             </h3>
 
             <div class="detail-grid">
@@ -606,7 +625,10 @@
                     <c:when test="${not empty bookingDetail.itemName}">
                       ${bookingDetail.itemName}
                     </c:when>
-                    <c:otherwise>${bookingDetail.vehicleModel}</c:otherwise>
+                    <c:when test="${not empty bookingDetail.vehicleModel}">
+                      ${bookingDetail.vehicleModel}
+                    </c:when>
+                    <c:otherwise>${bookingDetail.serviceName}</c:otherwise>
                   </c:choose>
                 </span>
               </div>
@@ -636,7 +658,7 @@
               </div>
 
               <div class="detail-item">
-                <span class="detail-label">Service ID</span>
+                <span class="detail-label">Mã dịch vụ</span>
                 <span class="detail-value">${bookingDetail.serviceID}</span>
               </div>
 
@@ -694,7 +716,7 @@
               </div>
 
               <div class="detail-item">
-                <span class="detail-label">Service ID</span>
+                <span class="detail-label">Mã dịch vụ</span>
                 <span class="detail-value">${bookingDetail.serviceID}</span>
               </div>
 
@@ -746,7 +768,7 @@
               </div>
 
               <div class="detail-item">
-                <span class="detail-label">Tour Schedule ID</span>
+                <span class="detail-label">Mã lịch tour</span>
                 <span class="detail-value">${bookingDetail.tourScheduleID}</span>
               </div>
 
@@ -814,7 +836,7 @@
               </div>
 
               <div class="detail-item">
-                <span class="detail-label">Đơn giá/ngày</span>
+                <span class="detail-label">Đơn giá mỗi ngày</span>
                 <span class="detail-value">
                   <fmt:formatNumber value="${bookingDetail.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
                 </span>
@@ -828,7 +850,7 @@
               </div>
 
               <div class="detail-item">
-                <span class="detail-label">Đơn giá/phòng/đêm</span>
+                <span class="detail-label">Đơn giá mỗi phòng / đêm</span>
                 <span class="detail-value">
                   <fmt:formatNumber value="${bookingDetail.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
                 </span>
@@ -910,7 +932,7 @@
 
         <a href="${pageContext.request.contextPath}/admin/home" class="btn-home">
           <i class="fa-solid fa-house"></i>
-          Về Admin Home
+          Về trang chủ quản trị
         </a>
       </div>
     </c:if>

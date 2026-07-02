@@ -434,7 +434,7 @@
             <c:when test="${param.status == 'cartAdded'}">
                 <div class="alert alert-success rounded-4 border-0 shadow-sm">
                     <i class="fa-solid fa-cart-plus me-2"></i>
-                    Đã thêm phòng vào giỏ hàng tạm.
+                    Đã thêm phòng vào giỏ hàng theo đúng lịch lưu trú đã chọn.
                 </div>
             </c:when>
 

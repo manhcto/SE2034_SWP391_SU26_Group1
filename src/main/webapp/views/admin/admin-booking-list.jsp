@@ -1,13 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>WonderVN | Xem đặt chỗ</title>
+  <title>WonderVN | Đơn đặt</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -68,12 +67,14 @@
       font-weight: 900;
       font-size: 20px;
       margin-bottom: 12px;
+      box-shadow: 0 12px 24px rgba(239, 68, 68, 0.22);
     }
 
     .brand-box h2 {
       font-size: 26px;
       font-weight: 900;
       margin: 0;
+      letter-spacing: -0.6px;
     }
 
     .brand-box p {
@@ -169,6 +170,14 @@
       letter-spacing: -0.8px;
     }
 
+    .topbar p {
+      margin: 8px 0 0;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
     .top-action-btn {
       border: none;
       border-radius: 16px;
@@ -227,7 +236,7 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
       margin-bottom: 22px;
     }
@@ -396,16 +405,9 @@
       justify-content: center;
       padding: 7px 12px;
       border-radius: 999px;
-      background: #e0f2fe;
-      color: #075985;
       font-size: 12px;
       font-weight: 900;
       white-space: nowrap;
-    }
-
-    .status-badge.pending {
-      background: #fef3c7;
-      color: #92400e;
     }
 
     .status-badge.confirmed {
@@ -539,28 +541,41 @@
       <span>Quản lý người dùng</span>
     </a>
 
-    <div class="nav-section-title">Đặt chỗ</div>
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour-approval">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>Phê duyệt tour</span>
+    </a>
 
     <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/booking">
       <i class="fa-solid fa-calendar-check"></i>
-      <span>Xem đặt chỗ</span>
+      <span>Đơn đặt</span>
+    </a>
+
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
+      <i class="fa-solid fa-comments"></i>
+      <span>Đánh giá khách hàng</span>
     </a>
 
     <div class="nav-section-title">Khu vực nhân viên</div>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
       <i class="fa-solid fa-user-tie"></i>
-      <span>Trang chủ nhân viên</span>
+      <span>Trang nhân viên</span>
     </a>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-      <i class="fa-solid fa-pen-to-square"></i>
-      <span>Quản lý đặt chỗ</span>
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
+      <i class="fa-solid fa-hotel"></i>
+      <span>Lưu trú</span>
     </a>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
-      <i class="fa-solid fa-comments"></i>
-      <span>Đánh giá khách hàng</span>
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
+      <i class="fa-solid fa-car-side"></i>
+      <span>Phương tiện</span>
+    </a>
+
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <span>Tour</span>
     </a>
 
     <div class="admin-user">
@@ -572,26 +587,11 @@
     </div>
   </aside>
 
-  <c:set var="pendingCount" value="0" />
-  <c:set var="confirmedCount" value="0" />
-  <c:set var="revenueTotal" value="0" />
-
-  <c:forEach items="${bookingList}" var="bookingSummary">
-    <c:if test="${bookingSummary.status == 'Pending'}">
-      <c:set var="pendingCount" value="${pendingCount + 1}" />
-    </c:if>
-
-    <c:if test="${bookingSummary.status == 'Confirmed'}">
-      <c:set var="confirmedCount" value="${confirmedCount + 1}" />
-    </c:if>
-
-    <c:set var="revenueTotal" value="${revenueTotal + bookingSummary.totalPrice}" />
-  </c:forEach>
-
   <main class="main-content">
     <div class="topbar">
       <div>
-        <h1>Xem đặt chỗ</h1>
+        <h1>${bookingPageTitle}</h1>
+        <p>${bookingPageSubtitle}</p>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/admin/home">
@@ -604,7 +604,7 @@
       <a class="booking-tab ${empty selectedBookingType ? 'active' : ''}"
          href="${pageContext.request.contextPath}/admin/booking">
         <i class="fa-solid fa-layer-group"></i>
-        Tất cả đặt chỗ
+        Tất cả đơn đặt
       </a>
 
       <a class="booking-tab ${selectedBookingType == 'Tour' ? 'active' : ''}"
@@ -628,56 +628,45 @@
 
     <div class="summary-grid">
       <div class="summary-card">
-        <div class="summary-icon"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="summary-icon"><i class="fa-solid fa-circle-play"></i></div>
         <div>
-          <div class="summary-label">Tổng đặt chỗ</div>
-          <div class="summary-value">${fn:length(bookingList)}</div>
+          <div class="summary-label">Số đơn đang hoạt động</div>
+          <div class="summary-value">${activeBookingCount}</div>
         </div>
       </div>
 
       <div class="summary-card">
-        <div class="summary-icon"><i class="fa-solid fa-clock"></i></div>
+        <div class="summary-icon"><i class="fa-solid fa-ban"></i></div>
         <div>
-          <div class="summary-label">Chờ xử lý</div>
-          <div class="summary-value">${pendingCount}</div>
+          <div class="summary-label">Số đơn đã hủy</div>
+          <div class="summary-value">${cancelledBookingCount}</div>
         </div>
       </div>
 
       <div class="summary-card">
         <div class="summary-icon"><i class="fa-solid fa-circle-check"></i></div>
         <div>
-          <div class="summary-label">Đã xác nhận</div>
-          <div class="summary-value">${confirmedCount}</div>
-        </div>
-      </div>
-
-      <div class="summary-card">
-        <div class="summary-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
-        <div>
-          <div class="summary-label">Tổng giá trị</div>
-          <div class="summary-value" style="font-size: 20px;">
-            <fmt:formatNumber value="${revenueTotal}" type="number" maxFractionDigits="0"/> VNĐ
-          </div>
+          <div class="summary-label">Số đơn đã hoàn thành</div>
+          <div class="summary-value">${completedBookingCount}</div>
         </div>
       </div>
     </div>
 
     <div class="filter-card">
       <div class="row g-3 align-items-center justify-content-center">
-        <div class="col-lg-7">
+        <div class="col-lg-8">
           <input type="text"
                  class="form-control"
                  id="bookingSearchInput"
-                 placeholder="Tìm mã đặt chỗ, khách hàng, email, SĐT, dịch vụ...">
+                 placeholder="Tìm mã đặt chỗ, khách hàng, email, số điện thoại, dịch vụ...">
         </div>
 
         <div class="col-lg-3">
           <select class="form-select" id="bookingStatusFilter">
             <option value="">Tất cả trạng thái</option>
-            <option value="Pending">Chờ xử lý</option>
-            <option value="Confirmed">Đã xác nhận</option>
-            <option value="Completed">Hoàn thành</option>
+            <option value="Confirmed">Đang diễn ra</option>
             <option value="Cancelled">Đã hủy</option>
+            <option value="Completed">Đã hoàn thành</option>
           </select>
         </div>
 
@@ -685,7 +674,7 @@
           <button class="btn btn-outline-secondary w-100 h-100"
                   onclick="resetBookingFilter()"
                   type="button"
-                  title="Xóa lọc">
+                  title="Xóa bộ lọc">
             <i class="fa-solid fa-rotate-left"></i>
           </button>
         </div>
@@ -711,8 +700,35 @@
 
               <tbody>
               <c:forEach items="${bookingList}" var="booking">
-                <tr data-booking-search="${booking.bookingCode} ${booking.displayType} ${booking.firstName} ${booking.lastName} ${booking.email} ${booking.phone} ${booking.serviceName} ${booking.address}"
-                    data-booking-status="${booking.status}">
+                <c:set var="typeText" value="Đặt chỗ" />
+                <c:if test="${booking.bookingType == 'Tour'}">
+                  <c:set var="typeText" value="Đặt tour" />
+                </c:if>
+                <c:if test="${booking.bookingType == 'Accommodation'}">
+                  <c:set var="typeText" value="Đặt phòng" />
+                </c:if>
+                <c:if test="${booking.bookingType == 'Vehicle'}">
+                  <c:set var="typeText" value="Đặt xe" />
+                </c:if>
+
+                <c:set var="statusText" value="Đang diễn ra" />
+                <c:set var="statusClass" value="confirmed" />
+                <c:set var="filterStatus" value="Confirmed" />
+
+                <c:if test="${booking.status == 'Cancelled'}">
+                  <c:set var="statusText" value="Đã hủy" />
+                  <c:set var="statusClass" value="cancelled" />
+                  <c:set var="filterStatus" value="Cancelled" />
+                </c:if>
+
+                <c:if test="${booking.status == 'Completed'}">
+                  <c:set var="statusText" value="Đã hoàn thành" />
+                  <c:set var="statusClass" value="completed" />
+                  <c:set var="filterStatus" value="Completed" />
+                </c:if>
+
+                <tr data-booking-search="${booking.bookingCode} ${typeText} ${booking.firstName} ${booking.lastName} ${booking.email} ${booking.phone} ${booking.serviceName} ${booking.address} ${statusText}"
+                    data-booking-status="${filterStatus}">
                   <td>
                     <span class="booking-code">${booking.bookingCode}</span>
                   </td>
@@ -733,7 +749,7 @@
                           <i class="fa-solid fa-briefcase"></i>
                         </c:otherwise>
                       </c:choose>
-                      ${booking.displayType}
+                      ${typeText}
                     </span>
                   </td>
 
@@ -767,8 +783,8 @@
                   </td>
 
                   <td>
-                    <span class="status-badge ${fn:toLowerCase(booking.status)}">
-                        ${booking.displayStatus}
+                    <span class="status-badge ${statusClass}">
+                        ${statusText}
                     </span>
                   </td>
 
@@ -794,7 +810,7 @@
 
         <c:otherwise>
           <div class="empty-box">
-            Chưa có đơn đặt chỗ nào trong mục này.
+            Chưa có đơn đặt nào trong mục này.
           </div>
         </c:otherwise>
       </c:choose>
@@ -815,9 +831,17 @@
   }
 
   function filterBookingTable() {
-    const keyword = normalizeBookingText(document.getElementById("bookingSearchInput").value);
-    const status = normalizeBookingText(document.getElementById("bookingStatusFilter").value);
-    const rows = document.querySelectorAll("#bookingTable tbody tr[data-booking-search]");
+    const keywordInput = document.getElementById("bookingSearchInput");
+    const statusInput = document.getElementById("bookingStatusFilter");
+    const table = document.getElementById("bookingTable");
+
+    if (!keywordInput || !statusInput || !table) {
+      return;
+    }
+
+    const keyword = normalizeBookingText(keywordInput.value);
+    const status = normalizeBookingText(statusInput.value);
+    const rows = table.querySelectorAll("tbody tr[data-booking-search]");
 
     rows.forEach(function (row) {
       const rowText = normalizeBookingText(row.dataset.bookingSearch);
@@ -831,8 +855,17 @@
   }
 
   function resetBookingFilter() {
-    document.getElementById("bookingSearchInput").value = "";
-    document.getElementById("bookingStatusFilter").value = "";
+    const keywordInput = document.getElementById("bookingSearchInput");
+    const statusInput = document.getElementById("bookingStatusFilter");
+
+    if (keywordInput) {
+      keywordInput.value = "";
+    }
+
+    if (statusInput) {
+      statusInput.value = "";
+    }
+
     filterBookingTable();
   }
 

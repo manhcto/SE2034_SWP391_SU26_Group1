@@ -17,10 +17,10 @@ import vn.edu.fpt.model.User;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -89,7 +89,12 @@ public class AccommodationBookingController extends HttpServlet {
         String email = getTrimValue(request, "email");
         String phone = getTrimValue(request, "phone");
         String identityNumber = getTrimValue(request, "identityNumber");
-        String address = getTrimValue(request, "address");
+
+        String streetAddress = getTrimValue(request, "streetAddress");
+        String district = getTrimValue(request, "district");
+        String city = getTrimValue(request, "city");
+        String address = buildFullAddress(streetAddress, district, city);
+
         String note = getTrimValue(request, "note");
         boolean isBookedForOther = request.getParameter("isBookedForOther") != null;
 
@@ -113,14 +118,15 @@ public class AccommodationBookingController extends HttpServlet {
             return;
         }
 
-        if (!isValidCustomerInfo(firstName, lastName, email, phone, identityNumber, address, note)
+        if (!isValidCustomerInfo(firstName, lastName, email, phone, identityNumber, streetAddress, district, city, note)
                 || accommodationID <= 0
                 || roomID <= 0
                 || adults <= 0
                 || children < 0
                 || rooms <= 0
                 || guests <= 0
-                || !isValidDateRange(checkInRaw, checkOutRaw)) {
+                || !isValidDateRange(checkInRaw, checkOutRaw)
+                || address.length() > 255) {
 
             response.sendRedirect(bookingPageUrl + "&status=invalidCustomerInfo");
             return;
@@ -215,7 +221,8 @@ public class AccommodationBookingController extends HttpServlet {
         );
 
         if (bookingID > 0) {
-            session.setAttribute("successMessage", "Đặt phòng thành công! Mã đơn: " + booking.getBookingCode());
+            session.setAttribute("successTitle", "Đã đặt phòng thành công");
+            session.setAttribute("successMessage", "Mã đơn: " + booking.getBookingCode());
             response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
             return;
         }
@@ -264,6 +271,13 @@ public class AccommodationBookingController extends HttpServlet {
                 "INSERT INTO [dbo].[Booking_Detail] "
                         + "(bookingID, serviceID, quantity, unitPrice, subTotal, startDate, endDate, note) "
                         + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        String sqlUpdateRoom =
+                "UPDATE [dbo].[Room] "
+                        + "SET roomAvailability = roomAvailability - ? "
+                        + "WHERE roomID = ? "
+                        + "AND roomAvailability >= ? "
+                        + "AND [status] = N'Available'";
 
         try (Connection conn = new DBConnection().getConnection()) {
             conn.setAutoCommit(false);
@@ -340,6 +354,19 @@ public class AccommodationBookingController extends HttpServlet {
                     psDetail.executeUpdate();
                 }
 
+                try (PreparedStatement psUpdateRoom = conn.prepareStatement(sqlUpdateRoom)) {
+                    psUpdateRoom.setInt(1, roomQuantity);
+                    psUpdateRoom.setInt(2, roomID);
+                    psUpdateRoom.setInt(3, roomQuantity);
+
+                    int updatedRows = psUpdateRoom.executeUpdate();
+
+                    if (updatedRows == 0) {
+                        conn.rollback();
+                        return -1;
+                    }
+                }
+
                 conn.commit();
                 return generatedBookingID;
 
@@ -402,7 +429,9 @@ public class AccommodationBookingController extends HttpServlet {
             String email,
             String phone,
             String identityNumber,
-            String address,
+            String streetAddress,
+            String district,
+            String city,
             String note) {
 
         if (firstName.isEmpty()
@@ -410,7 +439,9 @@ public class AccommodationBookingController extends HttpServlet {
                 || email.isEmpty()
                 || phone.isEmpty()
                 || identityNumber.isEmpty()
-                || address.isEmpty()) {
+                || streetAddress.isEmpty()
+                || district.isEmpty()
+                || city.isEmpty()) {
             return false;
         }
 
@@ -443,7 +474,19 @@ public class AccommodationBookingController extends HttpServlet {
             return false;
         }
 
-        if (address.length() > 255) {
+        if (streetAddress.length() > 120) {
+            return false;
+        }
+
+        if (!streetAddress.matches("^[\\p{L}0-9\\s,./-]+$")) {
+            return false;
+        }
+
+        if (!isValidDistrict(district)) {
+            return false;
+        }
+
+        if (!isValidCity(city)) {
             return false;
         }
 
@@ -479,6 +522,30 @@ public class AccommodationBookingController extends HttpServlet {
         }
     }
 
+    private String buildFullAddress(String streetAddress, String district, String city) {
+        if (streetAddress == null) {
+            streetAddress = "";
+        }
+
+        if (district == null) {
+            district = "";
+        }
+
+        if (city == null) {
+            city = "";
+        }
+
+        streetAddress = streetAddress.trim();
+        district = district.trim();
+        city = city.trim();
+
+        if (streetAddress.isEmpty() && district.isEmpty() && city.isEmpty()) {
+            return "";
+        }
+
+        return streetAddress + ", " + district + ", " + city;
+    }
+
     private String buildAccommodationNote(String identityNumber, String note) {
         StringBuilder builder = new StringBuilder();
 
@@ -489,6 +556,38 @@ public class AccommodationBookingController extends HttpServlet {
         }
 
         return builder.toString();
+    }
+
+    private boolean isValidDistrict(String district) {
+        return "Quận Ba Đình".equals(district)
+                || "Quận Hoàn Kiếm".equals(district)
+                || "Quận Tây Hồ".equals(district)
+                || "Quận Long Biên".equals(district)
+                || "Quận Cầu Giấy".equals(district)
+                || "Quận Đống Đa".equals(district)
+                || "Quận Hai Bà Trưng".equals(district)
+                || "Quận Hoàng Mai".equals(district)
+                || "Quận Thanh Xuân".equals(district)
+                || "Quận Nam Từ Liêm".equals(district)
+                || "Quận Bắc Từ Liêm".equals(district)
+                || "Quận Hà Đông".equals(district)
+                || "Huyện Thanh Trì".equals(district)
+                || "Huyện Gia Lâm".equals(district)
+                || "Huyện Đông Anh".equals(district)
+                || "Huyện Sóc Sơn".equals(district);
+    }
+
+    private boolean isValidCity(String city) {
+        return "Hà Nội".equals(city)
+                || "Hồ Chí Minh".equals(city)
+                || "Đà Nẵng".equals(city)
+                || "Hải Phòng".equals(city)
+                || "Cần Thơ".equals(city)
+                || "Quảng Ninh".equals(city)
+                || "Ninh Bình".equals(city)
+                || "Huế".equals(city)
+                || "Khánh Hòa".equals(city)
+                || "Lâm Đồng".equals(city);
     }
 
     private int parsePositiveInt(String rawValue) {

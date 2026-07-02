@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Admin Home</title>
+    <title>WonderVN | Trang chủ quản trị</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -37,6 +37,15 @@
             overflow-y: auto;
             padding: 26px 18px;
             box-shadow: 8px 0 26px rgba(15, 23, 42, 0.18);
+        }
+
+        .admin-sidebar::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 20px;
         }
 
         .brand-box {
@@ -165,11 +174,6 @@
             font-size: 15px;
         }
 
-        .top-actions {
-            display: flex;
-            gap: 12px;
-        }
-
         .top-action-btn {
             border: none;
             border-radius: 16px;
@@ -181,26 +185,13 @@
             gap: 8px;
             box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
             white-space: nowrap;
-        }
-
-        .btn-client {
             background: #ffffff;
             color: #0f172a;
         }
 
-        .btn-staff {
-            background: #0f172a;
-            color: #ffffff;
-        }
-
-        .btn-client:hover {
+        .top-action-btn:hover {
             background: #f8fafc;
             color: #ef4444;
-        }
-
-        .btn-staff:hover {
-            background: #1e293b;
-            color: #ffffff;
         }
 
         .hero {
@@ -405,9 +396,8 @@
                 display: block;
             }
 
-            .top-actions {
+            .top-action-btn {
                 margin-top: 16px;
-                flex-wrap: wrap;
             }
         }
     </style>
@@ -418,21 +408,21 @@
 
     <aside class="admin-sidebar">
         <div class="brand-box">
-            <div class="brand-logo">AD</div>
+            <div class="brand-logo">QT</div>
             <h2>WonderVN</h2>
-            <p>Admin Control Center</p>
+            <p>Trung tâm quản trị hệ thống</p>
         </div>
 
         <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/home">
             <i class="fa-solid fa-house"></i>
-            <span>Admin Home</span>
+            <span>Trang chủ quản trị</span>
         </a>
 
         <div class="nav-section-title">Quản trị hệ thống</div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
             <i class="fa-solid fa-chart-line"></i>
-            <span>Dashboard</span>
+            <span>Bảng thống kê</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
@@ -442,46 +432,46 @@
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour-approval">
             <i class="fa-solid fa-circle-check"></i>
-            <span>Phê duyệt Tour</span>
+            <span>Phê duyệt tour</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
             <i class="fa-solid fa-calendar-check"></i>
-            <span>Xem Booking</span>
+            <span>Đơn đặt</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
             <i class="fa-solid fa-comments"></i>
-            <span>Xem Feedback</span>
+            <span>Đánh giá khách hàng</span>
         </a>
 
-        <div class="nav-section-title">Xem khu vực Staff</div>
+        <div class="nav-section-title">Khu vực nhân viên</div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
             <i class="fa-solid fa-user-tie"></i>
-            <span>Trang Staff</span>
+            <span>Trang nhân viên</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
             <i class="fa-solid fa-hotel"></i>
-            <span>Xem lưu trú</span>
+            <span>Lưu trú</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
             <i class="fa-solid fa-car-side"></i>
-            <span>Xem phương tiện</span>
+            <span>Phương tiện</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
             <i class="fa-solid fa-map-location-dot"></i>
-            <span>Xem Tour</span>
+            <span>Tour</span>
         </a>
 
         <div class="admin-user">
-            <div class="avatar">AD</div>
+            <div class="avatar">QT</div>
             <div>
                 <div class="fw-bold">Quản trị viên</div>
-                <small>Admin</small>
+                <small>Tài khoản quản trị</small>
             </div>
         </div>
     </aside>
@@ -491,29 +481,27 @@
         <div class="topbar">
             <div>
                 <h1>Trung tâm quản trị WonderVN</h1>
-                <p>Quản lý hệ thống, người dùng, dashboard và theo dõi toàn bộ hoạt động vận hành của staff.</p>
+                <p>Quản lý hệ thống, người dùng, bảng thống kê và theo dõi toàn bộ hoạt động vận hành.</p>
             </div>
 
-            <div class="top-actions">
-                <a class="top-action-btn btn-client" href="${pageContext.request.contextPath}/home">
-                    <i class="fa-solid fa-globe"></i>
-                    Trang khách hàng
-                </a>
-
-            </div>
+            <a class="top-action-btn" href="${pageContext.request.contextPath}/home">
+                <i class="fa-solid fa-globe"></i>
+                Trang khách hàng
+            </a>
         </div>
 
         <section class="hero">
             <div class="hero-badge">
                 <i class="fa-solid fa-shield-halved"></i>
-                Admin Workspace
+                Không gian quản trị
             </div>
 
             <h2>Quản trị hệ thống và giám sát toàn bộ hoạt động của WonderVN</h2>
 
             <p>
-                Admin chịu trách nhiệm quản lý người dùng, theo dõi dashboard, phê duyệt tour và có quyền xem
-                toàn bộ các module vận hành của staff như lưu trú, phương tiện, booking, payment, voucher và nội dung.
+                Quản trị viên chịu trách nhiệm quản lý người dùng, theo dõi bảng thống kê, phê duyệt tour
+                và xem toàn bộ các dữ liệu vận hành như đơn đặt, thanh toán, mã giảm giá, phương tiện,
+                lưu trú và đánh giá của khách hàng.
             </p>
         </section>
 
@@ -544,7 +532,7 @@
                         <i class="fa-solid fa-calendar-check"></i>
                     </div>
                     <h3>23</h3>
-                    <p>Booking chờ xử lý</p>
+                    <p>Đơn đặt đang hoạt động</p>
                 </div>
             </div>
 
@@ -559,7 +547,7 @@
             </div>
         </div>
 
-        <h3 class="section-title">Chức năng chính của Admin</h3>
+        <h3 class="section-title">Chức năng chính của quản trị viên</h3>
 
         <div class="row g-4">
             <div class="col-md-4">
@@ -567,9 +555,9 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-chart-line"></i>
                     </div>
-                    <h5>Dashboard hệ thống</h5>
-                    <p>Xem tổng quan doanh thu, booking, người dùng, tour và hoạt động vận hành.</p>
-                    <span class="module-open">Mở Dashboard <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                    <h5>Bảng thống kê hệ thống</h5>
+                    <p>Xem tổng quan doanh thu, đơn đặt, người dùng, tour và hoạt động vận hành.</p>
+                    <span class="module-open">Mở bảng thống kê <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
 
@@ -579,8 +567,8 @@
                         <i class="fa-solid fa-users-gear"></i>
                     </div>
                     <h5>Quản lý người dùng</h5>
-                    <p>Quản lý tài khoản khách hàng, staff, tour guide, trạng thái và phân quyền.</p>
-                    <span class="module-open">Mở Manage User <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                    <p>Quản lý tài khoản khách hàng, nhân viên, hướng dẫn viên, trạng thái và phân quyền.</p>
+                    <span class="module-open">Mở quản lý người dùng <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
 
@@ -589,9 +577,9 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
-                    <h5>Phê duyệt Tour</h5>
+                    <h5>Phê duyệt tour</h5>
                     <p>Xem và phê duyệt các tour trước khi công khai cho khách hàng đặt.</p>
-                    <span class="module-open">Mở Tour Approval <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                    <span class="module-open">Mở phê duyệt tour <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
 
@@ -600,9 +588,9 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-calendar-check"></i>
                     </div>
-                    <h5>Xem Booking</h5>
-                    <p>Admin xem danh sách booking và chi tiết booking, không chỉnh sửa dữ liệu booking.</p>
-                    <span class="module-open">Mở Booking View <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                    <h5>Đơn đặt</h5>
+                    <p>Quản trị viên xem danh sách đơn đặt và chi tiết đơn đặt, không chỉnh sửa dữ liệu đơn đặt.</p>
+                    <span class="module-open">Mở đơn đặt <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
 
@@ -611,14 +599,14 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h5>Xem Feedback</h5>
-                    <p>Admin xem danh sách feedback và chi tiết feedback của khách hàng, không duyệt hoặc chỉnh sửa.</p>
-                    <span class="module-open">Mở Feedback View <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                    <h5>Đánh giá khách hàng</h5>
+                    <p>Quản trị viên xem danh sách đánh giá và chi tiết đánh giá của khách hàng.</p>
+                    <span class="module-open">Mở đánh giá khách hàng <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
         </div>
 
-        <h3 class="section-title">Xem các module vận hành của Staff</h3>
+        <h3 class="section-title">Xem các module vận hành của nhân viên</h3>
 
         <div class="row g-4">
             <div class="col-md-3">
@@ -626,8 +614,8 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-hotel"></i>
                     </div>
-                    <h5>View Accommodation</h5>
-                    <p>Xem danh sách lưu trú, phòng và tiện ích đang được staff quản lý.</p>
+                    <h5>Lưu trú</h5>
+                    <p>Xem danh sách nơi lưu trú, phòng và tiện ích đang được nhân viên quản lý.</p>
                     <span class="module-open">Xem module</span>
                 </a>
             </div>
@@ -637,7 +625,7 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-car-side"></i>
                     </div>
-                    <h5>View Vehicle</h5>
+                    <h5>Phương tiện</h5>
                     <p>Xem danh sách phương tiện, giá thuê, trạng thái và địa điểm nhận xe.</p>
                     <span class="module-open">Xem module</span>
                 </a>
@@ -648,8 +636,8 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-map-location-dot"></i>
                     </div>
-                    <h5>View Tour</h5>
-                    <p>Xem tour, lịch trình, giá và trạng thái mà staff đang quản lý.</p>
+                    <h5>Tour</h5>
+                    <p>Xem tour, lịch trình, giá và trạng thái mà nhân viên đang quản lý.</p>
                     <span class="module-open">Xem module</span>
                 </a>
             </div>
@@ -659,7 +647,7 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-credit-card"></i>
                     </div>
-                    <h5>View Payment</h5>
+                    <h5>Thanh toán</h5>
                     <p>Xem giao dịch, trạng thái thanh toán và dữ liệu đối soát.</p>
                     <span class="module-open">Xem module</span>
                 </a>
@@ -670,7 +658,7 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-briefcase"></i>
                     </div>
-                    <h5>View Service</h5>
+                    <h5>Dịch vụ</h5>
                     <p>Xem danh mục dịch vụ và các dịch vụ cộng thêm trong hệ thống.</p>
                     <span class="module-open">Xem module</span>
                 </a>
@@ -681,8 +669,8 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-gift"></i>
                     </div>
-                    <h5>View Voucher</h5>
-                    <p>Xem voucher, ưu đãi và chiến dịch giảm giá đang hoạt động.</p>
+                    <h5>Mã giảm giá</h5>
+                    <p>Xem mã giảm giá, ưu đãi và chiến dịch giảm giá đang hoạt động.</p>
                     <span class="module-open">Xem module</span>
                 </a>
             </div>
@@ -692,13 +680,12 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h5>View Staff Feedback</h5>
-                    <p>Xem khu vực staff xử lý feedback, duyệt hoặc ẩn đánh giá khách hàng.</p>
+                    <h5>Đánh giá khách hàng</h5>
+                    <p>Xem khu vực nhân viên xử lý đánh giá, duyệt hoặc ẩn đánh giá khách hàng.</p>
                     <span class="module-open">Xem module</span>
                 </a>
             </div>
         </div>
-
     </main>
 </div>
 

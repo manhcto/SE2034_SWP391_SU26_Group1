@@ -114,13 +114,13 @@
 
     .sidebar-link:hover {
       background: #1e293b;
-      color: white;
+      color: #ffffff;
       transform: translateX(4px);
     }
 
     .sidebar-link.active {
       background: linear-gradient(135deg, #06b6d4, #4e46dc);
-      color: white;
+      color: #ffffff;
       box-shadow: 0 10px 22px rgba(6, 182, 212, 0.22);
     }
 
@@ -142,7 +142,7 @@
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      color: white;
+      color: #ffffff;
     }
 
     .admin-user small {
@@ -168,6 +168,13 @@
       font-weight: 900;
       margin: 0;
       letter-spacing: -0.8px;
+    }
+
+    .topbar p {
+      color: #64748b;
+      margin: 6px 0 0;
+      font-size: 15px;
+      font-weight: 650;
     }
 
     .top-action-btn {
@@ -248,7 +255,7 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
       margin-bottom: 22px;
     }
@@ -276,10 +283,23 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: #eef2ff;
-      color: #4e46dc;
       font-size: 20px;
       flex-shrink: 0;
+    }
+
+    .summary-icon.active {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .summary-icon.cancelled {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .summary-icon.completed {
+      background: #dcfce7;
+      color: #166534;
     }
 
     .summary-label {
@@ -382,7 +402,7 @@
     }
 
     .col-action {
-      width: 15%;
+      width: 17%;
     }
 
     .booking-code {
@@ -417,16 +437,9 @@
       justify-content: center;
       padding: 7px 12px;
       border-radius: 999px;
-      background: #e0f2fe;
-      color: #075985;
       font-size: 12px;
       font-weight: 900;
       white-space: nowrap;
-    }
-
-    .status-badge.pending {
-      background: #fef3c7;
-      color: #92400e;
     }
 
     .status-badge.confirmed {
@@ -466,8 +479,8 @@
     }
 
     .btn-view,
-    .btn-edit,
-    .btn-delete {
+    .btn-cancel,
+    .btn-complete {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -492,27 +505,33 @@
       color: #ffffff;
     }
 
-    .btn-edit {
-      background: #4e46dc;
-    }
-
-    .btn-edit:hover {
-      background: #3730a3;
-      color: #ffffff;
-    }
-
-    .btn-delete {
+    .btn-cancel {
       background: #dc2626;
     }
 
-    .btn-delete:hover {
+    .btn-cancel:hover {
       background: #b91c1c;
       color: #ffffff;
     }
 
-    .delete-form {
+    .btn-complete {
+      background: #16a34a;
+    }
+
+    .btn-complete:hover {
+      background: #15803d;
+      color: #ffffff;
+    }
+
+    .action-form {
       margin: 0;
       display: inline;
+    }
+
+    .no-action-text {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
     }
 
     .empty-box {
@@ -551,15 +570,11 @@
       }
 
       .summary-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
       }
     }
 
     @media (max-width: 576px) {
-      .summary-grid {
-        grid-template-columns: 1fr;
-      }
-
       .booking-tabs {
         flex-direction: column;
       }
@@ -594,7 +609,7 @@
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
       <i class="fa-solid fa-map-location-dot"></i>
-      <span>Quản lý Tour</span>
+      <span>Quản lý tour</span>
     </a>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
@@ -614,7 +629,7 @@
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/external-ticket">
       <i class="fa-solid fa-ticket"></i>
-      <span>Vé tham quan bên ngoài</span>
+      <span>Quản lý vé tham quan</span>
     </a>
 
     <div class="nav-section-title">Vận hành đặt chỗ</div>
@@ -631,7 +646,7 @@
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/voucher">
       <i class="fa-solid fa-gift"></i>
-      <span>Quản lý Voucher</span>
+      <span>Quản lý phiếu giảm giá</span>
     </a>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/assignment">
@@ -639,11 +654,11 @@
       <span>Điều phối hướng dẫn viên</span>
     </a>
 
-    <div class="nav-section-title">Nội dung & CSKH</div>
+    <div class="nav-section-title">Nội dung và chăm sóc khách hàng</div>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/blog">
       <i class="fa-solid fa-newspaper"></i>
-      <span>Quản lý Blog</span>
+      <span>Quản lý bài viết</span>
     </a>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
@@ -665,26 +680,11 @@
     </div>
   </aside>
 
-  <c:set var="pendingCount" value="0" />
-  <c:set var="confirmedCount" value="0" />
-  <c:set var="revenueTotal" value="0" />
-
-  <c:forEach items="${bookingList}" var="bookingSummary">
-    <c:if test="${bookingSummary.status == 'Pending'}">
-      <c:set var="pendingCount" value="${pendingCount + 1}" />
-    </c:if>
-
-    <c:if test="${bookingSummary.status == 'Confirmed'}">
-      <c:set var="confirmedCount" value="${confirmedCount + 1}" />
-    </c:if>
-
-    <c:set var="revenueTotal" value="${revenueTotal + bookingSummary.totalPrice}" />
-  </c:forEach>
-
   <main class="main-content">
     <div class="topbar">
       <div>
-        <h1>Quản lý đặt chỗ</h1>
+        <h1>${bookingPageTitle}</h1>
+        <p>${bookingPageSubtitle}</p>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/home">
@@ -721,58 +721,61 @@
 
     <div class="summary-grid">
       <div class="summary-card">
-        <div class="summary-icon"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="summary-icon active">
+          <i class="fa-solid fa-circle-play"></i>
+        </div>
         <div>
-          <div class="summary-label">Tổng đặt chỗ</div>
-          <div class="summary-value">${fn:length(bookingList)}</div>
+          <div class="summary-label">Số đơn đang hoạt động</div>
+          <div class="summary-value">${activeBookingCount}</div>
         </div>
       </div>
 
       <div class="summary-card">
-        <div class="summary-icon"><i class="fa-solid fa-clock"></i></div>
+        <div class="summary-icon cancelled">
+          <i class="fa-solid fa-ban"></i>
+        </div>
         <div>
-          <div class="summary-label">Chờ xử lý</div>
-          <div class="summary-value">${pendingCount}</div>
+          <div class="summary-label">Số đơn đã hủy</div>
+          <div class="summary-value">${cancelledBookingCount}</div>
         </div>
       </div>
 
       <div class="summary-card">
-        <div class="summary-icon"><i class="fa-solid fa-circle-check"></i></div>
-        <div>
-          <div class="summary-label">Đã xác nhận</div>
-          <div class="summary-value">${confirmedCount}</div>
+        <div class="summary-icon completed">
+          <i class="fa-solid fa-circle-check"></i>
         </div>
-      </div>
-
-      <div class="summary-card">
-        <div class="summary-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
         <div>
-          <div class="summary-label">Tổng giá trị</div>
-          <div class="summary-value" style="font-size: 20px;">
-            <fmt:formatNumber value="${revenueTotal}" type="number" maxFractionDigits="0"/> VNĐ
-          </div>
+          <div class="summary-label">Số đơn đã hoàn thành</div>
+          <div class="summary-value">${completedBookingCount}</div>
         </div>
       </div>
     </div>
 
-    <c:if test="${param.success == 'updated'}">
+    <c:if test="${param.success == 'cancelled'}">
       <div class="success-box">
         <i class="fa-solid fa-circle-check me-2"></i>
-        Cập nhật đặt chỗ thành công.
+        Hủy đơn đặt chỗ thành công.
       </div>
     </c:if>
 
-    <c:if test="${param.success == 'deleted'}">
+    <c:if test="${param.success == 'completed'}">
       <div class="success-box">
         <i class="fa-solid fa-circle-check me-2"></i>
-        Xóa đặt chỗ thành công.
+        Đánh dấu đơn đặt chỗ đã hoàn thành thành công.
       </div>
     </c:if>
 
-    <c:if test="${param.error == 'deleteFailed'}">
+    <c:if test="${param.error == 'cancelFailed'}">
       <div class="error-box">
         <i class="fa-solid fa-triangle-exclamation me-2"></i>
-        Xóa đặt chỗ thất bại. Đơn có thể đang liên kết với dữ liệu khác.
+        Hủy đơn đặt chỗ thất bại. Chỉ có thể hủy đơn đang hoạt động.
+      </div>
+    </c:if>
+
+    <c:if test="${param.error == 'completeFailed'}">
+      <div class="error-box">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+        Đánh dấu hoàn thành thất bại. Chỉ có thể hoàn thành đơn đang hoạt động.
       </div>
     </c:if>
 
@@ -782,16 +785,15 @@
           <input type="text"
                  class="form-control"
                  id="bookingSearchInput"
-                 placeholder="Tìm mã đặt chỗ, khách hàng, email, SĐT, dịch vụ...">
+                 placeholder="Tìm mã đặt chỗ, khách hàng, email, số điện thoại, dịch vụ...">
         </div>
 
         <div class="col-lg-3">
           <select class="form-select" id="bookingStatusFilter">
             <option value="">Tất cả trạng thái</option>
-            <option value="Pending">Chờ xử lý</option>
-            <option value="Confirmed">Đã xác nhận</option>
-            <option value="Completed">Hoàn thành</option>
+            <option value="Confirmed">Đang diễn ra</option>
             <option value="Cancelled">Đã hủy</option>
+            <option value="Completed">Đã hoàn thành</option>
           </select>
         </div>
 
@@ -799,7 +801,7 @@
           <button class="btn btn-outline-secondary w-100 h-100"
                   onclick="resetBookingFilter()"
                   type="button"
-                  title="Xóa lọc">
+                  title="Xóa bộ lọc">
             <i class="fa-solid fa-rotate-left"></i>
           </button>
         </div>
@@ -816,7 +818,7 @@
                 <th class="col-code">Mã đặt chỗ</th>
                 <th class="col-type">Loại</th>
                 <th class="col-customer">Khách hàng</th>
-                <th class="col-service">Dịch vụ / lịch</th>
+                <th class="col-service">Dịch vụ / lịch sử dụng</th>
                 <th class="col-status">Trạng thái</th>
                 <th class="col-money">Tổng tiền</th>
                 <th class="col-action">Thao tác</th>
@@ -875,15 +877,26 @@
                             - <fmt:formatDate value="${booking.serviceEndDate}" pattern="dd/MM/yyyy"/>
                           </c:if>
                         </c:when>
-                        <c:otherwise>Chưa có lịch</c:otherwise>
+                        <c:otherwise>Chưa có lịch sử dụng</c:otherwise>
                       </c:choose>
                     </div>
                   </td>
 
                   <td>
-                    <span class="status-badge ${fn:toLowerCase(booking.status)}">
-                        ${booking.displayStatus}
-                    </span>
+                    <c:choose>
+                      <c:when test="${booking.status == 'Confirmed'}">
+                        <span class="status-badge confirmed">Đang diễn ra</span>
+                      </c:when>
+                      <c:when test="${booking.status == 'Cancelled'}">
+                        <span class="status-badge cancelled">Đã hủy</span>
+                      </c:when>
+                      <c:when test="${booking.status == 'Completed'}">
+                        <span class="status-badge completed">Đã hoàn thành</span>
+                      </c:when>
+                      <c:otherwise>
+                        <span class="status-badge confirmed">Đang diễn ra</span>
+                      </c:otherwise>
+                    </c:choose>
                   </td>
 
                   <td>
@@ -897,27 +910,40 @@
                       <a class="btn-view"
                          href="${pageContext.request.contextPath}/booking-summary?bookingID=${booking.bookingID}&back=staff&type=${not empty selectedBookingType ? selectedBookingType : ''}">
                         <i class="fa-solid fa-eye"></i>
-                        Xem
+                        Xem chi tiết
                       </a>
 
-                      <a class="btn-edit"
-                         href="${pageContext.request.contextPath}/staff/booking-edit?bookingID=${booking.bookingID}&type=${selectedBookingType}">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                        Sửa
-                      </a>
+                      <c:if test="${booking.status == 'Confirmed'}">
+                        <form class="action-form"
+                              action="${pageContext.request.contextPath}/staff/booking-cancel"
+                              method="post"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn đặt chỗ này không? Đơn sẽ chuyển sang trạng thái Đã hủy và không bị xóa khỏi hệ thống.');">
+                          <input type="hidden" name="bookingID" value="${booking.bookingID}">
+                          <input type="hidden" name="type" value="${selectedBookingType}">
 
-                      <form class="delete-form"
-                            action="${pageContext.request.contextPath}/staff/booking-delete"
-                            method="post"
-                            onsubmit="return confirm('Bạn có chắc chắn muốn xóa đơn đặt chỗ này không?');">
-                        <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                        <input type="hidden" name="type" value="${selectedBookingType}">
+                          <button type="submit" class="btn-cancel">
+                            <i class="fa-solid fa-ban"></i>
+                            Hủy đơn
+                          </button>
+                        </form>
 
-                        <button type="submit" class="btn-delete">
-                          <i class="fa-solid fa-trash"></i>
-                          Xóa
-                        </button>
-                      </form>
+                        <form class="action-form"
+                              action="${pageContext.request.contextPath}/staff/booking-complete"
+                              method="post"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn đánh dấu đơn đặt chỗ này là đã hoàn thành không?');">
+                          <input type="hidden" name="bookingID" value="${booking.bookingID}">
+                          <input type="hidden" name="type" value="${selectedBookingType}">
+
+                          <button type="submit" class="btn-complete">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Đánh dấu hoàn thành
+                          </button>
+                        </form>
+                      </c:if>
+
+                      <c:if test="${booking.status != 'Confirmed'}">
+                        <span class="no-action-text">Không có thao tác</span>
+                      </c:if>
                     </div>
                   </td>
                 </tr>

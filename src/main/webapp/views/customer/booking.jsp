@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Booking</title>
+    <title>WonderVN | Đặt chỗ</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=1000">
@@ -367,6 +367,144 @@
             margin-top: 18px;
         }
 
+
+
+        .cart-booking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .cart-booking-item {
+            display: grid;
+            grid-template-columns: 78px minmax(0, 1fr);
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            background: #f8fafc;
+        }
+
+        .cart-booking-item img {
+            width: 78px;
+            height: 64px;
+            border-radius: 14px;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+
+        .cart-booking-item-name {
+            color: #0f172a;
+            font-size: 15px;
+            font-weight: 950;
+            line-height: 1.35;
+            margin-bottom: 4px;
+        }
+
+        .cart-booking-item-meta {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .cart-booking-item-price {
+            color: #1d4ed8;
+            font-size: 14px;
+            font-weight: 950;
+            margin-top: 5px;
+        }
+
+        .date-group-title {
+            grid-column: 1 / -1;
+            margin-top: 6px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+            font-weight: 950;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+
+        .cart-compact-note {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr);
+            gap: 12px;
+            align-items: start;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            border-radius: 18px;
+            background: #f8fafc;
+            border: 1px solid #dbeafe;
+        }
+
+        .cart-compact-note-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: #eff6ff;
+            color: #2563eb;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .cart-compact-note strong {
+            display: block;
+            color: #0f172a;
+            font-weight: 950;
+            margin-bottom: 4px;
+        }
+
+        .cart-compact-note span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.55;
+        }
+
+        .readonly-stay-list {
+            grid-column: 1 / -1;
+            display: grid;
+            gap: 10px;
+        }
+
+        .readonly-stay-card {
+            border: 1px solid #dbeafe;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 13px 14px;
+        }
+
+        .readonly-stay-card strong {
+            display: block;
+            color: #0f172a;
+            font-weight: 950;
+            margin-bottom: 7px;
+        }
+
+        .readonly-stay-card span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 800;
+            margin-right: 12px;
+            line-height: 1.7;
+        }
+
+        .readonly-stay-card i {
+            color: #2563eb;
+        }
+
         @media (max-width: 992px) {
             .booking-title-area {
                 display: block;
@@ -435,16 +573,322 @@
 
             <c:choose>
 
-                <%-- ===================== VEHICLE BOOKING ===================== --%>
+
+                <c:when test="${bookingMode == 'cart'}">
+                    <div class="booking-title-area">
+                        <div>
+                            <p class="section-kicker">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                                Giỏ hàng
+                            </p>
+                            <h2>Hoàn tất đặt đơn từ giỏ hàng</h2>
+                            <p>Vui lòng kiểm tra dịch vụ đã chọn và nhập thông tin liên hệ. Ngày lưu trú của phòng sẽ giữ đúng theo lúc bạn thêm vào giỏ hàng.</p>
+                        </div>
+
+                        <a class="btn-soft-back" href="${pageContext.request.contextPath}/cart">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            Quay lại giỏ hàng
+                        </a>
+                    </div>
+
+                    <div class="booking-layout">
+                        <section class="booking-card">
+                            <h3 class="form-section-title">
+                                <i class="fa-solid fa-user-check"></i>
+                                Thông tin người đặt
+                            </h3>
+
+                            <form action="${pageContext.request.contextPath}/booking"
+                                  method="post"
+                                  class="js-realtime-booking-form"
+                                  data-mode="cart"
+                                  novalidate>
+
+                                <input type="hidden" name="bookingType" value="Cart">
+                                <input type="hidden" name="type" value="cart">
+
+                                <c:forEach var="item" items="${cartBookingItems}">
+                                    <input type="hidden" name="cartItemID" value="${item.cartItemID}">
+                                </c:forEach>
+
+                                <div class="cart-compact-note">
+                                    <div class="cart-compact-note-icon">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Lưu ý khi đặt đơn từ giỏ hàng</strong>
+                                        <c:if test="${hasRoomItems}">
+                                            <span>Phòng sẽ dùng đúng ngày nhận phòng và ngày trả phòng đã chọn khi thêm vào giỏ hàng, không nhập lại ở bước này.</span>
+                                        </c:if>
+                                        <c:if test="${hasVehicleItems}">
+                                            <span>Xe cần chọn ngày nhận xe và ngày trả xe ở bước đặt đơn.</span>
+                                        </c:if>
+                                    </div>
+                                </div>
+
+                                <div class="booking-form-grid">
+                                    <div class="form-group">
+                                        <label for="firstName">Họ và tên đệm *</label>
+                                        <input type="text"
+                                               id="firstName"
+                                               name="firstName"
+                                               value="${firstName}">
+                                        <span class="field-error-message" id="firstNameError"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="lastName">Tên *</label>
+                                        <input type="text"
+                                               id="lastName"
+                                               name="lastName"
+                                               value="${lastName}">
+                                        <span class="field-error-message" id="lastNameError"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="email">Email *</label>
+                                        <input type="text"
+                                               id="email"
+                                               name="email"
+                                               value="${email}">
+                                        <span class="field-error-message" id="emailError"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="phone">Số điện thoại *</label>
+                                        <input type="text"
+                                               id="phone"
+                                               name="phone"
+                                               value="${phone}">
+                                        <span class="field-error-message" id="phoneError"></span>
+                                    </div>
+
+                                    <c:if test="${hasRoomItems}">
+                                        <div class="form-group">
+                                            <label for="identityNumber">CCCD / CMND *</label>
+                                            <input type="text"
+                                                   id="identityNumber"
+                                                   name="identityNumber"
+                                                   inputmode="numeric"
+                                                   value="${identityNumber}"
+                                                   placeholder="Nhập 9 hoặc 12 chữ số">
+                                            <span class="field-error-message" id="identityNumberError"></span>
+                                        </div>
+                                    </c:if>
+
+                                    <c:if test="${hasVehicleItems}">
+                                        <div class="date-group-title">
+                                            <i class="fa-solid fa-car-side"></i>
+                                            Thời gian thuê xe
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="pickupDate">Ngày nhận xe *</label>
+                                            <input type="date"
+                                                   id="pickupDate"
+                                                   name="pickupDate"
+                                                   value="${not empty pickupDate ? pickupDate : defaultPickupDate}"
+                                                   min="${minServiceDate}">
+                                            <span class="field-error-message" id="pickupDateError"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="returnDate">Ngày trả xe *</label>
+                                            <input type="date"
+                                                   id="returnDate"
+                                                   name="returnDate"
+                                                   value="${not empty returnDate ? returnDate : defaultReturnDate}"
+                                                   min="${minServiceDate}">
+                                            <span class="field-error-message" id="returnDateError"></span>
+                                        </div>
+                                    </c:if>
+
+                                    <c:if test="${hasRoomItems}">
+                                        <div class="date-group-title">
+                                            <i class="fa-solid fa-bed"></i>
+                                            Thời gian lưu trú đã chọn
+                                        </div>
+
+                                        <div class="readonly-stay-list">
+                                            <c:forEach var="item" items="${cartBookingItems}">
+                                                <c:if test="${item.itemType == 'Room'}">
+                                                    <div class="readonly-stay-card">
+                                                        <strong>${item.itemName}</strong>
+                                                        <c:choose>
+                                                            <c:when test="${not empty item.startDate && not empty item.endDate}">
+                                                                <span>
+                                                                    <i class="fa-solid fa-calendar-check"></i>
+                                                                    Nhận phòng: <fmt:formatDate value="${item.startDate}" pattern="dd/MM/yyyy"/>
+                                                                </span>
+                                                                <span>
+                                                                    <i class="fa-solid fa-calendar-xmark"></i>
+                                                                    Trả phòng: <fmt:formatDate value="${item.endDate}" pattern="dd/MM/yyyy"/>
+                                                                </span>
+                                                                <span>
+                                                                    <i class="fa-solid fa-moon"></i>
+                                                                    ${item.nights} đêm
+                                                                </span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <span>
+                                                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                                                    Phòng này chưa có ngày lưu trú. Vui lòng xóa khỏi giỏ hàng và thêm lại.
+                                                                </span>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </div>
+                                                </c:if>
+                                            </c:forEach>
+                                        </div>
+                                    </c:if>
+
+                                    <div class="form-group full">
+                                        <label for="streetAddress">Số nhà, đường *</label>
+                                        <input type="text"
+                                               id="streetAddress"
+                                               name="streetAddress"
+                                               value="${not empty streetAddress ? streetAddress : address}"
+                                               maxlength="120"
+                                               placeholder="VD: Số 10 Nguyễn Trãi">
+                                        <span class="field-error-message" id="streetAddressError"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="district">Quận / Huyện *</label>
+                                        <select id="district" name="district">
+                                            <option value="">-- Chọn quận / huyện --</option>
+                                            <option value="Quận Ba Đình" ${district == 'Quận Ba Đình' ? 'selected' : ''}>Quận Ba Đình</option>
+                                            <option value="Quận Hoàn Kiếm" ${district == 'Quận Hoàn Kiếm' ? 'selected' : ''}>Quận Hoàn Kiếm</option>
+                                            <option value="Quận Tây Hồ" ${district == 'Quận Tây Hồ' ? 'selected' : ''}>Quận Tây Hồ</option>
+                                            <option value="Quận Long Biên" ${district == 'Quận Long Biên' ? 'selected' : ''}>Quận Long Biên</option>
+                                            <option value="Quận Cầu Giấy" ${district == 'Quận Cầu Giấy' ? 'selected' : ''}>Quận Cầu Giấy</option>
+                                            <option value="Quận Đống Đa" ${district == 'Quận Đống Đa' ? 'selected' : ''}>Quận Đống Đa</option>
+                                            <option value="Quận Hai Bà Trưng" ${district == 'Quận Hai Bà Trưng' ? 'selected' : ''}>Quận Hai Bà Trưng</option>
+                                            <option value="Quận Hoàng Mai" ${district == 'Quận Hoàng Mai' ? 'selected' : ''}>Quận Hoàng Mai</option>
+                                            <option value="Quận Thanh Xuân" ${district == 'Quận Thanh Xuân' ? 'selected' : ''}>Quận Thanh Xuân</option>
+                                            <option value="Quận Nam Từ Liêm" ${district == 'Quận Nam Từ Liêm' ? 'selected' : ''}>Quận Nam Từ Liêm</option>
+                                            <option value="Quận Bắc Từ Liêm" ${district == 'Quận Bắc Từ Liêm' ? 'selected' : ''}>Quận Bắc Từ Liêm</option>
+                                            <option value="Quận Hà Đông" ${district == 'Quận Hà Đông' ? 'selected' : ''}>Quận Hà Đông</option>
+                                            <option value="Huyện Thanh Trì" ${district == 'Huyện Thanh Trì' ? 'selected' : ''}>Huyện Thanh Trì</option>
+                                            <option value="Huyện Gia Lâm" ${district == 'Huyện Gia Lâm' ? 'selected' : ''}>Huyện Gia Lâm</option>
+                                            <option value="Huyện Đông Anh" ${district == 'Huyện Đông Anh' ? 'selected' : ''}>Huyện Đông Anh</option>
+                                            <option value="Huyện Sóc Sơn" ${district == 'Huyện Sóc Sơn' ? 'selected' : ''}>Huyện Sóc Sơn</option>
+                                        </select>
+                                        <span class="field-error-message" id="districtError"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="city">Tỉnh / Thành phố *</label>
+                                        <select id="city" name="city">
+                                            <option value="">-- Chọn tỉnh / thành phố --</option>
+                                            <option value="Hà Nội" ${city == 'Hà Nội' ? 'selected' : ''}>Hà Nội</option>
+                                            <option value="Hồ Chí Minh" ${city == 'Hồ Chí Minh' ? 'selected' : ''}>Hồ Chí Minh</option>
+                                            <option value="Đà Nẵng" ${city == 'Đà Nẵng' ? 'selected' : ''}>Đà Nẵng</option>
+                                            <option value="Hải Phòng" ${city == 'Hải Phòng' ? 'selected' : ''}>Hải Phòng</option>
+                                            <option value="Cần Thơ" ${city == 'Cần Thơ' ? 'selected' : ''}>Cần Thơ</option>
+                                            <option value="Quảng Ninh" ${city == 'Quảng Ninh' ? 'selected' : ''}>Quảng Ninh</option>
+                                            <option value="Ninh Bình" ${city == 'Ninh Bình' ? 'selected' : ''}>Ninh Bình</option>
+                                            <option value="Huế" ${city == 'Huế' ? 'selected' : ''}>Huế</option>
+                                            <option value="Khánh Hòa" ${city == 'Khánh Hòa' ? 'selected' : ''}>Khánh Hòa</option>
+                                            <option value="Lâm Đồng" ${city == 'Lâm Đồng' ? 'selected' : ''}>Lâm Đồng</option>
+                                        </select>
+                                        <span class="field-error-message" id="cityError"></span>
+                                    </div>
+
+                                    <input type="hidden" id="fullAddress" name="address" value="${address}">
+
+                                    <div class="form-group full">
+                                        <label for="note">Ghi chú</label>
+                                        <textarea id="note"
+                                                  name="note"
+                                                  maxlength="1000"
+                                                  placeholder="Ví dụ: yêu cầu nhận xe, nhận phòng, hỗ trợ khách đi cùng...">${note}</textarea>
+                                        <span class="field-error-message" id="noteError"></span>
+                                    </div>
+                                </div>
+
+                                <label class="checkbox-line">
+                                    <input type="checkbox" name="isBookedForOther" <c:if test="${isBookedForOther}">checked</c:if>>
+                                    Tôi đang đặt hộ cho người khác
+                                </label>
+
+                                <div class="booking-actions">
+                                    <a class="btn-soft-back" href="${pageContext.request.contextPath}/cart">
+                                        <i class="fa-solid fa-arrow-left"></i>
+                                        Quay lại giỏ hàng
+                                    </a>
+
+                                    <button type="submit" class="btn-submit-booking">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        Đặt đơn
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
+
+                        <aside class="summary-card">
+                            <div class="summary-body">
+                                <div class="summary-title">Dịch vụ đã chọn</div>
+                                <div class="summary-subtitle">
+                                    <i class="fa-solid fa-cart-shopping me-1"></i>
+                                    Tạo đơn riêng cho từng dịch vụ trong giỏ hàng
+                                </div>
+
+                                <div class="cart-booking-list">
+                                    <c:forEach var="item" items="${cartBookingItems}">
+                                        <div class="cart-booking-item">
+                                            <img src="${empty item.image ? 'https://placehold.co/300x220?text=WonderVN' : item.image}"
+                                                 alt="${item.itemName}"
+                                                 onerror="this.src='https://placehold.co/300x220?text=WonderVN';">
+
+                                            <div>
+                                                <div class="cart-booking-item-name">${item.itemName}</div>
+                                                <div class="cart-booking-item-meta">
+                                                    <c:choose>
+                                                        <c:when test="${item.itemType == 'Vehicle'}">Xe</c:when>
+                                                        <c:when test="${item.itemType == 'Room'}">Phòng</c:when>
+                                                        <c:otherwise>Dịch vụ</c:otherwise>
+                                                    </c:choose>
+                                                    <c:if test="${not empty item.providerName}">
+                                                        · ${item.providerName}
+                                                    </c:if>
+                                                    <c:if test="${not empty item.detailText}">
+                                                        <br>${item.detailText}
+                                                    </c:if>
+                                                </div>
+                                                <div class="cart-booking-item-price">
+                                                    <fmt:formatNumber value="${item.subTotal}" type="number" maxFractionDigits="0"/> VNĐ
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+
+                                <div class="summary-total">
+                                    <div class="summary-total-label">Tổng tạm tính</div>
+                                    <div class="summary-total-value">
+                                        <fmt:formatNumber value="${cartBookingTotal}" type="number" maxFractionDigits="0"/> VNĐ
+                                    </div>
+                                </div>
+
+                                <div class="summary-line" style="border-bottom: none; margin-top: 8px; padding-bottom: 0;">
+                                    <span><i class="fa-solid fa-lock"></i> Lịch phòng</span>
+                                    <strong>Giữ nguyên từ giỏ hàng</strong>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </c:when>
+
                 <c:when test="${bookingMode == 'vehicle'}">
                     <div class="booking-title-area">
                         <div>
                             <p class="section-kicker">
                                 <i class="fa-solid fa-car-side"></i>
-                                Booking
+                                Đặt chỗ
                             </p>
-                            <h2>Đặt xe ngay</h2>
-                            <p>Vui lòng kiểm tra thông tin xe và thời gian thuê trước khi xác nhận booking.</p>
+                            <h2>Hoàn tất thông tin đặt xe</h2>
+                            <p>Vui lòng kiểm tra thông tin xe, thời gian thuê và thông tin liên hệ trước khi tiếp tục thanh toán.</p>
                         </div>
 
                         <a class="btn-soft-back" href="${pageContext.request.contextPath}/vehicle/detail?id=${vehicle.serviceID}">
@@ -528,15 +972,59 @@
                                     </div>
 
                                     <div class="form-group full">
-                                        <label for="address">Địa chỉ liên hệ *</label>
+                                        <label for="streetAddress">Số nhà, đường *</label>
                                         <input type="text"
-                                               id="address"
-                                               name="address"
-                                               value="${address}"
-                                               maxlength="255"
-                                               placeholder="Nhập địa chỉ liên hệ của khách hàng">
-                                        <span class="field-error-message" id="addressError"></span>
+                                               id="streetAddress"
+                                               name="streetAddress"
+                                               value="${not empty streetAddress ? streetAddress : address}"
+                                               maxlength="120"
+                                               placeholder="VD: Số 10 Nguyễn Trãi">
+                                        <span class="field-error-message" id="streetAddressError"></span>
                                     </div>
+
+                                    <div class="form-group">
+                                        <label for="district">Quận / Huyện *</label>
+                                        <select id="district" name="district">
+                                            <option value="">-- Chọn quận / huyện --</option>
+                                            <option value="Quận Ba Đình" ${district == 'Quận Ba Đình' ? 'selected' : ''}>Quận Ba Đình</option>
+                                            <option value="Quận Hoàn Kiếm" ${district == 'Quận Hoàn Kiếm' ? 'selected' : ''}>Quận Hoàn Kiếm</option>
+                                            <option value="Quận Tây Hồ" ${district == 'Quận Tây Hồ' ? 'selected' : ''}>Quận Tây Hồ</option>
+                                            <option value="Quận Long Biên" ${district == 'Quận Long Biên' ? 'selected' : ''}>Quận Long Biên</option>
+                                            <option value="Quận Cầu Giấy" ${district == 'Quận Cầu Giấy' ? 'selected' : ''}>Quận Cầu Giấy</option>
+                                            <option value="Quận Đống Đa" ${district == 'Quận Đống Đa' ? 'selected' : ''}>Quận Đống Đa</option>
+                                            <option value="Quận Hai Bà Trưng" ${district == 'Quận Hai Bà Trưng' ? 'selected' : ''}>Quận Hai Bà Trưng</option>
+                                            <option value="Quận Hoàng Mai" ${district == 'Quận Hoàng Mai' ? 'selected' : ''}>Quận Hoàng Mai</option>
+                                            <option value="Quận Thanh Xuân" ${district == 'Quận Thanh Xuân' ? 'selected' : ''}>Quận Thanh Xuân</option>
+                                            <option value="Quận Nam Từ Liêm" ${district == 'Quận Nam Từ Liêm' ? 'selected' : ''}>Quận Nam Từ Liêm</option>
+                                            <option value="Quận Bắc Từ Liêm" ${district == 'Quận Bắc Từ Liêm' ? 'selected' : ''}>Quận Bắc Từ Liêm</option>
+                                            <option value="Quận Hà Đông" ${district == 'Quận Hà Đông' ? 'selected' : ''}>Quận Hà Đông</option>
+                                            <option value="Huyện Thanh Trì" ${district == 'Huyện Thanh Trì' ? 'selected' : ''}>Huyện Thanh Trì</option>
+                                            <option value="Huyện Gia Lâm" ${district == 'Huyện Gia Lâm' ? 'selected' : ''}>Huyện Gia Lâm</option>
+                                            <option value="Huyện Đông Anh" ${district == 'Huyện Đông Anh' ? 'selected' : ''}>Huyện Đông Anh</option>
+                                            <option value="Huyện Sóc Sơn" ${district == 'Huyện Sóc Sơn' ? 'selected' : ''}>Huyện Sóc Sơn</option>
+                                        </select>
+                                        <span class="field-error-message" id="districtError"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="city">Tỉnh / Thành phố *</label>
+                                        <select id="city" name="city">
+                                            <option value="">-- Chọn tỉnh / thành phố --</option>
+                                            <option value="Hà Nội" ${city == 'Hà Nội' ? 'selected' : ''}>Hà Nội</option>
+                                            <option value="Hồ Chí Minh" ${city == 'Hồ Chí Minh' ? 'selected' : ''}>Hồ Chí Minh</option>
+                                            <option value="Đà Nẵng" ${city == 'Đà Nẵng' ? 'selected' : ''}>Đà Nẵng</option>
+                                            <option value="Hải Phòng" ${city == 'Hải Phòng' ? 'selected' : ''}>Hải Phòng</option>
+                                            <option value="Cần Thơ" ${city == 'Cần Thơ' ? 'selected' : ''}>Cần Thơ</option>
+                                            <option value="Quảng Ninh" ${city == 'Quảng Ninh' ? 'selected' : ''}>Quảng Ninh</option>
+                                            <option value="Ninh Bình" ${city == 'Ninh Bình' ? 'selected' : ''}>Ninh Bình</option>
+                                            <option value="Huế" ${city == 'Huế' ? 'selected' : ''}>Huế</option>
+                                            <option value="Khánh Hòa" ${city == 'Khánh Hòa' ? 'selected' : ''}>Khánh Hòa</option>
+                                            <option value="Lâm Đồng" ${city == 'Lâm Đồng' ? 'selected' : ''}>Lâm Đồng</option>
+                                        </select>
+                                        <span class="field-error-message" id="cityError"></span>
+                                    </div>
+
+                                    <input type="hidden" id="fullAddress" name="address" value="${address}">
 
                                     <div class="form-group full">
                                         <label for="note">Ghi chú</label>
@@ -557,13 +1045,13 @@
                                      id="vehicleTotalPreview"
                                      data-price="${vehicle.pricePerDay}">
                                     Giá thuê:
-                                    <fmt:formatNumber value="${vehicle.pricePerDay}" type="number" maxFractionDigits="0"/> đ/ngày
+                                    <fmt:formatNumber value="${vehicle.pricePerDay}" type="number" maxFractionDigits="0"/> VNĐ/ngày
                                 </div>
 
                                 <div class="booking-actions">
                                     <button type="submit" class="btn-submit-booking">
-                                        <i class="fa-solid fa-calendar-check"></i>
-                                        Xác nhận đặt xe
+                                        <i class="fa-solid fa-credit-card"></i>
+                                        Tiếp tục thanh toán
                                     </button>
                                 </div>
                             </form>
@@ -571,9 +1059,9 @@
 
                         <aside class="summary-card">
                             <div class="summary-image">
-                                <img src="${empty vehicle.image ? 'https://placehold.co/800x450?text=WonderVN+Vehicle' : vehicle.image}"
+                                <img src="${empty vehicle.image ? 'https://placehold.co/800x450?text=WonderVN+Xe' : vehicle.image}"
                                      alt="${vehicle.displayName}"
-                                     onerror="this.src='https://placehold.co/800x450?text=WonderVN+Vehicle';">
+                                     onerror="this.src='https://placehold.co/800x450?text=WonderVN+Xe';">
                             </div>
 
                             <div class="summary-body">
@@ -601,7 +1089,7 @@
                                 <div class="summary-total">
                                     <div class="summary-total-label">Giá thuê</div>
                                     <div class="summary-total-value">
-                                        <fmt:formatNumber value="${vehicle.pricePerDay}" type="number" maxFractionDigits="0"/> đ/ngày
+                                        <fmt:formatNumber value="${vehicle.pricePerDay}" type="number" maxFractionDigits="0"/> VNĐ/ngày
                                     </div>
                                 </div>
                             </div>
@@ -609,16 +1097,15 @@
                     </div>
                 </c:when>
 
-                <%-- ===================== ACCOMMODATION BOOKING ===================== --%>
                 <c:when test="${bookingMode == 'accommodation'}">
                     <div class="booking-title-area">
                         <div>
                             <p class="section-kicker">
                                 <i class="fa-solid fa-hotel"></i>
-                                Booking
+                                Đặt chỗ
                             </p>
                             <h2>Hoàn tất thông tin đặt phòng</h2>
-                            <p>Vui lòng kiểm tra thông tin phòng và nhập thông tin khách lưu trú.</p>
+                            <p>Vui lòng kiểm tra thông tin phòng và nhập thông tin khách lưu trú trước khi tiếp tục thanh toán.</p>
                         </div>
 
                         <a class="btn-soft-back"
@@ -718,15 +1205,59 @@
                                     </div>
 
                                     <div class="form-group full">
-                                        <label for="address">Địa chỉ liên hệ *</label>
+                                        <label for="streetAddress">Số nhà, đường *</label>
                                         <input type="text"
-                                               id="address"
-                                               name="address"
-                                               value="${not empty address ? address : sessionScope.user.address}"
-                                               maxlength="255"
-                                               placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành">
-                                        <span class="field-error-message" id="addressError"></span>
+                                               id="streetAddress"
+                                               name="streetAddress"
+                                               value="${not empty streetAddress ? streetAddress : (not empty address ? address : sessionScope.user.address)}"
+                                               maxlength="120"
+                                               placeholder="VD: Số 10 Nguyễn Trãi">
+                                        <span class="field-error-message" id="streetAddressError"></span>
                                     </div>
+
+                                    <div class="form-group">
+                                        <label for="district">Quận / Huyện *</label>
+                                        <select id="district" name="district">
+                                            <option value="">-- Chọn quận / huyện --</option>
+                                            <option value="Quận Ba Đình" ${district == 'Quận Ba Đình' ? 'selected' : ''}>Quận Ba Đình</option>
+                                            <option value="Quận Hoàn Kiếm" ${district == 'Quận Hoàn Kiếm' ? 'selected' : ''}>Quận Hoàn Kiếm</option>
+                                            <option value="Quận Tây Hồ" ${district == 'Quận Tây Hồ' ? 'selected' : ''}>Quận Tây Hồ</option>
+                                            <option value="Quận Long Biên" ${district == 'Quận Long Biên' ? 'selected' : ''}>Quận Long Biên</option>
+                                            <option value="Quận Cầu Giấy" ${district == 'Quận Cầu Giấy' ? 'selected' : ''}>Quận Cầu Giấy</option>
+                                            <option value="Quận Đống Đa" ${district == 'Quận Đống Đa' ? 'selected' : ''}>Quận Đống Đa</option>
+                                            <option value="Quận Hai Bà Trưng" ${district == 'Quận Hai Bà Trưng' ? 'selected' : ''}>Quận Hai Bà Trưng</option>
+                                            <option value="Quận Hoàng Mai" ${district == 'Quận Hoàng Mai' ? 'selected' : ''}>Quận Hoàng Mai</option>
+                                            <option value="Quận Thanh Xuân" ${district == 'Quận Thanh Xuân' ? 'selected' : ''}>Quận Thanh Xuân</option>
+                                            <option value="Quận Nam Từ Liêm" ${district == 'Quận Nam Từ Liêm' ? 'selected' : ''}>Quận Nam Từ Liêm</option>
+                                            <option value="Quận Bắc Từ Liêm" ${district == 'Quận Bắc Từ Liêm' ? 'selected' : ''}>Quận Bắc Từ Liêm</option>
+                                            <option value="Quận Hà Đông" ${district == 'Quận Hà Đông' ? 'selected' : ''}>Quận Hà Đông</option>
+                                            <option value="Huyện Thanh Trì" ${district == 'Huyện Thanh Trì' ? 'selected' : ''}>Huyện Thanh Trì</option>
+                                            <option value="Huyện Gia Lâm" ${district == 'Huyện Gia Lâm' ? 'selected' : ''}>Huyện Gia Lâm</option>
+                                            <option value="Huyện Đông Anh" ${district == 'Huyện Đông Anh' ? 'selected' : ''}>Huyện Đông Anh</option>
+                                            <option value="Huyện Sóc Sơn" ${district == 'Huyện Sóc Sơn' ? 'selected' : ''}>Huyện Sóc Sơn</option>
+                                        </select>
+                                        <span class="field-error-message" id="districtError"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="city">Tỉnh / Thành phố *</label>
+                                        <select id="city" name="city">
+                                            <option value="">-- Chọn tỉnh / thành phố --</option>
+                                            <option value="Hà Nội" ${city == 'Hà Nội' ? 'selected' : ''}>Hà Nội</option>
+                                            <option value="Hồ Chí Minh" ${city == 'Hồ Chí Minh' ? 'selected' : ''}>Hồ Chí Minh</option>
+                                            <option value="Đà Nẵng" ${city == 'Đà Nẵng' ? 'selected' : ''}>Đà Nẵng</option>
+                                            <option value="Hải Phòng" ${city == 'Hải Phòng' ? 'selected' : ''}>Hải Phòng</option>
+                                            <option value="Cần Thơ" ${city == 'Cần Thơ' ? 'selected' : ''}>Cần Thơ</option>
+                                            <option value="Quảng Ninh" ${city == 'Quảng Ninh' ? 'selected' : ''}>Quảng Ninh</option>
+                                            <option value="Ninh Bình" ${city == 'Ninh Bình' ? 'selected' : ''}>Ninh Bình</option>
+                                            <option value="Huế" ${city == 'Huế' ? 'selected' : ''}>Huế</option>
+                                            <option value="Khánh Hòa" ${city == 'Khánh Hòa' ? 'selected' : ''}>Khánh Hòa</option>
+                                            <option value="Lâm Đồng" ${city == 'Lâm Đồng' ? 'selected' : ''}>Lâm Đồng</option>
+                                        </select>
+                                        <span class="field-error-message" id="cityError"></span>
+                                    </div>
+
+                                    <input type="hidden" id="fullAddress" name="address" value="${not empty address ? address : sessionScope.user.address}">
 
                                     <div class="form-group full">
                                         <label for="note">Ghi chú cho nơi lưu trú</label>
@@ -746,12 +1277,13 @@
                                 <div class="booking-actions">
                                     <a class="btn-soft-back"
                                        href="${pageContext.request.contextPath}/accommodation/room/detail?id=${room.roomID}&accommodationId=${accommodation.serviceID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
-                                        Hủy
+                                        <i class="fa-solid fa-arrow-left"></i>
+                                        Quay lại phòng
                                     </a>
 
                                     <button type="submit" class="btn-submit-booking">
-                                        <i class="fa-solid fa-calendar-check"></i>
-                                        Đặt phòng
+                                        <i class="fa-solid fa-credit-card"></i>
+                                        Tiếp tục thanh toán
                                     </button>
                                 </div>
                             </form>
@@ -759,9 +1291,9 @@
 
                         <aside class="summary-card">
                             <div class="summary-image">
-                                <img src="${empty room.image ? 'https://placehold.co/800x450?text=WonderVN+Room' : room.image}"
+                                <img src="${empty room.image ? 'https://placehold.co/800x450?text=WonderVN+Phong' : room.image}"
                                      alt="${room.roomType}"
-                                     onerror="this.src='https://placehold.co/800x450?text=WonderVN+Room';">
+                                     onerror="this.src='https://placehold.co/800x450?text=WonderVN+Phong';">
                             </div>
 
                             <div class="summary-body">
@@ -799,7 +1331,7 @@
                                 <div class="summary-total">
                                     <div class="summary-total-label">Tổng tiền tạm tính</div>
                                     <div class="summary-total-value">
-                                        <fmt:formatNumber value="${totalPrice}" type="number" maxFractionDigits="0"/> đ
+                                        <fmt:formatNumber value="${totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
                                     </div>
                                 </div>
                             </div>
@@ -807,16 +1339,15 @@
                     </div>
                 </c:when>
 
-                <%-- ===================== TOUR BOOKING ===================== --%>
                 <c:otherwise>
                     <div class="booking-title-area">
                         <div>
                             <p class="section-kicker">
                                 <i class="fa-solid fa-map-location-dot"></i>
-                                Booking
+                                Đặt chỗ
                             </p>
-                            <h2>Đặt tour ngay</h2>
-                            <p>Vui lòng nhập thông tin khách hàng để hệ thống ghi nhận đơn đặt tour.</p>
+                            <h2>Hoàn tất thông tin đặt tour</h2>
+                            <p>Vui lòng nhập thông tin khách hàng để tiếp tục sang bước thanh toán.</p>
                         </div>
 
                         <a class="btn-soft-back" href="${pageContext.request.contextPath}/tour">
@@ -975,8 +1506,8 @@
 
                                 <div class="booking-actions">
                                     <button type="submit" class="btn-submit-booking">
-                                        <i class="fa-solid fa-calendar-check"></i>
-                                        Xác nhận đặt tour
+                                        <i class="fa-solid fa-credit-card"></i>
+                                        Tiếp tục thanh toán
                                     </button>
                                 </div>
                             </form>
@@ -985,7 +1516,7 @@
                         <aside class="summary-card">
                             <div class="summary-image">
                                 <img src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=900&q=80"
-                                     alt="WonderVN Tour">
+                                     alt="Tour WonderVN">
                             </div>
 
                             <div class="summary-body">
@@ -1003,17 +1534,17 @@
 
                                 <div class="summary-subtitle">
                                     <i class="fa-solid fa-location-dot me-1"></i>
-                                    WonderVN Tour Package
+                                    Gói tour WonderVN
                                 </div>
 
                                 <div class="summary-line">
-                                    <span><i class="fa-solid fa-hashtag"></i> Tour Schedule ID</span>
+                                    <span><i class="fa-solid fa-hashtag"></i> Mã lịch tour</span>
                                     <strong>${not empty tourScheduleID ? tourScheduleID : param.tourScheduleID}</strong>
                                 </div>
 
                                 <div class="summary-line">
                                     <span><i class="fa-solid fa-user-group"></i> Số khách</span>
-                                    <strong>Nhập trong form</strong>
+                                    <strong>Nhập trong biểu mẫu</strong>
                                 </div>
 
                                 <div class="summary-total">
@@ -1164,20 +1695,6 @@
             return "";
         }
 
-        function validateAddress(value) {
-            const text = value.trim();
-
-            if (text === "") {
-                return "Vui lòng nhập địa chỉ liên hệ.";
-            }
-
-            if (text.length > 255) {
-                return "Địa chỉ liên hệ không được vượt quá 255 ký tự.";
-            }
-
-            return "";
-        }
-
         function validateStreetAddress(value) {
             const text = value.trim();
 
@@ -1292,6 +1809,46 @@
             return "";
         }
 
+
+
+        function validateCheckInDate(value) {
+            if (!value) {
+                return "Vui lòng chọn ngày nhận phòng.";
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const checkIn = new Date(value + "T00:00:00");
+
+            if (checkIn < today) {
+                return "Ngày nhận phòng không được nhỏ hơn ngày hiện tại.";
+            }
+
+            return "";
+        }
+
+        function validateCheckOutDate(value) {
+            const checkInInput = getField("checkIn");
+
+            if (!value) {
+                return "Vui lòng chọn ngày trả phòng.";
+            }
+
+            if (!checkInInput || !checkInInput.value) {
+                return "Vui lòng chọn ngày nhận phòng trước.";
+            }
+
+            const checkIn = new Date(checkInInput.value + "T00:00:00");
+            const checkOut = new Date(value + "T00:00:00");
+
+            if (checkOut <= checkIn) {
+                return "Ngày trả phòng phải sau ngày nhận phòng.";
+            }
+
+            return "";
+        }
+
         function buildRules() {
             const rules = [
                 {
@@ -1320,7 +1877,7 @@
                 }
             ];
 
-            if (mode === "tour") {
+            if (mode === "tour" || mode === "vehicle" || mode === "accommodation" || mode === "cart") {
                 rules.push(
                     {
                         id: "streetAddress",
@@ -1340,7 +1897,12 @@
                         validate: function (value) {
                             return validateSelect(value, "tỉnh / thành phố", cityList);
                         }
-                    },
+                    }
+                );
+            }
+
+            if (mode === "tour") {
+                rules.push(
                     {
                         id: "numberAdult",
                         errorId: "numberAdultError",
@@ -1358,37 +1920,29 @@
                 );
             }
 
-            if (mode === "vehicle") {
-                rules.push(
-                    {
-                        id: "pickupDate",
-                        errorId: "pickupDateError",
-                        validate: validatePickupDate
-                    },
-                    {
-                        id: "returnDate",
-                        errorId: "returnDateError",
-                        validate: validateReturnDate
-                    },
-                    {
-                        id: "address",
-                        errorId: "addressError",
-                        validate: validateAddress
-                    }
-                );
+            if (mode === "vehicle" || mode === "cart") {
+                if (getField("pickupDate") && getField("returnDate")) {
+                    rules.push(
+                        {
+                            id: "pickupDate",
+                            errorId: "pickupDateError",
+                            validate: validatePickupDate
+                        },
+                        {
+                            id: "returnDate",
+                            errorId: "returnDateError",
+                            validate: validateReturnDate
+                        }
+                    );
+                }
             }
 
-            if (mode === "accommodation") {
+            if (mode === "accommodation" || (mode === "cart" && getField("identityNumber"))) {
                 rules.push(
                     {
                         id: "identityNumber",
                         errorId: "identityNumberError",
                         validate: validateIdentityNumber
-                    },
-                    {
-                        id: "address",
-                        errorId: "addressError",
-                        validate: validateAddress
                     }
                 );
             }
@@ -1402,6 +1956,35 @@
 
             return rules;
         }
+
+        function updateFullAddressInput() {
+            const fullAddress = getField("fullAddress");
+
+            if (!fullAddress) {
+                return;
+            }
+
+            const streetAddress = getField("streetAddress");
+            const district = getField("district");
+            const city = getField("city");
+            const addressParts = [];
+
+            if (streetAddress && streetAddress.value.trim() !== "") {
+                addressParts.push(streetAddress.value.trim());
+            }
+
+            if (district && district.value.trim() !== "") {
+                addressParts.push(district.value.trim());
+            }
+
+            if (city && city.value.trim() !== "") {
+                addressParts.push(city.value.trim());
+            }
+
+            fullAddress.value = addressParts.join(", ");
+        }
+
+        updateFullAddressInput();
 
         const rules = buildRules();
 
@@ -1443,11 +2026,13 @@
 
             input.addEventListener("input", function () {
                 validateOne(rule, true);
+                updateFullAddressInput();
                 updateVehicleTotalPreview();
             });
 
             input.addEventListener("change", function () {
                 validateOne(rule, true);
+                updateFullAddressInput();
                 updateVehicleTotalPreview();
             });
 
@@ -1457,6 +2042,8 @@
         });
 
         form.addEventListener("submit", function (event) {
+            updateFullAddressInput();
+
             let isValid = true;
             let firstInvalidInput = null;
 
@@ -1504,7 +2091,7 @@
             const formatter = new Intl.NumberFormat("vi-VN");
 
             if (!pickupDate.value || !returnDate.value) {
-                preview.textContent = "Giá thuê: " + formatter.format(pricePerDay) + " đ/ngày";
+                preview.textContent = "Giá thuê: " + formatter.format(pricePerDay) + " VNĐ/ngày";
                 return;
             }
 
@@ -1520,7 +2107,7 @@
 
             preview.textContent = "Tổng dự kiến: "
                 + formatter.format(pricePerDay * days)
-                + " đ cho "
+                + " VNĐ cho "
                 + days
                 + " ngày thuê.";
         }
@@ -1539,6 +2126,21 @@
 
             returnInput.addEventListener("change", updateVehicleTotalPreview);
             updateVehicleTotalPreview();
+        }
+
+        const checkInInput = getField("checkIn");
+        const checkOutInput = getField("checkOut");
+
+        if (checkInInput && checkOutInput) {
+            checkInInput.addEventListener("change", function () {
+                if (checkInInput.value) {
+                    checkOutInput.min = checkInInput.value;
+                }
+
+                if (checkOutInput.value && checkOutInput.value <= checkInInput.value) {
+                    checkOutInput.value = "";
+                }
+            });
         }
     });
 </script>

@@ -8,10 +8,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.DAO.AccommodationDAO;
 import vn.edu.fpt.DAO.BookingDAO;
+import vn.edu.fpt.DAO.CartDAO;
 import vn.edu.fpt.DAO.RoomDAO;
 import vn.edu.fpt.DAO.VehicleDAO;
 import vn.edu.fpt.model.Accommodation;
 import vn.edu.fpt.model.Booking;
+import vn.edu.fpt.model.CartItems;
 import vn.edu.fpt.model.Room;
 import vn.edu.fpt.model.User;
 import vn.edu.fpt.model.Vehicle;
@@ -28,6 +30,7 @@ import java.util.List;
 public class BookingController extends HttpServlet {
 
     private final BookingDAO bookingDAO = new BookingDAO();
+    private final CartDAO cartDAO = new CartDAO();
     private final VehicleDAO vehicleDAO = new VehicleDAO();
     private final AccommodationDAO accommodationDAO = new AccommodationDAO();
     private final RoomDAO roomDAO = new RoomDAO();
@@ -38,6 +41,13 @@ public class BookingController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
+
+        String source = getTrimValue(request, "source");
+
+        if ("cart".equalsIgnoreCase(source) || request.getParameterValues("cartItemID") != null) {
+            showCartBookingPage(request, response);
+            return;
+        }
 
         String type = getTrimValue(request, "type");
 
@@ -66,17 +76,511 @@ public class BookingController extends HttpServlet {
         String type = getTrimValue(request, "type");
         String bookingType = getTrimValue(request, "bookingType");
 
+        if ("cart".equalsIgnoreCase(type) || "Cart".equalsIgnoreCase(bookingType)) {
+            handleCartBooking(request, response);
+            return;
+        }
+
         if ("vehicle".equalsIgnoreCase(type) || "Vehicle".equalsIgnoreCase(bookingType)) {
             handleVehicleBooking(request, response);
             return;
         }
 
         if ("accommodation".equalsIgnoreCase(type) || "Accommodation".equalsIgnoreCase(bookingType)) {
-            response.sendRedirect(request.getContextPath() + "/booking/accommodation");
+            request.getRequestDispatcher("/booking/accommodation").forward(request, response);
             return;
         }
 
         handleTourBooking(request, response);
+    }
+
+    private void showCartBookingPage(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User currentUser = getCurrentUser(request);
+
+        if (currentUser == null) {
+            redirectCartBookingToLogin(request, response);
+            return;
+        }
+
+        int[] cartItemIDs = parsePositiveIntValues(request.getParameterValues("cartItemID"));
+
+        if (cartItemIDs.length == 0) {
+            response.sendRedirect(request.getContextPath() + "/cart?status=selectRequired");
+            return;
+        }
+
+        List<CartItems> cartItems = cartDAO.getCartItemsByIds(currentUser.getUserID(), cartItemIDs);
+
+        if (cartItems.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/cart?status=selectRequired");
+            return;
+        }
+
+        prepareCartBookingPage(request, cartItems);
+        fillCustomerInfoFromSession(request);
+
+        request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
+    }
+
+    private void handleCartBooking(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User currentUser = getCurrentUser(request);
+
+        if (currentUser == null) {
+            redirectCartBookingToLogin(request, response);
+            return;
+        }
+
+        int[] cartItemIDs = parsePositiveIntValues(request.getParameterValues("cartItemID"));
+
+        if (cartItemIDs.length == 0) {
+            response.sendRedirect(request.getContextPath() + "/cart?status=selectRequired");
+            return;
+        }
+
+        List<CartItems> cartItems = cartDAO.getCartItemsByIds(currentUser.getUserID(), cartItemIDs);
+
+        if (cartItems.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/cart?status=selectRequired");
+            return;
+        }
+
+        List<String> errors = new ArrayList<>();
+
+        String firstName = getTrimValue(request, "firstName");
+        String lastName = getTrimValue(request, "lastName");
+        String email = getTrimValue(request, "email");
+        String phone = getTrimValue(request, "phone");
+        String identityNumber = getTrimValue(request, "identityNumber");
+        String streetAddress = getTrimValue(request, "streetAddress");
+        String district = getTrimValue(request, "district");
+        String city = getTrimValue(request, "city");
+        String note = getTrimValue(request, "note");
+        boolean isBookedForOther = request.getParameter("isBookedForOther") != null;
+
+        validateName(firstName, "Họ và tên đệm", 2, errors);
+        validateName(lastName, "Tên", 1, errors);
+        validateEmail(email, errors);
+        validatePhone(phone, errors);
+        validateStreetAddress(streetAddress, errors);
+
+        if (district.isEmpty()) {
+            errors.add("Vui lòng chọn quận / huyện.");
+        } else if (!isValidDistrict(district)) {
+            errors.add("Quận / huyện không hợp lệ.");
+        }
+
+        if (city.isEmpty()) {
+            errors.add("Vui lòng chọn tỉnh / thành phố.");
+        } else if (!isValidCity(city)) {
+            errors.add("Tỉnh / thành phố không hợp lệ.");
+        }
+
+        if (note.length() > 1000) {
+            errors.add("Ghi chú không được vượt quá 1000 ký tự.");
+        }
+
+        String address = "";
+
+        if (!streetAddress.isEmpty() && !district.isEmpty() && !city.isEmpty()) {
+            address = streetAddress + ", " + district + ", " + city;
+
+            if (address.length() > 255) {
+                errors.add("Địa chỉ đầy đủ không được vượt quá 255 ký tự.");
+            }
+        }
+
+        boolean hasVehicleItems = hasCartItemType(cartItems, "Vehicle");
+        boolean hasRoomItems = hasCartItemType(cartItems, "Room");
+
+        if (hasRoomItems) {
+            validateIdentityNumber(identityNumber, errors);
+            validateRoomDatesFromCart(cartItems, errors);
+        }
+
+        String pickupDateRaw = getTrimValue(request, "pickupDate");
+        String returnDateRaw = getTrimValue(request, "returnDate");
+
+        LocalDate pickupDate = null;
+        LocalDate returnDate = null;
+
+        if (hasVehicleItems) {
+            pickupDate = parseRequiredDate(pickupDateRaw, "Ngày nhận xe", errors);
+            returnDate = parseRequiredDate(returnDateRaw, "Ngày trả xe", errors);
+            validateDateRange(pickupDate, returnDate, "Ngày trả xe phải sau ngày nhận xe.", errors);
+        }
+
+        if (!errors.isEmpty()) {
+            prepareCartBookingPage(request, cartItems);
+            keepCartBookingInput(request, firstName, lastName, email, phone, identityNumber, streetAddress, district, city,
+                    pickupDateRaw, returnDateRaw, note, isBookedForOther);
+            request.setAttribute("errorList", errors);
+            request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
+            return;
+        }
+
+        List<Integer> createdBookingIDs = new ArrayList<>();
+        List<String> failedItems = new ArrayList<>();
+
+        for (CartItems item : cartItems) {
+            int bookingID = createBookingFromCartItem(
+                    item,
+                    currentUser,
+                    firstName,
+                    lastName,
+                    email,
+                    phone,
+                    address,
+                    note,
+                    isBookedForOther,
+                    pickupDate,
+                    returnDate
+            );
+
+            if (bookingID > 0) {
+                createdBookingIDs.add(bookingID);
+                cartDAO.removeItem(currentUser.getUserID(), item.getCartItemID());
+            } else {
+                failedItems.add(item.getItemName());
+            }
+        }
+
+        request.getSession().setAttribute("cartCount", cartDAO.countCartItems(currentUser.getUserID()));
+
+        if (createdBookingIDs.isEmpty()) {
+            prepareCartBookingPage(request, cartItems);
+            keepCartBookingInput(request, firstName, lastName, email, phone, identityNumber, streetAddress, district, city,
+                    pickupDateRaw, returnDateRaw, note, isBookedForOther);
+            request.setAttribute("error", "Không thể tạo đơn từ giỏ hàng. Dịch vụ có thể vừa hết chỗ hoặc không còn khả dụng.");
+            request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
+            return;
+        }
+
+        HttpSession session = request.getSession();
+
+        if (failedItems.isEmpty() && createdBookingIDs.size() == 1) {
+            session.setAttribute("successTitle", "Đã đặt đơn thành công");
+            session.setAttribute("successMessage", "Đơn đã được tạo từ giỏ hàng.");
+            response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + createdBookingIDs.get(0));
+            return;
+        }
+
+        if (failedItems.isEmpty()) {
+            session.setAttribute("successTitle", "Đã đặt đơn thành công");
+            session.setAttribute("successMessage", "Đã tạo " + createdBookingIDs.size() + " đơn từ giỏ hàng.");
+        } else {
+            session.setAttribute("successTitle", "Đã tạo một phần đơn đặt");
+            session.setAttribute("successMessage", "Một số dịch vụ chưa thể đặt do không còn khả dụng.");
+        }
+
+        response.sendRedirect(request.getContextPath() + "/booking-list");
+    }
+
+    private void prepareCartBookingPage(HttpServletRequest request, List<CartItems> cartItems) {
+        LocalDate today = LocalDate.now();
+
+        request.setAttribute("bookingMode", "cart");
+        request.setAttribute("cartBookingItems", cartItems);
+        request.setAttribute("cartBookingTotal", cartDAO.calculateTotal(cartItems));
+        request.setAttribute("hasVehicleItems", hasCartItemType(cartItems, "Vehicle"));
+        request.setAttribute("hasRoomItems", hasCartItemType(cartItems, "Room"));
+        request.setAttribute("minServiceDate", today.toString());
+        request.setAttribute("defaultPickupDate", today.toString());
+        request.setAttribute("defaultReturnDate", today.plusDays(1).toString());
+    }
+
+    private void keepCartBookingInput(
+            HttpServletRequest request,
+            String firstName,
+            String lastName,
+            String email,
+            String phone,
+            String identityNumber,
+            String streetAddress,
+            String district,
+            String city,
+            String pickupDate,
+            String returnDate,
+            String note,
+            boolean isBookedForOther) {
+
+        request.setAttribute("firstName", firstName);
+        request.setAttribute("lastName", lastName);
+        request.setAttribute("email", email);
+        request.setAttribute("phone", phone);
+        request.setAttribute("identityNumber", identityNumber);
+        request.setAttribute("streetAddress", streetAddress);
+        request.setAttribute("district", district);
+        request.setAttribute("city", city);
+        request.setAttribute("pickupDate", pickupDate);
+        request.setAttribute("returnDate", returnDate);
+        request.setAttribute("note", note);
+        request.setAttribute("isBookedForOther", isBookedForOther);
+    }
+
+    private int createBookingFromCartItem(
+            CartItems item,
+            User currentUser,
+            String firstName,
+            String lastName,
+            String email,
+            String phone,
+            String address,
+            String note,
+            boolean isBookedForOther,
+            LocalDate pickupDate,
+            LocalDate returnDate) {
+
+        if (item == null || item.getItemType() == null) {
+            return -1;
+        }
+
+        if ("Vehicle".equalsIgnoreCase(item.getItemType())) {
+            if (item.getServiceID() == null || pickupDate == null || returnDate == null) {
+                return -1;
+            }
+
+            int rentalDays = (int) ChronoUnit.DAYS.between(pickupDate, returnDate);
+
+            if (rentalDays <= 0) {
+                return -1;
+            }
+
+            Booking booking = createBaseCartBooking(
+                    "CTV",
+                    "Vehicle",
+                    item,
+                    currentUser,
+                    firstName,
+                    lastName,
+                    email,
+                    phone,
+                    address,
+                    note,
+                    isBookedForOther
+            );
+
+            booking.setNumberAdult(1);
+            booking.setNumberChildren(0);
+
+            return bookingDAO.insertVehicleBookingTransactionReturnID(
+                    booking,
+                    item.getServiceID(),
+                    Date.valueOf(pickupDate),
+                    Date.valueOf(returnDate),
+                    rentalDays
+            );
+        }
+
+        if ("Room".equalsIgnoreCase(item.getItemType())) {
+            if (item.getRoomID() == null || item.getStartDate() == null || item.getEndDate() == null) {
+                return -1;
+            }
+
+            LocalDate checkIn = item.getStartDate().toLocalDate();
+            LocalDate checkOut = item.getEndDate().toLocalDate();
+
+            long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
+
+            if (nights <= 0) {
+                return -1;
+            }
+
+            int roomQuantity = item.getQuantity() > 0 ? item.getQuantity() : 1;
+
+            Booking booking = createBaseCartBooking(
+                    "CTR",
+                    "Accommodation",
+                    item,
+                    currentUser,
+                    firstName,
+                    lastName,
+                    email,
+                    phone,
+                    address,
+                    note,
+                    isBookedForOther
+            );
+
+            booking.setNumberAdult(Math.max(item.getNumberAdult(), 1));
+            booking.setNumberChildren(Math.max(item.getNumberChildren(), 0));
+
+            return bookingDAO.insertRoomBookingTransactionReturnID(
+                    booking,
+                    item.getRoomID(),
+                    roomQuantity,
+                    Date.valueOf(checkIn),
+                    Date.valueOf(checkOut),
+                    nights
+            );
+        }
+
+        return -1;
+    }
+
+    private Booking createBaseCartBooking(
+            String codePrefix,
+            String bookingType,
+            CartItems item,
+            User currentUser,
+            String firstName,
+            String lastName,
+            String email,
+            String phone,
+            String address,
+            String note,
+            boolean isBookedForOther) {
+
+        Booking booking = new Booking();
+        booking.setBookingCode(codePrefix + "-" + (System.currentTimeMillis() % 1000000) + "-" + item.getCartItemID());
+        booking.setBookingType(bookingType);
+        booking.setFirstName(firstName);
+        booking.setLastName(lastName);
+        booking.setEmail(email);
+        booking.setPhone(phone);
+        booking.setAddress(address);
+
+        if (note == null || note.trim().isEmpty()) {
+            booking.setNote(null);
+        } else {
+            booking.setNote(note.trim());
+        }
+
+        booking.setTotalPrice(item.getSubTotal() == null ? 0 : item.getSubTotal().doubleValue());
+        booking.setBookedForOther(isBookedForOther);
+        booking.setUserID(currentUser.getUserID());
+
+        return booking;
+    }
+
+    private boolean hasCartItemType(List<CartItems> cartItems, String itemType) {
+        if (cartItems == null || itemType == null) {
+            return false;
+        }
+
+        for (CartItems item : cartItems) {
+            if (item != null && itemType.equalsIgnoreCase(item.getItemType())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void validateRoomDatesFromCart(List<CartItems> cartItems, List<String> errors) {
+        if (cartItems == null) {
+            return;
+        }
+
+        LocalDate today = LocalDate.now();
+
+        for (CartItems item : cartItems) {
+            if (item == null || !"Room".equalsIgnoreCase(item.getItemType())) {
+                continue;
+            }
+
+            if (item.getStartDate() == null || item.getEndDate() == null) {
+                errors.add("Phòng " + item.getItemName() + " chưa có ngày nhận phòng hoặc ngày trả phòng. Vui lòng xóa khỏi giỏ hàng và thêm lại.");
+                continue;
+            }
+
+            LocalDate checkIn = item.getStartDate().toLocalDate();
+            LocalDate checkOut = item.getEndDate().toLocalDate();
+
+            if (checkIn.isBefore(today)) {
+                errors.add("Ngày nhận phòng của " + item.getItemName() + " đã nhỏ hơn ngày hiện tại. Vui lòng xóa khỏi giỏ hàng và thêm lại.");
+            }
+
+            if (!checkOut.isAfter(checkIn)) {
+                errors.add("Ngày trả phòng của " + item.getItemName() + " phải sau ngày nhận phòng.");
+            }
+        }
+    }
+
+    private int[] parsePositiveIntValues(String[] rawValues) {
+        if (rawValues == null || rawValues.length == 0) {
+            return new int[0];
+        }
+
+        List<Integer> values = new ArrayList<>();
+
+        for (String rawValue : rawValues) {
+            int value = parsePositiveIntValue(rawValue);
+
+            if (value > 0 && !values.contains(value)) {
+                values.add(value);
+            }
+        }
+
+        int[] result = new int[values.size()];
+
+        for (int i = 0; i < values.size(); i++) {
+            result[i] = values.get(i);
+        }
+
+        return result;
+    }
+
+    private LocalDate parseRequiredDate(String rawValue, String fieldName, List<String> errors) {
+        if (rawValue == null || rawValue.trim().isEmpty()) {
+            errors.add(fieldName + " không được để trống.");
+            return null;
+        }
+
+        try {
+            LocalDate date = LocalDate.parse(rawValue.trim());
+
+            if (date.isBefore(LocalDate.now())) {
+                errors.add(fieldName + " không được nhỏ hơn ngày hiện tại.");
+                return null;
+            }
+
+            return date;
+
+        } catch (Exception e) {
+            errors.add(fieldName + " không hợp lệ.");
+            return null;
+        }
+    }
+
+    private void validateDateRange(LocalDate startDate, LocalDate endDate, String message, List<String> errors) {
+        if (startDate == null || endDate == null) {
+            return;
+        }
+
+        if (!endDate.isAfter(startDate)) {
+            errors.add(message);
+        }
+    }
+
+    private User getCurrentUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        Object user = session == null ? null : session.getAttribute("user");
+
+        if (user instanceof User) {
+            return (User) user;
+        }
+
+        return null;
+    }
+
+    private void redirectCartBookingToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        StringBuilder target = new StringBuilder("/booking?source=cart");
+        String[] cartItemIDs = request.getParameterValues("cartItemID");
+
+        if (cartItemIDs != null) {
+            for (String cartItemID : cartItemIDs) {
+                if (parsePositiveIntValue(cartItemID) > 0) {
+                    target.append("&cartItemID=").append(cartItemID);
+                }
+            }
+        }
+
+        request.getSession().setAttribute("redirectAfterLogin", target.toString());
+        response.sendRedirect(request.getContextPath() + "/login");
     }
 
     private void showTourBookingPage(HttpServletRequest request, HttpServletResponse response)
@@ -135,7 +639,7 @@ public class BookingController extends HttpServlet {
 
             int numberAdult = parseNumberWithMinValue(numberAdultRaw, "Số người lớn", 1, errors);
             int numberChildren = parseNumberWithMinValue(numberChildrenRaw, "Số trẻ em", 0, errors);
-            int tourScheduleID = parseNumberWithMinValue(tourScheduleIDRaw, "Mã lịch trình tour", 1, errors);
+            int tourScheduleID = parseNumberWithMinValue(tourScheduleIDRaw, "Mã lịch tour", 1, errors);
 
             String address = "";
 
@@ -156,7 +660,7 @@ public class BookingController extends HttpServlet {
                 double[] prices = bookingDAO.getTourPricesBySchedule(tourScheduleID);
 
                 if (prices == null) {
-                    errors.add("Lịch trình tour không tồn tại. Vui lòng chọn lại tour.");
+                    errors.add("Lịch tour không tồn tại. Vui lòng chọn lại tour.");
                 } else {
                     adultPrice = prices[0];
                     childrenPrice = prices[1];
@@ -238,19 +742,20 @@ public class BookingController extends HttpServlet {
 
             if (bookingID > 0) {
                 HttpSession currentSession = request.getSession();
-                currentSession.setAttribute("successMessage", "Đặt tour thành công! Mã đơn: " + bookingCode);
+                currentSession.setAttribute("successTitle", "Đã đặt tour thành công");
+                currentSession.setAttribute("successMessage", "Mã đơn: " + bookingCode);
                 response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
                 return;
             }
 
             request.setAttribute("bookingMode", "tour");
-            request.setAttribute("error", "Không thể lưu đơn hàng. Có thể số chỗ vừa được người khác đặt hết. Vui lòng thử lại!");
+            request.setAttribute("error", "Không thể tạo đơn đặt tour. Có thể số chỗ vừa được người khác đặt hết. Vui lòng thử lại.");
             request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("bookingMode", "tour");
-            request.setAttribute("error", "Đã xảy ra lỗi hệ thống nghiêm trọng!");
+            request.setAttribute("error", "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.");
             request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
         }
     }
@@ -299,7 +804,11 @@ public class BookingController extends HttpServlet {
         String lastName = getTrimValue(request, "lastName");
         String email = getTrimValue(request, "email");
         String phone = getTrimValue(request, "phone");
-        String address = getTrimValue(request, "address");
+
+        String streetAddress = getTrimValue(request, "streetAddress");
+        String district = getTrimValue(request, "district");
+        String city = getTrimValue(request, "city");
+
         String pickupDateRaw = getTrimValue(request, "pickupDate");
         String returnDateRaw = getTrimValue(request, "returnDate");
         String note = getTrimValue(request, "note");
@@ -310,10 +819,28 @@ public class BookingController extends HttpServlet {
         validateEmail(email, errors);
         validatePhone(phone, errors);
 
-        if (address.isEmpty()) {
-            errors.add("Địa chỉ liên hệ không được để trống.");
-        } else if (address.length() > 255) {
-            errors.add("Địa chỉ liên hệ không được vượt quá 255 ký tự.");
+        validateStreetAddress(streetAddress, errors);
+
+        if (district.isEmpty()) {
+            errors.add("Vui lòng chọn quận / huyện.");
+        } else if (!isValidDistrict(district)) {
+            errors.add("Quận / huyện không hợp lệ.");
+        }
+
+        if (city.isEmpty()) {
+            errors.add("Vui lòng chọn tỉnh / thành phố.");
+        } else if (!isValidCity(city)) {
+            errors.add("Tỉnh / thành phố không hợp lệ.");
+        }
+
+        String address = "";
+
+        if (!streetAddress.isEmpty() && !district.isEmpty() && !city.isEmpty()) {
+            address = streetAddress + ", " + district + ", " + city;
+
+            if (address.length() > 255) {
+                errors.add("Địa chỉ đầy đủ không được vượt quá 255 ký tự.");
+            }
         }
 
         if (note.length() > 1000) {
@@ -359,8 +886,8 @@ public class BookingController extends HttpServlet {
 
         if (!errors.isEmpty()) {
             prepareVehicleBookingPage(request, vehicle);
-            keepVehicleBookingInput(request, firstName, lastName, email, phone, address,
-                    pickupDateRaw, returnDateRaw, note, isBookedForOther);
+            keepVehicleBookingInput(request, firstName, lastName, email, phone,
+                    streetAddress, district, city, pickupDateRaw, returnDateRaw, note, isBookedForOther);
             request.setAttribute("errorList", errors);
             request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
             return;
@@ -396,14 +923,15 @@ public class BookingController extends HttpServlet {
 
         if (bookingID > 0) {
             HttpSession currentSession = request.getSession();
-            currentSession.setAttribute("successMessage", "Đặt xe thành công! Mã đơn: " + booking.getBookingCode());
+            currentSession.setAttribute("successTitle", "Đã đặt xe thành công");
+            currentSession.setAttribute("successMessage", "Mã đơn: " + booking.getBookingCode());
             response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
             return;
         }
 
         prepareVehicleBookingPage(request, vehicle);
-        keepVehicleBookingInput(request, firstName, lastName, email, phone, address,
-                pickupDateRaw, returnDateRaw, note, isBookedForOther);
+        keepVehicleBookingInput(request, firstName, lastName, email, phone,
+                streetAddress, district, city, pickupDateRaw, returnDateRaw, note, isBookedForOther);
         request.setAttribute("error", "Không thể đặt xe. Xe có thể vừa được khách khác đặt hoặc không còn khả dụng.");
         request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
     }
@@ -531,7 +1059,9 @@ public class BookingController extends HttpServlet {
             String lastName,
             String email,
             String phone,
-            String address,
+            String streetAddress,
+            String district,
+            String city,
             String pickupDate,
             String returnDate,
             String note,
@@ -541,7 +1071,9 @@ public class BookingController extends HttpServlet {
         request.setAttribute("lastName", lastName);
         request.setAttribute("email", email);
         request.setAttribute("phone", phone);
-        request.setAttribute("address", address);
+        request.setAttribute("streetAddress", streetAddress);
+        request.setAttribute("district", district);
+        request.setAttribute("city", city);
         request.setAttribute("pickupDate", pickupDate);
         request.setAttribute("returnDate", returnDate);
         request.setAttribute("note", note);
@@ -683,6 +1215,17 @@ public class BookingController extends HttpServlet {
 
         if (!streetAddress.matches("^[\\p{L}0-9\\s,./-]+$")) {
             errors.add("Số nhà, đường chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
+        }
+    }
+
+    private void validateIdentityNumber(String identityNumber, List<String> errors) {
+        if (identityNumber.isEmpty()) {
+            errors.add("CCCD / CMND không được để trống.");
+            return;
+        }
+
+        if (!identityNumber.matches("^(\\d{9}|\\d{12})$")) {
+            errors.add("CCCD / CMND phải gồm 9 hoặc 12 chữ số.");
         }
     }
 

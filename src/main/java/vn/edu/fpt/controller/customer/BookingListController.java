@@ -29,10 +29,7 @@ public class BookingListController extends HttpServlet {
         User currentUser = getCurrentUser(request);
 
         if (currentUser == null) {
-            request.getSession().setAttribute(
-                    "redirectAfterLogin",
-                    request.getContextPath() + "/booking-list"
-            );
+            request.getSession().setAttribute("redirectAfterLogin", "/booking-list");
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
