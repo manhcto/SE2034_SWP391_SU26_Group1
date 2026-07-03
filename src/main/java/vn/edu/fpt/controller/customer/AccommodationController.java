@@ -1,11 +1,13 @@
 package vn.edu.fpt.controller.customer;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 
 import vn.edu.fpt.DAO.AccommodationDAO;
 import vn.edu.fpt.DAO.FacilityDAO;
@@ -18,11 +20,16 @@ import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 @WebServlet(name = "CustomerAccommodationController", urlPatterns = {
         "/accommodation",
@@ -31,6 +38,10 @@ import java.util.List;
         "/booking/accommodation/form",
         "/booking/accommodation"
 })
+@MultipartConfig(
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 6 * 1024 * 1024
+)
 public class AccommodationController extends HttpServlet {
 
     private final AccommodationDAO accommodationDAO = new AccommodationDAO();
@@ -121,23 +132,23 @@ public class AccommodationController extends HttpServlet {
         List<Accommodation> filteredAccommodations = new ArrayList<>();
 
         for (Accommodation accommodation : allAccommodations) {
-            int serviceID = accommodation.getServiceID();
+            int accommodationID = accommodation.getAccommodationID();
 
             /*
-             * Hiện tại vẫn dùng hàm cũ getAvailableRoomsByAccommodation(serviceID).
+             * Hiện tại vẫn dùng hàm cũ getAvailableRoomsByAccommodation(accommodationID).
              *
              * Sau này khi nhóm code booking theo ngày, thay dòng này bằng:
-             * roomDAO.getAvailableRoomsByAccommodationAndDate(serviceID, checkIn, checkOut, rooms);
+             * roomDAO.getAvailableRoomsByAccommodationAndDate(accommodationID, checkIn, checkOut, rooms);
              */
             List<Room> availableRooms = hasDateRange(checkIn, checkOut)
-                    ? roomDAO.getAvailableRoomsByAccommodationAndDate(serviceID, checkIn, checkOut)
-                    : roomDAO.getAvailableRoomsByAccommodation(serviceID);
+                    ? roomDAO.getAvailableRoomsByAccommodationAndDate(accommodationID, checkIn, checkOut)
+                    : roomDAO.getAvailableRoomsByAccommodation(accommodationID);
 
             for (Room room : availableRooms) {
                 room.setFacilityList(facilityDAO.getFacilitiesByRoom(room.getRoomID()));
             }
 
-            List<Facility> accommodationFacilities = facilityDAO.getFacilitiesByAccommodation(serviceID);
+            List<Facility> accommodationFacilities = facilityDAO.getFacilitiesByAccommodation(accommodationID);
 
             accommodation.setRoomList(availableRooms);
             accommodation.setFacilityList(accommodationFacilities);
@@ -220,7 +231,7 @@ public class AccommodationController extends HttpServlet {
     private void showAccommodationDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        Integer serviceID = parsePositiveInt(request.getParameter("id"));
+        Integer accommodationID = parsePositiveInt(request.getParameter("id"));
 
         String checkIn = safeTrim(request.getParameter("checkIn"));
         String checkOut = safeTrim(request.getParameter("checkOut"));
@@ -246,12 +257,12 @@ public class AccommodationController extends HttpServlet {
             guests = adults + children;
         }
 
-        if (serviceID == null) {
+        if (accommodationID == null) {
             response.sendRedirect(request.getContextPath() + "/accommodation");
             return;
         }
 
-        Accommodation accommodation = accommodationDAO.getAccommodationByIdForCustomer(serviceID);
+        Accommodation accommodation = accommodationDAO.getAccommodationByIdForCustomer(accommodationID);
 
         if (accommodation == null) {
             response.sendRedirect(request.getContextPath() + "/accommodation?status=notFound");
@@ -263,8 +274,8 @@ public class AccommodationController extends HttpServlet {
          * Sau này khi có bảng booking theo ngày, thay bằng hàm lọc theo checkIn/checkOut.
          */
         List<Room> roomList = hasDateRange(checkIn, checkOut)
-                ? roomDAO.getAvailableRoomsByAccommodationAndDate(serviceID, checkIn, checkOut)
-                : roomDAO.getAvailableRoomsByAccommodation(serviceID);
+                ? roomDAO.getAvailableRoomsByAccommodationAndDate(accommodationID, checkIn, checkOut)
+                : roomDAO.getAvailableRoomsByAccommodation(accommodationID);
 
         List<Room> filteredRooms = new ArrayList<>();
 
@@ -283,7 +294,7 @@ public class AccommodationController extends HttpServlet {
         }
 
         accommodation.setRoomList(filteredRooms);
-        accommodation.setFacilityList(facilityDAO.getFacilitiesByAccommodation(serviceID));
+        accommodation.setFacilityList(facilityDAO.getFacilitiesByAccommodation(accommodationID));
 
         request.setAttribute("accommodation", accommodation);
         request.setAttribute("roomList", filteredRooms);
@@ -303,7 +314,7 @@ public class AccommodationController extends HttpServlet {
             throws ServletException, IOException {
 
         Integer roomID = parsePositiveInt(request.getParameter("id"));
-        Integer accommodationID = parsePositiveInt(request.getParameter("accommodationId"));
+        Integer accommodationID = parsePositiveInt(request.getParameter("accommodationID"));
 
         String checkIn = safeTrim(request.getParameter("checkIn"));
         String checkOut = safeTrim(request.getParameter("checkOut"));
@@ -376,7 +387,7 @@ public class AccommodationController extends HttpServlet {
         request.setAttribute("room", selectedRoom);
 
         request.setAttribute("roomId", roomID);
-        request.setAttribute("accommodationId", accommodationID);
+        request.setAttribute("accommodationID", accommodationID);
 
         request.setAttribute("checkIn", checkIn);
         request.setAttribute("checkOut", checkOut);
@@ -449,7 +460,7 @@ public class AccommodationController extends HttpServlet {
     }
 
     private void handleAccommodationBooking(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws IOException, ServletException {
 
         HttpSession session = request.getSession(false);
         User user = session == null ? null : (User) session.getAttribute("user");
@@ -466,7 +477,8 @@ public class AccommodationController extends HttpServlet {
         String email = safeTrim(request.getParameter("email"));
         String phone = safeTrim(request.getParameter("phone"));
         String address = safeTrim(request.getParameter("address"));
-        String identityNumber = safeTrim(request.getParameter("identityNumber"));
+        String identityNumber = normalizeIdentityNumber(request.getParameter("identityNumber"));
+        Part identityImagePart = request.getPart("identityImage");
         String note = safeTrim(request.getParameter("note"));
 
         String detailUrl = buildRoomDetailUrl(request, accommodationID, roomID, checkIn, checkOut,
@@ -485,7 +497,8 @@ public class AccommodationController extends HttpServlet {
         }
 
         if (isBlank(firstName) || isBlank(lastName) || isBlank(email) || isBlank(phone)
-                || isBlank(address) || !isValidIdentityNumber(identityNumber)) {
+                || isBlank(address) || !isValidIdentityNumber(identityNumber)
+                || !isValidIdentityImage(identityImagePart)) {
             response.sendRedirect(buildBookingFormUrl(request, accommodationID, roomID, checkIn, checkOut,
                     adults, children, rooms) + "&status=invalidCustomerInfo");
             return;
@@ -501,6 +514,13 @@ public class AccommodationController extends HttpServlet {
         long nights = calculateNights(checkIn, checkOut);
         BigDecimal unitPrice = selectedRoom.getPriceOfRoom();
         BigDecimal totalPrice = calculateTotalPrice(unitPrice, rooms, nights);
+        String identityImageUrl = saveIdentityImage(request, identityImagePart, user.getUserID());
+
+        if (identityImageUrl == null) {
+            response.sendRedirect(buildBookingFormUrl(request, accommodationID, roomID, checkIn, checkOut,
+                    adults, children, rooms) + "&status=invalidCustomerInfo");
+            return;
+        }
 
         int bookingID = roomBookingDAO.createAccommodationBooking(
                 user.getUserID(),
@@ -518,7 +538,9 @@ public class AccommodationController extends HttpServlet {
                 unitPrice,
                 totalPrice,
                 address,
-                buildBookingNote(identityNumber, note));
+                identityNumber,
+                identityImageUrl,
+                note);
 
         if (bookingID <= 0) {
             response.sendRedirect(detailUrl + "&status=bookingFail");
@@ -716,17 +738,8 @@ public class AccommodationController extends HttpServlet {
     }
 
     private boolean isValidIdentityNumber(String identityNumber) {
-        return identityNumber != null && identityNumber.matches("^[0-9]{9}$|^[0-9]{12}$");
-    }
-
-    private String buildBookingNote(String identityNumber, String note) {
-        StringBuilder builder = new StringBuilder("CCCD/CMND: ").append(identityNumber);
-
-        if (!isBlank(note)) {
-            builder.append(" | Ghi chu: ").append(note.trim());
-        }
-
-        return builder.toString();
+        String normalizedIdentityNumber = normalizeIdentityNumber(identityNumber);
+        return normalizedIdentityNumber.matches("^[0-9]{9}$|^[0-9]{12}$");
     }
 
     private String buildBookingFormUrl(HttpServletRequest request, int accommodationID, int roomID,
@@ -753,7 +766,7 @@ public class AccommodationController extends HttpServlet {
 
         return request.getContextPath()
                 + "/accommodation/room/detail?id=" + safeRoomID
-                + "&accommodationId=" + safeAccommodationID
+                + "&accommodationID=" + safeAccommodationID
                 + "&checkIn=" + checkIn
                 + "&checkOut=" + checkOut
                 + "&adults=" + safeAdults
@@ -838,7 +851,89 @@ public class AccommodationController extends HttpServlet {
         return value == null ? "" : value.trim();
     }
 
+    private String normalizeIdentityNumber(String value) {
+        return value == null ? "" : value.replaceAll("[\\s.-]", "").trim();
+    }
+
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private boolean isValidIdentityImage(Part part) {
+        if (part == null || part.getSize() <= 0 || part.getSize() > 5 * 1024 * 1024) {
+            return false;
+        }
+
+        String contentType = part.getContentType();
+        String normalizedType = contentType == null ? "" : contentType.toLowerCase(Locale.ROOT);
+        if ("image/jpeg".equals(normalizedType)
+                || "image/jpg".equals(normalizedType)
+                || "image/pjpeg".equals(normalizedType)
+                || "image/png".equals(normalizedType)
+                || "image/webp".equals(normalizedType)) {
+            return true;
+        }
+
+        String fileName = part.getSubmittedFileName();
+        String normalizedName = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
+        return normalizedName.endsWith(".jpg")
+                || normalizedName.endsWith(".jpeg")
+                || normalizedName.endsWith(".png")
+                || normalizedName.endsWith(".webp");
+    }
+
+    private String saveIdentityImage(HttpServletRequest request, Part part, int userID) throws IOException {
+        if (!isValidIdentityImage(part)) {
+            return null;
+        }
+
+        String uploadRoot = getServletContext().getRealPath("/uploads/identity");
+        if (uploadRoot == null) {
+            return null;
+        }
+
+        Path uploadDir = Paths.get(uploadRoot);
+        Files.createDirectories(uploadDir);
+
+        String extension = getIdentityImageExtension(part);
+        String fileName = "identity_" + userID + "_" + UUID.randomUUID() + extension;
+        Path target = uploadDir.resolve(fileName).normalize();
+
+        if (!target.startsWith(uploadDir)) {
+            return null;
+        }
+
+        part.write(target.toString());
+        return "uploads/identity/" + fileName;
+    }
+
+    private String getIdentityImageExtension(Part part) {
+        String contentType = part == null ? "" : part.getContentType();
+        String normalizedType = contentType == null ? "" : contentType.toLowerCase(Locale.ROOT);
+
+        if ("image/png".equals(normalizedType)) {
+            return ".png";
+        }
+
+        if ("image/webp".equals(normalizedType)) {
+            return ".webp";
+        }
+
+        String fileName = part == null ? "" : part.getSubmittedFileName();
+        String normalizedName = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
+
+        if (normalizedName.endsWith(".png")) {
+            return ".png";
+        }
+
+        if (normalizedName.endsWith(".webp")) {
+            return ".webp";
+        }
+
+        if (normalizedName.endsWith(".jpeg")) {
+            return ".jpeg";
+        }
+
+        return ".jpg";
     }
 }

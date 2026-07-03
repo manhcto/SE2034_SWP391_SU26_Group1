@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -73,6 +74,28 @@
             color: #dc2626;
             font-size: 24px;
             font-weight: 800;
+        }
+
+        .identity-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .identity-preview img {
+            width: 160px;
+            height: 96px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid #d1d5db;
+            background: #f3f4f6;
+        }
+
+        .identity-preview a {
+            color: #2563eb;
+            font-weight: 800;
+            text-decoration: none;
         }
 
         .error-box {
@@ -226,6 +249,18 @@
                     </div>
 
                     <div class="summary-item">
+                        <span class="summary-label">CCCD / CMND</span>
+                        <span class="summary-value">
+                            <c:choose>
+                                <c:when test="${not empty bookingSummary.identityNumber}">
+                                    ${bookingSummary.identityNumber}
+                                </c:when>
+                                <c:otherwise>Không có</c:otherwise>
+                            </c:choose>
+                        </span>
+                    </div>
+
+                    <div class="summary-item">
                         <span class="summary-label">Địa chỉ</span>
                         <span class="summary-value">
                             <c:choose>
@@ -236,53 +271,73 @@
                             </c:choose>
                         </span>
                     </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">Ảnh CCCD / CMND</span>
+                        <c:choose>
+                            <c:when test="${not empty bookingSummary.identityImageUrl}">
+                                <c:choose>
+                                    <c:when test="${fn:startsWith(bookingSummary.identityImageUrl, 'http')}">
+                                        <c:set var="identityImageSrc" value="${bookingSummary.identityImageUrl}"/>
+                                    </c:when>
+                                    <c:when test="${fn:startsWith(bookingSummary.identityImageUrl, '/')}">
+                                        <c:set var="identityImageSrc" value="${pageContext.request.contextPath}${bookingSummary.identityImageUrl}"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="identityImageSrc" value="${pageContext.request.contextPath}/${bookingSummary.identityImageUrl}"/>
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <div class="identity-preview">
+                                    <a href="${identityImageSrc}" target="_blank" rel="noopener">
+                                        <img src="${identityImageSrc}" alt="Ảnh CCCD">
+                                    </a>
+                                    <a href="${identityImageSrc}" target="_blank" rel="noopener">Mở ảnh</a>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="summary-value">Không có</span>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
                 </div>
             </div>
 
             <div class="summary-card">
                 <c:choose>
-                    <c:when test="${bookingSummary.bookingType == 'Vehicle'}">
-                        <h3>3. Thông tin xe</h3>
+                    <c:when test="${bookingSummary.bookingType == 'Accommodation'}">
+                        <h3>3. Thông tin lưu trú</h3>
 
                         <div class="summary-grid">
                             <div class="summary-item">
-                                <span class="summary-label">Tên xe</span>
+                                <span class="summary-label">Cơ sở lưu trú</span>
                                 <span class="summary-value">${bookingSummary.itemName}</span>
                             </div>
 
                             <div class="summary-item">
-                                <span class="summary-label">Biển số</span>
-                                <span class="summary-value">${bookingSummary.licensePlate}</span>
+                                <span class="summary-label">Loại phòng</span>
+                                <span class="summary-value">${bookingSummary.roomType}</span>
                             </div>
 
                             <div class="summary-item">
-                                <span class="summary-label">Service ID</span>
-                                <span class="summary-value">${bookingSummary.serviceID}</span>
+                                <span class="summary-label">Accommodation ID</span>
+                                <span class="summary-value">${bookingSummary.accommodationID}</span>
                             </div>
 
                             <div class="summary-item">
-                                <span class="summary-label">Địa điểm nhận xe</span>
-                                <span class="summary-value">
-                                    <c:choose>
-                                        <c:when test="${not empty bookingSummary.pickupAddress}">
-                                            ${bookingSummary.pickupAddress}
-                                        </c:when>
-                                        <c:otherwise>
-                                            ${bookingSummary.pickupDistrict}, ${bookingSummary.pickupProvince}
-                                        </c:otherwise>
-                                    </c:choose>
-                                </span>
+                                <span class="summary-label">Room ID</span>
+                                <span class="summary-value">${bookingSummary.roomID}</span>
                             </div>
 
                             <div class="summary-item">
-                                <span class="summary-label">Ngày nhận xe</span>
+                                <span class="summary-label">Ngày nhận phòng</span>
                                 <span class="summary-value">
                                     <fmt:formatDate value="${bookingSummary.startDate}" pattern="dd/MM/yyyy"/>
                                 </span>
                             </div>
 
                             <div class="summary-item">
-                                <span class="summary-label">Ngày trả xe</span>
+                                <span class="summary-label">Ngày trả phòng</span>
                                 <span class="summary-value">
                                     <fmt:formatDate value="${bookingSummary.endDate}" pattern="dd/MM/yyyy"/>
                                 </span>
@@ -337,14 +392,14 @@
 
                 <div class="summary-grid">
                     <c:choose>
-                        <c:when test="${bookingSummary.bookingType == 'Vehicle'}">
+                        <c:when test="${bookingSummary.bookingType == 'Accommodation'}">
                             <div class="summary-item">
-                                <span class="summary-label">Số ngày thuê</span>
+                                <span class="summary-label">Số phòng</span>
                                 <span class="summary-value">${bookingSummary.quantity}</span>
                             </div>
 
                             <div class="summary-item">
-                                <span class="summary-label">Đơn giá/ngày</span>
+                                <span class="summary-label">Đơn giá/phòng/đêm</span>
                                 <span class="summary-value">
                                     <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
                                 </span>

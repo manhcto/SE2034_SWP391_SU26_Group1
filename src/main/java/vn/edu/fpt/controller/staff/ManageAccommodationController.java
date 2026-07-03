@@ -7,12 +7,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import vn.edu.fpt.DAO.AccommodationDAO;
+import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.FacilityDAO;
 import vn.edu.fpt.DAO.RoomDAO;
 import vn.edu.fpt.model.Accommodation;
 import vn.edu.fpt.model.Facility;
 import vn.edu.fpt.model.Room;
-import vn.edu.fpt.model.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -26,6 +26,7 @@ import java.util.List;
 public class ManageAccommodationController extends HttpServlet {
 
     private final AccommodationDAO accommodationDAO = new AccommodationDAO();
+    private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
     private final RoomDAO roomDAO = new RoomDAO();
     private final FacilityDAO facilityDAO = new FacilityDAO();
 
@@ -108,10 +109,10 @@ public class ManageAccommodationController extends HttpServlet {
         List<Facility> accommodationFacilityOptions = facilityDAO.getAccommodationFacilityOptions();
 
         for (Accommodation accommodation : accommodationList) {
-            int serviceID = accommodation.getServiceID();
+            int accommodationID = accommodation.getAccommodationID();
 
-            List<Room> roomList = roomDAO.getRoomsByAccommodation(serviceID);
-            List<Facility> facilityList = facilityDAO.getFacilitiesByAccommodation(serviceID);
+            List<Room> roomList = roomDAO.getRoomsByAccommodation(accommodationID);
+            List<Facility> facilityList = facilityDAO.getFacilitiesByAccommodation(accommodationID);
 
             accommodation.setRoomList(roomList);
             accommodation.setFacilityList(facilityList);
@@ -119,6 +120,7 @@ public class ManageAccommodationController extends HttpServlet {
 
         request.setAttribute("accommodationList", accommodationList);
         request.setAttribute("accommodationFacilityOptions", accommodationFacilityOptions);
+        request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
 
         request.getRequestDispatcher("/views/staff/accommodation-management.jsp")
                 .forward(request, response);
@@ -127,15 +129,15 @@ public class ManageAccommodationController extends HttpServlet {
     private void showAccommodationDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        Integer serviceID = parsePositiveInt(request.getParameter("id"));
+        Integer accommodationID = parsePositiveInt(request.getParameter("id"));
 
-        if (serviceID == null) {
+        if (accommodationID == null) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/accommodation?action=list&status=notFound");
             return;
         }
 
-        Accommodation accommodation = accommodationDAO.getAccommodationById(serviceID);
+        Accommodation accommodation = accommodationDAO.getAccommodationById(accommodationID);
 
         if (accommodation == null) {
             response.sendRedirect(request.getContextPath()
@@ -143,14 +145,14 @@ public class ManageAccommodationController extends HttpServlet {
             return;
         }
 
-        List<Room> roomList = roomDAO.getRoomsByAccommodation(serviceID);
+        List<Room> roomList = roomDAO.getRoomsByAccommodation(accommodationID);
 
         for (Room room : roomList) {
             room.setFacilityList(facilityDAO.getFacilitiesByRoom(room.getRoomID()));
         }
 
         accommodation.setRoomList(roomList);
-        accommodation.setFacilityList(facilityDAO.getFacilitiesByAccommodation(serviceID));
+        accommodation.setFacilityList(facilityDAO.getFacilitiesByAccommodation(accommodationID));
 
         request.setAttribute("accommodation", accommodation);
         request.setAttribute("roomList", roomList);
@@ -177,16 +179,16 @@ public class ManageAccommodationController extends HttpServlet {
 
         Accommodation accommodation = buildAccommodation(0, data);
 
-        int newServiceID = accommodationDAO.addAccommodationAndReturnId(accommodation);
+        int newAccommodationID = accommodationDAO.addAccommodationAndReturnId(accommodation);
 
-        if (newServiceID > 0) {
+        if (newAccommodationID > 0) {
             int[] facilityIDs = facilityDAO.parseFacilityIDs(request.getParameterValues("facilityIDs"));
-            facilityDAO.updateAccommodationFacilities(newServiceID, facilityIDs);
+            facilityDAO.updateAccommodationFacilities(newAccommodationID, facilityIDs);
         }
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/accommodation?action=list&status="
-                + (newServiceID > 0 ? "addSuccess" : "addFail"));
+                + (newAccommodationID > 0 ? "addSuccess" : "addFail"));
     }
 
     private void updateAccommodation(HttpServletRequest request, HttpServletResponse response)
@@ -195,9 +197,9 @@ public class ManageAccommodationController extends HttpServlet {
         AccommodationData data = readAccommodationData(request);
         List<String> errors = validateAccommodationInput(data);
 
-        Integer serviceID = parsePositiveInt(data.serviceIDRaw);
+        Integer accommodationID = parsePositiveInt(data.accommodationIDRaw);
 
-        if (serviceID == null) {
+        if (accommodationID == null) {
             errors.add("Mã nơi lưu trú không hợp lệ.");
         }
 
@@ -209,13 +211,13 @@ public class ManageAccommodationController extends HttpServlet {
             return;
         }
 
-        Accommodation accommodation = buildAccommodation(serviceID, data);
+        Accommodation accommodation = buildAccommodation(accommodationID, data);
 
         boolean success = accommodationDAO.updateAccommodation(accommodation);
 
         if (success) {
             int[] facilityIDs = facilityDAO.parseFacilityIDs(request.getParameterValues("facilityIDs"));
-            facilityDAO.updateAccommodationFacilities(serviceID, facilityIDs);
+            facilityDAO.updateAccommodationFacilities(accommodationID, facilityIDs);
         }
 
         response.sendRedirect(request.getContextPath()
@@ -226,15 +228,15 @@ public class ManageAccommodationController extends HttpServlet {
     private void deleteAccommodation(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        Integer serviceID = parsePositiveInt(request.getParameter("id"));
+        Integer accommodationID = parsePositiveInt(request.getParameter("id"));
 
-        if (serviceID == null) {
+        if (accommodationID == null) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/accommodation?action=list&status=deleteFail");
             return;
         }
 
-        boolean success = accommodationDAO.deleteAccommodation(serviceID);
+        boolean success = accommodationDAO.deleteAccommodation(accommodationID);
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/accommodation?action=list&status="
@@ -247,9 +249,9 @@ public class ManageAccommodationController extends HttpServlet {
         RoomData data = readRoomData(request);
         List<String> errors = validateRoomInput(data);
 
-        Integer serviceID = parsePositiveInt(data.serviceIDRaw);
+        Integer accommodationID = parsePositiveInt(data.accommodationIDRaw);
 
-        if (serviceID == null) {
+        if (accommodationID == null) {
             errors.add("Mã nơi lưu trú không hợp lệ.");
         }
 
@@ -257,16 +259,16 @@ public class ManageAccommodationController extends HttpServlet {
             saveErrors(request, errors);
 
             response.sendRedirect(request.getContextPath()
-                    + "/staff/accommodation?action=detail&id=" + encode(data.serviceIDRaw)
+                    + "/staff/accommodation?action=detail&id=" + encode(data.accommodationIDRaw)
                     + "&status=validationFail");
             return;
         }
 
-        Room room = buildRoom(0, serviceID, data);
+        Room room = buildRoom(0, accommodationID, data);
         boolean success = roomDAO.addRoom(room);
 
         response.sendRedirect(request.getContextPath()
-                + "/staff/accommodation?action=detail&id=" + serviceID
+                + "/staff/accommodation?action=detail&id=" + accommodationID
                 + "&status=" + (success ? "addRoomSuccess" : "addRoomFail"));
     }
 
@@ -277,13 +279,13 @@ public class ManageAccommodationController extends HttpServlet {
         List<String> errors = validateRoomInput(data);
 
         Integer roomID = parsePositiveInt(data.roomIDRaw);
-        Integer serviceID = parsePositiveInt(data.serviceIDRaw);
+        Integer accommodationID = parsePositiveInt(data.accommodationIDRaw);
 
         if (roomID == null) {
             errors.add("Mã phòng không hợp lệ.");
         }
 
-        if (serviceID == null) {
+        if (accommodationID == null) {
             errors.add("Mã nơi lưu trú không hợp lệ.");
         }
 
@@ -291,16 +293,16 @@ public class ManageAccommodationController extends HttpServlet {
             saveErrors(request, errors);
 
             response.sendRedirect(request.getContextPath()
-                    + "/staff/accommodation?action=detail&id=" + encode(data.serviceIDRaw)
+                    + "/staff/accommodation?action=detail&id=" + encode(data.accommodationIDRaw)
                     + "&status=validationFail");
             return;
         }
 
-        Room room = buildRoom(roomID, serviceID, data);
+        Room room = buildRoom(roomID, accommodationID, data);
         boolean success = roomDAO.updateRoom(room);
 
         response.sendRedirect(request.getContextPath()
-                + "/staff/accommodation?action=detail&id=" + serviceID
+                + "/staff/accommodation?action=detail&id=" + accommodationID
                 + "&status=" + (success ? "updateRoomSuccess" : "updateRoomFail"));
     }
 
@@ -308,9 +310,9 @@ public class ManageAccommodationController extends HttpServlet {
             throws IOException {
 
         Integer roomID = parsePositiveInt(request.getParameter("roomID"));
-        Integer serviceID = parsePositiveInt(request.getParameter("serviceID"));
+        Integer accommodationID = parsePositiveInt(request.getParameter("accommodationID"));
 
-        if (roomID == null || serviceID == null) {
+        if (roomID == null || accommodationID == null) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/accommodation?action=list&status=deleteRoomFail");
             return;
@@ -319,26 +321,26 @@ public class ManageAccommodationController extends HttpServlet {
         boolean success = roomDAO.deleteRoom(roomID);
 
         response.sendRedirect(request.getContextPath()
-                + "/staff/accommodation?action=detail&id=" + serviceID
+                + "/staff/accommodation?action=detail&id=" + accommodationID
                 + "&status=" + (success ? "deleteRoomSuccess" : "deleteRoomFail"));
     }
 
     private void updateAccommodationFacilities(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        Integer serviceID = parsePositiveInt(request.getParameter("serviceID"));
+        Integer accommodationID = parsePositiveInt(request.getParameter("accommodationID"));
 
-        if (serviceID == null) {
+        if (accommodationID == null) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/accommodation?action=list&status=facilityFail");
             return;
         }
 
         int[] facilityIDs = facilityDAO.parseFacilityIDs(request.getParameterValues("facilityIDs"));
-        boolean success = facilityDAO.updateAccommodationFacilities(serviceID, facilityIDs);
+        boolean success = facilityDAO.updateAccommodationFacilities(accommodationID, facilityIDs);
 
         response.sendRedirect(request.getContextPath()
-                + "/staff/accommodation?action=detail&id=" + serviceID
+                + "/staff/accommodation?action=detail&id=" + accommodationID
                 + "&status=" + (success ? "facilitySuccess" : "facilityFail"));
     }
 
@@ -346,9 +348,9 @@ public class ManageAccommodationController extends HttpServlet {
             throws IOException {
 
         Integer roomID = parsePositiveInt(request.getParameter("roomID"));
-        Integer serviceID = parsePositiveInt(request.getParameter("serviceID"));
+        Integer accommodationID = parsePositiveInt(request.getParameter("accommodationID"));
 
-        if (roomID == null || serviceID == null) {
+        if (roomID == null || accommodationID == null) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/accommodation?action=list&status=roomFacilityFail");
             return;
@@ -358,14 +360,14 @@ public class ManageAccommodationController extends HttpServlet {
         boolean success = facilityDAO.updateRoomFacilities(roomID, facilityIDs);
 
         response.sendRedirect(request.getContextPath()
-                + "/staff/accommodation?action=detail&id=" + serviceID
+                + "/staff/accommodation?action=detail&id=" + accommodationID
                 + "&status=" + (success ? "roomFacilitySuccess" : "roomFacilityFail"));
     }
 
     private AccommodationData readAccommodationData(HttpServletRequest request) {
         AccommodationData data = new AccommodationData();
 
-        data.serviceIDRaw = request.getParameter("serviceID");
+        data.accommodationIDRaw = request.getParameter("accommodationID");
         data.name = safeTrim(request.getParameter("name"));
         data.image = safeTrim(request.getParameter("image"));
         data.address = safeTrim(request.getParameter("address"));
@@ -387,7 +389,7 @@ public class ManageAccommodationController extends HttpServlet {
         RoomData data = new RoomData();
 
         data.roomIDRaw = request.getParameter("roomID");
-        data.serviceIDRaw = request.getParameter("serviceID");
+        data.accommodationIDRaw = request.getParameter("accommodationID");
         data.roomType = safeTrim(request.getParameter("roomType"));
         data.numberOfRoomsRaw = request.getParameter("numberOfRooms");
         data.priceOfRoomRaw = request.getParameter("priceOfRoom");
@@ -404,10 +406,10 @@ public class ManageAccommodationController extends HttpServlet {
         return data;
     }
 
-    private Accommodation buildAccommodation(int serviceID, AccommodationData data) {
+    private Accommodation buildAccommodation(int accommodationID, AccommodationData data) {
         Accommodation accommodation = new Accommodation();
 
-        accommodation.setServiceID(serviceID);
+        accommodation.setAccommodationID(accommodationID);
         accommodation.setName(data.name);
         accommodation.setImage(data.image);
         accommodation.setAddress(data.address);
@@ -422,24 +424,14 @@ public class ManageAccommodationController extends HttpServlet {
         accommodation.setDistrict(data.district);
         accommodation.setWard(data.ward);
 
-        Service service = new Service();
-        service.setServiceID(serviceID);
-        service.setServiceCategoryID(1);
-        service.setServiceName(data.name);
-        service.setStatus("Active");
-        service.setServiceType("Accommodation");
-        service.setFulfillmentType("Booking");
-
-        accommodation.setServiceDetails(service);
-
         return accommodation;
     }
 
-    private Room buildRoom(int roomID, int serviceID, RoomData data) {
+    private Room buildRoom(int roomID, int accommodationID, RoomData data) {
         Room room = new Room();
 
         room.setRoomID(roomID);
-        room.setServiceID(serviceID);
+        room.setAccommodationID(accommodationID);
         room.setRoomType(data.roomType);
         room.setNumberOfRooms(Integer.parseInt(data.numberOfRoomsRaw.trim()));
         room.setPriceOfRoom(new BigDecimal(normalizeDecimal(data.priceOfRoomRaw)));
@@ -504,16 +496,8 @@ public class ManageAccommodationController extends HttpServlet {
             errors.add("Giờ trả phòng không hợp lệ.");
         }
 
-        if (isBlank(data.province) || data.province.length() < 2 || data.province.length() > 100) {
-            errors.add("Tỉnh/thành phải từ 2 đến 100 ký tự.");
-        }
-
-        if (isBlank(data.district) || data.district.length() < 2 || data.district.length() > 100) {
-            errors.add("Quận/huyện phải từ 2 đến 100 ký tự.");
-        }
-
-        if (!isBlank(data.ward) && (data.ward.length() < 2 || data.ward.length() > 100)) {
-            errors.add("Phường/xã phải từ 2 đến 100 ký tự nếu có nhập.");
+        if (!administrativeUnitDAO.isValidProvinceWard(data.province, data.ward)) {
+            errors.add("Tỉnh/thành và phường/xã không hợp lệ theo danh mục hành chính.");
         }
 
         return errors;
@@ -721,7 +705,7 @@ public class ManageAccommodationController extends HttpServlet {
     }
 
     private static class AccommodationData {
-        String serviceIDRaw;
+        String accommodationIDRaw;
         String name;
         String image;
         String address;
@@ -739,7 +723,7 @@ public class ManageAccommodationController extends HttpServlet {
 
     private static class RoomData {
         String roomIDRaw;
-        String serviceIDRaw;
+        String accommodationIDRaw;
         String roomType;
         String numberOfRoomsRaw;
         String priceOfRoomRaw;

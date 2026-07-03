@@ -1,21 +1,21 @@
 package vn.edu.fpt.controller.customer;
 
-import vn.edu.fpt.DAO.BookingDAO;
-import vn.edu.fpt.model.Booking;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.edu.fpt.DAO.VoucherDAO;
 import vn.edu.fpt.model.User;
+import vn.edu.fpt.model.Voucher;
 
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet(name = "BookingListController", urlPatterns = {"/booking-list"})
-public class BookingListController extends HttpServlet {
+@WebServlet(name = "VoucherListController", urlPatterns = {"/my-vouchers"})
+public class VoucherListController extends HttpServlet {
+    private final VoucherDAO voucherDAO = new VoucherDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -28,16 +28,15 @@ public class BookingListController extends HttpServlet {
         User user = session == null ? null : (User) session.getAttribute("user");
 
         if (user == null) {
-            request.getSession().setAttribute("redirectAfterLogin", "/booking-list");
+            request.getSession().setAttribute("redirectAfterLogin", "/my-vouchers");
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        BookingDAO bookingDAO = new BookingDAO();
-        List<Booking> bookingList = bookingDAO.getBookingsByUserID(user.getUserID());
+        List<Voucher> voucherList = voucherDAO.getAvailableVouchersForCustomer();
 
-        request.setAttribute("bookingList", bookingList);
-        request.setAttribute("activeAccountTab", "bookings");
-        request.getRequestDispatcher("/views/customer/booking-list.jsp").forward(request, response);
+        request.setAttribute("voucherList", voucherList);
+        request.setAttribute("activeAccountTab", "vouchers");
+        request.getRequestDispatcher("/views/customer/voucher-list.jsp").forward(request, response);
     }
 }

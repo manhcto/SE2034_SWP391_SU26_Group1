@@ -11,6 +11,8 @@ public class Booking {
     private int numberAdult;
     private int numberChildren;
     private String note;
+    private String identityNumber;
+    private String identityImageUrl;
     private String address;
     private String firstName;
     private String lastName;
@@ -20,7 +22,7 @@ public class Booking {
     private boolean isBookedForOther;
     private double totalPrice;
     private Integer voucherID;
-    private Integer detailServiceID;
+    private Integer detailAccommodationID;
     private Integer detailTourScheduleID;
     private int detailQuantity;
     private double detailUnitPrice;
@@ -82,6 +84,12 @@ public class Booking {
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
 
+    public String getIdentityNumber() { return identityNumber; }
+    public void setIdentityNumber(String identityNumber) { this.identityNumber = identityNumber; }
+
+    public String getIdentityImageUrl() { return identityImageUrl; }
+    public void setIdentityImageUrl(String identityImageUrl) { this.identityImageUrl = identityImageUrl; }
+
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
@@ -109,8 +117,8 @@ public class Booking {
     public Integer getVoucherID() { return voucherID; }
     public void setVoucherID(Integer voucherID) { this.voucherID = voucherID; }
 
-    public Integer getDetailServiceID() { return detailServiceID; }
-    public void setDetailServiceID(Integer detailServiceID) { this.detailServiceID = detailServiceID; }
+    public Integer getDetailAccommodationID() { return detailAccommodationID; }
+    public void setDetailAccommodationID(Integer detailAccommodationID) { this.detailAccommodationID = detailAccommodationID; }
 
     public Integer getDetailTourScheduleID() { return detailTourScheduleID; }
     public void setDetailTourScheduleID(Integer detailTourScheduleID) { this.detailTourScheduleID = detailTourScheduleID; }
@@ -144,10 +152,6 @@ public class Booking {
 
         if ("Accommodation".equalsIgnoreCase(bookingType)) {
             return "Lưu trú";
-        }
-
-        if ("Vehicle".equalsIgnoreCase(bookingType)) {
-            return "Thuê xe";
         }
 
         return bookingType;

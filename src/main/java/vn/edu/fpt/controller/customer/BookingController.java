@@ -1,10 +1,8 @@
 package vn.edu.fpt.controller.customer;
 
 import vn.edu.fpt.DAO.BookingDAO;
-import vn.edu.fpt.DAO.VehicleDAO;
 import vn.edu.fpt.model.Booking;
 import vn.edu.fpt.model.User;
-import vn.edu.fpt.model.Vehicle;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,28 +12,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet(name = "BookingController", urlPatterns = {"/booking"})
 public class BookingController extends HttpServlet {
 
-    private final BookingDAO bookingDAO = new BookingDAO();
-    private final VehicleDAO vehicleDAO = new VehicleDAO();
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
-
-        if (isVehicleBookingRequest(request)) {
-            showVehicleBookingPage(request, response);
-            return;
-        }
 
         request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
     }
@@ -50,11 +37,6 @@ public class BookingController extends HttpServlet {
         List<String> errors = new ArrayList<>();
 
         try {
-            if (isVehiclePost(request)) {
-                handleVehicleBooking(request, response);
-                return;
-            }
-
             String firstName = getTrimValue(request, "firstName");
             String lastName = getTrimValue(request, "lastName");
             String email = getTrimValue(request, "email");
@@ -293,222 +275,6 @@ public class BookingController extends HttpServlet {
             e.printStackTrace();
             request.setAttribute("error", "Đã xảy ra lỗi hệ thống nghiêm trọng!");
             request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
-        }
-    }
-
-    private boolean isVehicleBookingRequest(HttpServletRequest request) {
-        return "vehicle".equalsIgnoreCase(getTrimValue(request, "type"))
-                || parsePositiveIntValue(request.getParameter("vehicleID")) > 0;
-    }
-
-    private boolean isVehiclePost(HttpServletRequest request) {
-        return "Vehicle".equalsIgnoreCase(getTrimValue(request, "bookingType"))
-                || "vehicle".equalsIgnoreCase(getTrimValue(request, "type"));
-    }
-
-    private void showVehicleBookingPage(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        int vehicleID = parsePositiveIntValue(request.getParameter("vehicleID"));
-
-        if (vehicleID <= 0) {
-            vehicleID = parsePositiveIntValue(request.getParameter("id"));
-        }
-
-        if (vehicleID <= 0) {
-            response.sendRedirect(request.getContextPath() + "/vehicle");
-            return;
-        }
-
-        Vehicle vehicle = vehicleDAO.getVehicleByIdForCustomer(vehicleID);
-
-        if (vehicle == null) {
-            response.sendRedirect(request.getContextPath() + "/vehicle?status=notFound");
-            return;
-        }
-
-        prepareVehicleBookingPage(request, vehicle);
-
-        request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
-    }
-
-    private void handleVehicleBooking(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        List<String> errors = new ArrayList<>();
-
-        int vehicleID = parsePositiveIntValue(request.getParameter("vehicleID"));
-        Vehicle vehicle = vehicleID > 0 ? vehicleDAO.getVehicleByIdForCustomer(vehicleID) : null;
-
-        if (vehicle == null) {
-            response.sendRedirect(request.getContextPath() + "/vehicle?status=notFound");
-            return;
-        }
-
-        String firstName = getTrimValue(request, "firstName");
-        String lastName = getTrimValue(request, "lastName");
-        String email = getTrimValue(request, "email");
-        String phone = getTrimValue(request, "phone");
-        String address = getTrimValue(request, "address");
-        String pickupDateRaw = getTrimValue(request, "pickupDate");
-        String returnDateRaw = getTrimValue(request, "returnDate");
-        String note = getTrimValue(request, "note");
-        boolean isBookedForOther = request.getParameter("isBookedForOther") != null;
-
-        if (firstName.isEmpty()) {
-            errors.add("Ho va ten dem khong duoc de trong.");
-        } else if (firstName.length() > 100 || !firstName.matches("^[\\p{L}\\s]+$")) {
-            errors.add("Ho va ten dem khong hop le.");
-        }
-
-        if (lastName.isEmpty()) {
-            errors.add("Ten khong duoc de trong.");
-        } else if (lastName.length() > 100 || !lastName.matches("^[\\p{L}\\s]+$")) {
-            errors.add("Ten khong hop le.");
-        }
-
-        if (email.isEmpty()) {
-            errors.add("Email khong duoc de trong.");
-        } else if (email.length() > 255
-                || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            errors.add("Email khong hop le.");
-        }
-
-        if (phone.isEmpty()) {
-            errors.add("So dien thoai khong duoc de trong.");
-        } else if (!phone.matches("^0\\d{9}$")) {
-            errors.add("So dien thoai phai co 10 chu so va bat dau bang 0.");
-        }
-
-        if (address.isEmpty()) {
-            errors.add("Dia chi lien he khong duoc de trong.");
-        } else if (address.length() > 255) {
-            errors.add("Dia chi lien he khong duoc vuot qua 255 ky tu.");
-        }
-
-        LocalDate pickupDate = null;
-        LocalDate returnDate = null;
-        int rentalDays = 0;
-
-        try {
-            pickupDate = LocalDate.parse(pickupDateRaw);
-            returnDate = LocalDate.parse(returnDateRaw);
-
-            LocalDate today = LocalDate.now();
-
-            if (pickupDate.isBefore(today)) {
-                errors.add("Ngay nhan xe khong duoc nho hon ngay hien tai.");
-            }
-
-            if (!returnDate.isAfter(pickupDate)) {
-                errors.add("Ngay tra xe phai sau ngay nhan xe.");
-            } else {
-                long days = ChronoUnit.DAYS.between(pickupDate, returnDate);
-
-                if (days > 30) {
-                    errors.add("Thoi gian thue xe toi da la 30 ngay.");
-                } else {
-                    rentalDays = (int) days;
-                }
-            }
-
-        } catch (Exception e) {
-            errors.add("Ngay nhan xe hoac ngay tra xe khong hop le.");
-        }
-
-        if (note.length() > 1000) {
-            errors.add("Ghi chu khong duoc vuot qua 1000 ky tu.");
-        }
-
-        if (!errors.isEmpty()) {
-            prepareVehicleBookingPage(request, vehicle);
-            keepVehicleBookingInput(request, firstName, lastName, email, phone, address,
-                    pickupDateRaw, returnDateRaw, note, isBookedForOther);
-            request.setAttribute("errorList", errors);
-            request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
-            return;
-        }
-
-        Booking booking = new Booking();
-        booking.setBookingCode("VH-" + System.currentTimeMillis() % 1000000);
-        booking.setBookingType("Vehicle");
-        booking.setFirstName(firstName);
-        booking.setLastName(lastName);
-        booking.setEmail(email);
-        booking.setPhone(phone);
-        booking.setAddress(address);
-        booking.setNote(note.isEmpty() ? null : note);
-        booking.setNumberAdult(1);
-        booking.setNumberChildren(0);
-        booking.setBookedForOther(isBookedForOther);
-
-        HttpSession session = request.getSession(false);
-
-        if (session != null && session.getAttribute("user") != null) {
-            User currentUser = (User) session.getAttribute("user");
-            booking.setUserID(currentUser.getUserID());
-        }
-
-        int bookingID = bookingDAO.insertVehicleBookingTransactionReturnID(
-                booking,
-                vehicleID,
-                Date.valueOf(pickupDate),
-                Date.valueOf(returnDate),
-                rentalDays);
-
-        if (bookingID > 0) {
-            HttpSession currentSession = request.getSession();
-            currentSession.setAttribute("successMessage", "Dat xe thanh cong! Ma don: " + booking.getBookingCode());
-            response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
-            return;
-        }
-
-        prepareVehicleBookingPage(request, vehicle);
-        keepVehicleBookingInput(request, firstName, lastName, email, phone, address,
-                pickupDateRaw, returnDateRaw, note, isBookedForOther);
-        request.setAttribute("error", "Khong the dat xe. Xe co the vua duoc khach khac dat hoac khong con kha dung.");
-        request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
-    }
-
-    private void prepareVehicleBookingPage(HttpServletRequest request, Vehicle vehicle) {
-        LocalDate today = LocalDate.now();
-
-        request.setAttribute("bookingMode", "vehicle");
-        request.setAttribute("vehicle", vehicle);
-        request.setAttribute("minPickupDate", today.toString());
-        request.setAttribute("defaultPickupDate", today.toString());
-        request.setAttribute("defaultReturnDate", today.plusDays(1).toString());
-    }
-
-    private void keepVehicleBookingInput(
-            HttpServletRequest request,
-            String firstName,
-            String lastName,
-            String email,
-            String phone,
-            String address,
-            String pickupDate,
-            String returnDate,
-            String note,
-            boolean isBookedForOther) {
-
-        request.setAttribute("firstName", firstName);
-        request.setAttribute("lastName", lastName);
-        request.setAttribute("email", email);
-        request.setAttribute("phone", phone);
-        request.setAttribute("address", address);
-        request.setAttribute("pickupDate", pickupDate);
-        request.setAttribute("returnDate", returnDate);
-        request.setAttribute("note", note);
-        request.setAttribute("isBookedForOther", isBookedForOther);
-    }
-
-    private int parsePositiveIntValue(String value) {
-        try {
-            int number = Integer.parseInt(value);
-            return number > 0 ? number : 0;
-        } catch (Exception e) {
-            return 0;
         }
     }
 

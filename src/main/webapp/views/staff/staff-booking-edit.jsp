@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -240,6 +241,28 @@
             font-weight: 900;
         }
 
+        .identity-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .identity-preview img {
+            width: 160px;
+            height: 96px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+        }
+
+        .identity-preview a {
+            color: #2563eb;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
         .form-label {
             font-weight: 800;
             color: #334155;
@@ -393,21 +416,6 @@
             <span>Quản lý lưu trú</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-            <i class="fa-solid fa-car-side"></i>
-            <span>Quản lý phương tiện</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/service">
-            <i class="fa-solid fa-briefcase"></i>
-            <span>Quản lý dịch vụ</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/external-ticket">
-            <i class="fa-solid fa-ticket"></i>
-            <span>Vé tham quan bên ngoài</span>
-        </a>
-
         <div class="nav-section-title">Vận hành</div>
 
         <a class="sidebar-link active" href="${pageContext.request.contextPath}/staff/booking">
@@ -440,11 +448,6 @@
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
             <i class="fa-solid fa-comments"></i>
             <span>Đánh giá khách hàng</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/notification">
-            <i class="fa-solid fa-bell"></i>
-            <span>Cấu hình thông báo</span>
         </a>
 
         <div class="admin-user">
@@ -578,6 +581,18 @@
                         </div>
 
                         <div class="col-md-6">
+                            <span class="info-label">CCCD / CMND</span>
+                            <span class="info-value">
+                                <c:choose>
+                                    <c:when test="${not empty booking.identityNumber}">
+                                        ${booking.identityNumber}
+                                    </c:when>
+                                    <c:otherwise>Chưa có</c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
+
+                        <div class="col-md-6">
                             <span class="info-label">Đặt hộ người khác</span>
                             <span class="info-value">
                                 <c:choose>
@@ -590,6 +605,35 @@
                         <div class="col-md-12">
                             <span class="info-label">Địa chỉ liên hệ</span>
                             <span class="info-value">${booking.address}</span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <span class="info-label">Ảnh CCCD / CMND</span>
+                            <c:choose>
+                                <c:when test="${not empty booking.identityImageUrl}">
+                                    <c:choose>
+                                        <c:when test="${fn:startsWith(booking.identityImageUrl, 'http')}">
+                                            <c:set var="identityImageSrc" value="${booking.identityImageUrl}"/>
+                                        </c:when>
+                                        <c:when test="${fn:startsWith(booking.identityImageUrl, '/')}">
+                                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}${booking.identityImageUrl}"/>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}/${booking.identityImageUrl}"/>
+                                        </c:otherwise>
+                                    </c:choose>
+
+                                    <div class="identity-preview">
+                                        <a href="${identityImageSrc}" target="_blank" rel="noopener">
+                                            <img src="${identityImageSrc}" alt="Ảnh CCCD">
+                                        </a>
+                                        <a href="${identityImageSrc}" target="_blank" rel="noopener">Mở ảnh</a>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="info-value">Chưa có</span>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
 
                         <div class="col-md-6">

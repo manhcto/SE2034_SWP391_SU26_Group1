@@ -411,21 +411,6 @@
       <span>Quản lý lưu trú</span>
     </a>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-      <i class="fa-solid fa-car-side"></i>
-      <span>Quản lý phương tiện</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/service">
-      <i class="fa-solid fa-briefcase"></i>
-      <span>Quản lý dịch vụ</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/external-ticket">
-      <i class="fa-solid fa-ticket"></i>
-      <span>Vé tham quan bên ngoài</span>
-    </a>
-
     <div class="nav-section-title">Vận hành</div>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
@@ -458,11 +443,6 @@
     <a class="sidebar-link active" href="${pageContext.request.contextPath}/staff/feedback">
       <i class="fa-solid fa-comments"></i>
       <span>Đánh giá khách hàng</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/notification">
-      <i class="fa-solid fa-bell"></i>
-      <span>Cấu hình thông báo</span>
     </a>
 
     <div class="admin-user">

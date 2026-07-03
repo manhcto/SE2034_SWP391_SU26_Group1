@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Accommodation {
 
-    private int serviceID;
+    private int accommodationID;
     private String name;
     private String image;
     private String address;
@@ -21,7 +21,6 @@ public class Accommodation {
     private String district;
     private String ward;
 
-    private Service serviceDetails;
     private List<Room> roomList;
     private List<Facility> facilityList;
 
@@ -30,12 +29,12 @@ public class Accommodation {
         this.facilityList = new ArrayList<>();
     }
 
-    public int getServiceID() {
-        return serviceID;
+    public int getAccommodationID() {
+        return accommodationID;
     }
 
-    public void setServiceID(int serviceID) {
-        this.serviceID = serviceID;
+    public void setAccommodationID(int accommodationID) {
+        this.accommodationID = accommodationID;
     }
 
     public String getName() {
@@ -140,14 +139,6 @@ public class Accommodation {
 
     public void setWard(String ward) {
         this.ward = safeTrim(ward);
-    }
-
-    public Service getServiceDetails() {
-        return serviceDetails;
-    }
-
-    public void setServiceDetails(Service serviceDetails) {
-        this.serviceDetails = serviceDetails;
     }
 
     public List<Room> getRoomList() {

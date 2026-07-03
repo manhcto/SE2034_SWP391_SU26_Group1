@@ -8,19 +8,17 @@ public class AssignmentView {
     private int bookingID;
     private String tourName;
     private String guideName;
-    private String vehicleName;
     private Date departureDate;
     private String status;
 
     public AssignmentView() {
     }
 
-    public AssignmentView(int assignmentID, int bookingID, String tourName, String guideName, String vehicleName, Date departureDate, String status) {
+    public AssignmentView(int assignmentID, int bookingID, String tourName, String guideName, Date departureDate, String status) {
         this.assignmentID = assignmentID;
         this.bookingID = bookingID;
         this.tourName = tourName;
         this.guideName = guideName;
-        this.vehicleName = vehicleName;
         this.departureDate = departureDate;
         this.status = status;
     }
@@ -55,14 +53,6 @@ public class AssignmentView {
 
     public void setGuideName(String guideName) {
         this.guideName = guideName;
-    }
-
-    public String getVehicleName() {
-        return vehicleName;
-    }
-
-    public void setVehicleName(String vehicleName) {
-        this.vehicleName = vehicleName;
     }
 
     public Date getDepartureDate() {

@@ -20,10 +20,6 @@ public class AssignmentDAOImpl {
                 b.bookingID,
                 t.tourName,
                 CONCAT(u.firstName, ' ', u.lastName) AS guideName,
-            
-                -- Tạm thời lấy tên xe từ bảng Vehicles
-                v.vehicleBrand AS vehicleName,
-            
                 ts.startDate,
                 b.status AS bookingStatus
             
@@ -43,16 +39,7 @@ public class AssignmentDAOImpl {
             
             LEFT JOIN Booking b
                 ON b.bookingID = bd.bookingID
-            
-            LEFT JOIN Vehicles v
-                ON v.serviceID = (
-                    SELECT TOP 1 tsd.serviceID
-                    FROM Tour_Service_Detail tsd
-                    JOIN [Service] s
-                        ON tsd.serviceID = s.serviceID
-                    WHERE tsd.tourID = t.tourID
-                )
-            
+
             ORDER BY ta.assignmentID DESC
             """;
         DBConnection db = new DBConnection();
@@ -73,8 +60,6 @@ public class AssignmentDAOImpl {
                 a.setTourName(rs.getString("tourName"));
 
                 a.setGuideName(rs.getString("guideName"));
-
-                a.setVehicleName(rs.getString("vehicleName"));
 
                 a.setDepartureDate(rs.getDate("startDate"));
 
@@ -241,7 +226,6 @@ public class AssignmentDAOImpl {
             b.bookingID,
             t.tourName,
             CONCAT(u.firstName,' ',u.lastName) AS guideName,
-            v.vehicleBrand AS vehicleName,
             ts.startDate,
             b.status
         FROM Tour_Assignments ta
@@ -260,14 +244,6 @@ public class AssignmentDAOImpl {
 
         LEFT JOIN Booking b
             ON b.bookingID = bd.bookingID
-
-        LEFT JOIN Vehicles v
-            ON v.serviceID =
-            (
-                SELECT TOP 1 tsd.serviceID
-                FROM Tour_Service_Detail tsd
-                WHERE tsd.tourID = t.tourID
-            )
 
         WHERE ta.assignmentID = ?
         """;
@@ -298,9 +274,6 @@ public class AssignmentDAOImpl {
 
                 a.setGuideName(
                         rs.getString("guideName"));
-
-                a.setVehicleName(
-                        rs.getString("vehicleName"));
 
                 a.setDepartureDate(
                         rs.getDate("startDate"));
@@ -454,7 +427,6 @@ public class AssignmentDAOImpl {
             b.bookingID,
             t.tourName,
             CONCAT(u.firstName, ' ', u.lastName) AS guideName,
-            v.vehicleBrand AS vehicleName,
             ts.startDate,
             b.status
         FROM Tour_Assignments ta
@@ -473,14 +445,6 @@ public class AssignmentDAOImpl {
 
         LEFT JOIN Booking b
             ON b.bookingID = bd.bookingID
-
-        LEFT JOIN Vehicles v
-            ON v.serviceID =
-            (
-                SELECT TOP 1 tsd.serviceID
-                FROM Tour_Service_Detail tsd
-                WHERE tsd.tourID = t.tourID
-            )
 
         WHERE ta.userID = ?
 
@@ -513,9 +477,6 @@ public class AssignmentDAOImpl {
 
                 a.setGuideName(
                         rs.getString("guideName"));
-
-                a.setVehicleName(
-                        rs.getString("vehicleName"));
 
                 a.setDepartureDate(
                         rs.getDate("startDate"));

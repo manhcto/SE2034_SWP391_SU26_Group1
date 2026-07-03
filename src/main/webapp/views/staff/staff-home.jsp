@@ -458,21 +458,6 @@
             <span>Quản lý lưu trú</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-            <i class="fa-solid fa-car-side"></i>
-            <span>Quản lý phương tiện</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/service">
-            <i class="fa-solid fa-briefcase"></i>
-            <span>Quản lý dịch vụ</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/external-ticket">
-            <i class="fa-solid fa-ticket"></i>
-            <span>Vé tham quan bên ngoài</span>
-        </a>
-
         <div class="nav-section-title">Vận hành</div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
@@ -505,11 +490,6 @@
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
             <i class="fa-solid fa-comments"></i>
             <span>Đánh giá khách hàng</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/notification">
-            <i class="fa-solid fa-bell"></i>
-            <span>Cấu hình thông báo</span>
         </a>
 
         <div class="admin-user">
@@ -617,21 +597,6 @@
                 </a>
             </div>
 
-            <div class="col-md-6">
-                <a class="module-card highlight-card"
-                   href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-car-side"></i>
-                    </div>
-                    <h5>Quản lý phương tiện</h5>
-                    <p>
-                        Quản lý xe thuê, biển số, giá thuê theo ngày, tình trạng sử dụng và dữ liệu phục vụ đặt dịch vụ.
-                    </p>
-                    <span class="module-open">
-                        Mở màn quản lý phương tiện <i class="fa-solid fa-arrow-right ms-1"></i>
-                    </span>
-                </a>
-            </div>
         </div>
 
         <h3 class="section-title">Tất cả chức năng quản lý</h3>
@@ -681,23 +646,6 @@
                 </a>
             </div>
 
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/service">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-briefcase"></i>
-                    </div>
-                    <h5>Quản lý Service</h5>
-                    <p>Quản lý danh mục và loại dịch vụ trong hệ thống WonderVN.</p>
-                    <span class="module-open">Mở chức năng</span>
-                </a>
-            </div>
-
-            <div class="col-md-3">
-                <a class="module-card" href="${pageContext.request.contextPath}/staff/external-ticket">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-ticket"></i>
-                    </div>
-                    <h5>External Ticket</h5>
                     <p>Quản lý vé tham quan, vé vui chơi và dịch vụ bên ngoài.</p>
                     <span class="module-open">Mở chức năng</span>
                 </a>
@@ -740,9 +688,9 @@
 
                 <div class="col-md-3">
                     <a class="quick-btn bg-info text-white"
-                       href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-                        <i class="fa-solid fa-car-side me-2"></i>
-                        Thêm xe
+                       href="${pageContext.request.contextPath}/staff/booking">
+                        <i class="fa-solid fa-calendar-check me-2"></i>
+                        Quản lý booking
                     </a>
                 </div>
 

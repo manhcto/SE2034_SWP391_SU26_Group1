@@ -61,11 +61,6 @@
                 </tr>
 
                 <tr>
-                    <th>Phương tiện</th>
-                    <td>${assignment.vehicleName}</td>
-                </tr>
-
-                <tr>
                     <th>Ngày khởi hành</th>
                     <td>${assignment.departureDate}</td>
                 </tr>

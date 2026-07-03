@@ -54,7 +54,6 @@
                     <th>Mã phân công</th>
                     <th>Mã đặt tour</th>
                     <th>Tour</th>
-                    <th>Phương tiện</th>
                     <th>Ngày khởi hành</th>
                     <th>Trạng thái</th>
                     <th>Thao tác</th>
@@ -68,7 +67,6 @@
                         <td>${a.assignmentID}</td>
                         <td>${a.bookingID}</td>
                         <td>${a.tourName}</td>
-                        <td>${a.vehicleName}</td>
                         <td>${a.departureDate}</td>
                         <td>
                             <span class="badge badge-status">

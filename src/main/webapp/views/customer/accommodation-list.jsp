@@ -1032,7 +1032,7 @@
 
                             <div class="card-actions">
                                 <a class="detail-btn"
-                                   href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.serviceID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">
+                                   href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.accommodationID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">
                                     Xem chi tiết
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </a>

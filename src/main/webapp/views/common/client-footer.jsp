@@ -110,8 +110,6 @@
             <h4>Dịch vụ</h4>
             <a href="${pageContext.request.contextPath}/tour">Tour trọn gói</a>
             <a href="${pageContext.request.contextPath}/accommodation">Khách sạn</a>
-            <a href="${pageContext.request.contextPath}/vehicle">Thuê xe</a>
-            <a href="${pageContext.request.contextPath}/service">Dịch vụ cộng thêm</a>
         </div>
 
         <div>

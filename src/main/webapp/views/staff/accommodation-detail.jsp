@@ -558,7 +558,7 @@
 
                                                 <a class="btn btn-sm btn-outline-danger"
                                                    onclick="return confirm('Bạn có chắc muốn xóa phòng này?')"
-                                                   href="${pageContext.request.contextPath}/staff/accommodation?action=deleteRoom&roomID=${r.roomID}&serviceID=${accommodation.serviceID}">
+                                                   href="${pageContext.request.contextPath}/staff/accommodation?action=deleteRoom&roomID=${r.roomID}&accommodationID=${accommodation.accommodationID}">
                                                     Xóa
                                                 </a>
                                             </div>
@@ -576,7 +576,7 @@
                                               novalidate>
                                             <input type="hidden" name="action" value="updateRoom">
                                             <input type="hidden" name="roomID" value="${r.roomID}">
-                                            <input type="hidden" name="serviceID" value="${accommodation.serviceID}">
+                                            <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
 
                                             <div class="modal-header">
                                                 <h5 class="modal-title">Cập nhật phòng</h5>
@@ -684,7 +684,7 @@
                   method="post"
                   novalidate>
                 <input type="hidden" name="action" value="addRoom">
-                <input type="hidden" name="serviceID" value="${accommodation.serviceID}">
+                <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
 
                 <div class="modal-header">
                     <h5 class="modal-title">Thêm phòng mới</h5>
@@ -781,7 +781,7 @@
         <div class="modal-content">
             <form action="${pageContext.request.contextPath}/staff/accommodation" method="post">
                 <input type="hidden" name="action" value="updateAccommodationFacilities">
-                <input type="hidden" name="serviceID" value="${accommodation.serviceID}">
+                <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
 
                 <div class="modal-header">
                     <h5 class="modal-title">Cập nhật tiện ích nơi lưu trú</h5>

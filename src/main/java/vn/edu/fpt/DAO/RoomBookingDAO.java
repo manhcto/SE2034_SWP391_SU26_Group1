@@ -14,7 +14,7 @@ import java.util.List;
 
 public class RoomBookingDAO {
 
-    public List<RoomBooking> getRoomBookingsByAccommodation(int serviceID) {
+    public List<RoomBooking> getRoomBookingsByAccommodation(int accommodationID) {
         List<RoomBooking> list = new ArrayList<>();
 
         String sql =
@@ -26,16 +26,15 @@ public class RoomBookingDAO {
                         "bd.subTotal AS totalPrice " +
                         "FROM [dbo].[Booking_Detail] bd " +
                         "INNER JOIN [dbo].[Booking] b ON bd.bookingID = b.bookingID " +
-                        "LEFT JOIN [dbo].[Room] r ON r.serviceID = bd.serviceID " +
-                        "AND bd.note LIKE CONCAT(N'ROOM_ID=', r.roomID, N';%') " +
-                        "WHERE bd.serviceID = ? " +
+                        "LEFT JOIN [dbo].[Room] r ON r.roomID = bd.roomID " +
+                        "WHERE bd.accommodationID = ? " +
                         "AND b.bookingType = N'Accommodation' " +
                         "ORDER BY bd.startDate DESC, bd.bookingDetailID DESC";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, serviceID);
+            ps.setInt(1, accommodationID);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -56,7 +55,7 @@ public class RoomBookingDAO {
             String lastName,
             String email,
             String phone,
-            int serviceID,
+            int accommodationID,
             int roomID,
             Date checkInDate,
             Date checkOutDate,
@@ -66,47 +65,51 @@ public class RoomBookingDAO {
             BigDecimal unitPrice,
             BigDecimal totalPrice,
             String address,
+            String identityNumber,
+            String identityImageUrl,
             String note) {
 
         String sqlAvailability =
                 "SELECT r.roomAvailability - ISNULL(booked.bookedQuantity, 0) AS availableQuantity " +
                         "FROM [dbo].[Room] r " +
                         "LEFT JOIN ( " +
-                        "    SELECT bd.serviceID, SUM(bd.quantity) AS bookedQuantity " +
+                        "    SELECT bd.roomID, SUM(bd.quantity) AS bookedQuantity " +
                         "    FROM [dbo].[Booking_Detail] bd " +
                         "    INNER JOIN [dbo].[Booking] b ON bd.bookingID = b.bookingID " +
-                        "    WHERE bd.serviceID = ? " +
-                        "    AND bd.note LIKE CONCAT(N'ROOM_ID=', ?, N';%') " +
+                        "    WHERE bd.roomID = ? " +
+                        "    AND bd.accommodationID = ? " +
                         "    AND b.bookingType = N'Accommodation' " +
                         "    AND b.[status] IN (N'Pending', N'Confirmed') " +
                         "    AND bd.startDate < ? " +
                         "    AND bd.endDate > ? " +
-                        "    GROUP BY bd.serviceID " +
-                        ") booked ON booked.serviceID = r.serviceID " +
-                        "WHERE r.roomID = ? AND r.serviceID = ? AND r.[status] = N'Available'";
+                        "    GROUP BY bd.roomID " +
+                        ") booked ON booked.roomID = r.roomID " +
+                        "WHERE r.roomID = ? AND r.accommodationID = ? AND r.[status] = N'Available'";
 
         String sqlBooking =
                 "INSERT INTO [dbo].[Booking] " +
                         "(bookingCode, bookingType, email, phone, numberAdult, numberChildren, note, " +
-                        "[address], firstName, lastName, userID, [status], bookDate, isBookedForOther, totalPrice) " +
-                        "VALUES (?, N'Accommodation', ?, ?, ?, ?, ?, ?, ?, ?, ?, N'Pending', GETDATE(), 0, ?)";
+                        "identityNumber, identityImageUrl, [address], firstName, lastName, userID, " +
+                        "[status], bookDate, isBookedForOther, totalPrice) " +
+                        "VALUES (?, N'Accommodation', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+                        "N'Pending', GETDATE(), 0, ?)";
 
         String sqlDetail =
                 "INSERT INTO [dbo].[Booking_Detail] " +
-                        "(bookingID, serviceID, quantity, unitPrice, subTotal, startDate, endDate, note) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                        "(bookingID, accommodationID, roomID, quantity, unitPrice, subTotal, startDate, endDate, note) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = new DBConnection().getConnection()) {
             conn.setAutoCommit(false);
 
             try {
                 try (PreparedStatement psAvailability = conn.prepareStatement(sqlAvailability)) {
-                    psAvailability.setInt(1, serviceID);
-                    psAvailability.setInt(2, roomID);
+                    psAvailability.setInt(1, roomID);
+                    psAvailability.setInt(2, accommodationID);
                     psAvailability.setDate(3, checkOutDate);
                     psAvailability.setDate(4, checkInDate);
                     psAvailability.setInt(5, roomID);
-                    psAvailability.setInt(6, serviceID);
+                    psAvailability.setInt(6, accommodationID);
 
                     try (ResultSet rs = psAvailability.executeQuery()) {
                         if (!rs.next() || rs.getInt("availableQuantity") < roomQuantity) {
@@ -126,11 +129,13 @@ public class RoomBookingDAO {
                     psBooking.setInt(4, adults);
                     psBooking.setInt(5, children);
                     psBooking.setString(6, note);
-                    psBooking.setString(7, address);
-                    psBooking.setString(8, firstName);
-                    psBooking.setString(9, lastName);
-                    psBooking.setInt(10, userID);
-                    psBooking.setBigDecimal(11, totalPrice);
+                    psBooking.setString(7, identityNumber);
+                    psBooking.setString(8, identityImageUrl);
+                    psBooking.setString(9, address);
+                    psBooking.setString(10, firstName);
+                    psBooking.setString(11, lastName);
+                    psBooking.setInt(12, userID);
+                    psBooking.setBigDecimal(13, totalPrice);
 
                     if (psBooking.executeUpdate() == 0) {
                         conn.rollback();
@@ -149,13 +154,14 @@ public class RoomBookingDAO {
 
                 try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
                     psDetail.setInt(1, bookingID);
-                    psDetail.setInt(2, serviceID);
-                    psDetail.setInt(3, roomQuantity);
-                    psDetail.setBigDecimal(4, unitPrice);
-                    psDetail.setBigDecimal(5, totalPrice);
-                    psDetail.setDate(6, checkInDate);
-                    psDetail.setDate(7, checkOutDate);
-                    psDetail.setString(8, buildRoomDetailNote(roomID, note));
+                    psDetail.setInt(2, accommodationID);
+                    psDetail.setInt(3, roomID);
+                    psDetail.setInt(4, roomQuantity);
+                    psDetail.setBigDecimal(5, unitPrice);
+                    psDetail.setBigDecimal(6, totalPrice);
+                    psDetail.setDate(7, checkInDate);
+                    psDetail.setDate(8, checkOutDate);
+                    psDetail.setString(9, note);
 
                     if (psDetail.executeUpdate() == 0) {
                         conn.rollback();
@@ -178,12 +184,6 @@ public class RoomBookingDAO {
         }
 
         return -1;
-    }
-
-    private String buildRoomDetailNote(int roomID, String note) {
-        String roomMarker = "ROOM_ID=" + roomID + ";";
-        String trimmedNote = note == null ? "" : note.trim();
-        return trimmedNote.isEmpty() ? roomMarker : roomMarker + " " + trimmedNote;
     }
 
     private RoomBooking mapRoomBooking(ResultSet rs) throws Exception {

@@ -320,7 +320,7 @@
       word-break: break-word;
     }
 
-    .booking-code {
+  .booking-code {
       font-weight: 900;
       color: #4e46dc;
       word-break: break-word;
@@ -509,21 +509,6 @@
       <span>Quản lý lưu trú</span>
     </a>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-      <i class="fa-solid fa-car-side"></i>
-      <span>Quản lý phương tiện</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/service">
-      <i class="fa-solid fa-briefcase"></i>
-      <span>Quản lý dịch vụ</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/external-ticket">
-      <i class="fa-solid fa-ticket"></i>
-      <span>Vé tham quan bên ngoài</span>
-    </a>
-
     <div class="nav-section-title">Vận hành</div>
 
     <a class="sidebar-link active" href="${pageContext.request.contextPath}/staff/booking">
@@ -556,11 +541,6 @@
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
       <i class="fa-solid fa-comments"></i>
       <span>Đánh giá khách hàng</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/notification">
-      <i class="fa-solid fa-bell"></i>
-      <span>Cấu hình thông báo</span>
     </a>
 
     <div class="admin-user">
@@ -669,7 +649,6 @@
             <option value="">Tất cả loại booking</option>
             <option value="Tour">Tour</option>
             <option value="Accommodation">Lưu trú</option>
-            <option value="Vehicle">Thuê xe</option>
           </select>
         </div>
 
@@ -705,6 +684,7 @@
                 <th>Loại</th>
                 <th>Khách hàng</th>
                 <th>Liên hệ</th>
+                <th>CCCD</th>
                 <th>Dịch vụ</th>
                 <th>Lịch sử dụng</th>
                 <th>Số khách</th>
@@ -734,9 +714,6 @@
                         <c:when test="${booking.bookingType == 'Accommodation'}">
                           <i class="fa-solid fa-hotel"></i>
                         </c:when>
-                        <c:when test="${booking.bookingType == 'Vehicle'}">
-                          <i class="fa-solid fa-car-side"></i>
-                        </c:when>
                         <c:otherwise>
                           <i class="fa-solid fa-briefcase"></i>
                         </c:otherwise>
@@ -746,6 +723,36 @@
                   </td>
                   <td>${booking.firstName} ${booking.lastName}</td>
                   <td>${booking.phone}</td>
+                  <td>
+                    <div class="identity-mini">
+                      <span>
+                        <c:choose>
+                          <c:when test="${not empty booking.identityNumber}">
+                            ${booking.identityNumber}
+                          </c:when>
+                          <c:otherwise>Chưa có</c:otherwise>
+                        </c:choose>
+                      </span>
+
+                      <c:if test="${not empty booking.identityImageUrl}">
+                        <c:choose>
+                          <c:when test="${fn:startsWith(booking.identityImageUrl, 'http')}">
+                            <c:set var="identityImageSrc" value="${booking.identityImageUrl}"/>
+                          </c:when>
+                          <c:when test="${fn:startsWith(booking.identityImageUrl, '/')}">
+                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}${booking.identityImageUrl}"/>
+                          </c:when>
+                          <c:otherwise>
+                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}/${booking.identityImageUrl}"/>
+                          </c:otherwise>
+                        </c:choose>
+
+                        <a href="${identityImageSrc}" target="_blank" rel="noopener">
+                          <img src="${identityImageSrc}" alt="Ảnh CCCD">
+                        </a>
+                      </c:if>
+                    </div>
+                  </td>
                   <td>
                     <c:choose>
                       <c:when test="${not empty booking.serviceName}">
@@ -900,6 +907,22 @@
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .trim();
+  }
+
+  .identity-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 132px;
+  }
+
+  .identity-mini img {
+    width: 40px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
   }
 
   function filterBookingTable() {

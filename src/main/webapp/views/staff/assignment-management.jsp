@@ -82,8 +82,6 @@
 
                     <th>Hướng dẫn viên</th>
 
-                    <th>Phương tiện</th>
-
                     <th>Ngày khởi hành</th>
 
                     <th>Trạng thái</th>
@@ -107,8 +105,6 @@
                         <td>${a.tourName}</td>
 
                         <td>${a.guideName}</td>
-
-                        <td>${a.vehicleName}</td>
 
                         <td>${a.departureDate}</td>
 
