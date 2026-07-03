@@ -460,16 +460,21 @@
 
                 <div class="dropdown-menu">
                     <c:choose>
-                        <c:when test="${sessionScope.user != null && sessionScope.user.roleID == 1}">
+                        <c:when test="${sessionScope.user != null && (sessionScope.user.roleName == 'Admin' || sessionScope.user.roleID == 1)}">
                             <a href="${pageContext.request.contextPath}/admin/home">
                                 Quay về trang Admin
                             </a>
                         </c:when>
 
 
-                        <c:when test="${sessionScope.user != null && sessionScope.user.roleID == 2}">
+                        <c:when test="${sessionScope.user != null && sessionScope.user.roleName == 'Staff'}">
                             <a href="${pageContext.request.contextPath}/staff/home">
                                 Quay về trang Staff
+                            </a>
+                        </c:when>
+                        <c:when test="${sessionScope.user != null && (sessionScope.user.roleName == 'Tour Guide' || sessionScope.user.roleID == 3)}">
+                            <a href="${pageContext.request.contextPath}/guide/home">
+                                Quay về trang Tour Guide
                             </a>
                         </c:when>
                     </c:choose>

@@ -321,7 +321,7 @@
 
             </form>
           </c:when>
-          <c:when test="${sessionScope.user != null && (sessionScope.user.roleID == 1 || sessionScope.user.roleID == 2 )}">
+          <c:when test="${sessionScope.user != null && (sessionScope.user.roleName == 'Admin' || sessionScope.user.roleName == 'Staff' || sessionScope.user.roleName == 'Tour Guide' || sessionScope.user.roleID == 1 || sessionScope.user.roleID == 3)}">
             <form action="${pageContext.request.contextPath}/home" method="get">
               <button type="submit" class="btn btn-return">
                 <- Quay  lại Trang chủ

@@ -554,12 +554,16 @@
 
                                 <div class="dropdown-user-role">
                                     <c:choose>
-                                        <c:when test="${sessionScope.user.roleID == 1}">
+                                        <c:when test="${sessionScope.user.roleName == 'Admin' || sessionScope.user.roleID == 1}">
                                             Tài khoản quản trị
                                         </c:when>
 
-                                        <c:when test="${sessionScope.user.roleID == 2}">
+                                        <c:when test="${sessionScope.user.roleName == 'Staff'}">
                                             Tài khoản nhân viên
+                                        </c:when>
+
+                                        <c:when test="${sessionScope.user.roleName == 'Tour Guide' || sessionScope.user.roleID == 3}">
+                                            Tài khoản hướng dẫn viên
                                         </c:when>
 
                                         <c:otherwise>
@@ -570,17 +574,24 @@
                             </div>
 
                             <c:choose>
-                                <c:when test="${sessionScope.user.roleID == 1}">
-                                    <a href="${pageContext.request.contextPath}/views/admin/admin-home.jsp">
+                                <c:when test="${sessionScope.user.roleName == 'Admin' || sessionScope.user.roleID == 1}">
+                                    <a href="${pageContext.request.contextPath}/admin/home">
                                         <i class="fa-solid fa-gauge-high"></i>
                                         Quay về trang admin
                                     </a>
                                 </c:when>
 
-                                <c:when test="${sessionScope.user.roleID == 2}">
-                                    <a href="${pageContext.request.contextPath}/views/staff/staff-home.jsp">
+                                <c:when test="${sessionScope.user.roleName == 'Staff'}">
+                                    <a href="${pageContext.request.contextPath}/staff/home">
                                         <i class="fa-solid fa-briefcase"></i>
                                         Quay về trang staff
+                                    </a>
+                                </c:when>
+
+                                <c:when test="${sessionScope.user.roleName == 'Tour Guide' || sessionScope.user.roleID == 3}">
+                                    <a href="${pageContext.request.contextPath}/guide/home">
+                                        <i class="fa-solid fa-map-location-dot"></i>
+                                        Quay về trang hướng dẫn viên
                                     </a>
                                 </c:when>
 
