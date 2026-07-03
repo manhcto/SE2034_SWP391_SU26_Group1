@@ -32,7 +32,10 @@ public class LoginController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
 
-            redirectByRole(request, response, user);
+            String redirectAfterLogin = getRedirectAfterLogin(request, session);
+            session.removeAttribute("redirectAfterLogin");
+
+            redirectByRole(request, response, user, redirectAfterLogin);
             return;
         }
 
@@ -61,9 +64,24 @@ public class LoginController extends HttpServlet {
                          HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
+        String redirect = request.getParameter("redirect");
+        HttpSession session = isSafeRedirect(redirect)
+                ? request.getSession()
+                : request.getSession(false);
 
         if (session != null) {
+            if (isSafeRedirect(redirect)) {
+                session.setAttribute("redirectAfterLogin", redirect);
+                request.setAttribute("redirectAfterLogin", redirect);
+            } else {
+                String redirectAfterLogin =
+                        (String) session.getAttribute("redirectAfterLogin");
+
+                if (isSafeRedirect(redirectAfterLogin)) {
+                    request.setAttribute("redirectAfterLogin", redirectAfterLogin);
+                }
+            }
+
             String successMsg = (String) session.getAttribute("successMsg");
 
             if (successMsg != null) {
@@ -78,7 +96,8 @@ public class LoginController extends HttpServlet {
 
     private void redirectByRole(HttpServletRequest request,
                                 HttpServletResponse response,
-                                User user)
+                                User user,
+                                String redirectAfterLogin)
             throws IOException {
 
         String roleName = normalizeRoleName(user.getRoleName());
@@ -98,7 +117,29 @@ public class LoginController extends HttpServlet {
             return;
         }
 
-        response.sendRedirect(request.getContextPath() + "/home");
+        response.sendRedirect(request.getContextPath() + redirectAfterLogin);
+    }
+
+    private String getRedirectAfterLogin(HttpServletRequest request, HttpSession session) {
+        String redirect = request.getParameter("redirect");
+
+        if (!isSafeRedirect(redirect) && session != null) {
+            redirect = (String) session.getAttribute("redirectAfterLogin");
+        }
+
+        return isSafeRedirect(redirect) ? redirect : "/home";
+    }
+
+    private boolean isSafeRedirect(String redirect) {
+        if (redirect == null || redirect.trim().isEmpty()) {
+            return false;
+        }
+
+        String value = redirect.trim();
+        return value.startsWith("/")
+                && !value.startsWith("//")
+                && !value.contains("\\")
+                && !value.toLowerCase().contains("%5c");
     }
 
     private String trimToEmpty(String value) {

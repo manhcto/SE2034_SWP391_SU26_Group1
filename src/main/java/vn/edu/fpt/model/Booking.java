@@ -11,6 +11,8 @@ public class Booking {
     private int numberAdult;
     private int numberChildren;
     private String note;
+    private String identityNumber;
+    private String identityImageUrl;
     private String address;
     private String firstName;
     private String lastName;
@@ -20,6 +22,14 @@ public class Booking {
     private boolean isBookedForOther;
     private double totalPrice;
     private Integer voucherID;
+    private Integer detailAccommodationID;
+    private Integer detailTourScheduleID;
+    private int detailQuantity;
+    private double detailUnitPrice;
+    private double detailSubTotal;
+    private Date serviceStartDate;
+    private Date serviceEndDate;
+    private String serviceName;
 
     // 1. Constructor rỗng
     public Booking() {
@@ -74,6 +84,12 @@ public class Booking {
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
 
+    public String getIdentityNumber() { return identityNumber; }
+    public void setIdentityNumber(String identityNumber) { this.identityNumber = identityNumber; }
+
+    public String getIdentityImageUrl() { return identityImageUrl; }
+    public void setIdentityImageUrl(String identityImageUrl) { this.identityImageUrl = identityImageUrl; }
+
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
@@ -100,6 +116,66 @@ public class Booking {
 
     public Integer getVoucherID() { return voucherID; }
     public void setVoucherID(Integer voucherID) { this.voucherID = voucherID; }
+
+    public Integer getDetailAccommodationID() { return detailAccommodationID; }
+    public void setDetailAccommodationID(Integer detailAccommodationID) { this.detailAccommodationID = detailAccommodationID; }
+
+    public Integer getDetailTourScheduleID() { return detailTourScheduleID; }
+    public void setDetailTourScheduleID(Integer detailTourScheduleID) { this.detailTourScheduleID = detailTourScheduleID; }
+
+    public int getDetailQuantity() { return detailQuantity; }
+    public void setDetailQuantity(int detailQuantity) { this.detailQuantity = detailQuantity; }
+
+    public double getDetailUnitPrice() { return detailUnitPrice; }
+    public void setDetailUnitPrice(double detailUnitPrice) { this.detailUnitPrice = detailUnitPrice; }
+
+    public double getDetailSubTotal() { return detailSubTotal; }
+    public void setDetailSubTotal(double detailSubTotal) { this.detailSubTotal = detailSubTotal; }
+
+    public Date getServiceStartDate() { return serviceStartDate; }
+    public void setServiceStartDate(Date serviceStartDate) { this.serviceStartDate = serviceStartDate; }
+
+    public Date getServiceEndDate() { return serviceEndDate; }
+    public void setServiceEndDate(Date serviceEndDate) { this.serviceEndDate = serviceEndDate; }
+
+    public String getServiceName() { return serviceName; }
+    public void setServiceName(String serviceName) { this.serviceName = serviceName; }
+
+    public int getTotalGuests() {
+        return numberAdult + numberChildren;
+    }
+
+    public String getDisplayType() {
+        if ("Tour".equalsIgnoreCase(bookingType)) {
+            return "Tour";
+        }
+
+        if ("Accommodation".equalsIgnoreCase(bookingType)) {
+            return "Lưu trú";
+        }
+
+        return bookingType;
+    }
+
+    public String getDisplayStatus() {
+        if ("Pending".equalsIgnoreCase(status)) {
+            return "Chờ xử lý";
+        }
+
+        if ("Confirmed".equalsIgnoreCase(status)) {
+            return "Đã xác nhận";
+        }
+
+        if ("Cancelled".equalsIgnoreCase(status)) {
+            return "Đã hủy";
+        }
+
+        if ("Completed".equalsIgnoreCase(status)) {
+            return "Hoàn thành";
+        }
+
+        return status;
+    }
 
     @Override
     public String toString() {

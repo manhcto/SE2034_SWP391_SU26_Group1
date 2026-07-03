@@ -1,12 +1,13 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Tóm tắt đặt tour</title>
+    <title>WonderVN | Tóm tắt booking</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
 
     <style>
@@ -73,6 +74,28 @@
             color: #dc2626;
             font-size: 24px;
             font-weight: 800;
+        }
+
+        .identity-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .identity-preview img {
+            width: 160px;
+            height: 96px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid #d1d5db;
+            background: #f3f4f6;
+        }
+
+        .identity-preview a {
+            color: #2563eb;
+            font-weight: 800;
+            text-decoration: none;
         }
 
         .error-box {
@@ -156,7 +179,7 @@
         <div class="section-head" style="justify-content: center; text-align: center; margin-bottom: 36px;">
             <div>
                 <p class="section-kicker">Booking Summary</p>
-                <h2>Tóm tắt đơn đặt tour</h2>
+                <h2>Tóm tắt đơn booking</h2>
                 <p>Thông tin dưới đây được lấy từ dữ liệu đơn hàng đã lưu trong hệ thống.</p>
             </div>
         </div>
@@ -226,6 +249,18 @@
                     </div>
 
                     <div class="summary-item">
+                        <span class="summary-label">CCCD / CMND</span>
+                        <span class="summary-value">
+                            <c:choose>
+                                <c:when test="${not empty bookingSummary.identityNumber}">
+                                    ${bookingSummary.identityNumber}
+                                </c:when>
+                                <c:otherwise>Không có</c:otherwise>
+                            </c:choose>
+                        </span>
+                    </div>
+
+                    <div class="summary-item">
                         <span class="summary-label">Địa chỉ</span>
                         <span class="summary-value">
                             <c:choose>
@@ -236,74 +271,165 @@
                             </c:choose>
                         </span>
                     </div>
+
+                    <div class="summary-item">
+                        <span class="summary-label">Ảnh CCCD / CMND</span>
+                        <c:choose>
+                            <c:when test="${not empty bookingSummary.identityImageUrl}">
+                                <c:choose>
+                                    <c:when test="${fn:startsWith(bookingSummary.identityImageUrl, 'http')}">
+                                        <c:set var="identityImageSrc" value="${bookingSummary.identityImageUrl}"/>
+                                    </c:when>
+                                    <c:when test="${fn:startsWith(bookingSummary.identityImageUrl, '/')}">
+                                        <c:set var="identityImageSrc" value="${pageContext.request.contextPath}${bookingSummary.identityImageUrl}"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="identityImageSrc" value="${pageContext.request.contextPath}/${bookingSummary.identityImageUrl}"/>
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <div class="identity-preview">
+                                    <a href="${identityImageSrc}" target="_blank" rel="noopener">
+                                        <img src="${identityImageSrc}" alt="Ảnh CCCD">
+                                    </a>
+                                    <a href="${identityImageSrc}" target="_blank" rel="noopener">Mở ảnh</a>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="summary-value">Không có</span>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
                 </div>
             </div>
 
             <div class="summary-card">
-                <h3>3. Thông tin tour</h3>
+                <c:choose>
+                    <c:when test="${bookingSummary.bookingType == 'Accommodation'}">
+                        <h3>3. Thông tin lưu trú</h3>
 
-                <div class="summary-grid">
-                    <div class="summary-item">
-                        <span class="summary-label">Tên tour</span>
-                        <span class="summary-value">${bookingSummary.tourName}</span>
-                    </div>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="summary-label">Cơ sở lưu trú</span>
+                                <span class="summary-value">${bookingSummary.itemName}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Tour Schedule ID</span>
-                        <span class="summary-value">${bookingSummary.tourScheduleID}</span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Loại phòng</span>
+                                <span class="summary-value">${bookingSummary.roomType}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Điểm khởi hành</span>
-                        <span class="summary-value">${bookingSummary.startPlace}</span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Accommodation ID</span>
+                                <span class="summary-value">${bookingSummary.accommodationID}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Điểm đến</span>
-                        <span class="summary-value">${bookingSummary.endPlace}</span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Room ID</span>
+                                <span class="summary-value">${bookingSummary.roomID}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Ngày bắt đầu</span>
-                        <span class="summary-value">
-                            <fmt:formatDate value="${bookingSummary.startDate}" pattern="dd/MM/yyyy HH:mm"/>
-                        </span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày nhận phòng</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.startDate}" pattern="dd/MM/yyyy"/>
+                                </span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Ngày kết thúc</span>
-                        <span class="summary-value">
-                            <fmt:formatDate value="${bookingSummary.endDate}" pattern="dd/MM/yyyy HH:mm"/>
-                        </span>
-                    </div>
-                </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày trả phòng</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.endDate}" pattern="dd/MM/yyyy"/>
+                                </span>
+                            </div>
+                        </div>
+                    </c:when>
+
+                    <c:otherwise>
+                        <h3>3. Thông tin tour</h3>
+
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="summary-label">Tên tour</span>
+                                <span class="summary-value">${bookingSummary.tourName}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Tour Schedule ID</span>
+                                <span class="summary-value">${bookingSummary.tourScheduleID}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Điểm khởi hành</span>
+                                <span class="summary-value">${bookingSummary.startPlace}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Điểm đến</span>
+                                <span class="summary-value">${bookingSummary.endPlace}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày bắt đầu</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.startDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                </span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày kết thúc</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.endDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                </span>
+                            </div>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </div>
 
             <div class="summary-card">
                 <h3>4. Chi tiết thanh toán</h3>
 
                 <div class="summary-grid">
-                    <div class="summary-item">
-                        <span class="summary-label">Số người lớn</span>
-                        <span class="summary-value">${bookingSummary.numberAdult}</span>
-                    </div>
+                    <c:choose>
+                        <c:when test="${bookingSummary.bookingType == 'Accommodation'}">
+                            <div class="summary-item">
+                                <span class="summary-label">Số phòng</span>
+                                <span class="summary-value">${bookingSummary.quantity}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Số trẻ em</span>
-                        <span class="summary-value">${bookingSummary.numberChildren}</span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Đơn giá/phòng/đêm</span>
+                                <span class="summary-value">
+                                    <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
+                                </span>
+                            </div>
+                        </c:when>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Tổng số khách</span>
-                        <span class="summary-value">${bookingSummary.quantity}</span>
-                    </div>
+                        <c:otherwise>
+                            <div class="summary-item">
+                                <span class="summary-label">Số người lớn</span>
+                                <span class="summary-value">${bookingSummary.numberAdult}</span>
+                            </div>
 
-                    <div class="summary-item">
-                        <span class="summary-label">Đơn giá trung bình</span>
-                        <span class="summary-value">
-                            <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
-                        </span>
-                    </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Số trẻ em</span>
+                                <span class="summary-value">${bookingSummary.numberChildren}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Tổng số khách</span>
+                                <span class="summary-value">${bookingSummary.quantity}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Đơn giá trung bình</span>
+                                <span class="summary-value">
+                                    <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
+                                </span>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
 
                     <div class="summary-item">
                         <span class="summary-label">Tạm tính</span>

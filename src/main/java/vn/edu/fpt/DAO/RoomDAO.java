@@ -5,8 +5,10 @@ import vn.edu.fpt.model.Room;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +16,7 @@ public class RoomDAO {
 
     private static final String BASE_SELECT =
             "SELECT " +
-                    "roomID, roomType, numberOfRooms, priceOfRoom, [status], serviceID, " +
+                    "roomID, roomType, numberOfRooms, priceOfRoom, [status], accommodationID, " +
                     "roomAvailability, [image], [description], bedCount, bedType, " +
                     "maxAdults, maxChildren, roomSize " +
                     "FROM [dbo].[Room] ";
@@ -40,17 +42,17 @@ public class RoomDAO {
         return list;
     }
 
-    public List<Room> getRoomsByAccommodation(int serviceID) {
+    public List<Room> getRoomsByAccommodation(int accommodationID) {
         List<Room> list = new ArrayList<>();
 
         String sql = BASE_SELECT +
-                "WHERE serviceID = ? " +
+                "WHERE accommodationID = ? " +
                 "ORDER BY priceOfRoom ASC, roomID DESC";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, serviceID);
+            ps.setInt(1, accommodationID);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -65,11 +67,11 @@ public class RoomDAO {
         return list;
     }
 
-    public List<Room> getAvailableRoomsByAccommodation(int serviceID) {
+    public List<Room> getAvailableRoomsByAccommodation(int accommodationID) {
         List<Room> list = new ArrayList<>();
 
         String sql = BASE_SELECT +
-                "WHERE serviceID = ? " +
+                "WHERE accommodationID = ? " +
                 "AND [status] = N'Available' " +
                 "AND roomAvailability > 0 " +
                 "ORDER BY priceOfRoom ASC, roomID DESC";
@@ -77,7 +79,7 @@ public class RoomDAO {
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, serviceID);
+            ps.setInt(1, accommodationID);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -92,24 +94,42 @@ public class RoomDAO {
         return list;
     }
 
-    public List<Room> getAvailableRoomsByAccommodationAndDate(int serviceID, String checkIn, String checkOut) {
+    public List<Room> getAvailableRoomsByAccommodationAndDate(int accommodationID, String checkIn, String checkOut) {
         List<Room> list = new ArrayList<>();
 
+        LocalDate checkInDate;
+        LocalDate checkOutDate;
+
+        try {
+            checkInDate = LocalDate.parse(checkIn);
+            checkOutDate = LocalDate.parse(checkOut);
+
+            if (!checkOutDate.isAfter(checkInDate)) {
+                return list;
+            }
+        } catch (Exception e) {
+            return list;
+        }
+
         String sql =
-                "SELECT r.roomID, r.roomType, r.numberOfRooms, r.priceOfRoom, r.[status], r.serviceID, " +
+                "SELECT r.roomID, r.roomType, r.numberOfRooms, r.priceOfRoom, r.[status], r.accommodationID, " +
                         "(r.roomAvailability - ISNULL(booked.bookedQuantity, 0)) AS roomAvailability, " +
                         "r.[image], r.[description], r.bedCount, r.bedType, " +
                         "r.maxAdults, r.maxChildren, r.roomSize " +
                         "FROM [dbo].[Room] r " +
                         "LEFT JOIN ( " +
-                        "    SELECT roomID, SUM(quantity) AS bookedQuantity " +
-                        "    FROM [dbo].[Room_Booking] " +
-                        "    WHERE [status] IN (N'Pending', N'Confirmed', N'CheckedIn') " +
-                        "    AND checkInDate < CONVERT(date, ?) " +
-                        "    AND checkOutDate > CONVERT(date, ?) " +
-                        "    GROUP BY roomID " +
+                        "    SELECT bd.roomID, SUM(bd.quantity) AS bookedQuantity " +
+                        "    FROM [dbo].[Booking_Detail] bd " +
+                        "    INNER JOIN [dbo].[Booking] b ON bd.bookingID = b.bookingID " +
+                        "    WHERE bd.accommodationID = ? " +
+                        "    AND bd.roomID IS NOT NULL " +
+                        "    AND b.bookingType = N'Accommodation' " +
+                        "    AND b.[status] IN (N'Pending', N'Confirmed') " +
+                        "    AND bd.startDate < ? " +
+                        "    AND bd.endDate > ? " +
+                        "    GROUP BY bd.roomID " +
                         ") booked ON booked.roomID = r.roomID " +
-                        "WHERE r.serviceID = ? " +
+                        "WHERE r.accommodationID = ? " +
                         "AND r.[status] = N'Available' " +
                         "AND (r.roomAvailability - ISNULL(booked.bookedQuantity, 0)) > 0 " +
                         "ORDER BY r.priceOfRoom ASC, r.roomID DESC";
@@ -117,9 +137,10 @@ public class RoomDAO {
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, checkOut);
-            ps.setString(2, checkIn);
-            ps.setInt(3, serviceID);
+            ps.setInt(1, accommodationID);
+            ps.setDate(2, Date.valueOf(checkOutDate));
+            ps.setDate(3, Date.valueOf(checkInDate));
+            ps.setInt(4, accommodationID);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -159,7 +180,7 @@ public class RoomDAO {
     public boolean addRoom(Room room) {
         String sql =
                 "INSERT INTO [dbo].[Room] " +
-                        "(roomType, numberOfRooms, priceOfRoom, [status], serviceID, roomAvailability, " +
+                        "(roomType, numberOfRooms, priceOfRoom, [status], accommodationID, roomAvailability, " +
                         "[image], [description], bedCount, bedType, maxAdults, maxChildren, roomSize) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -170,7 +191,7 @@ public class RoomDAO {
             ps.setInt(2, room.getNumberOfRooms());
             ps.setBigDecimal(3, room.getPriceOfRoom());
             ps.setString(4, room.getStatus());
-            ps.setInt(5, room.getServiceID());
+            ps.setInt(5, room.getAccommodationID());
             ps.setInt(6, room.getRoomAvailability());
             ps.setString(7, room.getImage());
             ps.setString(8, room.getDescription());
@@ -193,7 +214,7 @@ public class RoomDAO {
         String sql =
                 "UPDATE [dbo].[Room] " +
                         "SET roomType = ?, numberOfRooms = ?, priceOfRoom = ?, [status] = ?, " +
-                        "serviceID = ?, roomAvailability = ?, [image] = ?, [description] = ?, " +
+                        "accommodationID = ?, roomAvailability = ?, [image] = ?, [description] = ?, " +
                         "bedCount = ?, bedType = ?, maxAdults = ?, maxChildren = ?, roomSize = ? " +
                         "WHERE roomID = ?";
 
@@ -204,7 +225,7 @@ public class RoomDAO {
             ps.setInt(2, room.getNumberOfRooms());
             ps.setBigDecimal(3, room.getPriceOfRoom());
             ps.setString(4, room.getStatus());
-            ps.setInt(5, room.getServiceID());
+            ps.setInt(5, room.getAccommodationID());
             ps.setInt(6, room.getRoomAvailability());
             ps.setString(7, room.getImage());
             ps.setString(8, room.getDescription());
@@ -261,18 +282,18 @@ public class RoomDAO {
         return false;
     }
 
-    public BigDecimal getMinRoomPriceByAccommodation(int serviceID) {
+    public BigDecimal getMinRoomPriceByAccommodation(int accommodationID) {
         String sql =
                 "SELECT MIN(priceOfRoom) AS minPrice " +
                         "FROM [dbo].[Room] " +
-                        "WHERE serviceID = ? " +
+                        "WHERE accommodationID = ? " +
                         "AND [status] = N'Available' " +
                         "AND roomAvailability > 0";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, serviceID);
+            ps.setInt(1, accommodationID);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -288,17 +309,17 @@ public class RoomDAO {
         return BigDecimal.ZERO;
     }
 
-    public int getTotalAvailableRoomsByAccommodation(int serviceID) {
+    public int getTotalAvailableRoomsByAccommodation(int accommodationID) {
         String sql =
                 "SELECT SUM(roomAvailability) AS totalAvailable " +
                         "FROM [dbo].[Room] " +
-                        "WHERE serviceID = ? " +
+                        "WHERE accommodationID = ? " +
                         "AND [status] = N'Available'";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, serviceID);
+            ps.setInt(1, accommodationID);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -324,7 +345,7 @@ public class RoomDAO {
         room.setPriceOfRoom(price == null ? BigDecimal.ZERO : price);
 
         room.setStatus(rs.getString("status"));
-        room.setServiceID(rs.getInt("serviceID"));
+        room.setAccommodationID(rs.getInt("accommodationID"));
         room.setRoomAvailability(rs.getInt("roomAvailability"));
         room.setImage(rs.getString("image"));
         room.setDescription(rs.getString("description"));

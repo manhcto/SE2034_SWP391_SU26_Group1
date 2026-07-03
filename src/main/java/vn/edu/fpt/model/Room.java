@@ -11,7 +11,7 @@ public class Room {
     private int numberOfRooms;
     private BigDecimal priceOfRoom;
     private String status;
-    private int serviceID;
+    private int accommodationID;
     private int roomAvailability;
     private String image;
     private String description;
@@ -78,12 +78,12 @@ public class Room {
         this.status = safeTrim(status);
     }
 
-    public int getServiceID() {
-        return serviceID;
+    public int getAccommodationID() {
+        return accommodationID;
     }
 
-    public void setServiceID(int serviceID) {
-        this.serviceID = serviceID;
+    public void setAccommodationID(int accommodationID) {
+        this.accommodationID = accommodationID;
     }
 
     public int getRoomAvailability() {

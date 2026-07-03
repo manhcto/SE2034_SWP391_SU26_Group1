@@ -1032,7 +1032,7 @@
 
                             <div class="card-actions">
                                 <a class="detail-btn"
-                                   href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.serviceID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">
+                                   href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.accommodationID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">
                                     Xem chi tiết
                                     <i class="fa-solid fa-arrow-right"></i>
                                 </a>
@@ -1060,6 +1060,9 @@
         const form = document.getElementById("accommodationSearchForm");
         const checkInInput = document.getElementById("checkInInput");
         const checkOutInput = document.getElementById("checkOutInput");
+        const adultsInput = form ? form.querySelector("[name='adults']") : null;
+        const childrenInput = form ? form.querySelector("[name='children']") : null;
+        const guestsInput = form ? form.querySelector("[name='guests']") : null;
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1087,8 +1090,25 @@
             });
         }
 
+        function syncGuests() {
+            if (!adultsInput || !childrenInput || !guestsInput) {
+                return;
+            }
+
+            const adults = parseInt(adultsInput.value || "0", 10);
+            const children = parseInt(childrenInput.value || "0", 10);
+            guestsInput.value = Math.max(1, adults + children);
+        }
+
+        if (adultsInput && childrenInput && guestsInput) {
+            adultsInput.addEventListener("input", syncGuests);
+            childrenInput.addEventListener("input", syncGuests);
+        }
+
         if (form) {
             form.addEventListener("submit", function (event) {
+                syncGuests();
+
                 if (!checkInInput.value || !checkOutInput.value) {
                     event.preventDefault();
                     alert("Vui lòng chọn ngày nhận phòng và ngày trả phòng trước khi tìm kiếm.");

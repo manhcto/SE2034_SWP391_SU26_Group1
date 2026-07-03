@@ -63,7 +63,7 @@ public class ManageRoomController extends HttpServlet {
     private void addRoom(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
-        String serviceIDRaw = request.getParameter("serviceID");
+        String accommodationIDRaw = request.getParameter("accommodationID");
         String roomType = safeTrim(request.getParameter("roomType"));
         String numberOfRoomsRaw = request.getParameter("numberOfRooms");
         String priceRaw = request.getParameter("priceOfRoom");
@@ -79,7 +79,7 @@ public class ManageRoomController extends HttpServlet {
         String roomSizeRaw = request.getParameter("roomSize");
 
         List<String> errors = validateRoomInput(
-                serviceIDRaw,
+                accommodationIDRaw,
                 roomType,
                 numberOfRoomsRaw,
                 priceRaw,
@@ -94,7 +94,7 @@ public class ManageRoomController extends HttpServlet {
                 roomSizeRaw
         );
 
-        Integer serviceID = parsePositiveInt(serviceIDRaw);
+        Integer accommodationID = parsePositiveInt(accommodationIDRaw);
 
         if (!errors.isEmpty()) {
             request.getSession().setAttribute("errors", errors);
@@ -102,7 +102,7 @@ public class ManageRoomController extends HttpServlet {
             response.sendRedirect(
                     request.getContextPath()
                             + "/staff/accommodation?action=view&id="
-                            + safeRedirectID(serviceIDRaw)
+                            + safeRedirectID(accommodationIDRaw)
                             + "&status=validationFail"
             );
             return;
@@ -110,7 +110,7 @@ public class ManageRoomController extends HttpServlet {
 
         Room room = buildRoom(
                 0,
-                serviceID,
+                accommodationID,
                 roomType,
                 Integer.parseInt(numberOfRoomsRaw.trim()),
                 Double.parseDouble(priceRaw.trim()),
@@ -131,7 +131,7 @@ public class ManageRoomController extends HttpServlet {
         response.sendRedirect(
                 request.getContextPath()
                         + "/staff/accommodation?action=view&id="
-                        + serviceID
+                        + accommodationID
                         + "&status="
                         + (success ? "roomAddSuccess" : "roomAddFail")
         );
@@ -141,7 +141,7 @@ public class ManageRoomController extends HttpServlet {
             throws IOException {
 
         String roomIDRaw = request.getParameter("roomID");
-        String serviceIDRaw = request.getParameter("serviceID");
+        String accommodationIDRaw = request.getParameter("accommodationID");
         String roomType = safeTrim(request.getParameter("roomType"));
         String numberOfRoomsRaw = request.getParameter("numberOfRooms");
         String priceRaw = request.getParameter("priceOfRoom");
@@ -157,7 +157,7 @@ public class ManageRoomController extends HttpServlet {
         String roomSizeRaw = request.getParameter("roomSize");
 
         List<String> errors = validateRoomInput(
-                serviceIDRaw,
+                accommodationIDRaw,
                 roomType,
                 numberOfRoomsRaw,
                 priceRaw,
@@ -173,7 +173,7 @@ public class ManageRoomController extends HttpServlet {
         );
 
         Integer roomID = parsePositiveInt(roomIDRaw);
-        Integer serviceID = parsePositiveInt(serviceIDRaw);
+        Integer accommodationID = parsePositiveInt(accommodationIDRaw);
 
         if (roomID == null) {
             errors.add("Mã phòng không hợp lệ.");
@@ -185,7 +185,7 @@ public class ManageRoomController extends HttpServlet {
             response.sendRedirect(
                     request.getContextPath()
                             + "/staff/accommodation?action=view&id="
-                            + safeRedirectID(serviceIDRaw)
+                            + safeRedirectID(accommodationIDRaw)
                             + "&status=validationFail"
             );
             return;
@@ -193,7 +193,7 @@ public class ManageRoomController extends HttpServlet {
 
         Room room = buildRoom(
                 roomID,
-                serviceID,
+                accommodationID,
                 roomType,
                 Integer.parseInt(numberOfRoomsRaw.trim()),
                 Double.parseDouble(priceRaw.trim()),
@@ -214,7 +214,7 @@ public class ManageRoomController extends HttpServlet {
         response.sendRedirect(
                 request.getContextPath()
                         + "/staff/accommodation?action=view&id="
-                        + serviceID
+                        + accommodationID
                         + "&status="
                         + (success ? "roomUpdateSuccess" : "roomUpdateFail")
         );
@@ -224,9 +224,9 @@ public class ManageRoomController extends HttpServlet {
             throws IOException {
 
         Integer roomID = parsePositiveInt(request.getParameter("roomID"));
-        Integer serviceID = parsePositiveInt(request.getParameter("serviceID"));
+        Integer accommodationID = parsePositiveInt(request.getParameter("accommodationID"));
 
-        if (roomID == null || serviceID == null) {
+        if (roomID == null || accommodationID == null) {
             response.sendRedirect(
                     request.getContextPath()
                             + "/staff/accommodation?action=list&status=roomDeleteFail"
@@ -239,7 +239,7 @@ public class ManageRoomController extends HttpServlet {
         response.sendRedirect(
                 request.getContextPath()
                         + "/staff/accommodation?action=view&id="
-                        + serviceID
+                        + accommodationID
                         + "&status="
                         + (success ? "roomDeleteSuccess" : "roomDeleteFail")
         );
@@ -247,7 +247,7 @@ public class ManageRoomController extends HttpServlet {
 
     private Room buildRoom(
             int roomID,
-            int serviceID,
+            int accommodationID,
             String roomType,
             int numberOfRooms,
             double priceOfRoom,
@@ -266,7 +266,7 @@ public class ManageRoomController extends HttpServlet {
         Room room = new Room();
 
         room.setRoomID(roomID);
-        room.setServiceID(serviceID);
+        room.setAccommodationID(accommodationID);
         room.setRoomType(roomType);
         room.setNumberOfRooms(numberOfRooms);
         room.setPriceOfRoom(priceOfRoom);
@@ -285,7 +285,7 @@ public class ManageRoomController extends HttpServlet {
     }
 
     private List<String> validateRoomInput(
-            String serviceIDRaw,
+            String accommodationIDRaw,
             String roomType,
             String numberOfRoomsRaw,
             String priceRaw,
@@ -302,7 +302,7 @@ public class ManageRoomController extends HttpServlet {
 
         List<String> errors = new ArrayList<>();
 
-        if (parsePositiveInt(serviceIDRaw) == null) {
+        if (parsePositiveInt(accommodationIDRaw) == null) {
             errors.add("Mã nơi lưu trú không hợp lệ.");
         }
 

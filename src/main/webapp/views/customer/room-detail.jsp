@@ -293,7 +293,7 @@
             color: #1d4ed8;
         }
 
-        .btn-cart {
+        .btn-direct-book {
             width: 100%;
             border: none;
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
@@ -304,7 +304,7 @@
             margin-top: 16px;
         }
 
-        .btn-cart:hover {
+        .btn-direct-book:hover {
             filter: brightness(0.95);
         }
 
@@ -391,7 +391,7 @@
         <a href="${pageContext.request.contextPath}/accommodation">Khách sạn</a>
         <span>/</span>
 
-        <a href="${pageContext.request.contextPath}/accommodation/detail?id=${accommodation.serviceID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
+        <a href="${pageContext.request.contextPath}/accommodation/detail?id=${accommodation.accommodationID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
             ${accommodation.name}
         </a>
         <span>/</span>
@@ -535,7 +535,7 @@
                       action="${pageContext.request.contextPath}/accommodation/room/detail"
                       method="get">
                     <input type="hidden" name="id" value="${room.roomID}">
-                    <input type="hidden" name="accommodationId" value="${accommodation.serviceID}">
+                    <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
 
                     <div>
                         <label for="roomCheckIn">Ngày nhận phòng</label>
@@ -664,7 +664,7 @@
                     <c:otherwise>
                         <div class="missing-date-alert">
                             <i class="fa-solid fa-triangle-exclamation"></i>
-                            Bạn chưa chọn ngày nhận phòng và ngày trả phòng. Chọn lịch ngay tại đây để xem tạm tính và thêm phòng vào giỏ hàng.
+                            Bạn chưa chọn ngày nhận phòng và ngày trả phòng. Chọn lịch ngay tại đây để xem tạm tính và đặt phòng.
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -678,12 +678,11 @@
                     </div>
                 </div>
 
-                <form id="addRoomToCartForm"
-                      action="${pageContext.request.contextPath}/booking/accommodation"
-                      method="post"
+                <form id="roomBookingForm"
+                      action="${pageContext.request.contextPath}/booking/accommodation/form"
+                      method="get"
                       class="m-0">
-                    <input type="hidden" name="action" value="addToCart">
-                    <input type="hidden" name="accommodationID" value="${accommodation.serviceID}">
+                    <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
                     <input type="hidden" name="roomID" value="${room.roomID}">
                     <input type="hidden" name="checkIn" value="${checkIn}">
                     <input type="hidden" name="checkOut" value="${checkOut}">
@@ -691,18 +690,16 @@
                     <input type="hidden" name="children" value="${children}">
                     <input type="hidden" name="rooms" value="${rooms}">
                     <input type="hidden" name="guests" value="${guests}">
-                    <input type="hidden" name="nights" value="${nights}">
-                    <input type="hidden" name="totalPrice" value="${totalPrice}">
 
-                    <button type="submit" class="btn-cart">
-                        <i class="fa-solid fa-cart-plus me-2"></i>
+                    <button type="submit" class="btn-direct-book">
+                        <i class="fa-solid fa-calendar-check me-2"></i>
                         Đặt phòng
                     </button>
                 </form>
             </c:if>
 
             <a class="btn-list"
-               href="${pageContext.request.contextPath}/accommodation/detail?id=${accommodation.serviceID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
+               href="${pageContext.request.contextPath}/accommodation/detail?id=${accommodation.accommodationID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
                 <i class="fa-solid fa-arrow-left"></i>
                 Quay lại lưu trú
             </a>

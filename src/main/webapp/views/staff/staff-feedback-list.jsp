@@ -394,21 +394,9 @@
       <p>Travel ERP System</p>
     </div>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
       <i class="fa-solid fa-house"></i>
-      <span>Trang chủ quản trị</span>
-    </a>
-
-    <div class="nav-section-title">Quản trị hệ thống</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
-      <i class="fa-solid fa-chart-line"></i>
-      <span>Dashboard</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
-      <i class="fa-solid fa-users"></i>
-      <span>Quản lý người dùng</span>
+      <span>Trang chủ nhân viên</span>
     </a>
 
     <div class="nav-section-title">Dịch vụ du lịch</div>
@@ -421,21 +409,6 @@
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
       <i class="fa-solid fa-hotel"></i>
       <span>Quản lý lưu trú</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-      <i class="fa-solid fa-car-side"></i>
-      <span>Quản lý phương tiện</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/service">
-      <i class="fa-solid fa-briefcase"></i>
-      <span>Quản lý dịch vụ</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/external-ticket">
-      <i class="fa-solid fa-ticket"></i>
-      <span>Vé tham quan bên ngoài</span>
     </a>
 
     <div class="nav-section-title">Vận hành</div>
@@ -472,16 +445,11 @@
       <span>Đánh giá khách hàng</span>
     </a>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/notification">
-      <i class="fa-solid fa-bell"></i>
-      <span>Cấu hình thông báo</span>
-    </a>
-
     <div class="admin-user">
       <div class="avatar">AD</div>
       <div>
         <div class="fw-bold">Quản trị viên</div>
-        <small>Admin / Staff</small>
+        <small>Staff</small>
       </div>
     </div>
   </aside>

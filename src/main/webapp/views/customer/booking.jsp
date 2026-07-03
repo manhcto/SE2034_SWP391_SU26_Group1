@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -121,6 +122,74 @@
             font-weight: 800;
         }
 
+        .error-box {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 16px 18px;
+            margin-bottom: 22px;
+            font-weight: 700;
+        }
+
+        .error-box ul {
+            margin: 10px 0 0;
+            padding-left: 20px;
+        }
+
+        .booking-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            color: #374151;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 12px 13px;
+            font: inherit;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .checkbox-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #374151;
+            font-weight: 700;
+            margin: 4px 0 18px;
+        }
+
+        .checkbox-line input {
+            width: 18px;
+            height: 18px;
+        }
+
         .booking-actions {
             margin-top: 24px;
             width: 100%;
@@ -158,6 +227,10 @@
             }
 
             .booking-info {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-form-grid {
                 grid-template-columns: 1fr;
             }
 

@@ -103,8 +103,6 @@ public class ManageBookingController extends HttpServlet {
                 return;
             }
 
-            setAddressPartsToRequest(request, booking.getAddress());
-
             request.setAttribute("booking", booking);
             request.getRequestDispatcher(STAFF_BOOKING_EDIT_PAGE).forward(request, response);
 
@@ -119,74 +117,9 @@ public class ManageBookingController extends HttpServlet {
         List<String> errors = new ArrayList<>();
 
         String bookingIDRaw = getTrimValue(request, "bookingID");
-        String firstName = getTrimValue(request, "firstName");
-        String lastName = getTrimValue(request, "lastName");
-        String email = getTrimValue(request, "email");
-        String phone = getTrimValue(request, "phone");
-
-        String streetAddress = getTrimValue(request, "streetAddress");
-        String district = getTrimValue(request, "district");
-        String city = getTrimValue(request, "city");
-        String address = buildFullAddress(streetAddress, district, city);
-
-        String note = getTrimValue(request, "note");
-        String numberAdultRaw = getTrimValue(request, "numberAdult");
-        String numberChildrenRaw = getTrimValue(request, "numberChildren");
-        String isBookedForOtherRaw = getTrimValue(request, "isBookedForOther");
         String status = getTrimValue(request, "status");
 
         int bookingID = parsePositiveInt(bookingIDRaw, "Booking ID", errors);
-        int numberAdult = parseNumberWithMinValue(numberAdultRaw, "Số người lớn", 1, errors);
-        int numberChildren = parseNumberWithMinValue(numberChildrenRaw, "Số trẻ em", 0, errors);
-
-        validateRequired(firstName, "Tên", errors);
-        validateRequired(lastName, "Họ", errors);
-        validateRequired(email, "Email", errors);
-        validateRequired(phone, "Số điện thoại", errors);
-        validateRequired(streetAddress, "Số nhà, đường", errors);
-        validateRequired(district, "Quận / Huyện", errors);
-        validateRequired(city, "Tỉnh / Thành phố", errors);
-
-        validateLength(firstName, "Tên", 100, errors);
-        validateLength(lastName, "Họ", 100, errors);
-        validateLength(email, "Email", 150, errors);
-        validateLength(phone, "Số điện thoại", 10, errors);
-        validateLength(streetAddress, "Số nhà, đường", 120, errors);
-        validateLength(address, "Địa chỉ đầy đủ", 255, errors);
-        validateLength(note, "Ghi chú", 1000, errors);
-
-        if (!firstName.isEmpty() && !firstName.matches("^[\\p{L}\\s]+$")) {
-            errors.add("Tên chỉ được chứa chữ cái và khoảng trắng.");
-        }
-
-        if (!lastName.isEmpty() && !lastName.matches("^[\\p{L}\\s]+$")) {
-            errors.add("Họ chỉ được chứa chữ cái và khoảng trắng.");
-        }
-
-        if (!email.isEmpty()
-                && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            errors.add("Email không đúng định dạng. Ví dụ đúng: example@gmail.com.");
-        }
-
-        if (!phone.isEmpty() && !phone.matches("^0\\d{9}$")) {
-            errors.add("Số điện thoại phải có đúng 10 chữ số và bắt đầu bằng số 0.");
-        }
-
-        if (!streetAddress.isEmpty() && !streetAddress.matches("^[\\p{L}0-9\\s,./-]+$")) {
-            errors.add("Số nhà, đường chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
-        }
-
-        if (!district.isEmpty() && !isValidDistrict(district)) {
-            errors.add("Quận / Huyện không hợp lệ.");
-        }
-
-        if (!city.isEmpty() && !isValidCity(city)) {
-            errors.add("Tỉnh / Thành phố không hợp lệ.");
-        }
-
-        if (!isValidBookedForOther(isBookedForOtherRaw)) {
-            errors.add("Giá trị đặt hộ người khác không hợp lệ.");
-        }
 
         if (!isValidStatus(status)) {
             errors.add("Trạng thái booking không hợp lệ.");
@@ -203,39 +136,18 @@ public class ManageBookingController extends HttpServlet {
             }
         }
 
-        Booking booking = new Booking();
-        booking.setBookingID(bookingID);
-        booking.setFirstName(firstName);
-        booking.setLastName(lastName);
-        booking.setEmail(email);
-        booking.setPhone(phone);
-        booking.setAddress(address);
-        booking.setNote(note);
-        booking.setNumberAdult(numberAdult);
-        booking.setNumberChildren(numberChildren);
-        booking.setBookedForOther("true".equals(isBookedForOtherRaw));
-        booking.setStatus(status);
-
-        if (oldBooking != null) {
-            booking.setBookingCode(oldBooking.getBookingCode());
-            booking.setBookingType(oldBooking.getBookingType());
-            booking.setUserID(oldBooking.getUserID());
-            booking.setBookDate(oldBooking.getBookDate());
-            booking.setTotalPrice(oldBooking.getTotalPrice());
-            booking.setVoucherID(oldBooking.getVoucherID());
-        }
-
         if (!errors.isEmpty()) {
+            if (oldBooking != null) {
+                oldBooking.setStatus(status);
+            }
+
             request.setAttribute("errors", errors);
-            request.setAttribute("booking", booking);
-            request.setAttribute("streetAddress", streetAddress);
-            request.setAttribute("district", district);
-            request.setAttribute("city", city);
+            request.setAttribute("booking", oldBooking);
             request.getRequestDispatcher(STAFF_BOOKING_EDIT_PAGE).forward(request, response);
             return;
         }
 
-        boolean updated = bookingDAO.updateBooking(booking);
+        boolean updated = bookingDAO.updateBookingStatus(bookingID, status);
 
         if (updated) {
             response.sendRedirect(request.getContextPath() + "/staff/booking?success=updated");
@@ -243,10 +155,10 @@ public class ManageBookingController extends HttpServlet {
             errors.add("Cập nhật booking thất bại. Vui lòng thử lại.");
 
             request.setAttribute("errors", errors);
-            request.setAttribute("booking", booking);
-            request.setAttribute("streetAddress", streetAddress);
-            request.setAttribute("district", district);
-            request.setAttribute("city", city);
+            if (oldBooking != null) {
+                oldBooking.setStatus(status);
+            }
+            request.setAttribute("booking", oldBooking);
             request.getRequestDispatcher(STAFF_BOOKING_EDIT_PAGE).forward(request, response);
         }
     }

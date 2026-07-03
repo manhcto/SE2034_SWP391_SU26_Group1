@@ -467,11 +467,6 @@
             <span>Xem lưu trú</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-            <i class="fa-solid fa-car-side"></i>
-            <span>Xem phương tiện</span>
-        </a>
-
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
             <i class="fa-solid fa-map-location-dot"></i>
             <span>Xem Tour</span>
@@ -633,17 +628,6 @@
             </div>
 
             <div class="col-md-3">
-                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-car-side"></i>
-                    </div>
-                    <h5>View Vehicle</h5>
-                    <p>Xem danh sách phương tiện, giá thuê, trạng thái và địa điểm nhận xe.</p>
-                    <span class="module-open">Xem module</span>
-                </a>
-            </div>
-
-            <div class="col-md-3">
                 <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/tour">
                     <div class="module-icon">
                         <i class="fa-solid fa-map-location-dot"></i>
@@ -661,17 +645,6 @@
                     </div>
                     <h5>View Payment</h5>
                     <p>Xem giao dịch, trạng thái thanh toán và dữ liệu đối soát.</p>
-                    <span class="module-open">Xem module</span>
-                </a>
-            </div>
-
-            <div class="col-md-3">
-                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/service">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-briefcase"></i>
-                    </div>
-                    <h5>View Service</h5>
-                    <p>Xem danh mục dịch vụ và các dịch vụ cộng thêm trong hệ thống.</p>
                     <span class="module-open">Xem module</span>
                 </a>
             </div>

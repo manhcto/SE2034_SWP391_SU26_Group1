@@ -21,6 +21,9 @@ public class BookingController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
         request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
     }
 

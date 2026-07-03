@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -220,20 +221,84 @@
       border-radius: 24px;
       padding: 24px;
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-      max-width: 1180px;
-      margin: 0 auto;
+      width: 100%;
       overflow: hidden;
     }
 
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .summary-card,
+    .filter-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 22px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    .summary-card {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .summary-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #eef2ff;
+      color: #4e46dc;
+      font-size: 20px;
+    }
+
+    .summary-label {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .summary-value {
+      color: #0f172a;
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .filter-card {
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+
+    .filter-card .form-control,
+    .filter-card .form-select {
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid #cbd5e1;
+      font-weight: 700;
+    }
+
     .table-responsive {
-      overflow-x: visible;
+      overflow-x: auto;
       width: 100%;
     }
 
     .table {
       width: 100%;
-      table-layout: fixed;
       margin-bottom: 0;
+      min-width: 1280px;
+    }
+
+    .table-responsive > table:not(#bookingTable) {
+      display: none;
     }
 
     .table thead th {
@@ -255,47 +320,7 @@
       word-break: break-word;
     }
 
-    .table th:nth-child(1),
-    .table td:nth-child(1) {
-      width: 10%;
-    }
-
-    .table th:nth-child(2),
-    .table td:nth-child(2) {
-      width: 13%;
-    }
-
-    .table th:nth-child(3),
-    .table td:nth-child(3) {
-      width: 22%;
-    }
-
-    .table th:nth-child(4),
-    .table td:nth-child(4) {
-      width: 12%;
-    }
-
-    .table th:nth-child(5),
-    .table td:nth-child(5) {
-      width: 11%;
-    }
-
-    .table th:nth-child(6),
-    .table td:nth-child(6) {
-      width: 10%;
-    }
-
-    .table th:nth-child(7),
-    .table td:nth-child(7) {
-      width: 10%;
-    }
-
-    .table th:nth-child(8),
-    .table td:nth-child(8) {
-      width: 12%;
-    }
-
-    .booking-code {
+  .booking-code {
       font-weight: 900;
       color: #4e46dc;
       word-break: break-word;
@@ -311,6 +336,39 @@
       color: #075985;
       font-size: 12px;
       font-weight: 800;
+    }
+
+    .status-badge.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-badge.confirmed {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .status-badge.completed {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-badge.cancelled {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .type-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
     }
 
     .action-group {
@@ -410,6 +468,16 @@
       .table {
         min-width: 900px;
       }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 576px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -424,21 +492,9 @@
       <p>Travel ERP System</p>
     </div>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
+    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
       <i class="fa-solid fa-house"></i>
-      <span>Trang chủ quản trị</span>
-    </a>
-
-    <div class="nav-section-title">Quản trị hệ thống</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
-      <i class="fa-solid fa-chart-line"></i>
-      <span>Dashboard</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
-      <i class="fa-solid fa-users"></i>
-      <span>Quản lý người dùng</span>
+      <span>Trang chủ nhân viên</span>
     </a>
 
     <div class="nav-section-title">Dịch vụ du lịch</div>
@@ -451,21 +507,6 @@
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
       <i class="fa-solid fa-hotel"></i>
       <span>Quản lý lưu trú</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-      <i class="fa-solid fa-car-side"></i>
-      <span>Quản lý phương tiện</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/service">
-      <i class="fa-solid fa-briefcase"></i>
-      <span>Quản lý dịch vụ</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/external-ticket">
-      <i class="fa-solid fa-ticket"></i>
-      <span>Vé tham quan bên ngoài</span>
     </a>
 
     <div class="nav-section-title">Vận hành</div>
@@ -502,30 +543,75 @@
       <span>Đánh giá khách hàng</span>
     </a>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/notification">
-      <i class="fa-solid fa-bell"></i>
-      <span>Cấu hình thông báo</span>
-    </a>
-
     <div class="admin-user">
       <div class="avatar">AD</div>
       <div>
         <div class="fw-bold">Quản trị viên</div>
-        <small>Admin / Staff</small>
+        <small>Staff</small>
       </div>
     </div>
   </aside>
 
+  <c:set var="pendingCount" value="0" />
+  <c:set var="confirmedCount" value="0" />
+  <c:set var="revenueTotal" value="0" />
+  <c:forEach items="${bookingList}" var="bookingSummary">
+    <c:if test="${bookingSummary.status == 'Pending'}">
+      <c:set var="pendingCount" value="${pendingCount + 1}" />
+    </c:if>
+    <c:if test="${bookingSummary.status == 'Confirmed'}">
+      <c:set var="confirmedCount" value="${confirmedCount + 1}" />
+    </c:if>
+    <c:set var="revenueTotal" value="${revenueTotal + bookingSummary.totalPrice}" />
+  </c:forEach>
+
   <main class="main-content">
     <div class="topbar">
       <div>
-        <h1>Staff Booking Management</h1>
+        <h1>Quản lý đặt chỗ</h1>
+        <p>Theo dõi booking tour, lưu trú và các dịch vụ đã đặt.</p>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/home">
         <i class="fa-solid fa-arrow-left"></i>
         Về Staff Home
       </a>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-icon"><i class="fa-solid fa-calendar-check"></i></div>
+        <div>
+          <div class="summary-label">Tổng booking</div>
+          <div class="summary-value">${fn:length(bookingList)}</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon"><i class="fa-solid fa-clock"></i></div>
+        <div>
+          <div class="summary-label">Chờ xử lý</div>
+          <div class="summary-value">${pendingCount}</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div>
+          <div class="summary-label">Đã xác nhận</div>
+          <div class="summary-value">${confirmedCount}</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+        <div>
+          <div class="summary-label">Tổng giá trị</div>
+          <div class="summary-value" style="font-size: 20px;">
+            <fmt:formatNumber value="${revenueTotal}" type="number" maxFractionDigits="0"/> VND
+          </div>
+        </div>
+      </div>
     </div>
 
     <c:if test="${param.success == 'updated'}">
@@ -549,10 +635,192 @@
       </div>
     </c:if>
 
+    <div class="filter-card">
+      <div class="row g-3 align-items-center">
+        <div class="col-lg-5">
+          <input type="text"
+                 class="form-control"
+                 id="bookingSearchInput"
+                 placeholder="Tìm mã booking, khách hàng, email, SĐT, dịch vụ...">
+        </div>
+
+        <div class="col-lg-3">
+          <select class="form-select" id="bookingTypeFilter">
+            <option value="">Tất cả loại booking</option>
+            <option value="Tour">Tour</option>
+            <option value="Accommodation">Lưu trú</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3">
+          <select class="form-select" id="bookingStatusFilter">
+            <option value="">Tất cả trạng thái</option>
+            <option value="Pending">Chờ xử lý</option>
+            <option value="Confirmed">Đã xác nhận</option>
+            <option value="Completed">Hoàn thành</option>
+            <option value="Cancelled">Đã hủy</option>
+          </select>
+        </div>
+
+        <div class="col-lg-1">
+          <button class="btn btn-outline-secondary w-100 h-100"
+                  onclick="resetBookingFilter()"
+                  type="button"
+                  title="Xóa lọc">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="content-card">
       <c:choose>
         <c:when test="${not empty bookingList}">
           <div class="table-responsive">
+            <table class="table align-middle" id="bookingTable">
+              <thead>
+              <tr>
+                <th>Mã Booking</th>
+                <th>Loại</th>
+                <th>Khách hàng</th>
+                <th>Liên hệ</th>
+                <th>CCCD</th>
+                <th>Dịch vụ</th>
+                <th>Lịch sử dụng</th>
+                <th>Số khách</th>
+                <th>Địa chỉ</th>
+                <th>Email</th>
+                <th>Ngày đặt</th>
+                <th>Trạng thái</th>
+                <th>Tổng tiền</th>
+                <th>Thao tác</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <c:forEach items="${bookingList}" var="booking">
+                <tr data-booking-search="${booking.bookingCode} ${booking.displayType} ${booking.firstName} ${booking.lastName} ${booking.email} ${booking.phone} ${booking.serviceName} ${booking.address}"
+                    data-booking-type="${booking.bookingType}"
+                    data-booking-status="${booking.status}">
+                  <td>
+                    <span class="booking-code">${booking.bookingCode}</span>
+                  </td>
+                  <td>
+                    <span class="type-pill">
+                      <c:choose>
+                        <c:when test="${booking.bookingType == 'Tour'}">
+                          <i class="fa-solid fa-map-location-dot"></i>
+                        </c:when>
+                        <c:when test="${booking.bookingType == 'Accommodation'}">
+                          <i class="fa-solid fa-hotel"></i>
+                        </c:when>
+                        <c:otherwise>
+                          <i class="fa-solid fa-briefcase"></i>
+                        </c:otherwise>
+                      </c:choose>
+                      ${booking.displayType}
+                    </span>
+                  </td>
+                  <td>${booking.firstName} ${booking.lastName}</td>
+                  <td>${booking.phone}</td>
+                  <td>
+                    <div class="identity-mini">
+                      <span>
+                        <c:choose>
+                          <c:when test="${not empty booking.identityNumber}">
+                            ${booking.identityNumber}
+                          </c:when>
+                          <c:otherwise>Chưa có</c:otherwise>
+                        </c:choose>
+                      </span>
+
+                      <c:if test="${not empty booking.identityImageUrl}">
+                        <c:choose>
+                          <c:when test="${fn:startsWith(booking.identityImageUrl, 'http')}">
+                            <c:set var="identityImageSrc" value="${booking.identityImageUrl}"/>
+                          </c:when>
+                          <c:when test="${fn:startsWith(booking.identityImageUrl, '/')}">
+                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}${booking.identityImageUrl}"/>
+                          </c:when>
+                          <c:otherwise>
+                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}/${booking.identityImageUrl}"/>
+                          </c:otherwise>
+                        </c:choose>
+
+                        <a href="${identityImageSrc}" target="_blank" rel="noopener">
+                          <img src="${identityImageSrc}" alt="Ảnh CCCD">
+                        </a>
+                      </c:if>
+                    </div>
+                  </td>
+                  <td>
+                    <c:choose>
+                      <c:when test="${not empty booking.serviceName}">
+                        ${booking.serviceName}
+                      </c:when>
+                      <c:otherwise>Chưa có dịch vụ</c:otherwise>
+                    </c:choose>
+                  </td>
+                  <td>
+                    <c:choose>
+                      <c:when test="${not empty booking.serviceStartDate || not empty booking.serviceEndDate}">
+                        <fmt:formatDate value="${booking.serviceStartDate}" pattern="dd/MM/yyyy"/>
+                        <c:if test="${not empty booking.serviceEndDate}">
+                          - <fmt:formatDate value="${booking.serviceEndDate}" pattern="dd/MM/yyyy"/>
+                        </c:if>
+                      </c:when>
+                      <c:otherwise>Chưa có lịch</c:otherwise>
+                    </c:choose>
+                  </td>
+                  <td>
+                    <div class="fw-bold">${booking.totalGuests} khách</div>
+                    <small class="text-muted">${booking.numberAdult} NL, ${booking.numberChildren} TE</small>
+                  </td>
+                  <td>
+                    <c:choose>
+                      <c:when test="${not empty booking.address}">
+                        ${booking.address}
+                      </c:when>
+                      <c:otherwise>Chưa cập nhật</c:otherwise>
+                    </c:choose>
+                  </td>
+                  <td>${booking.email}</td>
+                  <td>
+                    <fmt:formatDate value="${booking.bookDate}" pattern="dd/MM/yyyy HH:mm"/>
+                  </td>
+                  <td>
+                    <span class="status-badge ${fn:toLowerCase(booking.status)}">
+                      ${booking.displayStatus}
+                    </span>
+                  </td>
+                  <td>
+                    <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VND
+                  </td>
+                  <td>
+                    <div class="action-group">
+                      <a class="btn-edit"
+                         href="${pageContext.request.contextPath}/staff/booking-edit?bookingID=${booking.bookingID}">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        Sửa
+                      </a>
+
+                      <form class="delete-form"
+                            action="${pageContext.request.contextPath}/staff/booking-delete"
+                            method="post"
+                            onsubmit="return confirm('Bạn có chắc chắn muốn xóa booking này không?');">
+                        <input type="hidden" name="bookingID" value="${booking.bookingID}">
+                        <button type="submit" class="btn-delete">
+                          <i class="fa-solid fa-trash"></i>
+                          Xóa
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              </c:forEach>
+              </tbody>
+            </table>
+
             <table class="table align-middle">
               <thead>
               <tr>
@@ -631,5 +899,70 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function normalizeBookingText(value) {
+    return (value || "")
+      .toString()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  }
+
+  .identity-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 132px;
+  }
+
+  .identity-mini img {
+    width: 40px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+  }
+
+  function filterBookingTable() {
+    const keyword = normalizeBookingText(document.getElementById("bookingSearchInput").value);
+    const type = normalizeBookingText(document.getElementById("bookingTypeFilter").value);
+    const status = normalizeBookingText(document.getElementById("bookingStatusFilter").value);
+    const rows = document.querySelectorAll("#bookingTable tbody tr[data-booking-search]");
+
+    rows.forEach(function (row) {
+      const rowText = normalizeBookingText(row.dataset.bookingSearch);
+      const rowType = normalizeBookingText(row.dataset.bookingType);
+      const rowStatus = normalizeBookingText(row.dataset.bookingStatus);
+
+      const matchKeyword = !keyword || rowText.includes(keyword);
+      const matchType = !type || rowType === type;
+      const matchStatus = !status || rowStatus === status;
+
+      row.style.display = matchKeyword && matchType && matchStatus ? "" : "none";
+    });
+  }
+
+  function resetBookingFilter() {
+    document.getElementById("bookingSearchInput").value = "";
+    document.getElementById("bookingTypeFilter").value = "";
+    document.getElementById("bookingStatusFilter").value = "";
+    filterBookingTable();
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    ["bookingSearchInput", "bookingTypeFilter", "bookingStatusFilter"].forEach(function (id) {
+      const element = document.getElementById(id);
+
+      if (!element) {
+        return;
+      }
+
+      element.addEventListener("input", filterBookingTable);
+      element.addEventListener("change", filterBookingTable);
+    });
+  });
+</script>
 </body>
 </html>
