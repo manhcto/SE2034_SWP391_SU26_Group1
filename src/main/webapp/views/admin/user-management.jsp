@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -500,9 +501,9 @@
                 <div class="col-md-2">
                     <select class="form-select" name="status">
                         <option value="">Tất cả trạng thái</option>
-                        <option>Active</option>
-                        <option>Inactive</option>
-                        <option>Blocked</option>
+                        <option value="Active">Hoạt động</option>
+                        <option value="Inactive">Xóa bởi người dùng</option>
+                        <option value="Blocked">Xóa bởi Admin</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -520,7 +521,6 @@
                     <th>Vai trò</th>
                     <th>Trạng thái</th>
                     <th>Ngày tạo</th>
-                    <th>Ngày sửa</th>
                     <c:if test="${sessionScope.user.roleID == 1}">
                         <th>Action</th>
                     </c:if>
@@ -546,30 +546,37 @@
                             </c:choose>
                         </td>
 
-                        <td>${u.status}</td>
-                        <td>${u.createAt}</td>
-                        <td>${u.updateAt}</td>
+                        <td>
+                            <c:choose>
+                                <c:when test="${u.status == 'Active'}">Hoạt động</c:when>
+                                <c:when test="${u.status == 'Inactive'}">Xóa bởi người dùng</c:when>
+                                <c:when test="${u.status == 'Blocked'}">Đã bị admin xóa</c:when>
+                                <c:otherwise>${u.status}</c:otherwise>
+                            </c:choose>
+                        </td>
+                        <td>
+                            <fmt:formatDate value="${u.createAt}" pattern="dd/MM/yyyy"/>
+                        </td>
 
                         <c:if test="${sessionScope.user.roleID == 1}">
                             <td>
+                                <c:if test="${u.userID != sessionScope.user.userID
+                     && u.roleID != 1
+                     && u.status == 'Active'}">
 
-                                <c:choose>
+                                    <button class="btn btn-outline-primary btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editModal${u.userID}">
+                                        Sửa
+                                    </button>
 
-                                    <c:when test="${sessionScope.user.userID == 1}">
-                                        <button class="btn btn-secondary btn-sm" disabled>
-                                            Xem
-                                        </button>
-                                    </c:when>
+                                    <a class="btn btn-outline-danger btn-sm"
+                                       href="${pageContext.request.contextPath}/admin/user/block?id=${u.userID}"
+                                       onclick="return confirm('Bạn có chắc muốn khóa tài khoản này?')">
+                                        Chặn
+                                    </a>
 
-                                    <c:otherwise>
-                                        <button class="btn-edit"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#editModal${u.userID}">
-                                            Sửa
-                                        </button>
-                                    </c:otherwise>
-
-                                </c:choose>
+                                </c:if>
 
                             </td>
                         </c:if>
@@ -595,20 +602,14 @@
                                         <div class="mb-3">
                                             <label>Vai trò</label>
                                             <select class="form-select" name="roleID">
+                                                <option value="1">Admin</option>
                                                 <option value="2">Nhân viên</option>
                                                 <option value="3">Hướng dẫn viên</option>
                                                 <option value="4">Khách hàng</option>
                                             </select>
                                         </div>
 
-                                        <div class="mb-3">
-                                            <label>Status</label>
-                                            <select class="form-select" name="status">
-                                                <option value="Active">Hoạt động</option>
-                                                <option value="Inactive">Không hoạt động</option>
-                                                <option value="Blocked">Chặn</option>
-                                            </select>
-                                        </div>
+
 
                                     </div>
 

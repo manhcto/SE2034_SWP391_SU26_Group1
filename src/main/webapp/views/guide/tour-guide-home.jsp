@@ -562,7 +562,7 @@
 
         <div class="nav-section-title">Nhiệm vụ tour</div>
 
-        <a class="sidebar-link" href="#assignedTours">
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/assignment">
             <i class="fa-solid fa-clipboard-list"></i>
             <span>Tour được phân công</span>
         </a>

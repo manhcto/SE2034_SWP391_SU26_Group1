@@ -15,6 +15,7 @@ public class User {
     private String address;
     private String status;
     private int roleID;
+    private String roleName;
     private Timestamp createAt;
     private Timestamp updateAt;
 
@@ -132,6 +133,14 @@ public class User {
 
     public void setRoleID(int roleID) {
         this.roleID = roleID;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 
     public String getStatus() {

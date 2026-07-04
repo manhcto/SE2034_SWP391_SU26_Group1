@@ -251,7 +251,6 @@
             padding: 12px 14px;
             border: 1px solid #cbd5e1;
             font-weight: 600;
-            transition: 0.18s ease;
         }
 
         .form-control:focus,
@@ -272,11 +271,6 @@
             box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.12);
         }
 
-        .form-control.input-valid,
-        .form-select.input-valid {
-            border-color: #22c55e;
-        }
-
         .form-control.input-valid:focus,
         .form-select.input-valid:focus {
             border-color: #22c55e;
@@ -287,7 +281,7 @@
             display: none;
             color: #dc2626;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 500;
             margin-top: 6px;
             line-height: 1.35;
         }
@@ -342,15 +336,6 @@
         .btn-back:hover {
             background: #eef2ff;
             color: #4e46dc;
-        }
-
-        .form-section-title {
-            font-size: 18px;
-            font-weight: 900;
-            color: #0f172a;
-            margin: 6px 0 4px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e2e8f0;
         }
 
         @media (max-width: 992px) {
@@ -423,23 +408,11 @@
             <span>Vé tham quan bên ngoài</span>
         </a>
 
-        <div class="nav-section-title">Vận hành booking</div>
+        <div class="nav-section-title">Vận hành</div>
 
-        <a class="sidebar-link ${selectedBookingType == 'Tour' ? 'active' : ''}"
-           href="${pageContext.request.contextPath}/staff/booking?type=Tour">
-            <i class="fa-solid fa-map-location-dot"></i>            <span>Quản lý đặt tour</span>
-        </a>
-
-        <a class="sidebar-link ${selectedBookingType == 'Accommodation' ? 'active' : ''}"
-           href="${pageContext.request.contextPath}/staff/booking?type=Accommodation">
-            <i class="fa-solid fa-hotel"></i>
-            <span>Quản lý đặt phòng</span>
-        </a>
-
-        <a class="sidebar-link ${selectedBookingType == 'Vehicle' ? 'active' : ''}"
-           href="${pageContext.request.contextPath}/staff/booking?type=Vehicle">
-            <i class="fa-solid fa-car-side"></i>
-            <span>Quản lý đặt xe</span>
+        <a class="sidebar-link active" href="${pageContext.request.contextPath}/staff/booking">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Quản lý đặt chỗ</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
@@ -475,100 +448,85 @@
         </a>
 
         <div class="admin-user">
-            <div class="avatar">ST</div>
+            <div class="avatar">AD</div>
             <div>
-                <div class="fw-bold">Nhân viên</div>
+                <div class="fw-bold">Quản trị viên</div>
                 <small>Staff</small>
             </div>
         </div>
     </aside>
 
-    <c:set var="backUrl" value="${backToBookingListUrl}" />
-    <c:if test="${empty backUrl}">
-        <c:set var="backUrl" value="${pageContext.request.contextPath}/staff/booking?type=${selectedBookingType}" />
-    </c:if>
-
     <main class="main-content">
         <div class="topbar">
             <div>
                 <h1>Sửa Booking</h1>
-                <p>
-                    Cập nhật thông tin khách hàng, số khách và trạng thái booking.
-                </p>
             </div>
 
-            <a class="top-action-btn" href="${backUrl}">
+            <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/booking">
                 <i class="fa-solid fa-arrow-left"></i>
                 Quay lại danh sách
             </a>
         </div>
 
         <c:if test="${not empty error}">
-        <div class="error-box">
-                ${error}
-        </div>
+            <div class="error-box">
+                    ${error}
+            </div>
         </c:if>
 
         <c:if test="${not empty errors}">
-        <div class="error-box">
-            <div>
-                <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                Vui lòng kiểm tra lại các thông tin sau:
-            </div>
+            <div class="error-box">
+                <div>
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    Vui lòng kiểm tra lại các thông tin sau:
+                </div>
 
-            <ul>
-                <c:forEach items="${errors}" var="err">
-                    <li>${err}</li>
-                </c:forEach>
-            </ul>
-        </div>
+                <ul>
+                    <c:forEach items="${errors}" var="err">
+                        <li>${err}</li>
+                    </c:forEach>
+                </ul>
+            </div>
         </c:if>
 
         <c:if test="${not empty booking}">
-        <div class="edit-card">
-            <div class="booking-info">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <span class="info-label">Booking ID</span>
-                        <span class="info-value">${booking.bookingID}</span>
-                    </div>
+            <div class="edit-card">
+                <div class="booking-info">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <span class="info-label">Booking ID</span>
+                            <span class="info-value">${booking.bookingID}</span>
+                        </div>
 
-                    <div class="col-md-3">
-                        <span class="info-label">Mã Booking</span>
-                        <span class="info-value">${booking.bookingCode}</span>
-                    </div>
+                        <div class="col-md-3">
+                            <span class="info-label">Mã Booking</span>
+                            <span class="info-value">${booking.bookingCode}</span>
+                        </div>
 
-                    <div class="col-md-3">
-                        <span class="info-label">Ngày đặt</span>
-                        <span class="info-value">
+                        <div class="col-md-3">
+                            <span class="info-label">Ngày đặt</span>
+                            <span class="info-value">
                                 <fmt:formatDate value="${booking.bookDate}" pattern="dd/MM/yyyy HH:mm"/>
                             </span>
-                    </div>
+                        </div>
 
-                    <div class="col-md-3">
-                        <span class="info-label">Tổng tiền</span>
-                        <span class="info-value">
+                        <div class="col-md-3">
+                            <span class="info-label">Tổng tiền</span>
+                            <span class="info-value">
                                 <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
                             </span>
-                    </div>
-                </div>
-
-                <div class="row g-3 mt-1">
-                    <div class="col-md-2">
-                        <span class="info-label">Loại booking</span>
-                        <span class="info-value">
-                                <c:choose>
-                                    <c:when test="${booking.bookingType == 'Tour'}">Đặt tour</c:when>
-                                    <c:when test="${booking.bookingType == 'Accommodation'}">Đặt phòng</c:when>
-                                    <c:when test="${selectedBookingType == 'Vehicle'}">Đặt xe</c:when>
-                                    <c:otherwise>${booking.displayType}</c:otherwise>
-                                </c:choose>
-                            </span>
+                        </div>
                     </div>
 
-                    <div class="col-md-4">
-                        <span class="info-label">Dịch vụ</span>
-                        <span class="info-value">
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-2">
+                            <span class="info-label">Loại booking</span>
+                            <span class="info-value">${booking.displayType}</span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <span class="info-label">Dịch vụ</span>
+                            <span class="info-value">
                                 <c:choose>
                                     <c:when test="${not empty booking.serviceName}">
                                         ${booking.serviceName}
@@ -576,11 +534,11 @@
                                     <c:otherwise>Chưa có dịch vụ</c:otherwise>
                                 </c:choose>
                             </span>
-                    </div>
+                        </div>
 
-                    <div class="col-md-3">
-                        <span class="info-label">Lịch sử dụng</span>
-                        <span class="info-value">
+                        <div class="col-md-3">
+                            <span class="info-label">Lịch sử dụng</span>
+                            <span class="info-value">
                                 <c:choose>
                                     <c:when test="${not empty booking.serviceStartDate || not empty booking.serviceEndDate}">
                                         <fmt:formatDate value="${booking.serviceStartDate}" pattern="dd/MM/yyyy"/>
@@ -591,229 +549,177 @@
                                     <c:otherwise>Chưa có lịch</c:otherwise>
                                 </c:choose>
                             </span>
-                    </div>
+                        </div>
 
-                    <div class="col-md-3">
-                        <span class="info-label">Số khách</span>
-                        <span class="info-value">${booking.totalGuests} khách (${booking.numberAdult} NL, ${booking.numberChildren} TE)</span>
+                        <div class="col-md-3">
+                            <span class="info-label">Số khách</span>
+                            <span class="info-value">${booking.totalGuests} khách (${booking.numberAdult} NL, ${booking.numberChildren} TE)</span>
+                        </div>
                     </div>
                 </div>
+
+                <form action="${pageContext.request.contextPath}/staff/booking-edit" method="post" novalidate>
+                    <input type="hidden" name="bookingID" value="${booking.bookingID}">
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="firstName" class="form-label">Tên</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="firstName"
+                                   name="firstName"
+                                   value="${booking.firstName}">
+                            <span class="field-error-message" id="firstNameError"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="lastName" class="form-label">Họ</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="lastName"
+                                   name="lastName"
+                                   value="${booking.lastName}">
+                            <span class="field-error-message" id="lastNameError"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="email"
+                                   name="email"
+                                   value="${booking.email}">
+                            <span class="field-error-message" id="emailError"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Số điện thoại</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="phone"
+                                   name="phone"
+                                   value="${booking.phone}">
+                            <span class="field-error-message" id="phoneError"></span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label for="streetAddress" class="form-label">Số nhà, đường</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="streetAddress"
+                                   name="streetAddress"
+                                   value="${streetAddress}"
+                                   maxlength="120"
+                                   placeholder="VD: Số 10 Nguyễn Trãi">
+                            <span class="field-error-message" id="streetAddressError"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="district" class="form-label">Quận / Huyện</label>
+                            <select class="form-select" id="district" name="district">
+                                <option value="">-- Chọn quận / huyện --</option>
+                                <option value="Quận Ba Đình" ${district == 'Quận Ba Đình' ? 'selected' : ''}>Quận Ba Đình</option>
+                                <option value="Quận Hoàn Kiếm" ${district == 'Quận Hoàn Kiếm' ? 'selected' : ''}>Quận Hoàn Kiếm</option>
+                                <option value="Quận Tây Hồ" ${district == 'Quận Tây Hồ' ? 'selected' : ''}>Quận Tây Hồ</option>
+                                <option value="Quận Long Biên" ${district == 'Quận Long Biên' ? 'selected' : ''}>Quận Long Biên</option>
+                                <option value="Quận Cầu Giấy" ${district == 'Quận Cầu Giấy' ? 'selected' : ''}>Quận Cầu Giấy</option>
+                                <option value="Quận Đống Đa" ${district == 'Quận Đống Đa' ? 'selected' : ''}>Quận Đống Đa</option>
+                                <option value="Quận Hai Bà Trưng" ${district == 'Quận Hai Bà Trưng' ? 'selected' : ''}>Quận Hai Bà Trưng</option>
+                                <option value="Quận Hoàng Mai" ${district == 'Quận Hoàng Mai' ? 'selected' : ''}>Quận Hoàng Mai</option>
+                                <option value="Quận Thanh Xuân" ${district == 'Quận Thanh Xuân' ? 'selected' : ''}>Quận Thanh Xuân</option>
+                                <option value="Quận Nam Từ Liêm" ${district == 'Quận Nam Từ Liêm' ? 'selected' : ''}>Quận Nam Từ Liêm</option>
+                                <option value="Quận Bắc Từ Liêm" ${district == 'Quận Bắc Từ Liêm' ? 'selected' : ''}>Quận Bắc Từ Liêm</option>
+                                <option value="Quận Hà Đông" ${district == 'Quận Hà Đông' ? 'selected' : ''}>Quận Hà Đông</option>
+                                <option value="Huyện Thanh Trì" ${district == 'Huyện Thanh Trì' ? 'selected' : ''}>Huyện Thanh Trì</option>
+                                <option value="Huyện Gia Lâm" ${district == 'Huyện Gia Lâm' ? 'selected' : ''}>Huyện Gia Lâm</option>
+                                <option value="Huyện Đông Anh" ${district == 'Huyện Đông Anh' ? 'selected' : ''}>Huyện Đông Anh</option>
+                                <option value="Huyện Sóc Sơn" ${district == 'Huyện Sóc Sơn' ? 'selected' : ''}>Huyện Sóc Sơn</option>
+                            </select>
+                            <span class="field-error-message" id="districtError"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="city" class="form-label">Tỉnh / Thành phố</label>
+                            <select class="form-select" id="city" name="city">
+                                <option value="">-- Chọn tỉnh / thành phố --</option>
+                                <option value="Hà Nội" ${city == 'Hà Nội' ? 'selected' : ''}>Hà Nội</option>
+                                <option value="Hồ Chí Minh" ${city == 'Hồ Chí Minh' ? 'selected' : ''}>Hồ Chí Minh</option>
+                                <option value="Đà Nẵng" ${city == 'Đà Nẵng' ? 'selected' : ''}>Đà Nẵng</option>
+                                <option value="Hải Phòng" ${city == 'Hải Phòng' ? 'selected' : ''}>Hải Phòng</option>
+                                <option value="Cần Thơ" ${city == 'Cần Thơ' ? 'selected' : ''}>Cần Thơ</option>
+                                <option value="Quảng Ninh" ${city == 'Quảng Ninh' ? 'selected' : ''}>Quảng Ninh</option>
+                                <option value="Ninh Bình" ${city == 'Ninh Bình' ? 'selected' : ''}>Ninh Bình</option>
+                                <option value="Huế" ${city == 'Huế' ? 'selected' : ''}>Huế</option>
+                                <option value="Khánh Hòa" ${city == 'Khánh Hòa' ? 'selected' : ''}>Khánh Hòa</option>
+                                <option value="Lâm Đồng" ${city == 'Lâm Đồng' ? 'selected' : ''}>Lâm Đồng</option>
+                            </select>
+                            <span class="field-error-message" id="cityError"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="numberAdult" class="form-label">Số người lớn</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="numberAdult"
+                                   name="numberAdult"
+                                   value="${booking.numberAdult}"
+                                   inputmode="numeric"
+                                   pattern="[0-9]*">
+                            <span class="field-error-message" id="numberAdultError"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="numberChildren" class="form-label">Số trẻ em</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="numberChildren"
+                                   name="numberChildren"
+                                   value="${booking.numberChildren}"
+                                   inputmode="numeric"
+                                   pattern="[0-9]*">
+                            <span class="field-error-message" id="numberChildrenError"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="isBookedForOther" class="form-label">Đặt hộ người khác</label>
+                            <select class="form-select" id="isBookedForOther" name="isBookedForOther">
+                                <option value="false" ${booking.bookedForOther == false ? 'selected' : ''}>Không</option>
+                                <option value="true" ${booking.bookedForOther == true ? 'selected' : ''}>Có</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Trạng thái Booking</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="Pending" ${booking.status == 'Pending' ? 'selected' : ''}>Chờ xử lý</option>
+                                <option value="Confirmed" ${booking.status == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
+                                <option value="Cancelled" ${booking.status == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
+                                <option value="Completed" ${booking.status == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label for="note" class="form-label">Ghi chú</label>
+                            <textarea class="form-control"
+                                      id="note"
+                                      name="note">${booking.note}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-save">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            Lưu thay đổi
+                        </button>
+
+                        <a href="${pageContext.request.contextPath}/staff/booking"
+                           class="btn-back">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            Quay lại danh sách
+                        </a>
+                    </div>
+                </form>
             </div>
-
-            <form action="${pageContext.request.contextPath}/staff/booking-edit"
-                  method="post"
-                  id="staffEditBookingForm"
-                  data-booking-type="${selectedBookingType}"
-                  novalidate>
-                <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                <input type="hidden" name="type" value="${selectedBookingType}">
-
-                <div class="row g-4">
-                    <div class="col-12">
-                        <div class="form-section-title">Thông tin khách hàng</div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="firstName" class="form-label">Họ và tên đệm *</label>
-                        <input type="text"
-                               class="form-control"
-                               id="firstName"
-                               name="firstName"
-                               value="${booking.firstName}">
-                        <span class="field-error-message" id="firstNameError"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="lastName" class="form-label">Tên *</label>
-                        <input type="text"
-                               class="form-control"
-                               id="lastName"
-                               name="lastName"
-                               value="${booking.lastName}">
-                        <span class="field-error-message" id="lastNameError"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="email" class="form-label">Email *</label>
-                        <input type="text"
-                               class="form-control"
-                               id="email"
-                               name="email"
-                               value="${booking.email}">
-                        <span class="field-error-message" id="emailError"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="phone" class="form-label">Số điện thoại *</label>
-                        <input type="text"
-                               class="form-control"
-                               id="phone"
-                               name="phone"
-                               value="${booking.phone}">
-                        <span class="field-error-message" id="phoneError"></span>
-                    </div>
-
-                    <c:if test="${selectedBookingType == 'Vehicle'}">
-                        <fmt:formatDate value="${booking.serviceStartDate}" pattern="yyyy-MM-dd" var="vehiclePickupDateValue"/>
-                        <fmt:formatDate value="${booking.serviceEndDate}" pattern="yyyy-MM-dd" var="vehicleReturnDateValue"/>
-
-                    <div class="col-md-6">
-                        <label for="pickupDate" class="form-label">Ngày nhận xe *</label>
-                        <input type="date"
-                               class="form-control"
-                               id="pickupDate"
-                               name="pickupDate"
-                               value="${not empty pickupDate ? pickupDate : vehiclePickupDateValue}">
-                        <span class="field-error-message" id="pickupDateError"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="returnDate" class="form-label">Ngày trả xe *</label>
-                        <input type="date"
-                               class="form-control"
-                               id="returnDate"
-                               name="returnDate"
-                               value="${not empty returnDate ? returnDate : vehicleReturnDateValue}">
-                        <span class="field-error-message" id="returnDateError"></span>
-                    </div>
-                    </c:if>
-
-                    <div class="col-12">
-                        <div class="form-section-title">Địa chỉ khách hàng</div>
-                    </div>
-
-                    <div class="col-md-12">
-                        <label for="streetAddress" class="form-label">Số nhà, đường *</label>
-                        <input type="text"
-                               class="form-control"
-                               id="streetAddress"
-                               name="streetAddress"
-                               value="${streetAddress}"
-                               maxlength="120"
-                               placeholder="VD: Số 10 Nguyễn Trãi">
-                        <span class="field-error-message" id="streetAddressError"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="district" class="form-label">Quận / Huyện *</label>
-                        <select class="form-select" id="district" name="district">
-                            <option value="">-- Chọn quận / huyện --</option>
-                            <option value="Quận Ba Đình" ${district == 'Quận Ba Đình' ? 'selected' : ''}>Quận Ba Đình</option>
-                            <option value="Quận Hoàn Kiếm" ${district == 'Quận Hoàn Kiếm' ? 'selected' : ''}>Quận Hoàn Kiếm</option>
-                            <option value="Quận Tây Hồ" ${district == 'Quận Tây Hồ' ? 'selected' : ''}>Quận Tây Hồ</option>
-                            <option value="Quận Long Biên" ${district == 'Quận Long Biên' ? 'selected' : ''}>Quận Long Biên</option>
-                            <option value="Quận Cầu Giấy" ${district == 'Quận Cầu Giấy' ? 'selected' : ''}>Quận Cầu Giấy</option>
-                            <option value="Quận Đống Đa" ${district == 'Quận Đống Đa' ? 'selected' : ''}>Quận Đống Đa</option>
-                            <option value="Quận Hai Bà Trưng" ${district == 'Quận Hai Bà Trưng' ? 'selected' : ''}>Quận Hai Bà Trưng</option>
-                            <option value="Quận Hoàng Mai" ${district == 'Quận Hoàng Mai' ? 'selected' : ''}>Quận Hoàng Mai</option>
-                            <option value="Quận Thanh Xuân" ${district == 'Quận Thanh Xuân' ? 'selected' : ''}>Quận Thanh Xuân</option>
-                            <option value="Quận Nam Từ Liêm" ${district == 'Quận Nam Từ Liêm' ? 'selected' : ''}>Quận Nam Từ Liêm</option>
-                            <option value="Quận Bắc Từ Liêm" ${district == 'Quận Bắc Từ Liêm' ? 'selected' : ''}>Quận Bắc Từ Liêm</option>
-                            <option value="Quận Hà Đông" ${district == 'Quận Hà Đông' ? 'selected' : ''}>Quận Hà Đông</option>
-                            <option value="Huyện Thanh Trì" ${district == 'Huyện Thanh Trì' ? 'selected' : ''}>Huyện Thanh Trì</option>
-                            <option value="Huyện Gia Lâm" ${district == 'Huyện Gia Lâm' ? 'selected' : ''}>Huyện Gia Lâm</option>
-                            <option value="Huyện Đông Anh" ${district == 'Huyện Đông Anh' ? 'selected' : ''}>Huyện Đông Anh</option>
-                            <option value="Huyện Sóc Sơn" ${district == 'Huyện Sóc Sơn' ? 'selected' : ''}>Huyện Sóc Sơn</option>
-                        </select>
-                        <span class="field-error-message" id="districtError"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="city" class="form-label">Tỉnh / Thành phố *</label>
-                        <select class="form-select" id="city" name="city">
-                            <option value="">-- Chọn tỉnh / thành phố --</option>
-                            <option value="Hà Nội" ${city == 'Hà Nội' ? 'selected' : ''}>Hà Nội</option>
-                            <option value="Hồ Chí Minh" ${city == 'Hồ Chí Minh' ? 'selected' : ''}>Hồ Chí Minh</option>
-                            <option value="Đà Nẵng" ${city == 'Đà Nẵng' ? 'selected' : ''}>Đà Nẵng</option>
-                            <option value="Hải Phòng" ${city == 'Hải Phòng' ? 'selected' : ''}>Hải Phòng</option>
-                            <option value="Cần Thơ" ${city == 'Cần Thơ' ? 'selected' : ''}>Cần Thơ</option>
-                            <option value="Quảng Ninh" ${city == 'Quảng Ninh' ? 'selected' : ''}>Quảng Ninh</option>
-                            <option value="Ninh Bình" ${city == 'Ninh Bình' ? 'selected' : ''}>Ninh Bình</option>
-                            <option value="Huế" ${city == 'Huế' ? 'selected' : ''}>Huế</option>
-                            <option value="Khánh Hòa" ${city == 'Khánh Hòa' ? 'selected' : ''}>Khánh Hòa</option>
-                            <option value="Lâm Đồng" ${city == 'Lâm Đồng' ? 'selected' : ''}>Lâm Đồng</option>
-                        </select>
-                        <span class="field-error-message" id="cityError"></span>
-                    </div>                        <div class="col-12">
-                    <div class="form-section-title">Thông tin booking</div>
-                </div>
-
-                    <c:choose>
-                        <c:when test="${selectedBookingType == 'Vehicle'}">
-                            <input type="hidden" id="numberAdult" name="numberAdult" value="${not empty booking.numberAdult ? booking.numberAdult : 1}">
-                            <input type="hidden" id="numberChildren" name="numberChildren" value="${not empty booking.numberChildren ? booking.numberChildren : 0}">
-                        </c:when>
-
-                        <c:otherwise>
-                            <div class="col-md-6">
-                                <label for="numberAdult" class="form-label">Số người lớn *</label>
-                                <input type="text"
-                                       class="form-control"
-                                       id="numberAdult"
-                                       name="numberAdult"
-                                       value="${booking.numberAdult}"
-                                       inputmode="numeric"
-                                       pattern="[0-9]*">
-                                <span class="field-error-message" id="numberAdultError"></span>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="numberChildren" class="form-label">Số trẻ em *</label>
-                                <input type="text"
-                                       class="form-control"
-                                       id="numberChildren"
-                                       name="numberChildren"
-                                       value="${booking.numberChildren}"
-                                       inputmode="numeric"
-                                       pattern="[0-9]*">
-                                <span class="field-error-message" id="numberChildrenError"></span>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
-
-                    <div class="col-md-6">
-                        <label for="isBookedForOther" class="form-label">Đặt hộ người khác</label>
-                        <select class="form-select" id="isBookedForOther" name="isBookedForOther">
-                            <option value="false" ${booking.bookedForOther == false ? 'selected' : ''}>Không</option>
-                            <option value="true" ${booking.bookedForOther == true ? 'selected' : ''}>Có</option>
-                        </select>
-                        <span class="field-error-message" id="isBookedForOtherError"></span>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label for="status" class="form-label">Trạng thái Booking *</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="Pending" ${booking.status == 'Pending' ? 'selected' : ''}>Chờ xử lý</option>
-                            <option value="Confirmed" ${booking.status == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
-                            <option value="Cancelled" ${booking.status == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
-                            <option value="Completed" ${booking.status == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
-                        </select>
-                        <span class="field-error-message" id="statusError"></span>
-                    </div>
-
-                    <div class="col-md-12">
-                        <label for="note" class="form-label">Ghi chú</label>
-                        <textarea class="form-control"
-                                  id="note"
-                                  name="note"
-                                  maxlength="1000">${booking.note}</textarea>
-                        <span class="field-error-message" id="noteError"></span>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn-save">
-                        <i class="fa-solid fa-floppy-disk"></i>
-                        Lưu thay đổi
-                    </button>
-
-                    <a href="${backUrl}" class="btn-back">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        Quay lại danh sách
-                    </a>
-                </div>
-            </form>
-        </div>
         </c:if>
     </main>
 </div>
@@ -822,451 +728,256 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const form = document.getElementById("staffEditBookingForm");
-
-        if (!form) {
-            return;
-        }
-
-        const bookingType = form.dataset.bookingType || "";
-        const vietnameseNameRegex = /^[A-Za-zÀ-ỹ\s]+$/;
-        const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-        const phoneRegex = /^0\d{9}$/;
-        const streetAddressRegex = /^[A-Za-zÀ-ỹ0-9\s,./-]+$/;
-
-        const districtList = [
-            "Quận Ba Đình",
-            "Quận Hoàn Kiếm",
-            "Quận Tây Hồ",
-            "Quận Long Biên",
-            "Quận Cầu Giấy",
-            "Quận Đống Đa",
-            "Quận Hai Bà Trưng",
-            "Quận Hoàng Mai",
-            "Quận Thanh Xuân",
-            "Quận Nam Từ Liêm",
-            "Quận Bắc Từ Liêm",
-            "Quận Hà Đông",
-            "Huyện Thanh Trì",
-            "Huyện Gia Lâm",
-            "Huyện Đông Anh",
-            "Huyện Sóc Sơn"
-        ];
-
-        const cityList = [
-            "Hà Nội",
-            "Hồ Chí Minh",
-            "Đà Nẵng",
-            "Hải Phòng",
-            "Cần Thơ",
-            "Quảng Ninh",
-            "Ninh Bình",
-            "Huế",
-            "Khánh Hòa",
-            "Lâm Đồng"
-        ];
-
-        function getField(id) {
-            return document.getElementById(id);
-        }
-
-        function setError(input, errorElement, message) {
-            input.classList.add("input-error");
-            input.classList.remove("input-valid");
-
-            errorElement.textContent = message;
-            errorElement.classList.add("show");
-        }
-
-        function setValid(input, errorElement) {
-            input.classList.remove("input-error");
-            input.classList.add("input-valid");
-
-            errorElement.textContent = "";
-            errorElement.classList.remove("show");
-        }
-
-        function setNeutral(input, errorElement) {
-            input.classList.remove("input-error");
-            input.classList.remove("input-valid");
-
-            errorElement.textContent = "";
-            errorElement.classList.remove("show");
-        }
-
-        function validateName(value, fieldName, minLength) {
-            const text = value.trim();
-
-            if (text === "") {
-                return "Vui lòng nhập " + fieldName + ".";
-            }
-
-            if (text.length < minLength) {
-                return fieldName + " phải có ít nhất " + minLength + " ký tự.";
-            }
-
-            if (text.length > 100) {
-                return fieldName + " không được vượt quá 100 ký tự.";
-            }
-
-            if (!vietnameseNameRegex.test(text)) {
-                return fieldName + " chỉ được chứa chữ cái và khoảng trắng.";
-            }
-
-            return "";        }
-
-        function validateEmail(value) {
-            const text = value.trim();
-
-            if (text === "") {
-                return "Vui lòng nhập email.";
-            }
-
-            if (text.length > 255) {
-                return "Email không được vượt quá 255 ký tự.";
-            }
-
-            if (!emailRegex.test(text)) {
-                return "Email không đúng định dạng. Ví dụ: example@gmail.com.";
-            }
-
-            return "";
-        }
-
-        function validatePhone(value) {
-            const text = value.trim();
-
-            if (text === "") {
-                return "Vui lòng nhập số điện thoại.";
-            }
-
-            if (!phoneRegex.test(text)) {
-                return "Số điện thoại phải có đúng 10 chữ số và bắt đầu bằng số 0.";
-            }
-
-            return "";
-        }
-
-        function validateStreetAddress(value) {
-            const text = value.trim();
-
-            if (text === "") {
-                return "Vui lòng nhập số nhà, đường.";
-            }
-
-            if (text.length > 120) {
-                return "Số nhà, đường không được vượt quá 120 ký tự.";
-            }
-
-            if (!streetAddressRegex.test(text)) {
-                return "Số nhà, đường chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -";
-            }
-
-            return "";
-        }
-
-        function validateAddress(value) {
-            const text = value.trim();
-
-            if (text === "") {
-                return "Vui lòng nhập địa chỉ liên hệ.";
-            }
-
-            if (text.length > 255) {
-                return "Địa chỉ liên hệ không được vượt quá 255 ký tự.";
-            }
-
-            return "";
-        }
-
-        function validateSelect(value, fieldName, validList) {
-            const text = value.trim();
-
-            if (text === "") {
-                return "Vui lòng chọn " + fieldName + ".";
-            }
-
-            if (!validList.includes(text)) {
-                return fieldName + " không hợp lệ.";
-            }
-
-            return "";
-        }
-
-        function validateInteger(value, fieldName, minValue) {
-            const text = value.trim();
-
-            if (text === "") {
-                return "Vui lòng nhập " + fieldName + ".";
-            }
-
-            if (!/^\d+$/.test(text)) {
-                return fieldName + " chỉ được nhập số tự nhiên.";
-            }
-
-            const number = parseInt(text, 10);
-
-            if (number < minValue) {
-                return fieldName + " phải lớn hơn hoặc bằng " + minValue + ".";
-            }
-
-            return "";
-        }
-
-        function validatePickupDate(value) {
-            if (!value) {
-                return "Vui lòng chọn ngày nhận xe.";
-            }
-
-            return "";
-        }
-
-        function validateReturnDate(value) {
-            const pickupInput = getField("pickupDate");
-
-            if (!value) {
-                return "Vui lòng chọn ngày trả xe.";
-            }
-
-            if (!pickupInput || !pickupInput.value) {
-                return "Vui lòng chọn ngày nhận xe trước.";
-            }
-
-            const pickupDate = new Date(pickupInput.value + "T00:00:00");
-            const returnDate = new Date(value + "T00:00:00");
-
-            if (returnDate <= pickupDate) {
-                return "Ngày trả xe phải sau ngày nhận xe.";
-            }
-
-            return "";
-        }
-
-        function validateStatus(value) {
-            const validStatusList = ["Pending", "Confirmed", "Cancelled", "Completed"];
-
-            if (!validStatusList.includes(value)) {
-                return "Trạng thái booking không hợp lệ.";
-            }
-
-            return "";
-        }
-
-        function validateBookedForOther(value) {
-            const validValues = ["true", "false"];
-
-            if (!validValues.includes(value)) {
-                return "Giá trị đặt hộ người khác không hợp lệ.";
-            }
-
-            return "";
-        }
-
-        function validateNote(value) {
-            const text = value.trim();
-
-            if (text === "") {
-                return "";
-            }
-
-            if (text.length > 1000) {
-                return "Ghi chú không được vượt quá 1000 ký tự.";
-            }
-
-            return "";
-        }
-
-        function buildRules() {
-            const rules = [
-                {
-                    id: "firstName",
-                    errorId: "firstNameError",
-                    validate: function (value) {
-                        return validateName(value, "họ và tên đệm", 2);
+        const staffEditBookingForm = document.querySelector("form[action$='/staff/booking-edit']");
+
+        const fields = {
+            firstName: {
+                element: document.getElementById("firstName"),
+                error: document.getElementById("firstNameError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập tên.";
                     }
-                },
-                {
-                    id: "lastName",
-                    errorId: "lastNameError",
-                    validate: function (value) {
-                        return validateName(value, "tên", 1);
+
+                    if (value.trim().length < 2) {
+                        return "Tên phải có ít nhất 2 ký tự.";
                     }
-                },
-                {
-                    id: "email",
-                    errorId: "emailError",
-                    validate: validateEmail
-                },
-                {
-                    id: "phone",
-                    errorId: "phoneError",
-                    validate: validatePhone
+
+                    if (value.trim().length > 100) {
+                        return "Tên không được vượt quá 100 ký tự.";
+                    }
+
+                    if (!/^[A-Za-zÀ-ỹ\s]+$/.test(value.trim())) {
+                        return "Tên chỉ được chứa chữ cái và khoảng trắng.";
+                    }
+
+                    return "";
                 }
-            ];
+            },
 
-            rules.push(
-                {
-                    id: "streetAddress",
-                    errorId: "streetAddressError",
-                    validate: validateStreetAddress
-                },
-                {
-                    id: "district",
-                    errorId: "districtError",
-                    validate: function (value) {
-                        return validateSelect(value, "quận / huyện", districtList);
+            lastName: {
+                element: document.getElementById("lastName"),
+                error: document.getElementById("lastNameError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập họ.";
                     }
-                },
-                {
-                    id: "city",
-                    errorId: "cityError",
-                    validate: function (value) {
-                        return validateSelect(value, "tỉnh / thành phố", cityList);
+
+                    if (value.trim().length > 100) {
+                        return "Họ không được vượt quá 100 ký tự.";
                     }
+
+                    if (!/^[A-Za-zÀ-ỹ\s]+$/.test(value.trim())) {
+                        return "Họ chỉ được chứa chữ cái và khoảng trắng.";
+                    }
+
+                    return "";
                 }
-            );
+            },
 
-            if (bookingType === "Vehicle") {
-                rules.push(
-                    {
-                        id: "pickupDate",
-                        errorId: "pickupDateError",
-                        validate: validatePickupDate
-                    },
-                    {
-                        id: "returnDate",
-                        errorId: "returnDateError",
-                        validate: validateReturnDate
+            email: {
+                element: document.getElementById("email"),
+                error: document.getElementById("emailError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập email.";
                     }
-                );
+
+                    if (value.trim().length > 255) {
+                        return "Email không được vượt quá 255 ký tự.";
+                    }
+
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+                        return "Email không đúng định dạng. Ví dụ: example@gmail.com.";
+                    }
+
+                    return "";
+                }
+            },
+
+            phone: {
+                element: document.getElementById("phone"),
+                error: document.getElementById("phoneError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập số điện thoại.";
+                    }
+
+                    if (!/^0\d{9}$/.test(value.trim())) {
+                        return "Số điện thoại phải có 10 chữ số và bắt đầu bằng 0.";
+                    }
+
+                    return "";
+                }
+            },
+
+            streetAddress: {
+                element: document.getElementById("streetAddress"),
+                error: document.getElementById("streetAddressError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "";
+                    }
+
+                    if (value.trim().length > 120) {
+                        return "Số nhà, đường không được vượt quá 120 ký tự.";
+                    }
+
+                    if (!/^[A-Za-zÀ-ỹ0-9\s,./-]+$/.test(value.trim())) {
+                        return "Số nhà, đường chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -";
+                    }
+
+                    return "";
+                }
+            },
+
+            district: {
+                element: document.getElementById("district"),
+                error: document.getElementById("districtError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "";
+                    }
+
+                    return "";
+                }
+            },
+
+            city: {
+                element: document.getElementById("city"),
+                error: document.getElementById("cityError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "";
+                    }
+
+                    return "";
+                }
+            },
+
+            numberAdult: {
+                element: document.getElementById("numberAdult"),
+                error: document.getElementById("numberAdultError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập số người lớn.";
+                    }
+
+                    if (!/^\d+$/.test(value.trim())) {
+                        return "Số người lớn chỉ được nhập số.";
+                    }
+
+                    if (parseInt(value.trim(), 10) < 1) {
+                        return "Số người lớn phải lớn hơn hoặc bằng 1.";
+                    }
+
+                    return "";
+                }
+            },
+
+            numberChildren: {
+                element: document.getElementById("numberChildren"),
+                error: document.getElementById("numberChildrenError"),
+                validate: function (value) {
+                    if (value.trim() === "") {
+                        return "Vui lòng nhập số trẻ em.";
+                    }
+
+                    if (!/^\d+$/.test(value.trim())) {
+                        return "Số trẻ em chỉ được nhập số.";
+                    }
+
+                    if (parseInt(value.trim(), 10) < 0) {
+                        return "Số trẻ em không được nhỏ hơn 0.";
+                    }
+
+                    return "";
+                }
+            }
+        };
+
+        function showError(field, message) {
+            field.element.classList.add("input-error");
+            field.element.classList.remove("input-valid");
+
+            field.error.textContent = message;
+            field.error.classList.add("show");
+        }
+
+        function showValid(field) {
+            field.element.classList.remove("input-error");
+
+            if (document.activeElement === field.element) {
+                field.element.classList.add("input-valid");
             } else {
-                rules.push(
-                    {
-                        id: "numberAdult",
-                        errorId: "numberAdultError",
-                        validate: function (value) {
-                            return validateInteger(value, "số người lớn", 1);
-                        }
-                    },
-                    {
-                        id: "numberChildren",
-                        errorId: "numberChildrenError",
-                        validate: function (value) {
-                            return validateInteger(value, "số trẻ em", 0);
-                        }
-                    }
-                );
+                field.element.classList.remove("input-valid");
             }
 
-            rules.push(
-                {
-                    id: "isBookedForOther",
-                    errorId: "isBookedForOtherError",
-                    validate: validateBookedForOther
-                },
-                {
-                    id: "status",
-                    errorId: "statusError",
-                    validate: validateStatus
-                },
-                {
-                    id: "note",
-                    errorId: "noteError",
-                    validate: validateNote,
-                    optional: true
-                }
-            );
-
-            return rules;
+            field.error.textContent = "";
+            field.error.classList.remove("show");
         }
 
-        const rules = buildRules();
-
-        function validateOne(rule, showWhenEmpty) {
-            const input = getField(rule.id);
-            const errorElement = getField(rule.errorId);
-
-            if (!input || !errorElement) {
-                return true;
-            }
-
-            if (!showWhenEmpty && input.value.trim() === "") {
-                setNeutral(input, errorElement);
-                return true;
-            }
-
-            const message = rule.validate(input.value);
+        function validateField(field) {
+            const message = field.validate(field.element.value);
 
             if (message) {
-                setError(input, errorElement, message);
+                showError(field, message);
                 return false;
             }
 
-            if (rule.optional && input.value.trim() === "") {
-                setNeutral(input, errorElement);
-                return true;
-            }
-
-            setValid(input, errorElement);
+            showValid(field);
             return true;
         }
 
-        rules.forEach(function (rule) {
-            const input = getField(rule.id);
+        Object.keys(fields).forEach(function (key) {
+            const field = fields[key];
 
-            if (!input) {
-                return;
-            }
-
-            input.addEventListener("input", function () {
-                validateOne(rule, true);
+            field.element.addEventListener("input", function () {
+                validateField(field);
             });
 
-            input.addEventListener("change", function () {
-                validateOne(rule, true);
+            field.element.addEventListener("change", function () {
+                validateField(field);
             });
 
-            input.addEventListener("blur", function () {
-                validateOne(rule, true);
+            field.element.addEventListener("focus", function () {
+                validateField(field);
+            });
+
+            field.element.addEventListener("blur", function () {
+                validateField(field);
+                field.element.classList.remove("input-valid");
             });
         });
 
-        form.addEventListener("submit", function (event) {
-            let isValid = true;
-            let firstInvalidInput = null;
+        if (staffEditBookingForm) {
+            staffEditBookingForm.addEventListener("submit", function (event) {
+                let isValid = true;
+                let firstInvalidElement = null;
 
-            rules.forEach(function (rule) {
-                const input = getField(rule.id);
+                Object.keys(fields).forEach(function (key) {
+                    const field = fields[key];
+                    const valid = validateField(field);
 
-                if (!input) {
-                    return;
-                }
+                    if (!valid && firstInvalidElement === null) {
+                        firstInvalidElement = field.element;
+                    }
 
-                const valid = validateOne(rule, true);
+                    if (!valid) {
+                        isValid = false;
+                    }
+                });
 
-                if (!valid && firstInvalidInput === null) {
-                    firstInvalidInput = input;
-                }
+                if (!isValid) {
+                    event.preventDefault();
 
-                if (!valid) {
-                    isValid = false;
+                    if (firstInvalidElement) {
+                        firstInvalidElement.focus();
+                    }
                 }
             });
-
-            if (!isValid) {
-                event.preventDefault();
-
-                if (firstInvalidInput) {
-                    firstInvalidInput.focus();
-                    firstInvalidInput.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center"
-                    });
-                }
-            }
-        });
+        }
     });
 </script>
-
 </body>
 </html>

@@ -569,44 +569,29 @@
 
         .card-actions {
             margin-top: auto;
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
         }
 
         .detail-btn {
             width: 100%;
-            height: 52px;
+            height: 56px;
             border: none;
             border-radius: 18px;
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: #fff;
-            font-size: 15px;
+            font-size: 18px;
             font-weight: 800;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 0 10px;
+            gap: 10px;
             box-shadow: 0 12px 24px rgba(37, 99, 235, 0.20);
             transition: transform .18s ease, box-shadow .18s ease;
-            text-align: center;
-            white-space: nowrap;
         }
 
         .detail-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 18px 30px rgba(37, 99, 235, 0.24);
             color: #fff;
-        }
-
-        .review-btn {
-            background: linear-gradient(135deg, #0f766e, #0d9488);
-            box-shadow: 0 12px 24px rgba(13, 148, 136, 0.20);
-        }
-
-        .review-btn:hover {
-            box-shadow: 0 18px 30px rgba(13, 148, 136, 0.24);
         }
 
         .empty-box {
@@ -1048,14 +1033,8 @@
                             <div class="card-actions">
                                 <a class="detail-btn"
                                    href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.serviceID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">
-                                    <span>Xem chi tiết</span>
+                                    Xem chi tiết
                                     <i class="fa-solid fa-arrow-right"></i>
-                                </a>
-
-                                <a class="detail-btn review-btn"
-                                   href="${pageContext.request.contextPath}/feedback-list?type=Accommodation&serviceID=${acc.serviceID}">
-                                    <span>Xem đánh giá</span>
-                                    <i class="fa-solid fa-star"></i>
                                 </a>
                             </div>
                         </div>

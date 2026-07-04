@@ -743,21 +743,21 @@
                                     <td>
                                         <div class="action-group justify-content-end">
                                             <a class="btn-icon"
-                                               href="${pageContext.request.contextPath}/staff/accommodation?action=detail&id=${a.serviceID}"
+                                               href="${pageContext.request.contextPath}/staff/accommodation?action=detail&id=${a.accommodationID}"
                                                title="Xem chi tiết">
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
 
                                             <button class="btn-icon"
                                                     data-bs-toggle="modal"
-                                                    data-bs-target="#editAccommodationModal${a.serviceID}"
+                                                    data-bs-target="#editAccommodationModal${a.accommodationID}"
                                                     title="Sửa">
                                                 <i class="fa-solid fa-pen"></i>
                                             </button>
 
                                             <a class="btn-icon danger"
                                                onclick="return confirm('Bạn có chắc muốn xóa nơi lưu trú này?')"
-                                               href="${pageContext.request.contextPath}/staff/accommodation?action=delete&id=${a.serviceID}"
+                                               href="${pageContext.request.contextPath}/staff/accommodation?action=delete&id=${a.accommodationID}"
                                                title="Xóa">
                                                 <i class="fa-solid fa-trash"></i>
                                             </a>
@@ -765,7 +765,7 @@
                                     </td>
                                 </tr>
 
-                                <div class="modal fade" id="editAccommodationModal${a.serviceID}" tabindex="-1">
+                                <div class="modal fade" id="editAccommodationModal${a.accommodationID}" tabindex="-1">
                                     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                                         <div class="modal-content">
                                             <form class="accommodation-form"
@@ -773,7 +773,7 @@
                                                   method="post"
                                                   novalidate>
                                                 <input type="hidden" name="action" value="update">
-                                                <input type="hidden" name="serviceID" value="${a.serviceID}">
+                                                <input type="hidden" name="accommodationID" value="${a.accommodationID}">
 
                                                 <div class="modal-header">
                                                     <h5 class="modal-title">Cập nhật nơi lưu trú</h5>
@@ -823,22 +823,28 @@
                                                             <input class="form-control" type="number" step="0.1" min="0" max="5" name="rate" value="${a.rate}" required>
                                                         </div>
 
-                                                        <div class="col-md-3">
+                                                        <div class="col-md-4">
                                                             <label class="form-label fw-bold">Tỉnh/thành</label>
-                                                            <input class="form-control" name="province" value="${a.province}" required>
+                                                            <select class="form-select js-province-select"
+                                                                    name="province"
+                                                                    data-selected="${a.province}"
+                                                                    required>
+                                                                <option value="">-- Chọn tỉnh/thành --</option>
+                                                            </select>
+                                                            <input type="hidden" name="district" value="">
                                                         </div>
 
-                                                        <div class="col-md-3">
-                                                            <label class="form-label fw-bold">Quận/huyện</label>
-                                                            <input class="form-control" name="district" value="${a.district}" required>
-                                                        </div>
-
-                                                        <div class="col-md-3">
+                                                        <div class="col-md-4">
                                                             <label class="form-label fw-bold">Phường/xã</label>
-                                                            <input class="form-control" name="ward" value="${a.ward}">
+                                                            <select class="form-select js-ward-select"
+                                                                    name="ward"
+                                                                    data-selected="${a.ward}"
+                                                                    required>
+                                                                <option value="">-- Chọn phường/xã --</option>
+                                                            </select>
                                                         </div>
 
-                                                        <div class="col-md-3">
+                                                        <div class="col-md-4">
                                                             <label class="form-label fw-bold">Địa chỉ cụ thể</label>
                                                             <input class="form-control" name="address" value="${a.address}" required>
                                                         </div>
@@ -956,22 +962,26 @@
                             <input class="form-control" type="number" step="0.1" min="0" max="5" name="rate" value="4.5" required>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">Tỉnh/thành</label>
-                            <input class="form-control" name="province" placeholder="VD: Hà Nội" required>
+                            <select class="form-select js-province-select"
+                                    name="province"
+                                    required>
+                                <option value="">-- Chọn tỉnh/thành --</option>
+                            </select>
+                            <input type="hidden" name="district" value="">
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Quận/huyện</label>
-                            <input class="form-control" name="district" placeholder="VD: Hoàn Kiếm" required>
-                        </div>
-
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">Phường/xã</label>
-                            <input class="form-control" name="ward" placeholder="VD: Hàng Bạc">
+                            <select class="form-select js-ward-select"
+                                    name="ward"
+                                    required>
+                                <option value="">-- Chọn phường/xã --</option>
+                            </select>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">Địa chỉ cụ thể</label>
                             <input class="form-control" name="address" placeholder="VD: 25 Hàng Bạc" required>
                         </div>
@@ -1213,8 +1223,7 @@
         if (!validatePhoneInput(getInput(form, "phone"))) valid = false;
         if (!validateNumberRange(getInput(form, "rate"), "Đánh giá", 0, 5, true)) valid = false;
         if (!validateText(getInput(form, "province"), "Tỉnh/thành", 2, 100)) valid = false;
-        if (!validateText(getInput(form, "district"), "Quận/huyện", 2, 100)) valid = false;
-        if (!validateOptionalText(getInput(form, "ward"), "Phường/xã", 2, 100)) valid = false;
+        if (!validateText(getInput(form, "ward"), "Phường/xã", 2, 150)) valid = false;
         if (!validateText(getInput(form, "address"), "Địa chỉ cụ thể", 3, 255)) valid = false;
         if (!validateTimeInput(getInput(form, "checkInTime"), "Giờ nhận phòng")) valid = false;
         if (!validateTimeInput(getInput(form, "checkOutTime"), "Giờ trả phòng")) valid = false;
@@ -1259,8 +1268,107 @@
         });
     }
 
+    const administrativeUnits = [
+        <c:forEach var="unit" items="${administrativeUnitList}" varStatus="loop">
+        {province: "${unit.provinceName}", ward: "${unit.wardName}"}${loop.last ? '' : ','}
+        </c:forEach>
+    ];
+
+    function normalizeAdminName(value) {
+        return (value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/^tp\.?\s+/, "")
+            .replace(/^thành phố\s+/, "")
+            .replace(/^tỉnh\s+/, "")
+            .replace(/^phường\s+/, "")
+            .replace(/^xã\s+/, "")
+            .replace(/^đặc khu\s+/, "");
+    }
+
+    function resolveOptionValue(options, selected) {
+        const raw = (selected || "").trim();
+
+        if (!raw) {
+            return "";
+        }
+
+        const normalized = normalizeAdminName(raw);
+
+        return options.find(function (value) {
+            return value === raw || normalizeAdminName(value) === normalized;
+        }) || "";
+    }
+
+    function uniqueProvinceList() {
+        const seen = new Set();
+
+        return administrativeUnits
+            .map(function (unit) {
+                return unit.province;
+            })
+            .filter(function (province) {
+                if (seen.has(province)) {
+                    return false;
+                }
+
+                seen.add(province);
+                return true;
+            });
+    }
+
+    function fillSelect(select, values, placeholder, selected) {
+        if (!select) return;
+
+        const resolvedValue = resolveOptionValue(values, selected);
+
+        select.innerHTML = "";
+        select.appendChild(new Option(placeholder, ""));
+
+        values.forEach(function (value) {
+            select.appendChild(new Option(value, value, false, value === resolvedValue));
+        });
+    }
+
+    function fillWardSelect(wardSelect, province, selectedWard) {
+        const seen = new Set();
+        const wardOptions = administrativeUnits
+            .filter(function (unit) {
+                return unit.province === province;
+            })
+            .map(function (unit) {
+                return unit.ward;
+            })
+            .filter(function (ward) {
+                if (seen.has(ward)) {
+                    return false;
+                }
+
+                seen.add(ward);
+                return true;
+            });
+
+        fillSelect(wardSelect, wardOptions, "-- Chọn phường/xã --", selectedWard);
+    }
+
+    function setupAdministrativeSelectors(form) {
+        const provinceSelect = getInput(form, "province");
+        const wardSelect = getInput(form, "ward");
+
+        if (!provinceSelect || !wardSelect) return;
+
+        const provinces = uniqueProvinceList();
+        fillSelect(provinceSelect, provinces, "-- Chọn tỉnh/thành --", provinceSelect.dataset.selected);
+        fillWardSelect(wardSelect, provinceSelect.value, wardSelect.dataset.selected);
+
+        provinceSelect.addEventListener("change", function () {
+            fillWardSelect(wardSelect, provinceSelect.value, "");
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".accommodation-form").forEach(function (form) {
+            setupAdministrativeSelectors(form);
             bindLiveValidation(form, validateAccommodationForm);
         });
     });

@@ -14,12 +14,13 @@
     <style>
         :root {
             --primary: #2563eb;
+            --primary-dark: #1e40af;
             --dark: #0f172a;
             --muted: #64748b;
             --border: #e2e8f0;
             --soft: #f8fafc;
-            --bg: #f3f6fb;
-            --shadow: 0 18px 44px rgba(15, 23, 42, 0.10);
+            --bg: #eef3f8;
+            --shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
         }
 
         body {
@@ -30,7 +31,7 @@
         }
 
         .booking-page {
-            padding: 32px 0 60px;
+            padding: 28px 0 56px;
         }
 
         .page-head {
@@ -47,7 +48,7 @@
             gap: 8px;
             padding: 9px 14px;
             border-radius: 999px;
-            background: #eaf1ff;
+            background: #e8f0ff;
             color: #1d4ed8;
             font-weight: 900;
             margin-bottom: 12px;
@@ -56,7 +57,7 @@
         .page-title {
             margin: 0;
             color: var(--dark);
-            font-size: 34px;
+            font-size: 32px;
             line-height: 1.18;
             font-weight: 950;
         }
@@ -71,7 +72,7 @@
         .booking-layout {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 380px;
-            gap: 24px;
+            gap: 22px;
             align-items: start;
         }
 
@@ -79,12 +80,13 @@
         .summary-card {
             background: #ffffff;
             border: 1px solid var(--border);
-            border-radius: 26px;
+            border-radius: 8px;
             box-shadow: var(--shadow);
         }
 
         .form-card {
-            padding: 28px;
+            padding: 26px;
+            border-top: 4px solid var(--primary);
         }
 
         .summary-card {
@@ -106,7 +108,7 @@
         }
 
         .summary-body {
-            padding: 22px;
+            padding: 22px 22px 24px;
         }
 
         .form-section-title {
@@ -117,6 +119,13 @@
             color: var(--dark);
             font-size: 21px;
             font-weight: 950;
+        }
+
+        .form-section-note {
+            margin: -8px 0 20px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 650;
         }
 
         .booking-form-grid {
@@ -139,12 +148,16 @@
 
         .form-control,
         .form-select {
-            height: 52px;
-            border-radius: 16px;
+            height: 50px;
+            border-radius: 8px;
             border: 1px solid #dbe3ef;
-            background: var(--soft);
+            background: #ffffff;
             color: var(--dark);
             font-weight: 700;
+        }
+
+        input[type="file"].form-control {
+            padding: 11px 14px;
         }
 
         textarea.form-control {
@@ -202,7 +215,7 @@
         .summary-total {
             margin-top: 18px;
             padding: 16px;
-            border-radius: 20px;
+            border-radius: 8px;
             background: #eff6ff;
             border: 1px solid #bfdbfe;
         }
@@ -225,12 +238,14 @@
             justify-content: flex-end;
             gap: 12px;
             margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
         }
 
         .btn-submit-booking,
         .btn-soft-back {
             min-height: 52px;
-            border-radius: 16px;
+            border-radius: 8px;
             padding: 13px 20px;
             font-weight: 900;
             text-decoration: none;
@@ -242,15 +257,36 @@
 
         .btn-submit-booking {
             border: none;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            background: var(--primary);
             color: #ffffff;
             min-width: 180px;
+        }
+
+        .btn-submit-booking:hover {
+            background: var(--primary-dark);
+            color: #ffffff;
         }
 
         .btn-soft-back {
             border: 1px solid #cbd5e1;
             background: #ffffff;
             color: var(--dark);
+        }
+
+        .field-hint {
+            display: block;
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .booking-alert {
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+            background: #fee2e2;
+            color: #7f1d1d;
+            font-weight: 750;
         }
 
         @media (max-width: 992px) {
@@ -300,9 +336,9 @@
     </div>
 
     <c:if test="${param.status == 'invalidCustomerInfo'}">
-        <div class="alert alert-danger rounded-4 border-0 shadow-sm">
+        <div class="alert booking-alert shadow-sm">
             <i class="fa-solid fa-circle-exclamation me-2"></i>
-            Vui lòng nhập đầy đủ thông tin khách hàng. CCCD/CMND phải gồm 9 hoặc 12 chữ số.
+            Vui lòng kiểm tra lại thông tin khách lưu trú. CCCD/CMND phải gồm 9 hoặc 12 chữ số; ảnh CCCD hỗ trợ JPG, JPEG, PNG hoặc WEBP và tối đa 5MB.
         </div>
     </c:if>
 
@@ -312,9 +348,12 @@
                 <i class="fa-solid fa-user-shield"></i>
                 Thông tin khách lưu trú
             </h2>
+            <p class="form-section-note">
+                Thông tin được lấy từ tài khoản của bạn, có thể chỉnh lại nếu người nhận phòng dùng thông tin khác.
+            </p>
 
-            <form action="${pageContext.request.contextPath}/booking/accommodation" method="post" novalidate>
-                <input type="hidden" name="accommodationID" value="${accommodation.serviceID}">
+            <form action="${pageContext.request.contextPath}/booking/accommodation" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
                 <input type="hidden" name="roomID" value="${room.roomID}">
                 <input type="hidden" name="checkIn" value="${checkIn}">
                 <input type="hidden" name="checkOut" value="${checkOut}">
@@ -326,22 +365,22 @@
                 <div class="booking-form-grid">
                     <div class="field">
                         <label for="firstName">Họ</label>
-                        <input class="form-control" id="firstName" name="firstName" value="${user.firstName}" required>
+                        <input class="form-control" id="firstName" name="firstName" value="${user.firstName}" placeholder="Nhập họ" autocomplete="family-name" required>
                     </div>
 
                     <div class="field">
                         <label for="lastName">Tên</label>
-                        <input class="form-control" id="lastName" name="lastName" value="${user.lastName}" required>
+                        <input class="form-control" id="lastName" name="lastName" value="${user.lastName}" placeholder="Nhập tên" autocomplete="given-name" required>
                     </div>
 
                     <div class="field">
                         <label for="email">Email</label>
-                        <input class="form-control" id="email" type="email" name="email" value="${user.email}" required>
+                        <input class="form-control" id="email" type="email" name="email" value="${user.email}" placeholder="example@gmail.com" autocomplete="email" required>
                     </div>
 
                     <div class="field">
                         <label for="phone">Số điện thoại</label>
-                        <input class="form-control" id="phone" name="phone" value="${user.phone}" required>
+                        <input class="form-control" id="phone" name="phone" value="${user.phone}" placeholder="Nhập số điện thoại" autocomplete="tel" required>
                     </div>
 
                     <div class="field">
@@ -350,19 +389,28 @@
                                id="identityNumber"
                                name="identityNumber"
                                inputmode="numeric"
-                               pattern="^[0-9]{9}$|^[0-9]{12}$"
+                               minlength="9"
+                               maxlength="23"
+                               pattern="([0-9][ .-]?){9}|([0-9][ .-]?){12}"
                                placeholder="Nhập 9 hoặc 12 chữ số"
                                required>
+                        <span class="field-hint">Có thể nhập liền hoặc có khoảng trắng, hệ thống sẽ tự chuẩn hóa.</span>
                     </div>
 
                     <div class="field">
-                        <label for="bookedFor">Người đại diện nhận phòng</label>
-                        <input class="form-control" id="bookedFor" value="${user.firstName} ${user.lastName}" readonly>
+                        <label for="identityImage">Ảnh CCCD / CMND</label>
+                        <input class="form-control"
+                               id="identityImage"
+                               name="identityImage"
+                               type="file"
+                               accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp"
+                               required>
+                        <span class="field-hint">JPG, JPEG, PNG hoặc WEBP; tối đa 5MB.</span>
                     </div>
 
                     <div class="field full">
                         <label for="address">Địa chỉ liên hệ</label>
-                        <input class="form-control" id="address" name="address" value="${user.address}" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" required>
+                        <input class="form-control" id="address" name="address" value="${user.address}" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" autocomplete="street-address" required>
                     </div>
 
                     <div class="field full">

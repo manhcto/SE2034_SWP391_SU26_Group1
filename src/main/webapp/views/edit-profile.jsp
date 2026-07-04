@@ -163,7 +163,7 @@
 </head>
 <body>
 
-<jsp:include page="/views/common/customer-header.jsp"/>
+<jsp:include page="/views/common/client-header.jsp"/>
 
 <div class="profile-container">
 

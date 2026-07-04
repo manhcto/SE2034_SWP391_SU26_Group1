@@ -36,6 +36,15 @@ public class LoginController extends HttpServlet {
 
             int roleID = user.getRoleID();
 
+            if (roleID == 4) {
+                String redirectAfterLogin = (String) session.getAttribute("redirectAfterLogin");
+                if (isSafeRedirect(request, redirectAfterLogin)) {
+                    session.removeAttribute("redirectAfterLogin");
+                    response.sendRedirect(redirectAfterLogin);
+                    return;
+                }
+            }
+
             if (roleID == 1) {
                 response.sendRedirect(
                         request.getContextPath()
@@ -52,10 +61,9 @@ public class LoginController extends HttpServlet {
                                 + "/views/guide/tour-guide-home.jsp");
             }
             else {
-                String redirectAfterLogin = getRedirectAfterLogin(request, session);
-                session.removeAttribute("redirectAfterLogin");
-
-                response.sendRedirect(request.getContextPath() + redirectAfterLogin);
+                response.sendRedirect(
+                        request.getContextPath()
+                                + "/home");
             }
 
             return;
@@ -108,23 +116,9 @@ public class LoginController extends HttpServlet {
             throws ServletException, IOException {
 
         // Không tạo session mới nếu chưa tồn tại
-        String redirect = request.getParameter("redirect");
-        HttpSession session = isSafeRedirect(redirect)
-                ? request.getSession()
-                : request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (session != null) {
-            if (isSafeRedirect(redirect)) {
-                session.setAttribute("redirectAfterLogin", redirect);
-                request.setAttribute("redirectAfterLogin", redirect);
-            } else {
-                String redirectAfterLogin =
-                        (String) session.getAttribute("redirectAfterLogin");
-
-                if (isSafeRedirect(redirectAfterLogin)) {
-                    request.setAttribute("redirectAfterLogin", redirectAfterLogin);
-                }
-            }
 
             String successMsg =
                     (String) session.getAttribute("successMsg");
@@ -141,35 +135,17 @@ public class LoginController extends HttpServlet {
             }
         }
 
-        String redirectAfterLogin = getRedirectAfterLogin(request, request.getSession());
-
-        if (isSafeRedirect(redirectAfterLogin)) {
-            request.setAttribute("redirectAfterLogin", redirectAfterLogin);
-        }
-
         request.getRequestDispatcher("/views/login.jsp")
                 .forward(request, response);
     }
 
-    private String getRedirectAfterLogin(HttpServletRequest request, HttpSession session) {
-        String redirect = request.getParameter("redirect");
-
-        if (!isSafeRedirect(redirect) && session != null) {
-            redirect = (String) session.getAttribute("redirectAfterLogin");
-        }
-
-        return isSafeRedirect(redirect) ? redirect : "/home";
-    }
-
-    private boolean isSafeRedirect(String redirect) {
-        if (redirect == null || redirect.trim().isEmpty()) {
+    private boolean isSafeRedirect(HttpServletRequest request, String redirectAfterLogin) {
+        if (redirectAfterLogin == null || redirectAfterLogin.isBlank()) {
             return false;
         }
 
-        String value = redirect.trim();
-        return value.startsWith("/")
-                && !value.startsWith("//")
-                && !value.contains("\\")
-                && !value.toLowerCase().contains("%5c");
+        String contextPath = request.getContextPath();
+        return redirectAfterLogin.startsWith(contextPath + "/")
+                && !redirectAfterLogin.startsWith(contextPath + "//");
     }
 }

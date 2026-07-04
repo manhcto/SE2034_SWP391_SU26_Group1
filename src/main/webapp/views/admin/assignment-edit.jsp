@@ -30,7 +30,29 @@
                     <label class="form-label">Mã lịch trình tour</label>
                     <input type="text" class="form-control" value="${assignment.tourScheduleID}" readonly>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">Tour</label>
+                    <input type="text" class="form-control"
+                           value="${assignmentDetail.tourName}" readonly>
+                </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Phương tiện</label>
+                    <input type="text" class="form-control"
+                           value="${assignmentDetail.vehicleName}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Ngày khởi hành</label>
+                    <input type="text" class="form-control"
+                           value="${assignmentDetail.departureDate}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Trạng thái</label>
+                    <input type="text" class="form-control"
+                           value="${assignmentDetail.status}" readonly>
+                </div>
                 <div class="mb-3">
                     <label class="form-label">Hướng dẫn viên</label>
                     <select name="userID" class="form-select" required>

@@ -85,21 +85,21 @@ public class FacilityDAO {
         return list;
     }
 
-    public List<Facility> getFacilitiesByAccommodation(int serviceID) {
+    public List<Facility> getFacilitiesByAccommodation(int accommodationID) {
         List<Facility> list = new ArrayList<>();
 
         String sql =
-                "SELECT f.facilityID, f.facilityName, f.icon, f.facilityScope, f.[status] " +
+                        "SELECT f.facilityID, f.facilityName, f.icon, f.facilityScope, f.[status] " +
                         "FROM [dbo].[Facility] f " +
                         "JOIN [dbo].[Accommodation_Facility] af ON f.facilityID = af.facilityID " +
-                        "WHERE af.serviceID = ? " +
+                        "WHERE af.accommodationID = ? " +
                         "AND f.[status] = N'Active' " +
                         "ORDER BY f.facilityName";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, serviceID);
+            ps.setInt(1, accommodationID);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -143,12 +143,12 @@ public class FacilityDAO {
         return list;
     }
 
-    public boolean updateAccommodationFacilities(int serviceID, int[] facilityIDs) {
+    public boolean updateAccommodationFacilities(int accommodationID, int[] facilityIDs) {
         String sqlDelete =
-                "DELETE FROM [dbo].[Accommodation_Facility] WHERE serviceID = ?";
+                "DELETE FROM [dbo].[Accommodation_Facility] WHERE accommodationID = ?";
 
         String sqlInsert =
-                "INSERT INTO [dbo].[Accommodation_Facility] (serviceID, facilityID) " +
+                "INSERT INTO [dbo].[Accommodation_Facility] (accommodationID, facilityID) " +
                         "VALUES (?, ?)";
 
         Connection conn = null;
@@ -158,7 +158,7 @@ public class FacilityDAO {
             conn.setAutoCommit(false);
 
             try (PreparedStatement psDelete = conn.prepareStatement(sqlDelete)) {
-                psDelete.setInt(1, serviceID);
+                psDelete.setInt(1, accommodationID);
                 psDelete.executeUpdate();
             }
 
@@ -169,7 +169,7 @@ public class FacilityDAO {
                             continue;
                         }
 
-                        psInsert.setInt(1, serviceID);
+                        psInsert.setInt(1, accommodationID);
                         psInsert.setInt(2, facilityID);
                         psInsert.addBatch();
                     }

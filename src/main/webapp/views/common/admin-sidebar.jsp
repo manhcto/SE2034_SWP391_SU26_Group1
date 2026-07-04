@@ -160,24 +160,6 @@
         <span>Quản lý lưu trú</span>
     </a>
 
-    <a class="staff-sidebar-link ${currentPath == '/views/staff/vehicle-management.jsp' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-        <i class="fa-solid fa-car-side"></i>
-        <span>Quản lý phương tiện</span>
-    </a>
-
-    <a class="staff-sidebar-link ${currentPath == '/views/staff/service-management.jsp' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/staff/service">
-        <i class="fa-solid fa-briefcase"></i>
-        <span>Quản lý dịch vụ</span>
-    </a>
-
-    <a class="staff-sidebar-link ${currentPath == '/views/staff/ticket-management.jsp' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/staff/external-ticket">
-        <i class="fa-solid fa-ticket"></i>
-        <span>Vé tham quan bên ngoài</span>
-    </a>
-
     <div class="staff-nav-section-title">Vận hành</div>
 
     <a class="staff-sidebar-link ${currentPath == '/views/staff/staff-booking-list.jsp' || currentPath == '/views/staff/staff-booking-edit.jsp' ? 'active' : ''}"
@@ -216,12 +198,6 @@
        href="${pageContext.request.contextPath}/staff/feedback">
         <i class="fa-solid fa-comments"></i>
         <span>Đánh giá khách hàng</span>
-    </a>
-
-    <a class="staff-sidebar-link ${currentPath == '/views/staff/notification-management.jsp' ? 'active' : ''}"
-       href="${pageContext.request.contextPath}/staff/notification">
-        <i class="fa-solid fa-bell"></i>
-        <span>Cấu hình thông báo</span>
     </a>
 
     <div class="staff-sidebar-user">

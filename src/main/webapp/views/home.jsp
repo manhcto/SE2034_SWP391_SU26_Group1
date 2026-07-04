@@ -181,8 +181,6 @@
                     <div class="search-tabs">
                         <button class="tab-btn active" type="button" data-tab="tour">Tour trọn gói</button>
                         <button class="tab-btn" type="button" data-tab="hotel">Khách sạn</button>
-                        <button class="tab-btn" type="button" data-tab="vehicle">Thuê xe</button>
-                        <button class="tab-btn" type="button" data-tab="service">Dịch vụ cộng thêm</button>
                     </div>
                     <form class="search-form" id="homeSearchForm" action="${pageContext.request.contextPath}/tour" method="get">
                         <input type="hidden" id="searchType" name="type" value="tour">
@@ -252,11 +250,6 @@
                     <small>Tìm nhanh theo tiện ích</small>
                 </div>
 
-                <div class="mini-card mini-card-two">
-                    <span>🚗</span>
-                    <strong>Thuê xe dễ dàng</strong>
-                    <small>Nhận xe theo địa điểm</small>
-                </div>
             </div>
         </div>
     </section>
@@ -267,7 +260,7 @@
                 <div>
                     <p class="section-kicker">Dịch vụ WonderVN</p>
                     <h2>Chọn nhanh dịch vụ bạn cần</h2>
-                    <p>Một hệ sinh thái cho tour, lưu trú, phương tiện và dịch vụ bổ sung.</p>
+                    <p>Tập trung vào đặt tour và lưu trú với lịch trình, phòng trống và giá rõ ràng.</p>
                 </div>
             </div>
 
@@ -284,17 +277,6 @@
                     <p>Lọc theo địa điểm, tiện ích, số khách, giá phòng và đánh giá.</p>
                 </a>
 
-                <a class="service-card" href="${pageContext.request.contextPath}/vehicle">
-                    <span class="service-icon">🚗</span>
-                    <h3>Thuê xe</h3>
-                    <p>Xe máy, ô tô, SUV, xe du lịch với giá thuê nổi bật từng ngày.</p>
-                </a>
-
-                <a class="service-card" href="${pageContext.request.contextPath}/service">
-                    <span class="service-icon">🎉</span>
-                    <h3>Dịch vụ cộng thêm</h3>
-                    <p>Vé vui chơi, nhà hàng, trải nghiệm và tiện ích đi kèm.</p>
-                </a>
             </div>
         </div>
     </section>

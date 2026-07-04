@@ -698,7 +698,7 @@
                                                     </div>
                                                 </div>
 
-                                                <a href="${pageContext.request.contextPath}/accommodation/room/detail?id=${r.roomID}&accommodationId=${accommodation.serviceID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}"
+                                                <a href="${pageContext.request.contextPath}/accommodation/room/detail?id=${r.roomID}&accommodationID=${accommodation.accommodationID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}"
                                                    class="btn btn-primary btn-view-room">
                                                     <i class="fa-solid fa-eye me-1"></i>
                                                     Xem phòng
@@ -727,7 +727,7 @@
                   id="staySearchForm"
                   action="${pageContext.request.contextPath}/accommodation/detail"
                   method="get">
-                <input type="hidden" name="id" value="${accommodation.serviceID}">
+                <input type="hidden" name="id" value="${accommodation.accommodationID}">
 
                 <div>
                     <label for="stayCheckIn">Ngày nhận phòng</label>
