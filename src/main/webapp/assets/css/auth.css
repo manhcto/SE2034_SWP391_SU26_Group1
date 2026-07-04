@@ -19,8 +19,8 @@ body.auth-body {
     font-family: "Inter", "Segoe UI", Arial, sans-serif;
     color: var(--auth-ink);
     background:
-        linear-gradient(120deg, rgba(10, 18, 36, 0.88), rgba(18, 51, 128, 0.72)),
-        url("../images/home/hero-bana.png") center / cover no-repeat fixed;
+            linear-gradient(120deg, rgba(10, 18, 36, 0.88), rgba(18, 51, 128, 0.72)),
+            url("../images/home/hero-bana.png") center / cover no-repeat fixed;
 }
 
 .auth-page {
@@ -169,11 +169,11 @@ body.auth-body {
 .auth-select {
     appearance: none;
     background-image:
-        linear-gradient(45deg, transparent 50%, #64748b 50%),
-        linear-gradient(135deg, #64748b 50%, transparent 50%);
+            linear-gradient(45deg, transparent 50%, #64748b 50%),
+            linear-gradient(135deg, #64748b 50%, transparent 50%);
     background-position:
-        calc(100% - 20px) 22px,
-        calc(100% - 14px) 22px;
+            calc(100% - 20px) 22px,
+            calc(100% - 14px) 22px;
     background-size: 6px 6px;
     background-repeat: no-repeat;
 }
@@ -287,6 +287,205 @@ body.auth-body {
     font-weight: 650;
 }
 
+.otp-card {
+    text-align: left;
+}
+
+.otp-card-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+    padding: 15px;
+    border: 1px solid #dbeafe;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #eff6ff, #fff7ed);
+}
+
+.otp-card-head span {
+    color: #1e3a8a;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.otp-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f5b942, #f97316);
+    color: #111827;
+    font-size: 24px;
+    box-shadow: 0 16px 30px rgba(245, 158, 11, 0.28);
+}
+
+.otp-target {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: -10px 0 18px;
+    padding: 12px 14px;
+    border: 1px solid var(--auth-line);
+    border-radius: 16px;
+    background: #f8fbff;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.otp-target i {
+    color: var(--auth-blue);
+}
+
+.otp-target span {
+    overflow-wrap: anywhere;
+}
+
+.otp-input {
+    height: 62px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 8px;
+}
+
+.otp-input::placeholder {
+    color: #94a3b8;
+    letter-spacing: 8px;
+}
+
+.reset-card-top {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.reset-status,
+.reset-account {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    border-radius: 18px;
+    padding: 14px 15px;
+}
+
+.reset-status {
+    border: 1px solid #bbf7d0;
+    background: linear-gradient(135deg, #ecfdf5, #eff6ff);
+}
+
+.reset-status-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: var(--auth-green);
+    color: #fff;
+    box-shadow: 0 14px 24px rgba(22, 163, 74, 0.22);
+}
+
+.reset-status span:not(.reset-status-icon),
+.reset-account span {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--auth-muted);
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.35;
+    text-transform: uppercase;
+}
+
+.reset-status span:not(.reset-status-icon) {
+    color: var(--auth-green);
+}
+
+.reset-status strong,
+.reset-account strong {
+    display: block;
+    color: var(--auth-ink);
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 900;
+}
+
+.reset-account {
+    border: 1px solid var(--auth-line);
+    background: #f8fbff;
+}
+
+.reset-account i {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: #edf4ff;
+    color: var(--auth-blue);
+    font-size: 18px;
+}
+
+.reset-account strong {
+    overflow-wrap: anywhere;
+}
+
+.password-rules {
+    margin-top: -2px;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #fbfdff;
+}
+
+.password-rules-title {
+    color: #24324a;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.password-rules ul {
+    display: grid;
+    gap: 8px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.password-rules li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--auth-muted);
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.35;
+}
+
+.password-rules li i {
+    width: 14px;
+    color: #94a3b8;
+    font-size: 7px;
+    text-align: center;
+}
+
+.password-rules li.valid {
+    color: #166534;
+}
+
+.password-rules li.valid i {
+    color: var(--auth-green);
+    font-size: 12px;
+}
+
 @media (max-width: 900px) {
     .auth-page {
         grid-template-columns: 1fr;
@@ -329,5 +528,16 @@ body.auth-body {
     .auth-links {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .otp-card-head,
+    .reset-status,
+    .reset-account {
+        align-items: flex-start;
+    }
+
+    .otp-input {
+        font-size: 22px;
+        letter-spacing: 6px;
     }
 }

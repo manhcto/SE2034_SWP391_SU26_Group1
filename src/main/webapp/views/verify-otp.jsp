@@ -5,136 +5,71 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Xác thực OTP - WonderVN</title>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg,#4facfe,#00f2fe);
-    }
-
-    .card {
-      width: 400px;
-      background: white;
-      padding: 35px;
-      border-radius: 15px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      text-align: center;
-    }
-
-    h2 {
-      margin-bottom: 10px;
-      color: #333;
-    }
-
-    .desc {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 18px;
-      letter-spacing: 4px;
-      box-sizing: border-box;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #4facfe;
-      box-shadow: 0 0 8px rgba(79,172,254,0.4);
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background: #007bff;
-      color: white;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    .error {
-      color: red;
-      margin-top: 15px;
-      font-size: 14px;
-    }
-
-    .back-link {
-      display: inline-block;
-      margin-top: 15px;
-      text-decoration: none;
-      color: #007bff;
-      font-size: 14px;
-    }
-
-    .back-link:hover {
-      text-decoration: underline;
-    }
-
-    .otp-icon {
-      font-size: 45px;
-      margin-bottom: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css">
 </head>
+<body class="auth-body">
+<main class="auth-page">
+  <section class="auth-brand" aria-label="WonderVN">
+    <div class="auth-logo">
+      <span>Wonder</span><span>VN</span><span class="auth-flag"><i class="fa-solid fa-star"></i></span>
+    </div>
+    <h1>Xác thực tài khoản an toàn</h1>
+    <p>Nhập mã OTP đã gửi tới email để tiếp tục đặt lại mật khẩu và bảo vệ thông tin chuyến đi của bạn.</p>
+  </section>
 
-<body>
+  <section class="auth-panel">
+    <div class="auth-card compact otp-card">
+      <div class="otp-card-head">
+        <div class="otp-icon">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <span>Mã xác thực gồm 6 chữ số</span>
+      </div>
 
-<div class="card">
+      <h2>Xác thực OTP</h2>
+      <p class="auth-subtitle">Vui lòng nhập mã OTP đã được gửi tới email của bạn.</p>
 
-  <div class="otp-icon">🔐</div>
 
-  <h2>Xác thực OTP</h2>
+      <c:if test="${not empty error}">
+        <div class="auth-alert error">${error}</div>
+      </c:if>
 
-  <p class="desc">
-    Vui lòng nhập mã OTP gồm 6 chữ số đã được gửi tới email của bạn.
-  </p>
+      <form class="auth-form" action="${pageContext.request.contextPath}/verify-otp" method="post">
+        <div class="auth-field">
+          <label for="otp">Mã OTP</label>
+          <input class="auth-input otp-input"
+                 id="otp"
+                 type="text"
+                 name="otp"
+                 maxlength="6"
+                 inputmode="numeric"
+                 pattern="[0-9]{6}"
+                 placeholder="000000"
+                 autocomplete="one-time-code"
+                 required
+                 autofocus>
+        </div>
 
-  <form action="${pageContext.request.contextPath}/verify-otp"
-        method="post">
+        <button class="auth-button" type="submit">Xác nhận</button>
+      </form>
 
-    <input type="text"
-           name="otp"
-           maxlength="6"
-           placeholder="Nhập OTP"
-           required>
+      <div class="auth-links center">
+        <a class="auth-link" href="${pageContext.request.contextPath}/forgot-password">
+          <i class="fa-solid fa-arrow-left"></i> Quay lại
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
 
-    <button type="submit">
-      Xác nhận
-    </button>
-
-  </form>
-
-  <c:if test="${not empty error}">
-    <p class="error">${error}</p>
-  </c:if>
-
-  <a class="back-link"
-     href="${pageContext.request.contextPath}/forgot-password">
-    ← Quay lại
-  </a>
-
-</div>
-
+<script>
+  const otpInput = document.getElementById("otp");
+  otpInput.addEventListener("input", function () {
+    otpInput.value = otpInput.value.replace(/\D/g, "").slice(0, 6);
+  });
+</script>
 </body>
 </html>

@@ -24,6 +24,7 @@ public class UpdateUserController extends HttpServlet {
             HttpServletRequest request,
             HttpServletResponse response)
             throws IOException {
+
         User loginUser =
                 (User) request.getSession()
                         .getAttribute("user");
@@ -45,18 +46,14 @@ public class UpdateUserController extends HttpServlet {
                 Integer.parseInt(
                         request.getParameter("roleID"));
 
-        String status =
-                request.getParameter("status");
-
         User u =
                 userDAO.getUserById(userID);
 
         if (u != null && u.getRoleID() != 1) {
 
-            userDAO.updateRoleAndStatus(
+            userDAO.updateRole(
                     userID,
-                    roleID,
-                    status);
+                    roleID);
         }
 
         response.sendRedirect(

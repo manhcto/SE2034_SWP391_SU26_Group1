@@ -103,15 +103,11 @@ public class UserDAO {
     public User login(String email, String password) {
 
         String sql = """
-        SELECT
-            u.*,
-            r.roleName
-        FROM [User] u
-        JOIN [Role] r
-            ON u.roleID = r.roleID
-        WHERE LOWER(u.email) = LOWER(?)
-        AND u.[password] = ?
-        AND u.[status] = 'Active'
+        SELECT *
+        FROM [User]
+        WHERE email = ?
+        AND password = ?
+        AND status = 'Active'
         """;
 
         try {
@@ -143,7 +139,6 @@ public class UserDAO {
 
                 user.setAddress(rs.getString("address"));
                 user.setRoleID(rs.getInt("roleID"));
-                user.setRoleName(rs.getString("roleName"));
                 user.setStatus(rs.getString("status"));
 
                 return user;
@@ -160,13 +155,9 @@ public class UserDAO {
     public User getUserByEmail(String email) {
 
         String sql = """
-        SELECT
-            u.*,
-            r.roleName
-        FROM [User] u
-        JOIN [Role] r
-            ON u.roleID = r.roleID
-        WHERE LOWER(u.email) = LOWER(?)
+        SELECT *
+        FROM [User]
+        WHERE email = ?
         """;
 
         try {
@@ -196,7 +187,6 @@ public class UserDAO {
 
                 user.setAddress(rs.getString("address"));
                 user.setRoleID(rs.getInt("roleID"));
-                user.setRoleName(rs.getString("roleName"));
                 user.setStatus(rs.getString("status"));
 
                 return user;
@@ -466,8 +456,6 @@ public class UserDAO {
 
                 u.setCreateAt(rs.getTimestamp("createAt"));
 
-                u.setUpdateAt( rs.getTimestamp("updateAt"));
-
                 list.add(u);
 
             }
@@ -506,6 +494,7 @@ public class UserDAO {
 
         return 0;
     }
+
     public int countBlockedUsers() {
 
         String sql = """
@@ -530,6 +519,7 @@ public class UserDAO {
 
         return 0;
     }
+
     public User getUserById(int userID) {
 
         String sql = """
@@ -568,18 +558,16 @@ public class UserDAO {
 
         return null;
     }
-    public void updateRoleAndStatus(
+    public void updateRole(
             int userID,
-            int roleID,
-            String status) {
+            int roleID) {
 
         String sql = """
-        UPDATE [User]
-        SET roleID=?,
-            status=?,
-            updateAt=GETDATE()
-        WHERE userID=?
-        """;
+    UPDATE [User]
+    SET roleID=?,
+        updateAt=GETDATE()
+    WHERE userID=?
+    """;
 
         try (
                 Connection conn = new DBConnection().getConnection();
@@ -587,14 +575,37 @@ public class UserDAO {
         ) {
 
             ps.setInt(1, roleID);
-            ps.setString(2, status);
-            ps.setInt(3, userID);
+            ps.setInt(2, userID);
 
             ps.executeUpdate();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public boolean blockUser(int userID) {
+
+        String sql = """
+    UPDATE [User]
+    SET status='Blocked',
+        updateAt=GETDATE()
+    WHERE userID=?
+    """;
+
+        try (
+                Connection conn = new DBConnection().getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+
+            ps.setInt(1, userID);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }
 

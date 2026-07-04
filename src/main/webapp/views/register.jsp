@@ -33,11 +33,11 @@
                 <div class="auth-grid">
                     <div class="auth-field">
                         <label for="firstName">Họ</label>
-                        <input class="auth-input" id="firstName" type="text" name="firstName" value="${param.firstName}" placeholder="Nguyễn" required>
+                        <input class="auth-input" id="firstName" type="text" name="firstName" value="${param.firstName}" required>
                     </div>
                     <div class="auth-field">
                         <label for="lastName">Tên</label>
-                        <input class="auth-input" id="lastName" type="text" name="lastName" value="${param.lastName}" placeholder="Minh Anh" required>
+                        <input class="auth-input" id="lastName" type="text" name="lastName" value="${param.lastName}" required>
                     </div>
                 </div>
 
