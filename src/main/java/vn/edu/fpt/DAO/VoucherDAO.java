@@ -65,6 +65,31 @@ public class VoucherDAO {
         return vouchers;
     }
 
+    public Voucher getVoucherById(int voucherID) {
+        String sql =
+                "SELECT voucherID, code, [description], percentDiscount, amountDiscount, " +
+                        "minOrderAmount, quantity, startDate, endDate, [status], createdAt, updatedAt " +
+                        "FROM [dbo].[Voucher] " +
+                        "WHERE voucherID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, voucherID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapVoucher(rs);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public boolean insertVoucher(Voucher voucher) {
         String sql =
                 "INSERT INTO [dbo].[Voucher] " +
@@ -94,6 +119,37 @@ public class VoucherDAO {
         return false;
     }
 
+    public boolean updateVoucher(Voucher voucher) {
+        String sql =
+                "UPDATE [dbo].[Voucher] " +
+                        "SET [code] = ?, [description] = ?, percentDiscount = ?, amountDiscount = ?, " +
+                        "minOrderAmount = ?, quantity = ?, startDate = ?, endDate = ?, [status] = ?, " +
+                        "updatedAt = GETDATE() " +
+                        "WHERE voucherID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, voucher.getCode());
+            ps.setString(2, emptyToNull(voucher.getDescription()));
+            setNullableBigDecimal(ps, 3, voucher.getPercentDiscount());
+            setNullableBigDecimal(ps, 4, voucher.getAmountDiscount());
+            setNullableBigDecimal(ps, 5, voucher.getMinOrderAmount());
+            ps.setInt(6, voucher.getQuantity());
+            ps.setTimestamp(7, toTimestamp(voucher.getStartDate()));
+            ps.setTimestamp(8, toTimestamp(voucher.getEndDate()));
+            ps.setString(9, voucher.getStatus());
+            ps.setInt(10, voucher.getVoucherID());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public boolean isCodeExists(String code) {
         String sql = "SELECT COUNT(1) FROM [dbo].[Voucher] WHERE UPPER([code]) = UPPER(?)";
 
@@ -101,6 +157,28 @@ public class VoucherDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, code);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean isCodeExistsExceptId(String code, int voucherID) {
+        String sql = "SELECT COUNT(1) FROM [dbo].[Voucher] WHERE UPPER([code]) = UPPER(?) AND voucherID <> ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, code);
+            ps.setInt(2, voucherID);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
