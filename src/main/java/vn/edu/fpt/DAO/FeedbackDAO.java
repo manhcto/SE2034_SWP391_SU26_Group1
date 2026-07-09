@@ -688,10 +688,6 @@ public class FeedbackDAO {
             return "Tour";
         }
 
-        if ("vehicle".equals(value) || "car".equals(value) || "xe".equals(value)) {
-            return "All";
-        }
-
         return type.trim();
     }
 

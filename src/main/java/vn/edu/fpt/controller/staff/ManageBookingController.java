@@ -12,9 +12,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet(name = "ManageBookingController", urlPatterns = {
         "/staff/booking",
+        "/staff/booking-detail",
         "/staff/booking-edit",
         "/staff/booking-delete",
         "/staff/booking-status" // Thêm đường dẫn để xử lý nút Hoàn thành & Hủy
@@ -22,6 +24,7 @@ import java.util.List;
 public class ManageBookingController extends HttpServlet {
 
     private static final String STAFF_BOOKING_LIST_PAGE = "/views/staff/staff-booking-list.jsp";
+    private static final String STAFF_BOOKING_DETAIL_PAGE = "/views/staff/staff-booking-detail.jsp";
     private static final String STAFF_BOOKING_EDIT_PAGE = "/views/staff/staff-booking-edit.jsp";
 
     @Override
@@ -36,6 +39,10 @@ public class ManageBookingController extends HttpServlet {
         switch (path) {
             case "/staff/booking":
                 showBookingList(request, response);
+                break;
+
+            case "/staff/booking-detail":
+                showBookingDetail(request, response);
                 break;
 
             case "/staff/booking-edit":
@@ -99,6 +106,35 @@ public class ManageBookingController extends HttpServlet {
     }
 
     // Hàm mới xử lý khi ấn nút "Hoàn thành" hoặc "Hủy" từ staff-booking-list.jsp
+    private void showBookingDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String bookingIDRaw = request.getParameter("bookingID");
+
+        if (bookingIDRaw == null || bookingIDRaw.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/staff/booking");
+            return;
+        }
+
+        try {
+            int bookingID = Integer.parseInt(bookingIDRaw.trim());
+
+            BookingDAO bookingDAO = new BookingDAO();
+            Map<String, Object> bookingDetail = bookingDAO.getBookingSummaryByID(bookingID);
+
+            if (bookingDetail == null) {
+                request.setAttribute("error", "Không tìm thấy booking.");
+            } else {
+                request.setAttribute("bookingDetail", bookingDetail);
+            }
+
+            request.getRequestDispatcher(STAFF_BOOKING_DETAIL_PAGE).forward(request, response);
+
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/staff/booking");
+        }
+    }
+
     private void updateBookingStatus(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {

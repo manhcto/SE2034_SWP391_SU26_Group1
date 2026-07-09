@@ -162,10 +162,10 @@
 
     <div class="staff-nav-section-title">Vận hành</div>
 
-    <a class="staff-sidebar-link ${currentPath == '/views/staff/staff-booking-list.jsp' || currentPath == '/views/staff/staff-booking-edit.jsp' ? 'active' : ''}"
+    <a class="staff-sidebar-link ${currentPath == '/views/staff/staff-booking-list.jsp' || currentPath == '/views/staff/staff-booking-detail.jsp' || currentPath == '/views/staff/staff-booking-edit.jsp' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/staff/booking">
         <i class="fa-solid fa-calendar-check"></i>
-        <span>Quản lý đặt chỗ</span>
+        <span>Quản lý Booking</span>
     </a>
 
     <a class="staff-sidebar-link ${currentPath == '/views/staff/payment-management.jsp' ? 'active' : ''}"

@@ -8,6 +8,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,6 +26,14 @@ public class BookingEditController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
+
+        User currentUser = getCurrentUser(request);
+
+        if (currentUser == null) {
+            request.getSession().setAttribute("redirectAfterLogin", buildCurrentUrl(request));
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         String bookingIDRaw = request.getParameter("bookingID");
 
@@ -44,6 +54,11 @@ public class BookingEditController extends HttpServlet {
                 return;
             }
 
+            if (!isOwner(booking, currentUser)) {
+                response.sendRedirect(request.getContextPath() + "/booking-list");
+                return;
+            }
+
             setAddressPartsToRequest(request, booking.getAddress());
 
             request.setAttribute("booking", booking);
@@ -60,6 +75,14 @@ public class BookingEditController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
+
+        User currentUser = getCurrentUser(request);
+
+        if (currentUser == null) {
+            request.getSession().setAttribute("redirectAfterLogin", buildCurrentUrl(request));
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         List<String> errors = new ArrayList<>();
 
@@ -93,6 +116,8 @@ public class BookingEditController extends HttpServlet {
 
             if (oldBooking == null) {
                 errors.add("Booking không tồn tại trong hệ thống.");
+            } else if (!isOwner(oldBooking, currentUser)) {
+                errors.add("Bạn không có quyền sửa booking này.");
             } else if (!"Pending".equals(oldBooking.getStatus())) {
                 errors.add("Chỉ có thể sửa booking khi trạng thái đang là Pending.");
             }
@@ -152,6 +177,29 @@ public class BookingEditController extends HttpServlet {
     private String getTrimValue(HttpServletRequest request, String paramName) {
         String value = request.getParameter(paramName);
         return value == null ? "" : value.trim();
+    }
+
+    private User getCurrentUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        return session == null ? null : (User) session.getAttribute("user");
+    }
+
+    private boolean isOwner(Booking booking, User user) {
+        return booking != null
+                && user != null
+                && booking.getUserID() != null
+                && booking.getUserID() == user.getUserID();
+    }
+
+    private String buildCurrentUrl(HttpServletRequest request) {
+        String queryString = request.getQueryString();
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+
+        if (queryString == null || queryString.trim().isEmpty()) {
+            return path;
+        }
+
+        return path + "?" + queryString;
     }
 
     private int parseBookingID(String bookingIDRaw, List<String> errors) {

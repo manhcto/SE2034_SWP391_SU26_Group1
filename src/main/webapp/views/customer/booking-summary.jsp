@@ -75,6 +75,24 @@
             font-weight: 800;
         }
 
+        .identity-image-box {
+            display: inline-block;
+            width: 240px;
+            max-width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 8px;
+            background: #f9fafb;
+        }
+
+        .identity-image {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+        }
+
         .error-box {
             background-color: #fee2e2;
             color: #b91c1c;
@@ -182,8 +200,8 @@
                         <span class="summary-value">
                             <span class="status-badge">
                                 <c:choose>
-                                    <c:when test="${bookingSummary.status == 'Pending'}">Chờ xử lý</c:when>
-                                    <c:when test="${bookingSummary.status == 'Confirmed'}">Đã xác nhận</c:when>
+                                    <c:when test="${bookingSummary.status == 'Pending'}">Đang xử lý</c:when>
+                                    <c:when test="${bookingSummary.status == 'Confirmed'}">Đã duyệt</c:when>
                                     <c:when test="${bookingSummary.status == 'Cancelled'}">Đã hủy</c:when>
                                     <c:when test="${bookingSummary.status == 'Completed'}">Hoàn thành</c:when>
                                     <c:otherwise>${bookingSummary.status}</c:otherwise>
@@ -241,56 +259,7 @@
 
             <div class="summary-card">
                 <c:choose>
-                    <c:when test="${bookingSummary.bookingType == 'Vehicle'}">
-                        <h3>3. Thông tin xe</h3>
-
-                        <div class="summary-grid">
-                            <div class="summary-item">
-                                <span class="summary-label">Tên xe</span>
-                                <span class="summary-value">${bookingSummary.itemName}</span>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="summary-label">Biển số</span>
-                                <span class="summary-value">${bookingSummary.licensePlate}</span>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="summary-label">Service ID</span>
-                                <span class="summary-value">${bookingSummary.serviceID}</span>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="summary-label">Địa điểm nhận xe</span>
-                                <span class="summary-value">
-                                    <c:choose>
-                                        <c:when test="${not empty bookingSummary.pickupAddress}">
-                                            ${bookingSummary.pickupAddress}
-                                        </c:when>
-                                        <c:otherwise>
-                                            ${bookingSummary.pickupDistrict}, ${bookingSummary.pickupProvince}
-                                        </c:otherwise>
-                                    </c:choose>
-                                </span>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="summary-label">Ngày nhận xe</span>
-                                <span class="summary-value">
-                                    <fmt:formatDate value="${bookingSummary.startDate}" pattern="dd/MM/yyyy"/>
-                                </span>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="summary-label">Ngày trả xe</span>
-                                <span class="summary-value">
-                                    <fmt:formatDate value="${bookingSummary.endDate}" pattern="dd/MM/yyyy"/>
-                                </span>
-                            </div>
-                        </div>
-                    </c:when>
-
-                    <c:otherwise>
+                    <c:when test="${bookingSummary.bookingType == 'Tour'}">
                         <h3>3. Thông tin tour</h3>
 
                         <div class="summary-grid">
@@ -328,6 +297,73 @@
                                 </span>
                             </div>
                         </div>
+                    </c:when>
+                    <c:otherwise>
+                        <h3>3. Thông tin đặt phòng</h3>
+
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="summary-label">Nơi lưu trú</span>
+                                <span class="summary-value">${bookingSummary.accommodationName}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Loại phòng</span>
+                                <span class="summary-value">${bookingSummary.roomType}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày nhận phòng</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.startDate}" pattern="dd/MM/yyyy"/>
+                                </span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Ngày trả phòng</span>
+                                <span class="summary-value">
+                                    <fmt:formatDate value="${bookingSummary.endDate}" pattern="dd/MM/yyyy"/>
+                                </span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Số phòng</span>
+                                <span class="summary-value">${bookingSummary.quantity}</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Số khách</span>
+                                <span class="summary-value">${bookingSummary.numberAdult} người lớn, ${bookingSummary.numberChildren} trẻ em</span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">CCCD / CMND</span>
+                                <span class="summary-value">
+                                    <c:choose>
+                                        <c:when test="${not empty bookingSummary.identityNumber}">
+                                            ${bookingSummary.identityNumber}
+                                        </c:when>
+                                        <c:otherwise>Chưa có</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Ảnh CCCD / CMND</span>
+                                <span class="summary-value">
+                                    <c:choose>
+                                        <c:when test="${not empty bookingSummary.identityImageUrl}">
+                                            <a class="identity-image-box" href="${pageContext.request.contextPath}/${bookingSummary.identityImageUrl}" target="_blank">
+                                                <img class="identity-image"
+                                                     src="${pageContext.request.contextPath}/${bookingSummary.identityImageUrl}"
+                                                     alt="Ảnh CCCD / CMND">
+                                            </a>
+                                        </c:when>
+                                        <c:otherwise>Chưa có ảnh</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </div>
+                        </div>
                     </c:otherwise>
                 </c:choose>
             </div>
@@ -337,21 +373,7 @@
 
                 <div class="summary-grid">
                     <c:choose>
-                        <c:when test="${bookingSummary.bookingType == 'Vehicle'}">
-                            <div class="summary-item">
-                                <span class="summary-label">Số ngày thuê</span>
-                                <span class="summary-value">${bookingSummary.quantity}</span>
-                            </div>
-
-                            <div class="summary-item">
-                                <span class="summary-label">Đơn giá/ngày</span>
-                                <span class="summary-value">
-                                    <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
-                                </span>
-                            </div>
-                        </c:when>
-
-                        <c:otherwise>
+                        <c:when test="${bookingSummary.bookingType == 'Tour'}">
                             <div class="summary-item">
                                 <span class="summary-label">Số người lớn</span>
                                 <span class="summary-value">${bookingSummary.numberAdult}</span>
@@ -373,7 +395,7 @@
                                     <fmt:formatNumber value="${bookingSummary.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
                                 </span>
                             </div>
-                        </c:otherwise>
+                        </c:when>
                     </c:choose>
 
                     <div class="summary-item">

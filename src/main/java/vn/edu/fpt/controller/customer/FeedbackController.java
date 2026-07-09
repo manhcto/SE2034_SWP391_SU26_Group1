@@ -695,14 +695,6 @@ public class FeedbackController extends HttpServlet {
             return "Accommodation";
         }
 
-        if ("vehicle".equals(value)
-                || "car".equals(value)
-                || "xe".equals(value)
-                || "thuexe".equals(value)
-                || "thuê xe".equals(value)) {
-            return "Vehicle";
-        }
-
         if ("tour".equals(value)) {
             return "Tour";
         }
@@ -717,15 +709,11 @@ public class FeedbackController extends HttpServlet {
             return "Khách sạn";
         }
 
-        if ("Vehicle".equals(serviceType)) {
-            return "Xe";
-        }
-
         if ("Tour".equals(serviceType)) {
             return "Tour";
         }
 
-        return "Dịch vụ";
+        return "Nội dung";
     }
 
     private String safeString(Object value) {

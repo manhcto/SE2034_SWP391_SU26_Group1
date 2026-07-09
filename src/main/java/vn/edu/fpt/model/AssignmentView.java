@@ -19,10 +19,6 @@ public class AssignmentView {
     private String guideName;
     private String guideEmail;
     private String guidePhone;
-    private String vehicleName;
-    private String licensePlate;
-    private String vehicleType;
-    private int seatCount;
     private Date departureDate;
     private Date endDate;
     private Date bookDate;
@@ -70,12 +66,11 @@ public class AssignmentView {
     public AssignmentView() {
     }
 
-    public AssignmentView(int assignmentID, int bookingID, String tourName, String guideName, String vehicleName, Date departureDate, String status) {
+    public AssignmentView(int assignmentID, int bookingID, String tourName, String guideName, Date departureDate, String status) {
         this.assignmentID = assignmentID;
         this.bookingID = bookingID;
         this.tourName = tourName;
         this.guideName = guideName;
-        this.vehicleName = vehicleName;
         this.departureDate = departureDate;
         this.status = status;
     }
@@ -198,38 +193,6 @@ public class AssignmentView {
 
     public void setGuidePhone(String guidePhone) {
         this.guidePhone = guidePhone;
-    }
-
-    public String getVehicleName() {
-        return vehicleName;
-    }
-
-    public void setVehicleName(String vehicleName) {
-        this.vehicleName = vehicleName;
-    }
-
-    public String getLicensePlate() {
-        return licensePlate;
-    }
-
-    public void setLicensePlate(String licensePlate) {
-        this.licensePlate = licensePlate;
-    }
-
-    public String getVehicleType() {
-        return vehicleType;
-    }
-
-    public void setVehicleType(String vehicleType) {
-        this.vehicleType = vehicleType;
-    }
-
-    public int getSeatCount() {
-        return seatCount;
-    }
-
-    public void setSeatCount(int seatCount) {
-        this.seatCount = seatCount;
     }
 
     public Date getDepartureDate() {

@@ -535,7 +535,7 @@
                       action="${pageContext.request.contextPath}/accommodation/room/detail"
                       method="get">
                     <input type="hidden" name="id" value="${room.roomID}">
-                    <input type="hidden" name="accommodationId" value="${accommodation.accommodationID}">
+                    <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
 
                     <div>
                         <label for="roomCheckIn">Ngày nhận phòng</label>

@@ -15,7 +15,7 @@ public class Feedback {
     /*
      * Các field bên dưới không cần thêm cột vào database.
      * Chúng dùng để hiển thị dữ liệu sau khi JOIN bảng User, Booking,
-     * Booking_Detail, Service, Accommodation, Vehicle.
+     * Booking_Detail, Accommodation, Tour.
      */
     private String customerName;
     private String customerEmail;
@@ -201,10 +201,6 @@ public class Feedback {
     public String getServiceTypeText() {
         if ("Accommodation".equalsIgnoreCase(serviceType)) {
             return "Khách sạn";
-        }
-
-        if ("Vehicle".equalsIgnoreCase(serviceType)) {
-            return "Xe";
         }
 
         if ("Tour".equalsIgnoreCase(serviceType)) {

@@ -594,20 +594,6 @@
                     </a>
                 </c:when>
 
-                <c:when test="${type == 'Vehicle' && serviceID > 0}">
-                    <a class="btn-back"
-                       href="${pageContext.request.contextPath}/vehicle/detail?id=${serviceID}">
-                        <i class="fa-solid fa-arrow-left"></i>
-                        Quay lại xe
-                    </a>
-
-                    <a class="btn-back"
-                       href="${pageContext.request.contextPath}/vehicle">
-                        <i class="fa-solid fa-list"></i>
-                        Danh sách xe
-                    </a>
-                </c:when>
-
                 <c:otherwise>
                     <a class="btn-back" href="${pageContext.request.contextPath}/home">
                         <i class="fa-solid fa-house"></i>

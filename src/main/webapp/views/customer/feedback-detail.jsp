@@ -512,13 +512,6 @@
                             </a>
                         </c:when>
 
-                        <c:when test="${type == 'Vehicle' && serviceID > 0}">
-                            <a class="btn-back"
-                               href="${pageContext.request.contextPath}/vehicle/detail?id=${serviceID}">
-                                <i class="fa-solid fa-car-side"></i>
-                                Quay lại xe
-                            </a>
-                        </c:when>
                     </c:choose>
                 </div>
 

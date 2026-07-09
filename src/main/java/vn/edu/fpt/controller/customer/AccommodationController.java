@@ -808,15 +808,36 @@ public class AccommodationController extends HttpServlet {
     }
 
     private boolean isValidWard(String city, String ward) {
-        return administrativeUnitDAO.isValidProvinceWard(city, ward);
+        if (!isValidAddressPart(ward, 100)) {
+            return false;
+        }
+
+        for (String provinceName : provinceNameCandidates(city)) {
+            if (administrativeUnitDAO.isValidProvinceWard(provinceName, ward)) {
+                return true;
+            }
+        }
+
+        return isValidProvince(city);
     }
 
     private boolean isValidDistrict(String district) {
-        return HANOI_DISTRICTS.contains(district);
+        return isValidAddressPart(district, 100);
     }
 
     private boolean isValidProvince(String city) {
-        return administrativeUnitDAO.getActiveProvinceNames().contains(city);
+        if (!isValidAddressPart(city, 100)) {
+            return false;
+        }
+
+        List<String> activeProvinceNames = administrativeUnitDAO.getActiveProvinceNames();
+        for (String provinceName : provinceNameCandidates(city)) {
+            if (activeProvinceNames.contains(provinceName)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String buildBookingFormUrl(HttpServletRequest request, int accommodationID, int roomID,
@@ -929,7 +950,34 @@ public class AccommodationController extends HttpServlet {
     }
 
     private String normalizeIdentityNumber(String value) {
-        return value == null ? "" : value.replaceAll("[\\s.-]", "").trim();
+        return value == null ? "" : value.replaceAll("\\D", "").trim();
+    }
+
+    private boolean isValidAddressPart(String value, int maxLength) {
+        if (isBlank(value) || value.length() > maxLength) {
+            return false;
+        }
+
+        return value.matches("^[\\p{L}0-9\\s,./()\\-]+$");
+    }
+
+    private List<String> provinceNameCandidates(String city) {
+        String normalizedCity = safeTrim(city);
+        List<String> candidates = new ArrayList<>();
+
+        if (normalizedCity.isEmpty()) {
+            return candidates;
+        }
+
+        candidates.add(normalizedCity);
+
+        if (!normalizedCity.toLowerCase(Locale.ROOT).startsWith("thành phố ")
+                && !normalizedCity.toLowerCase(Locale.ROOT).startsWith("tỉnh ")) {
+            candidates.add("Thành phố " + normalizedCity);
+            candidates.add("Tỉnh " + normalizedCity);
+        }
+
+        return candidates;
     }
 
     private boolean isBlank(String value) {

@@ -11,26 +11,22 @@ import java.util.List;
 
 public class UserDAO {
 
-    // Check email tồn tại
+    // Check email tồn tại theo unique index của bảng User.
     public boolean isEmailExist(String email) {
 
         String sql = """
         SELECT 1
         FROM [User]
-        WHERE email = ?
-          AND status = 'Active'
+        WHERE LOWER(LTRIM(RTRIM(email))) = LOWER(LTRIM(RTRIM(?)))
         """;
 
-        try {
-            DBConnection db = new DBConnection();
-            Connection conn = db.getConnection();
-
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
 
-            ResultSet rs = ps.executeQuery();
-
-            return rs.next();
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -62,21 +58,18 @@ public class UserDAO {
             dob,
             address,
             roleID,
-            status
+            status,
+            createAt
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active')
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', GETDATE())
         """;
 
-        try {
-
-            DBConnection db = new DBConnection();
-            Connection conn = db.getConnection();
-
-            PreparedStatement ps = conn.prepareStatement(sql);
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, firstName);
             ps.setString(2, lastName);
-            ps.setString(3, email);
+            ps.setString(3, normalizeEmail(email));
             ps.setString(4, password);
             ps.setString(5, phone);
             ps.setString(6, gender);
@@ -109,44 +102,41 @@ public class UserDAO {
         FROM [User] u
         LEFT JOIN [Role] r
             ON u.roleID = r.roleID
-        WHERE LOWER(u.email) = LOWER(?)
+        WHERE LOWER(LTRIM(RTRIM(u.email))) = LOWER(LTRIM(RTRIM(?)))
         AND u.[password] = ?
-        AND u.[status] = 'Active'
+        AND u.[status] = N'Active'
         """;
 
-        try {
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            DBConnection db = new DBConnection();
-            Connection conn = db.getConnection();
-
-            PreparedStatement ps = conn.prepareStatement(sql);
-
-            ps.setString(1, email);
+            ps.setString(1, normalizeEmail(email));
             ps.setString(2, password);
 
-            ResultSet rs = ps.executeQuery();
+            try (ResultSet rs = ps.executeQuery()) {
 
-            if (rs.next()) {
+                if (rs.next()) {
 
-                User user = new User();
+                    User user = new User();
 
-                user.setUserID(rs.getInt("userID"));
-                user.setFirstName(rs.getString("firstName"));
-                user.setLastName(rs.getString("lastName"));
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
-                user.setGender(rs.getString("gender"));
+                    user.setUserID(rs.getInt("userID"));
+                    user.setFirstName(rs.getString("firstName"));
+                    user.setLastName(rs.getString("lastName"));
+                    user.setEmail(rs.getString("email"));
+                    user.setPhone(rs.getString("phone"));
+                    user.setGender(rs.getString("gender"));
 
-                if (rs.getDate("dob") != null) {
-                    user.setDob(rs.getDate("dob").toString());
+                    if (rs.getDate("dob") != null) {
+                        user.setDob(rs.getDate("dob").toString());
+                    }
+
+                    user.setAddress(rs.getString("address"));
+                    user.setRoleID(rs.getInt("roleID"));
+                    user.setRoleName(rs.getString("roleName"));
+                    user.setStatus(rs.getString("status"));
+
+                    return user;
                 }
-
-                user.setAddress(rs.getString("address"));
-                user.setRoleID(rs.getInt("roleID"));
-                user.setRoleName(rs.getString("roleName"));
-                user.setStatus(rs.getString("status"));
-
-                return user;
             }
 
         } catch (Exception e) {
@@ -166,7 +156,7 @@ public class UserDAO {
         FROM [User] u
         LEFT JOIN [Role] r
             ON u.roleID = r.roleID
-        WHERE LOWER(u.email) = LOWER(?)
+        WHERE LOWER(LTRIM(RTRIM(u.email))) = LOWER(LTRIM(RTRIM(?)))
         """;
 
         try {
@@ -175,7 +165,7 @@ public class UserDAO {
             Connection conn = db.getConnection();
 
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, email);
+            ps.setString(1, normalizeEmail(email));
 
             ResultSet rs = ps.executeQuery();
 
@@ -258,7 +248,7 @@ public class UserDAO {
             PreparedStatement ps = conn.prepareStatement(sql);
 
             ps.setString(1, newPassword);
-            ps.setString(2, email);
+            ps.setString(2, normalizeEmail(email));
 
             return ps.executeUpdate() > 0;
 
@@ -616,6 +606,10 @@ public class UserDAO {
         }
 
         return false;
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase();
     }
 }
 

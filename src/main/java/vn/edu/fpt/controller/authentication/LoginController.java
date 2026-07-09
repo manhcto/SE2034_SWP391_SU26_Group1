@@ -25,6 +25,7 @@ public class LoginController extends HttpServlet {
 
         String email = trimToEmpty(request.getParameter("email"));
         String password = trimToEmpty(request.getParameter("password"));
+        request.setAttribute("email", email);
 
         User user = userDAO.login(email, password);
 
@@ -50,6 +51,8 @@ public class LoginController extends HttpServlet {
                 request.setAttribute("error", "Tài khoản chưa được kích hoạt!");
             } else if ("Blocked".equalsIgnoreCase(status)) {
                 request.setAttribute("error", "Tài khoản đã bị khóa!");
+            } else if ("Locked".equalsIgnoreCase(status)) {
+                request.setAttribute("error", "Tài khoản đang bị khóa!");
             } else {
                 request.setAttribute("error", "Sai mật khẩu!");
             }

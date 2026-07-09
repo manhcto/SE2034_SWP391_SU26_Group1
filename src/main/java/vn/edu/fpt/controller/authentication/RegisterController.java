@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.DAO.UserDAO;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 @WebServlet("/register")
 public class RegisterController extends HttpServlet {
@@ -22,23 +24,41 @@ public class RegisterController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        String firstName = request.getParameter("firstName");
-        String lastName  = request.getParameter("lastName");
-        String email     = request.getParameter("email");
-        String password  = request.getParameter("password");
-        String phone     = request.getParameter("phone");
-        String gender    = request.getParameter("gender");
-        String dob       = request.getParameter("dob");
-        String address   = request.getParameter("address");
+        String firstName = trimToEmpty(request.getParameter("firstName"));
+        String lastName  = trimToEmpty(request.getParameter("lastName"));
+        String email     = trimToEmpty(request.getParameter("email")).toLowerCase();
+        String password  = trimToEmpty(request.getParameter("password"));
+        String confirmPassword = trimToEmpty(request.getParameter("confirmPassword"));
+        String phone     = trimToEmpty(request.getParameter("phone"));
+        String gender    = normalizeGender(request.getParameter("gender"));
+        String dob       = trimToEmpty(request.getParameter("dob"));
+        String address   = trimToEmpty(request.getParameter("address"));
 
         int roleID = 4; // Customer
 
-        // Email đang được tài khoản Active hoặc Blocked sử dụng
+        String validationError = validateRegisterInput(
+                firstName,
+                lastName,
+                email,
+                password,
+                confirmPassword,
+                phone,
+                dob,
+                address
+        );
+
+        if (validationError != null) {
+            request.setAttribute("error", validationError);
+            request.getRequestDispatcher("/views/register.jsp").forward(request, response);
+            return;
+        }
+
+        // Email đang tồn tại trong unique index của bảng User.
         if (userDAO.isEmailExist(email)) {
 
             request.setAttribute(
                     "error",
-                    "Email đã tồn tại!"
+                    "Email đã tồn tại hoặc đang thuộc một tài khoản đã bị khóa!"
             );
 
             request.getRequestDispatcher(
@@ -95,5 +115,70 @@ public class RegisterController extends HttpServlet {
         request.getRequestDispatcher(
                 "/views/register.jsp"
         ).forward(request, response);
+    }
+
+    private String validateRegisterInput(String firstName,
+                                         String lastName,
+                                         String email,
+                                         String password,
+                                         String confirmPassword,
+                                         String phone,
+                                         String dob,
+                                         String address) {
+
+        if (firstName.isEmpty()
+                || lastName.isEmpty()
+                || email.isEmpty()
+                || password.isEmpty()
+                || phone.isEmpty()
+                || dob.isEmpty()
+                || address.isEmpty()) {
+            return "Vui lòng nhập đầy đủ thông tin đăng ký.";
+        }
+
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            return "Email không đúng định dạng.";
+        }
+
+        if (!phone.matches("^0\\d{9}$")) {
+            return "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.";
+        }
+
+        if (!password.equals(confirmPassword)) {
+            return "Mật khẩu nhập lại không khớp.";
+        }
+
+        try {
+            LocalDate birthDate = LocalDate.parse(dob);
+            if (birthDate.isAfter(LocalDate.now().minusYears(18))) {
+                return "Bạn phải đủ 18 tuổi để đăng ký.";
+            }
+        } catch (DateTimeParseException e) {
+            return "Ngày sinh không hợp lệ.";
+        }
+
+        return null;
+    }
+
+    private String normalizeGender(String gender) {
+        String value = trimToEmpty(gender);
+
+        if ("Nam".equalsIgnoreCase(value)) {
+            return "Male";
+        }
+
+        if ("Nữ".equalsIgnoreCase(value) || "Nu".equalsIgnoreCase(value)) {
+            return "Female";
+        }
+
+        if ("Khác".equalsIgnoreCase(value) || "Khac".equalsIgnoreCase(value)) {
+            return "Other";
+        }
+
+        return value.isEmpty() ? "Other" : value;
+    }
+
+    private String trimToEmpty(String value) {
+        return value == null ? "" : value.trim();
     }
 }

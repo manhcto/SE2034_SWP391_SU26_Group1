@@ -33,6 +33,7 @@
 
         /* SIDEBAR */
         .sidebar {
+            display: none;
             width: 292px;
             background: #0f172a;
             color: white;
@@ -152,8 +153,9 @@
 
         /* MAIN */
         .main-content {
-            margin-left: 292px;
-            width: calc(100% - 292px);
+            flex: 1;
+            min-width: 0;
+            width: auto;
             padding: 34px 42px;
         }
 
@@ -432,6 +434,7 @@
 
 <body>
 <div class="admin-layout">
+    <jsp:include page="/views/common/admin-sidebar.jsp"/>
 
     <!-- SIDEBAR -->
     <aside class="sidebar">

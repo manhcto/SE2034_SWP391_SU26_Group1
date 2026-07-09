@@ -160,9 +160,6 @@
             <button class="tab-item" onclick="filterVouchers('Tour', this)">
                 <i class="fa-solid fa-route"></i> Vé vui chơi & Tour
             </button>
-            <button class="tab-item" onclick="filterVouchers('Vehicle', this)">
-                <i class="fa-solid fa-car"></i> Thuê xe
-            </button>
         </div>
     </div>
 
@@ -246,8 +243,7 @@
         const titles = {
             'All': '<i class="fa-solid fa-fire text-danger"></i> Tất cả khuyến mãi',
             'Hotel': '<i class="fa-solid fa-hotel text-info"></i> Khuyến mãi Khách sạn',
-            'Tour': '<i class="fa-solid fa-route text-primary"></i> Khuyến mãi Tour & Vé',
-            'Vehicle': '<i class="fa-solid fa-car text-warning"></i> Khuyến mãi Thuê xe'
+            'Tour': '<i class="fa-solid fa-route text-primary"></i> Khuyến mãi Tour'
         };
         document.getElementById('categoryTitle').innerHTML = titles[category];
 

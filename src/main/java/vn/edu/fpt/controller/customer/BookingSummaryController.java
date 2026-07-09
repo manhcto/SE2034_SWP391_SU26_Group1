@@ -7,6 +7,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.util.Map;
@@ -40,11 +42,28 @@ public class BookingSummaryController extends HttpServlet {
                 return;
             }
 
+            HttpSession session = request.getSession(false);
+            User user = session == null ? null : (User) session.getAttribute("user");
+            int ownerUserID = getIntValue(bookingSummary.get("userID"));
+
+            if (user != null && ownerUserID > 0 && ownerUserID != user.getUserID()) {
+                response.sendRedirect(request.getContextPath() + "/booking-list");
+                return;
+            }
+
             request.setAttribute("bookingSummary", bookingSummary);
             request.getRequestDispatcher("/views/customer/booking-summary.jsp").forward(request, response);
 
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/booking");
         }
+    }
+
+    private int getIntValue(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+
+        return 0;
     }
 }

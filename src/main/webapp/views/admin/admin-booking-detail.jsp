@@ -525,10 +525,6 @@
                     <i class="fa-solid fa-hotel"></i>
                     Đặt phòng
                   </c:when>
-                  <c:when test="${bookingDetail.bookingType == 'Vehicle'}">
-                    <i class="fa-solid fa-car-side"></i>
-                    Đặt xe
-                  </c:when>
                   <c:otherwise>
                     <i class="fa-solid fa-briefcase"></i>
                     Đơn đặt
@@ -606,88 +602,6 @@
 
       <div class="detail-card">
         <c:choose>
-          <c:when test="${bookingDetail.bookingType == 'Vehicle'}">
-            <h3>
-              <i class="fa-solid fa-car-side"></i>
-              3. Thông tin đặt xe
-            </h3>
-
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="detail-label">Tên xe</span>
-                <span class="detail-value">
-                  <c:choose>
-                    <c:when test="${not empty bookingDetail.itemName}">
-                      ${bookingDetail.itemName}
-                    </c:when>
-                    <c:when test="${not empty bookingDetail.vehicleModel}">
-                      ${bookingDetail.vehicleModel}
-                    </c:when>
-                    <c:otherwise>${bookingDetail.serviceName}</c:otherwise>
-                  </c:choose>
-                </span>
-              </div>
-
-              <div class="detail-item">
-                <span class="detail-label">Hãng xe</span>
-                <span class="detail-value">
-                  <c:choose>
-                    <c:when test="${not empty bookingDetail.brandName}">
-                      ${bookingDetail.brandName}
-                    </c:when>
-                    <c:otherwise>Chưa cập nhật</c:otherwise>
-                  </c:choose>
-                </span>
-              </div>
-
-              <div class="detail-item">
-                <span class="detail-label">Biển số</span>
-                <span class="detail-value">
-                  <c:choose>
-                    <c:when test="${not empty bookingDetail.licensePlate}">
-                      ${bookingDetail.licensePlate}
-                    </c:when>
-                    <c:otherwise>Chưa cập nhật</c:otherwise>
-                  </c:choose>
-                </span>
-              </div>
-
-              <div class="detail-item">
-                <span class="detail-label">Mã dịch vụ</span>
-                <span class="detail-value">${bookingDetail.serviceID}</span>
-              </div>
-
-              <div class="detail-item">
-                <span class="detail-label">Địa điểm nhận xe</span>
-                <span class="detail-value">
-                  <c:choose>
-                    <c:when test="${not empty bookingDetail.pickupAddress}">
-                      ${bookingDetail.pickupAddress}
-                    </c:when>
-                    <c:when test="${not empty bookingDetail.pickupDistrict || not empty bookingDetail.pickupProvince}">
-                      ${bookingDetail.pickupDistrict}, ${bookingDetail.pickupProvince}
-                    </c:when>
-                    <c:otherwise>Chưa cập nhật</c:otherwise>
-                  </c:choose>
-                </span>
-              </div>
-
-              <div class="detail-item">
-                <span class="detail-label">Ngày nhận xe</span>
-                <span class="detail-value">
-                  <fmt:formatDate value="${bookingDetail.startDate}" pattern="dd/MM/yyyy"/>
-                </span>
-              </div>
-
-              <div class="detail-item">
-                <span class="detail-label">Ngày trả xe</span>
-                <span class="detail-value">
-                  <fmt:formatDate value="${bookingDetail.endDate}" pattern="dd/MM/yyyy"/>
-                </span>
-              </div>
-            </div>
-          </c:when>
-
           <c:when test="${bookingDetail.bookingType == 'Accommodation'}">
             <h3>
               <i class="fa-solid fa-hotel"></i>
@@ -711,8 +625,8 @@
               </div>
 
               <div class="detail-item">
-                <span class="detail-label">Mã dịch vụ</span>
-                <span class="detail-value">${bookingDetail.serviceID}</span>
+                <span class="detail-label">Mã lưu trú</span>
+                <span class="detail-value">${bookingDetail.detailAccommodationID}</span>
               </div>
 
               <div class="detail-item">
@@ -824,20 +738,6 @@
 
         <div class="detail-grid">
           <c:choose>
-            <c:when test="${bookingDetail.bookingType == 'Vehicle'}">
-              <div class="detail-item">
-                <span class="detail-label">Số ngày thuê</span>
-                <span class="detail-value">${bookingDetail.quantity}</span>
-              </div>
-
-              <div class="detail-item">
-                <span class="detail-label">Đơn giá mỗi ngày</span>
-                <span class="detail-value">
-                  <fmt:formatNumber value="${bookingDetail.unitPrice}" type="number" maxFractionDigits="0"/> VNĐ
-                </span>
-              </div>
-            </c:when>
-
             <c:when test="${bookingDetail.bookingType == 'Accommodation'}">
               <div class="detail-item">
                 <span class="detail-label">Số phòng</span>
