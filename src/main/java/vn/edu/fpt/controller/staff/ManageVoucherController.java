@@ -105,7 +105,7 @@ public class ManageVoucherController extends HttpServlet {
             throws ServletException, IOException {
 
         List<String> errors = new ArrayList<>();
-        Voucher voucher = buildVoucherFromRequest(request, errors, null);
+        Voucher voucher = buildVoucherFromRequest(request, errors, null, null);
 
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
@@ -142,8 +142,8 @@ public class ManageVoucherController extends HttpServlet {
         }
 
         Voucher voucher = null;
-        if (voucherID != null) {
-            voucher = buildVoucherFromRequest(request, errors, voucherID);
+        if (voucherID != null && existingVoucher != null) {
+            voucher = buildVoucherFromRequest(request, errors, voucherID, existingVoucher.getUsedCount());
         }
 
         if (!errors.isEmpty() || voucher == null) {
@@ -175,10 +175,14 @@ public class ManageVoucherController extends HttpServlet {
         }
     }
 
-    private Voucher buildVoucherFromRequest(HttpServletRequest request, List<String> errors, Integer voucherID) {
+    private Voucher buildVoucherFromRequest(HttpServletRequest request,
+                                            List<String> errors,
+                                            Integer voucherID,
+                                            Integer currentUsedCount) {
         String code = normalize(request.getParameter("code"));
         String description = normalize(request.getParameter("description"));
         String status = normalize(request.getParameter("status"));
+        String applicableType = normalize(request.getParameter("applicableType"));
         BigDecimal percentDiscount = parseOptionalDecimal(
                 request.getParameter("percentDiscount"), "Phần trăm giảm giá", errors);
         BigDecimal amountDiscount = parseOptionalDecimal(
@@ -193,9 +197,11 @@ public class ManageVoucherController extends HttpServlet {
         validateDescription(description, errors);
         validateDiscounts(percentDiscount, amountDiscount, errors);
         validateMinOrderAmount(minOrderAmount, errors);
-        validateQuantity(quantity, voucherID == null ? 1 : 0, errors);
+        validateQuantity(quantity, 1, errors);
+        validateQuantityAgainstUsedCount(quantity, currentUsedCount, errors);
         validateDates(startDate, endDate, errors);
         validateStatus(status, errors);
+        validateApplicableType(applicableType, errors);
 
         if (!errors.isEmpty()) {
             return null;
@@ -211,6 +217,8 @@ public class ManageVoucherController extends HttpServlet {
         voucher.setAmountDiscount(amountDiscount);
         voucher.setMinOrderAmount(minOrderAmount);
         voucher.setQuantity(quantity);
+        voucher.setApplicableType(applicableType);
+        voucher.setUsedCount(currentUsedCount == null ? 0 : currentUsedCount);
         voucher.setStartDate(Timestamp.valueOf(startDate.atStartOfDay()));
         voucher.setEndDate(Timestamp.valueOf(endDate.atTime(LocalTime.of(23, 59, 59))));
         voucher.setStatus(status);
@@ -296,6 +304,16 @@ public class ManageVoucherController extends HttpServlet {
         }
     }
 
+    private void validateQuantityAgainstUsedCount(Integer quantity, Integer currentUsedCount, List<String> errors) {
+        if (quantity == null || currentUsedCount == null) {
+            return;
+        }
+
+        if (quantity < currentUsedCount) {
+            errors.add("Tổng số lượt sử dụng không được nhỏ hơn số lượt đã được sử dụng.");
+        }
+    }
+
     private void validateDates(LocalDate startDate, LocalDate endDate, List<String> errors) {
         if (startDate == null || endDate == null) {
             return;
@@ -309,6 +327,14 @@ public class ManageVoucherController extends HttpServlet {
     private void validateStatus(String status, List<String> errors) {
         if (!"Active".equals(status) && !"Inactive".equals(status)) {
             errors.add("Trạng thái không hợp lệ.");
+        }
+    }
+
+    private void validateApplicableType(String applicableType, List<String> errors) {
+        if (!"All".equals(applicableType)
+                && !"Tour".equals(applicableType)
+                && !"Accommodation".equals(applicableType)) {
+            errors.add("Phạm vi áp dụng không hợp lệ.");
         }
     }
 

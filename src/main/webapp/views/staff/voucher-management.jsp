@@ -356,6 +356,7 @@
             <c:set var="addMinOrderAmount" value="${shouldOpenAddModal ? param.minOrderAmount : ''}"/>
             <c:set var="addQuantity" value="${shouldOpenAddModal ? param.quantity : ''}"/>
             <c:set var="addStatus" value="${shouldOpenAddModal ? param.status : 'Active'}"/>
+            <c:set var="addApplicableType" value="${shouldOpenAddModal ? param.applicableType : 'All'}"/>
             <c:set var="addStartDate" value="${shouldOpenAddModal ? param.startDate : ''}"/>
             <c:set var="addEndDate" value="${shouldOpenAddModal ? param.endDate : ''}"/>
 
@@ -371,6 +372,7 @@
             <c:set var="editMinOrderAmount" value="${isSubmittedForm ? param.minOrderAmount : (isEditMode ? editVoucher.minOrderAmount : '')}"/>
             <c:set var="editQuantity" value="${isSubmittedForm ? param.quantity : (isEditMode ? editVoucher.quantity : '')}"/>
             <c:set var="editStatus" value="${isSubmittedForm ? param.status : (isEditMode ? editVoucher.status : 'Active')}"/>
+            <c:set var="editApplicableType" value="${isSubmittedForm ? param.applicableType : (isEditMode ? editVoucher.applicableType : 'All')}"/>
             <c:set var="editStartDate" value="${isSubmittedForm ? param.startDate : (isEditMode ? editStartDateValue : '')}"/>
             <c:set var="editEndDate" value="${isSubmittedForm ? param.endDate : (isEditMode ? editEndDateValue : '')}"/>
 
@@ -459,12 +461,12 @@
 
             <div class="toolbar">
                 <div class="row g-3">
-                    <div class="col-lg-5">
+                    <div class="col-lg-4">
                         <input type="text" class="form-control" id="voucherSearch"
                                placeholder="Tìm theo mã Voucher hoặc mô tả...">
                     </div>
 
-                    <div class="col-lg-3">
+                    <div class="col-lg-2">
                         <select class="form-select" id="voucherStatusFilter">
                             <option value="">Tất cả trạng thái</option>
                             <option value="active">Hoạt động</option>
@@ -477,6 +479,15 @@
                             <option value="">Tất cả mức giảm</option>
                             <option value="percent">Theo phần trăm</option>
                             <option value="amount">Theo số tiền</option>
+                        </select>
+                    </div>
+
+                    <div class="col-lg-2">
+                        <select class="form-select" id="voucherApplicableFilter">
+                            <option value="">Tất cả phạm vi</option>
+                            <option value="all">Toàn hệ thống</option>
+                            <option value="tour">Tour</option>
+                            <option value="accommodation">Lưu trú</option>
                         </select>
                     </div>
 
@@ -502,9 +513,10 @@
                         <thead>
                         <tr>
                             <th>Mã Voucher</th>
+                            <th>Phạm vi áp dụng</th>
                             <th>Mức giảm</th>
                             <th>Đơn tối thiểu</th>
-                            <th>Số lượng</th>
+                            <th>LƯỢT SỬ DỤNG</th>
                             <th>Thời gian hiệu lực</th>
                             <th>Trạng thái</th>
                             <th>Ngày tạo</th>
@@ -515,7 +527,7 @@
                         <c:choose>
                             <c:when test="${empty voucherList}">
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted py-5">
+                                    <td colspan="9" class="text-center text-muted py-5">
                                         <i class="fa-regular fa-folder-open fs-2 d-block mb-2"></i>
                                         Chưa có Voucher nào.
                                     </td>
@@ -525,9 +537,12 @@
                                 <c:forEach items="${voucherList}" var="voucher">
                                     <c:set var="rowStatus" value="${voucher.status == 'Active' ? 'active' : 'inactive'}"/>
                                     <c:set var="rowDiscount" value="${voucher.percentDiscount != null && voucher.percentDiscount > 0 ? 'percent' : (voucher.amountDiscount != null && voucher.amountDiscount > 0 ? 'amount' : 'none')}"/>
+                                    <c:set var="rowApplicable" value="${empty voucher.applicableType ? 'All' : voucher.applicableType}"/>
+                                    <c:set var="rowApplicableFilter" value="${rowApplicable == 'Tour' ? 'tour' : (rowApplicable == 'Accommodation' ? 'accommodation' : 'all')}"/>
                                     <tr data-search="${fn:escapeXml(voucher.code)} ${fn:escapeXml(voucher.description)}"
                                         data-status="${rowStatus}"
-                                        data-discount="${rowDiscount}">
+                                        data-discount="${rowDiscount}"
+                                        data-applicable="${rowApplicableFilter}">
                                         <td>
                                             <div class="voucher-code"><c:out value="${voucher.code}"/></div>
                                             <div class="voucher-description">
@@ -538,6 +553,14 @@
                                                     <c:otherwise>Chưa có mô tả</c:otherwise>
                                                 </c:choose>
                                             </div>
+                                        </td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${rowApplicable == 'All'}">Toàn hệ thống</c:when>
+                                                <c:when test="${rowApplicable == 'Tour'}">Tour</c:when>
+                                                <c:when test="${rowApplicable == 'Accommodation'}">Lưu trú</c:when>
+                                                <c:otherwise><c:out value="${rowApplicable}"/></c:otherwise>
+                                            </c:choose>
                                         </td>
                                         <td>
                                             <span class="discount-pill">
@@ -561,7 +584,10 @@
                                                 <c:otherwise>Không yêu cầu</c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td><strong>${voucher.quantity}</strong></td>
+                                        <td>
+                                            <strong>${voucher.usedCount} / ${voucher.quantity}</strong>
+                                            <div class="text-muted small">Đã dùng / tổng lượt</div>
+                                        </td>
                                         <td class="text-muted">
                                             <fmt:formatDate value="${voucher.startDate}" pattern="dd/MM/yyyy"/>
                                             -
@@ -644,6 +670,15 @@
                         <select class="form-select" name="status" required>
                             <option value="Active" ${empty addStatus || addStatus == 'Active' ? 'selected' : ''}>Đang hoạt động</option>
                             <option value="Inactive" ${addStatus == 'Inactive' ? 'selected' : ''}>Ngừng hoạt động</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Phạm vi áp dụng <span class="text-danger">*</span></label>
+                        <select class="form-select" name="applicableType" required>
+                            <option value="All" ${empty addApplicableType || addApplicableType == 'All' ? 'selected' : ''}>Toàn hệ thống</option>
+                            <option value="Tour" ${addApplicableType == 'Tour' ? 'selected' : ''}>Tour</option>
+                            <option value="Accommodation" ${addApplicableType == 'Accommodation' ? 'selected' : ''}>Lưu trú</option>
                         </select>
                     </div>
 
@@ -740,6 +775,15 @@
                         </select>
                     </div>
 
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Phạm vi áp dụng <span class="text-danger">*</span></label>
+                        <select class="form-select" name="applicableType" required>
+                            <option value="All" ${empty editApplicableType || editApplicableType == 'All' ? 'selected' : ''}>Toàn hệ thống</option>
+                            <option value="Tour" ${editApplicableType == 'Tour' ? 'selected' : ''}>Tour</option>
+                            <option value="Accommodation" ${editApplicableType == 'Accommodation' ? 'selected' : ''}>Lưu trú</option>
+                        </select>
+                    </div>
+
                     <div class="col-12">
                         <label class="form-label fw-bold">Mô tả</label>
                         <textarea class="form-control" name="description" rows="3" maxlength="500"><c:out value="${editDescription}"/></textarea>
@@ -766,7 +810,17 @@
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Số lượng <span class="text-danger">*</span></label>
                         <input class="form-control" type="number" name="quantity"
-                               min="0" step="1" value="${fn:escapeXml(editQuantity)}" required>
+                               min="1" step="1" value="${fn:escapeXml(editQuantity)}" required>
+                        <div class="form-text">
+                            Đã sử dụng:
+                            <c:choose>
+                                <c:when test="${isEditMode && not empty editVoucher}">
+                                    ${editVoucher.usedCount}
+                                </c:when>
+                                <c:otherwise>0</c:otherwise>
+                            </c:choose>
+                            lượt.
+                        </div>
                     </div>
 
                     <div class="col-md-6">
@@ -803,17 +857,20 @@
         const keyword = normalizeVoucherText(document.getElementById('voucherSearch').value);
         const status = normalizeVoucherText(document.getElementById('voucherStatusFilter').value);
         const discount = normalizeVoucherText(document.getElementById('voucherDiscountFilter').value);
+        const applicable = normalizeVoucherText(document.getElementById('voucherApplicableFilter').value);
 
         document.querySelectorAll('#voucherTable tbody tr[data-search]').forEach(function (row) {
             const rowText = normalizeVoucherText(row.dataset.search);
             const rowStatus = normalizeVoucherText(row.dataset.status);
             const rowDiscount = normalizeVoucherText(row.dataset.discount);
+            const rowApplicable = normalizeVoucherText(row.dataset.applicable);
 
             const matchKeyword = !keyword || rowText.includes(keyword);
             const matchStatus = !status || rowStatus === status;
             const matchDiscount = !discount || rowDiscount === discount;
+            const matchApplicable = !applicable || rowApplicable === applicable;
 
-            row.style.display = matchKeyword && matchStatus && matchDiscount ? '' : 'none';
+            row.style.display = matchKeyword && matchStatus && matchDiscount && matchApplicable ? '' : 'none';
         });
     }
 
@@ -821,6 +878,7 @@
         document.getElementById('voucherSearch').value = '';
         document.getElementById('voucherStatusFilter').value = '';
         document.getElementById('voucherDiscountFilter').value = '';
+        document.getElementById('voucherApplicableFilter').value = '';
         filterVoucherTable();
     }
 
@@ -828,6 +886,7 @@
         document.getElementById('voucherSearch').addEventListener('input', filterVoucherTable);
         document.getElementById('voucherStatusFilter').addEventListener('change', filterVoucherTable);
         document.getElementById('voucherDiscountFilter').addEventListener('change', filterVoucherTable);
+        document.getElementById('voucherApplicableFilter').addEventListener('change', filterVoucherTable);
 
         if (${shouldOpenEditModal ? 'true' : 'false'}) {
             new bootstrap.Modal(document.getElementById('editVoucherModal')).show();

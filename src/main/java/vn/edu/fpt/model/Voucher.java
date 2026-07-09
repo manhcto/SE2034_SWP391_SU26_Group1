@@ -11,6 +11,8 @@ public class Voucher {
     private BigDecimal amountDiscount;
     private BigDecimal minOrderAmount;
     private int quantity;
+    private String applicableType;
+    private int usedCount;
     private Date startDate;
     private Date endDate;
     private String status;
@@ -71,6 +73,22 @@ public class Voucher {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public String getApplicableType() {
+        return applicableType;
+    }
+
+    public void setApplicableType(String applicableType) {
+        this.applicableType = safeTrim(applicableType);
+    }
+
+    public int getUsedCount() {
+        return usedCount;
+    }
+
+    public void setUsedCount(int usedCount) {
+        this.usedCount = usedCount;
     }
 
     public Date getStartDate() {

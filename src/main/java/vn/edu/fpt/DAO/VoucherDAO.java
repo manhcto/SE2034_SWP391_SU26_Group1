@@ -19,7 +19,8 @@ public class VoucherDAO {
 
         String sql =
                 "SELECT voucherID, code, [description], percentDiscount, amountDiscount, " +
-                        "minOrderAmount, quantity, startDate, endDate, [status], createdAt, updatedAt " +
+                        "minOrderAmount, quantity, applicableType, usedCount, startDate, endDate, " +
+                        "[status], createdAt, updatedAt " +
                         "FROM [dbo].[Voucher] " +
                         "ORDER BY createdAt DESC, voucherID DESC";
 
@@ -43,10 +44,11 @@ public class VoucherDAO {
 
         String sql =
                 "SELECT voucherID, code, [description], percentDiscount, amountDiscount, " +
-                        "minOrderAmount, quantity, startDate, endDate, [status], createdAt, updatedAt " +
+                        "minOrderAmount, quantity, applicableType, usedCount, startDate, endDate, " +
+                        "[status], createdAt, updatedAt " +
                         "FROM [dbo].[Voucher] " +
                         "WHERE [status] = N'Active' " +
-                        "AND quantity > 0 " +
+                        "AND usedCount < quantity " +
                         "AND GETDATE() BETWEEN startDate AND endDate " +
                         "ORDER BY endDate ASC, voucherID DESC";
 
@@ -68,7 +70,8 @@ public class VoucherDAO {
     public Voucher getVoucherById(int voucherID) {
         String sql =
                 "SELECT voucherID, code, [description], percentDiscount, amountDiscount, " +
-                        "minOrderAmount, quantity, startDate, endDate, [status], createdAt, updatedAt " +
+                        "minOrderAmount, quantity, applicableType, usedCount, startDate, endDate, " +
+                        "[status], createdAt, updatedAt " +
                         "FROM [dbo].[Voucher] " +
                         "WHERE voucherID = ?";
 
@@ -94,8 +97,8 @@ public class VoucherDAO {
         String sql =
                 "INSERT INTO [dbo].[Voucher] " +
                         "([code], [description], percentDiscount, amountDiscount, minOrderAmount, " +
-                        "quantity, startDate, endDate, [status]) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        "quantity, applicableType, usedCount, startDate, endDate, [status]) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -106,9 +109,10 @@ public class VoucherDAO {
             setNullableBigDecimal(ps, 4, voucher.getAmountDiscount());
             setNullableBigDecimal(ps, 5, voucher.getMinOrderAmount());
             ps.setInt(6, voucher.getQuantity());
-            ps.setTimestamp(7, toTimestamp(voucher.getStartDate()));
-            ps.setTimestamp(8, toTimestamp(voucher.getEndDate()));
-            ps.setString(9, voucher.getStatus());
+            ps.setString(7, voucher.getApplicableType());
+            ps.setTimestamp(8, toTimestamp(voucher.getStartDate()));
+            ps.setTimestamp(9, toTimestamp(voucher.getEndDate()));
+            ps.setString(10, voucher.getStatus());
 
             return ps.executeUpdate() > 0;
 
@@ -123,8 +127,8 @@ public class VoucherDAO {
         String sql =
                 "UPDATE [dbo].[Voucher] " +
                         "SET [code] = ?, [description] = ?, percentDiscount = ?, amountDiscount = ?, " +
-                        "minOrderAmount = ?, quantity = ?, startDate = ?, endDate = ?, [status] = ?, " +
-                        "updatedAt = GETDATE() " +
+                        "minOrderAmount = ?, quantity = ?, applicableType = ?, startDate = ?, " +
+                        "endDate = ?, [status] = ?, updatedAt = GETDATE() " +
                         "WHERE voucherID = ?";
 
         try (Connection conn = new DBConnection().getConnection();
@@ -136,10 +140,11 @@ public class VoucherDAO {
             setNullableBigDecimal(ps, 4, voucher.getAmountDiscount());
             setNullableBigDecimal(ps, 5, voucher.getMinOrderAmount());
             ps.setInt(6, voucher.getQuantity());
-            ps.setTimestamp(7, toTimestamp(voucher.getStartDate()));
-            ps.setTimestamp(8, toTimestamp(voucher.getEndDate()));
-            ps.setString(9, voucher.getStatus());
-            ps.setInt(10, voucher.getVoucherID());
+            ps.setString(7, voucher.getApplicableType());
+            ps.setTimestamp(8, toTimestamp(voucher.getStartDate()));
+            ps.setTimestamp(9, toTimestamp(voucher.getEndDate()));
+            ps.setString(10, voucher.getStatus());
+            ps.setInt(11, voucher.getVoucherID());
 
             return ps.executeUpdate() > 0;
 
@@ -203,6 +208,8 @@ public class VoucherDAO {
         voucher.setAmountDiscount(rs.getBigDecimal("amountDiscount"));
         voucher.setMinOrderAmount(rs.getBigDecimal("minOrderAmount"));
         voucher.setQuantity(rs.getInt("quantity"));
+        voucher.setApplicableType(rs.getString("applicableType"));
+        voucher.setUsedCount(rs.getInt("usedCount"));
         voucher.setStartDate(rs.getTimestamp("startDate"));
         voucher.setEndDate(rs.getTimestamp("endDate"));
         voucher.setStatus(rs.getString("status"));
