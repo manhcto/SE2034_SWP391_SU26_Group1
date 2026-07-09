@@ -103,11 +103,15 @@ public class UserDAO {
     public User login(String email, String password) {
 
         String sql = """
-        SELECT *
-        FROM [User]
-        WHERE email = ?
-        AND password = ?
-        AND status = 'Active'
+        SELECT
+            u.*,
+            r.roleName
+        FROM [User] u
+        LEFT JOIN [Role] r
+            ON u.roleID = r.roleID
+        WHERE LOWER(u.email) = LOWER(?)
+        AND u.[password] = ?
+        AND u.[status] = 'Active'
         """;
 
         try {
@@ -139,6 +143,7 @@ public class UserDAO {
 
                 user.setAddress(rs.getString("address"));
                 user.setRoleID(rs.getInt("roleID"));
+                user.setRoleName(rs.getString("roleName"));
                 user.setStatus(rs.getString("status"));
 
                 return user;
@@ -155,9 +160,13 @@ public class UserDAO {
     public User getUserByEmail(String email) {
 
         String sql = """
-        SELECT *
-        FROM [User]
-        WHERE email = ?
+        SELECT
+            u.*,
+            r.roleName
+        FROM [User] u
+        LEFT JOIN [Role] r
+            ON u.roleID = r.roleID
+        WHERE LOWER(u.email) = LOWER(?)
         """;
 
         try {
@@ -187,6 +196,7 @@ public class UserDAO {
 
                 user.setAddress(rs.getString("address"));
                 user.setRoleID(rs.getInt("roleID"));
+                user.setRoleName(rs.getString("roleName"));
                 user.setStatus(rs.getString("status"));
 
                 return user;

@@ -1,14 +1,13 @@
 package vn.edu.fpt.controller.authentication;
 
-import vn.edu.fpt.DAO.UserDAO;
-import vn.edu.fpt.model.User;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.edu.fpt.DAO.UserDAO;
+import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 
@@ -24,90 +23,40 @@ public class LoginController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
+        String email = trimToEmpty(request.getParameter("email"));
+        String password = trimToEmpty(request.getParameter("password"));
 
         User user = userDAO.login(email, password);
 
         if (user != null) {
-
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
 
-            int roleID = user.getRoleID();
+            String redirectAfterLogin = getRedirectAfterLogin(request, session);
+            session.removeAttribute("redirectAfterLogin");
 
-            if (roleID == 4) {
-                String redirectAfterLogin = (String) session.getAttribute("redirectAfterLogin");
-                if (isSafeRedirect(request, redirectAfterLogin)) {
-                    session.removeAttribute("redirectAfterLogin");
-                    response.sendRedirect(redirectAfterLogin);
-                    return;
-                }
-            }
-
-            if (roleID == 1) {
-                response.sendRedirect(
-                        request.getContextPath()
-                                + "/views/admin/admin-home.jsp");
-            }
-            else if (roleID == 2) {
-                response.sendRedirect(
-                        request.getContextPath()
-                                + "/views/staff/staff-home.jsp");
-            }
-            else if (roleID == 3) {
-                response.sendRedirect(
-                        request.getContextPath()
-                                + "/views/guide/tour-guide-home.jsp");
-            }
-            else {
-                response.sendRedirect(
-                        request.getContextPath()
-                                + "/home");
-            }
-
+            redirectByRole(request, response, user, redirectAfterLogin);
             return;
         }
 
         User existingUser = userDAO.getUserByEmail(email);
 
         if (existingUser == null) {
-
-            request.setAttribute(
-                    "error",
-                    "Email không tồn tại!"
-            );
-
+            request.setAttribute("error", "Email không tồn tại!");
         } else {
-
             String status = existingUser.getStatus();
 
             if ("Inactive".equalsIgnoreCase(status)) {
-
-                request.setAttribute(
-                        "error",
-                        "Tài khoản chưa được kích hoạt!"
-                );
-
+                request.setAttribute("error", "Tài khoản chưa được kích hoạt!");
             } else if ("Blocked".equalsIgnoreCase(status)) {
-
-                request.setAttribute(
-                        "error",
-                        "Tài khoản đã bị khóa!"
-                );
-
+                request.setAttribute("error", "Tài khoản đã bị khóa!");
             } else {
-
-                request.setAttribute(
-                        "error",
-                        "Sai mật khẩu!"
-                );
+                request.setAttribute("error", "Sai mật khẩu!");
             }
         }
 
         request.getRequestDispatcher("/views/login.jsp")
                 .forward(request, response);
-
     }
 
     @Override
@@ -115,22 +64,28 @@ public class LoginController extends HttpServlet {
                          HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Không tạo session mới nếu chưa tồn tại
-        HttpSession session = request.getSession(false);
+        String redirect = request.getParameter("redirect");
+        HttpSession session = isSafeRedirect(redirect)
+                ? request.getSession()
+                : request.getSession(false);
 
         if (session != null) {
+            if (isSafeRedirect(redirect)) {
+                session.setAttribute("redirectAfterLogin", redirect);
+                request.setAttribute("redirectAfterLogin", redirect);
+            } else {
+                String redirectAfterLogin =
+                        (String) session.getAttribute("redirectAfterLogin");
 
-            String successMsg =
-                    (String) session.getAttribute("successMsg");
+                if (isSafeRedirect(redirectAfterLogin)) {
+                    request.setAttribute("redirectAfterLogin", redirectAfterLogin);
+                }
+            }
+
+            String successMsg = (String) session.getAttribute("successMsg");
 
             if (successMsg != null) {
-
-                request.setAttribute(
-                        "successMsg",
-                        successMsg
-                );
-
-                // Hiển thị 1 lần rồi xóa
+                request.setAttribute("successMsg", successMsg);
                 session.removeAttribute("successMsg");
             }
         }
@@ -139,13 +94,78 @@ public class LoginController extends HttpServlet {
                 .forward(request, response);
     }
 
-    private boolean isSafeRedirect(HttpServletRequest request, String redirectAfterLogin) {
-        if (redirectAfterLogin == null || redirectAfterLogin.isBlank()) {
+    private void redirectByRole(HttpServletRequest request,
+                                HttpServletResponse response,
+                                User user,
+                                String redirectAfterLogin)
+            throws IOException {
+
+        String roleName = normalizeRoleName(user.getRoleName());
+
+        if ("admin".equals(roleName) || user.getRoleID() == 1) {
+            response.sendRedirect(request.getContextPath() + "/admin/home");
+            return;
+        }
+
+        if (isTourGuide(user, roleName)) {
+            response.sendRedirect(request.getContextPath() + "/guide/home");
+            return;
+        }
+
+        if (isStaff(user, roleName)) {
+            response.sendRedirect(request.getContextPath() + "/staff/home");
+            return;
+        }
+
+        response.sendRedirect(request.getContextPath() + redirectAfterLogin);
+    }
+
+    private String getRedirectAfterLogin(HttpServletRequest request, HttpSession session) {
+        String redirect = request.getParameter("redirect");
+
+        if (!isSafeRedirect(redirect) && session != null) {
+            redirect = (String) session.getAttribute("redirectAfterLogin");
+        }
+
+        return isSafeRedirect(redirect) ? redirect : "/home";
+    }
+
+    private boolean isSafeRedirect(String redirect) {
+        if (redirect == null || redirect.trim().isEmpty()) {
             return false;
         }
 
-        String contextPath = request.getContextPath();
-        return redirectAfterLogin.startsWith(contextPath + "/")
-                && !redirectAfterLogin.startsWith(contextPath + "//");
+        String value = redirect.trim();
+        return value.startsWith("/")
+                && !value.startsWith("//")
+                && !value.contains("\\")
+                && !value.toLowerCase().contains("%5c");
+    }
+
+    private String trimToEmpty(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private String normalizeRoleName(String roleName) {
+        return roleName == null ? "" : roleName.trim().toLowerCase();
+    }
+
+    private boolean isTourGuide(User user, String roleName) {
+        String compactRoleName = roleName.replace(" ", "").replace("-", "");
+
+        if (!compactRoleName.isEmpty()) {
+            return "tourguide".equals(compactRoleName)
+                    || "guide".equals(compactRoleName);
+        }
+
+        return user.getRoleID() == 3;
+    }
+
+    private boolean isStaff(User user, String roleName) {
+        if (!roleName.isEmpty()) {
+            return "staff".equals(roleName);
+        }
+
+        return user.getRoleID() == 2;
     }
 }
