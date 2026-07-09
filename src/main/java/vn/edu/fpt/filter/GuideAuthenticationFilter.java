@@ -45,12 +45,17 @@ public class GuideAuthenticationFilter implements Filter {
         String roleName = user.getRoleName();
 
         if (roleName != null) {
-            String normalizedRoleName = roleName.trim().toLowerCase();
-            if ("tour guide".equals(normalizedRoleName)
-                    || "tourguide".equals(normalizedRoleName)
-                    || "tour-guide".equals(normalizedRoleName)
+            String normalizedRoleName = roleName.trim().toLowerCase()
+                    .replace(" ", "")
+                    .replace("-", "");
+
+            if ("tourguide".equals(normalizedRoleName)
                     || "guide".equals(normalizedRoleName)) {
                 return true;
+            }
+
+            if (!normalizedRoleName.isEmpty()) {
+                return false;
             }
         }
 

@@ -83,6 +83,7 @@
                         <label class="form-label">Trạng thái assignment</label>
                         <select class="form-select" name="status">
                             <option value="">Tất cả</option>
+                            <option value="Assigned" ${status == 'Assigned' ? 'selected' : ''}>Assigned</option>
                             <option value="Pending" ${status == 'Pending' ? 'selected' : ''}>Pending</option>
                             <option value="Accepted" ${status == 'Accepted' ? 'selected' : ''}>Accepted</option>
                             <option value="Confirmed" ${status == 'Confirmed' ? 'selected' : ''}>Confirmed</option>

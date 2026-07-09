@@ -107,13 +107,13 @@ public class LoginController extends HttpServlet {
             return;
         }
 
-        if ("staff".equals(roleName) || user.getRoleID() == 2) {
-            response.sendRedirect(request.getContextPath() + "/staff/home");
+        if (isTourGuide(user, roleName)) {
+            response.sendRedirect(request.getContextPath() + "/guide/home");
             return;
         }
 
-        if (isTourGuide(user, roleName)) {
-            response.sendRedirect(request.getContextPath() + "/guide/home");
+        if (isStaff(user, roleName)) {
+            response.sendRedirect(request.getContextPath() + "/staff/home");
             return;
         }
 
@@ -151,10 +151,21 @@ public class LoginController extends HttpServlet {
     }
 
     private boolean isTourGuide(User user, String roleName) {
-        return user.getRoleID() == 3
-                || "tour guide".equals(roleName)
-                || "tourguide".equals(roleName)
-                || "tour-guide".equals(roleName)
-                || "guide".equals(roleName);
+        String compactRoleName = roleName.replace(" ", "").replace("-", "");
+
+        if (!compactRoleName.isEmpty()) {
+            return "tourguide".equals(compactRoleName)
+                    || "guide".equals(compactRoleName);
+        }
+
+        return user.getRoleID() == 3;
+    }
+
+    private boolean isStaff(User user, String roleName) {
+        if (!roleName.isEmpty()) {
+            return "staff".equals(roleName);
+        }
+
+        return user.getRoleID() == 2;
     }
 }

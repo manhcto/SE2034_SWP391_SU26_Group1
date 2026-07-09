@@ -253,16 +253,26 @@ public class TourGuideScheduleController extends HttpServlet {
         String roleName = user.getRoleName();
 
         if (roleName != null) {
-            String normalizedRoleName = roleName.trim().toLowerCase();
-            return "tour guide".equals(normalizedRoleName)
-                    || "guide".equals(normalizedRoleName);
+            String normalizedRoleName = roleName.trim().toLowerCase()
+                    .replace(" ", "")
+                    .replace("-", "");
+
+            if ("tourguide".equals(normalizedRoleName)
+                    || "guide".equals(normalizedRoleName)) {
+                return true;
+            }
+
+            if (!normalizedRoleName.isEmpty()) {
+                return false;
+            }
         }
 
         return user.getRoleID() == 3;
     }
 
     private boolean isValidAssignmentStatus(String status) {
-        return "Pending".equals(status)
+        return "Assigned".equals(status)
+                || "Pending".equals(status)
                 || "Accepted".equals(status)
                 || "Confirmed".equals(status)
                 || "In Progress".equals(status)

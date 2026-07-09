@@ -95,6 +95,7 @@
                         <div class="col-md-4">
                             <label class="form-label">Trạng thái</label>
                             <select name="assignmentStatus" class="form-select" required>
+                                <option value="Assigned">Assigned</option>
                                 <option value="Pending">Pending</option>
                                 <option value="Confirmed">Confirmed</option>
                                 <option value="Accepted">Accepted</option>

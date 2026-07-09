@@ -46,7 +46,7 @@ public class AssignmentDAOImpl {
             ta.customerNote,
             ta.createdAt,
             ta.updatedAt,
-            ts.scheduleStatus,
+            N'Open' AS scheduleStatus,
             ts.startDate,
             ts.endDate,
             ts.maxParticipants,
@@ -194,7 +194,7 @@ public class AssignmentDAOImpl {
             SELECT
                 ts.tourScheduleID,
                 ts.tourID,
-                ts.scheduleStatus,
+                N'Open' AS scheduleStatus,
                 ts.startDate,
                 ts.endDate,
                 ts.maxParticipants,
@@ -220,18 +220,6 @@ public class AssignmentDAOImpl {
                 WHERE existing.tourScheduleID = ts.tourScheduleID
                   AND existing.assignmentStatus NOT IN (N'Cancelled', N'Rejected')
             )
-              AND (
-                    ts.scheduleStatus IN (N'Confirmed', N'Open', N'Available')
-                    OR EXISTS (
-                        SELECT 1
-                        FROM Booking_Detail confirmedDetail
-                        JOIN Booking confirmedBooking
-                            ON confirmedDetail.bookingID = confirmedBooking.bookingID
-                        WHERE confirmedDetail.tourScheduleID = ts.tourScheduleID
-                          AND confirmedBooking.bookingType = N'Tour'
-                          AND confirmedBooking.[status] = N'Confirmed'
-                    )
-              )
             """);
 
         String normalizedKeyword = blankToNull(keyword);
@@ -254,7 +242,6 @@ public class AssignmentDAOImpl {
             GROUP BY
                 ts.tourScheduleID,
                 ts.tourID,
-                ts.scheduleStatus,
                 ts.startDate,
                 ts.endDate,
                 ts.maxParticipants,
@@ -290,7 +277,7 @@ public class AssignmentDAOImpl {
             SELECT
                 ts.tourScheduleID,
                 ts.tourID,
-                ts.scheduleStatus,
+                N'Open' AS scheduleStatus,
                 ts.startDate,
                 ts.endDate,
                 ts.maxParticipants,
@@ -314,7 +301,6 @@ public class AssignmentDAOImpl {
             GROUP BY
                 ts.tourScheduleID,
                 ts.tourID,
-                ts.scheduleStatus,
                 ts.startDate,
                 ts.endDate,
                 ts.maxParticipants,
@@ -604,7 +590,10 @@ public class AssignmentDAOImpl {
             FROM [User] u
             LEFT JOIN [Role] r
                 ON u.roleID = r.roleID
-            WHERE (r.roleName = N'Tour Guide' OR u.roleID = 3)
+            WHERE (
+                    LOWER(REPLACE(ISNULL(r.roleName, N''), N' ', N'')) IN (N'tourguide', N'guide')
+                    OR (NULLIF(LTRIM(RTRIM(ISNULL(r.roleName, N''))), N'') IS NULL AND u.roleID IN (2, 3))
+                  )
               AND u.[status] = N'Active'
             ORDER BY u.firstName, u.lastName, u.userID DESC
             """;

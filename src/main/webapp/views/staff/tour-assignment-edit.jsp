@@ -93,6 +93,7 @@
                         <div class="col-md-4">
                             <label class="form-label">Trạng thái</label>
                             <select name="assignmentStatus" class="form-select" required>
+                                <option value="Assigned" ${assignment.assignmentStatus == 'Assigned' ? 'selected' : ''}>Assigned</option>
                                 <option value="Pending" ${assignment.assignmentStatus == 'Pending' ? 'selected' : ''}>Pending</option>
                                 <option value="Accepted" ${assignment.assignmentStatus == 'Accepted' ? 'selected' : ''}>Accepted</option>
                                 <option value="Confirmed" ${assignment.assignmentStatus == 'Confirmed' ? 'selected' : ''}>Confirmed</option>

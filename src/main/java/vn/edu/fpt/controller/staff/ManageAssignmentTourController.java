@@ -230,7 +230,7 @@ public class ManageAssignmentTourController extends HttpServlet {
         }
 
         return switch (status.trim()) {
-            case "Pending", "Accepted", "Confirmed", "In Progress", "Completed", "Cancelled", "Rejected" -> status.trim();
+            case "Assigned", "Pending", "Accepted", "Confirmed", "In Progress", "Completed", "Cancelled", "Rejected" -> status.trim();
             default -> "Pending";
         };
     }
