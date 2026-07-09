@@ -7,7 +7,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AdministrativeUnitDAO {
 
@@ -43,6 +45,57 @@ public class AdministrativeUnitDAO {
         }
 
         return units;
+    }
+
+    public List<String> getActiveProvinceNames() {
+        Set<String> names = new LinkedHashSet<>();
+
+        String sql =
+                "SELECT DISTINCT provinceCode, provinceName " +
+                "FROM [dbo].[Administrative_Unit] " +
+                "WHERE isActive = 1 " +
+                "ORDER BY CAST(provinceCode AS INT), provinceName";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                names.add(rs.getString("provinceName"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>(names);
+    }
+
+    public List<String> getActiveWardNamesByProvince(String provinceName) {
+        List<String> names = new ArrayList<>();
+
+        String sql =
+                "SELECT wardName " +
+                "FROM [dbo].[Administrative_Unit] " +
+                "WHERE isActive = 1 AND provinceName = ? " +
+                "ORDER BY CASE wardType WHEN N'Phường' THEN 1 WHEN N'Xã' THEN 2 ELSE 3 END, wardName";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, provinceName);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    names.add(rs.getString("wardName"));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return names;
     }
 
     public boolean isValidProvinceWard(String provinceName, String wardName) {

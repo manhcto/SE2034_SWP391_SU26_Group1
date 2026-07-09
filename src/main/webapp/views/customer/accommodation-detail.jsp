@@ -861,7 +861,7 @@
             </button>
 
             <a class="btn-review"
-               href="${pageContext.request.contextPath}/feedback-list?type=Accommodation&serviceID=${accommodation.serviceID}">
+               href="${pageContext.request.contextPath}/feedback-list?type=Accommodation&serviceID=${accommodation.accommodationID}">
                 <i class="fa-solid fa-star"></i>
                 Xem đánh giá
             </a>

@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -14,9 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -25,11 +24,9 @@
             color: #0f172a;
         }
 
-        .admin-layout {
-            display: flex;
-            min-height: 100vh;
-        }
+        .admin-layout { display: flex; min-height: 100vh; }
 
+        /* -- SIDEBAR GỐC (ĐỒNG BỘ MÀU CAM) -- */
         .sidebar {
             width: 292px;
             background: #0f172a;
@@ -40,290 +37,74 @@
             padding: 26px 18px;
             box-shadow: 8px 0 26px rgba(15, 23, 42, 0.18);
         }
+        .sidebar::-webkit-scrollbar { width: 7px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 20px; }
 
-        .sidebar::-webkit-scrollbar {
-            width: 7px;
-        }
+        .brand-box { padding: 8px 10px 22px; margin-bottom: 12px; border-bottom: 1px solid rgba(148, 163, 184, 0.25); }
+        .brand-logo { width: 52px; height: 52px; border-radius: 18px; background: linear-gradient(135deg, #f97316, #ea580c); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-bottom: 12px; }
+        .brand-box h2 { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -0.6px; }
+        .brand-box p { color: #cbd5e1; margin: 5px 0 0; font-size: 14px; }
 
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 20px;
-        }
+        .nav-section-title { font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1.2px; margin: 22px 12px 10px; font-weight: 800; }
 
-        .brand-box {
-            padding: 8px 10px 22px;
-            margin-bottom: 12px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-        }
+        .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 15px; color: #e2e8f0; text-decoration: none; font-size: 14px; font-weight: 700; margin-bottom: 8px; transition: all 0.2s ease; }
+        .sidebar-link i { width: 22px; text-align: center; font-size: 16px; }
+        .sidebar-link:hover { background: #1e293b; color: #ffffff; transform: translateX(4px); }
+        .sidebar-link.active { background: linear-gradient(135deg, #f97316, #ea580c); color: #ffffff; box-shadow: 0 10px 22px rgba(234, 88, 12, 0.22); }
 
-        .brand-logo {
-            width: 52px;
-            height: 52px;
-            border-radius: 18px;
-            background: linear-gradient(135deg, #06b6d4, #4e46dc);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 20px;
-            margin-bottom: 12px;
-        }
+        .admin-user { margin-top: 26px; border-top: 1px solid rgba(148, 163, 184, 0.25); padding: 18px 8px 4px; display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #f97316, #22c55e); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .admin-user small { color: #94a3b8; }
 
-        .brand-box h2 {
-            font-size: 26px;
-            font-weight: 800;
-            margin: 0;
-            letter-spacing: -0.6px;
-        }
+        /* -- MAIN CONTENT -- */
+        .main-content { margin-left: 292px; width: calc(100% - 292px); padding: 34px 42px; }
 
-        .brand-box p {
-            color: #cbd5e1;
-            margin: 5px 0 0;
-            font-size: 14px;
-        }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 26px; }
+        .topbar h1 { font-size: 34px; font-weight: 900; margin: 0; letter-spacing: -0.8px; }
+        .topbar p { color: #64748b; margin: 6px 0 0; font-size: 15px; }
 
-        .nav-section-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #94a3b8;
-            letter-spacing: 1.2px;
-            margin: 22px 12px 10px;
-            font-weight: 800;
-        }
+        .top-action-btn { border: none; border-radius: 16px; padding: 12px 18px; text-decoration: none; font-weight: 900; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08); background: #0f172a; color: #ffffff; }
+        .top-action-btn:hover { background: #1e293b; color: #ffffff; }
 
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 13px 14px;
-            border-radius: 15px;
-            color: #e2e8f0;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            transition: all 0.2s ease;
-        }
+        /* -- THỐNG KÊ (GIỐNG BOOKING) -- */
+        .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 22px; }
+        .summary-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 22px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06); padding: 20px; display: flex; align-items: center; gap: 14px; }
+        .summary-icon { width: 48px; height: 48px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
+        .summary-label { color: #64748b; font-size: 13px; font-weight: 800; margin-bottom: 3px; }
+        .summary-value { color: #0f172a; font-size: 26px; font-weight: 900; line-height: 1; }
 
-        .sidebar-link i {
-            width: 22px;
-            text-align: center;
-            font-size: 16px;
-        }
+        /* -- BẢNG VÀ CARD NỘI DUNG -- */
+        .content-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 24px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08); }
+        .table { margin-bottom: 0; }
+        .table thead th { background: #f8fafc; color: #334155; font-size: 14px; font-weight: 900; border-bottom: 1px solid #e2e8f0; padding: 16px 14px; white-space: nowrap; }
+        .table tbody td { padding: 15px 14px; vertical-align: middle; color: #0f172a; font-size: 14px; }
 
-        .sidebar-link:hover {
-            background: #1e293b;
-            color: #ffffff;
-            transform: translateX(4px);
-        }
+        /* Feedback ID màu Cam */
+        .booking-id { font-weight: 900; color: #ea580c; }
 
-        .sidebar-link.active {
-            background: linear-gradient(135deg, #06b6d4, #4e46dc);
-            color: #ffffff;
-            box-shadow: 0 10px 22px rgba(6, 182, 212, 0.22);
-        }
+        .status-badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 900; }
+        .status-completed { background: #dcfce7; color: #166534; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
 
-        .admin-user {
-            margin-top: 26px;
-            border-top: 1px solid rgba(148, 163, 184, 0.25);
-            padding: 18px 8px 4px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        /* Nút Xem màu Cam */
+        .btn-view { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px; border-radius: 999px; background: #ea580c; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 900; white-space: nowrap; }
+        .btn-view:hover { background: #c2410c; color: #ffffff; }
 
-        .avatar {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #06b6d4, #22c55e);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            color: white;
-        }
+        .empty-box { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 18px; padding: 40px; text-align: center; color: #64748b; font-weight: 800; }
 
-        .admin-user small {
-            color: #94a3b8;
-        }
-
-        .main-content {
-            margin-left: 292px;
-            width: calc(100% - 292px);
-            padding: 34px 42px;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 26px;
-        }
-
-        .topbar h1 {
-            font-size: 34px;
-            font-weight: 900;
-            margin: 0;
-            letter-spacing: -0.8px;
-        }
-
-        .topbar p {
-            color: #64748b;
-            margin: 6px 0 0;
-            font-size: 15px;
-        }
-
-        .top-action-btn {
-            border: none;
-            border-radius: 16px;
-            padding: 12px 18px;
-            text-decoration: none;
-            font-weight: 900;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
-            background: #0f172a;
-            color: #ffffff;
-        }
-
-        .top-action-btn:hover {
-            background: #1e293b;
-            color: #ffffff;
-        }
-
-        .content-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-        }
-
-        .table {
-            margin-bottom: 0;
-        }
-
-        .table thead th {
-            background: #f8fafc;
-            color: #334155;
-            font-size: 14px;
-            font-weight: 900;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 16px 14px;
-            white-space: nowrap;
-        }
-
-        .table tbody td {
-            padding: 15px 14px;
-            vertical-align: middle;
-            color: #0f172a;
-            font-size: 14px;
-        }
-
-        .feedback-id {
-            font-weight: 900;
-            color: #4e46dc;
-        }
-
-        .rate-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: #fef3c7;
-            color: #92400e;
-            font-size: 13px;
-            font-weight: 900;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6px 12px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 900;
-        }
-
-        .status-visible {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .status-hidden {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .content-preview {
-            max-width: 360px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            color: #475569;
-            font-weight: 600;
-        }
-
-        .btn-view {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            padding: 9px 14px;
-            border-radius: 999px;
-            background: #4e46dc;
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 900;
-            white-space: nowrap;
-        }
-
-        .btn-view:hover {
-            background: #3730a3;
-            color: #ffffff;
-        }
-
-        .empty-box {
-            background: #f8fafc;
-            border: 1px dashed #cbd5e1;
-            border-radius: 18px;
-            padding: 40px;
-            text-align: center;
-            color: #64748b;
-            font-weight: 800;
-        }
+        /* Class màu Cam custom cho Nút Lọc */
+        .btn-orange { background-color: #ea580c; color: #fff; border-color: #ea580c; }
+        .btn-orange:hover { background-color: #c2410c; color: #fff; border-color: #c2410c; }
+        .btn-outline-orange { color: #ea580c; border-color: #ea580c; background-color: transparent; }
+        .btn-outline-orange:hover { background-color: #ea580c; color: #fff; }
 
         @media (max-width: 992px) {
-            .sidebar {
-                position: static;
-                width: 100%;
-                height: auto;
-            }
-
-            .admin-layout {
-                display: block;
-            }
-
-            .main-content {
-                margin-left: 0;
-                width: 100%;
-                padding: 24px;
-            }
-
-            .topbar {
-                display: block;
-            }
-
-            .top-action-btn {
-                margin-top: 16px;
-            }
+            .sidebar { position: static; width: 100%; height: auto; }
+            .admin-layout { display: block; }
+            .main-content { margin-left: 0; width: 100%; padding: 24px; }
+            .topbar { display: block; }
+            .top-action-btn { margin-top: 16px; }
+            .summary-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -384,9 +165,9 @@
 
         <div class="nav-section-title">Vận hành</div>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
             <i class="fa-solid fa-calendar-check"></i>
-            <span>Quản lý đặt chỗ</span>
+            <span>Đơn đặt</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
@@ -413,7 +194,7 @@
 
         <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/feedback">
             <i class="fa-solid fa-comments"></i>
-            <span>Xem Feedback</span>
+            <span>Đánh giá khách hàng</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/notification">
@@ -430,11 +211,24 @@
         </div>
     </aside>
 
+    <c:set var="totalFeedbackCount" value="${fn:length(feedbackList)}" />
+    <c:set var="visibleFeedbackCount" value="0" />
+    <c:set var="hiddenFeedbackCount" value="0" />
+    <c:forEach items="${feedbackList}" var="fb">
+        <c:if test="${fb.status == 'Visible'}">
+            <c:set var="visibleFeedbackCount" value="${visibleFeedbackCount + 1}" />
+        </c:if>
+        <c:if test="${fb.status != 'Visible'}">
+            <c:set var="hiddenFeedbackCount" value="${hiddenFeedbackCount + 1}" />
+        </c:if>
+    </c:forEach>
+
     <main class="main-content">
+
         <div class="topbar">
             <div>
                 <h1>Admin Feedback View</h1>
-                <p>Admin xem danh sách feedback của khách hàng. Admin chỉ có quyền xem, không duyệt hoặc chỉnh sửa feedback.</p>
+                <p>Theo dõi toàn bộ đánh giá của khách hàng đối với các dịch vụ.</p>
             </div>
 
             <a class="top-action-btn" href="${pageContext.request.contextPath}/admin/home">
@@ -443,7 +237,50 @@
             </a>
         </div>
 
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-icon" style="background: #fffbeb; color: #d97706;">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+                <div>
+                    <div class="summary-label">Tổng số đánh giá</div>
+                    <div class="summary-value">${totalFeedbackCount}</div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-icon" style="background: #dcfce7; color: #166534;">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <div class="summary-label">Đã hiển thị</div>
+                    <div class="summary-value">${visibleFeedbackCount}</div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-icon" style="background: #fee2e2; color: #991b1b;">
+                    <i class="fa-solid fa-eye-slash"></i>
+                </div>
+                <div>
+                    <div class="summary-label">Đang ẩn</div>
+                    <div class="summary-value">${hiddenFeedbackCount}</div>
+                </div>
+            </div>
+        </div>
+
         <div class="content-card">
+
+            <div class="mb-4 d-flex gap-3">
+                <a href="?type=" class="btn ${empty param.type or param.type == 'all' ? 'btn-orange' : 'btn-outline-orange'} rounded-pill px-4 fw-bold">Tất cả</a>
+                <a href="?type=tour" class="btn ${param.type == 'tour' ? 'btn-orange' : 'btn-outline-orange'} rounded-pill px-4 fw-bold">
+                    <i class="fa-solid fa-map-location-dot me-1"></i> Tour
+                </a>
+                <a href="?type=accommodation" class="btn ${param.type == 'accommodation' ? 'btn-orange' : 'btn-outline-orange'} rounded-pill px-4 fw-bold">
+                    <i class="fa-solid fa-hotel me-1"></i> Khách sạn
+                </a>
+            </div>
+
             <c:choose>
                 <c:when test="${not empty feedbackList}">
                     <div class="table-responsive">
@@ -451,61 +288,65 @@
                             <thead>
                             <tr>
                                 <th>Feedback ID</th>
-                                <th>Rate</th>
-                                <th>Nội dung</th>
+                                <th>Khách hàng (User ID)</th>
+                                <th>Loại Đơn</th>
+                                <th>Mã Đơn</th>
+                                <th>Đánh giá</th>
+                                <th style="width: 35%">Nội dung</th>
                                 <th>Ngày tạo</th>
-                                <th>Status</th>
-                                <th>User ID</th>
-                                <th>Booking ID</th>
-                                <th>Thao tác</th>
+                                <th>Trạng thái</th>
                             </tr>
                             </thead>
-
                             <tbody>
                             <c:forEach items="${feedbackList}" var="feedback">
                                 <tr>
                                     <td>
-                                        <span class="feedback-id">#${feedback.feedbackID}</span>
+                                        <span class="booking-id">#${feedback.feedbackID}</span>
+                                    </td>
+
+                                    <td class="fw-bold">${feedback.userID}</td>
+
+                                    <td>
+                                            <span class="badge ${feedback.type == 'tour' ? 'bg-info text-dark' : 'bg-success'}">
+                                                    ${feedback.type == 'tour' ? 'Tour' : 'Phòng'}
+                                            </span>
+                                    </td>
+
+                                    <td class="fw-bold text-secondary">
+                                        #${feedback.bookingID}
                                     </td>
 
                                     <td>
-                                        <span class="rate-badge">
-                                            <i class="fa-solid fa-star"></i>
-                                            <fmt:formatNumber value="${feedback.rate}" maxFractionDigits="0"/>
-                                        </span>
+                                        <div class="text-warning">
+                                            <c:forEach begin="1" end="${feedback.rate}">
+                                                <i class="fa-solid fa-star"></i>
+                                            </c:forEach>
+                                        </div>
                                     </td>
 
                                     <td>
-                                        <div class="content-preview">
+                                        <div class="text-wrap text-break" style="max-width: 350px;">
                                                 ${feedback.content}
                                         </div>
                                     </td>
 
                                     <td>
-                                        <fmt:formatDate value="${feedback.createDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                        <fmt:formatDate value="${feedback.createDate}" pattern="dd/MM/yyyy HH:mm" />
                                     </td>
 
                                     <td>
                                         <c:choose>
                                             <c:when test="${feedback.status == 'Visible'}">
-                                                <span class="status-badge status-visible">Visible</span>
+                                                    <span class="status-badge status-completed">
+                                                        <i class="fa-solid fa-circle-check me-1"></i> Hiển thị
+                                                    </span>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="status-badge status-hidden">Hidden</span>
+                                                    <span class="status-badge status-cancelled">
+                                                        <i class="fa-solid fa-eye-slash me-1"></i> Đang ẩn
+                                                    </span>
                                             </c:otherwise>
                                         </c:choose>
-                                    </td>
-
-                                    <td>${feedback.userID}</td>
-
-                                    <td>${feedback.bookingID}</td>
-
-                                    <td>
-                                        <a class="btn-view"
-                                           href="${pageContext.request.contextPath}/admin/feedback-detail?feedbackID=${feedback.feedbackID}">
-                                            <i class="fa-solid fa-eye"></i>
-                                            Xem
-                                        </a>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -516,7 +357,8 @@
 
                 <c:otherwise>
                     <div class="empty-box">
-                        Chưa có feedback nào trong hệ thống.
+                        <i class="fa-solid fa-comments fs-1 text-secondary mb-3"></i>
+                        <br>Chưa có feedback nào trong hệ thống.
                     </div>
                 </c:otherwise>
             </c:choose>

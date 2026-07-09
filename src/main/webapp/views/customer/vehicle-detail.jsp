@@ -353,18 +353,6 @@
             color: #ffffff;
         }
 
-        .btn-cart {
-            background: #ffffff;
-            color: var(--primary);
-            border: 1px solid #bfdbfe;
-            box-shadow: none;
-        }
-
-        .btn-cart:hover {
-            background: #eff6ff;
-            color: var(--primary-dark);
-        }
-
         .btn-review {
             width: 100%;
             border: none;
@@ -498,13 +486,6 @@
 
         <span>${vehicle.displayName}</span>
     </div>
-
-    <c:if test="${param.status == 'cartAdded'}">
-        <div class="alert alert-success rounded-4 border-0 shadow-sm">
-            <i class="fa-solid fa-cart-plus me-2"></i>
-            Đã thêm xe vào giỏ hàng tạm.
-        </div>
-    </c:if>
 
     <div class="detail-layout">
         <div class="main-card">
@@ -660,24 +641,6 @@
                 <i class="fa-solid fa-calendar-check me-2"></i>
                 Đặt xe ngay
             </a>
-
-            <form action="${pageContext.request.contextPath}/cart/add" method="post" class="m-0">
-                <input type="hidden" name="type" value="vehicle">
-                <input type="hidden" name="vehicleID" value="${vehicle.serviceID}">
-                <input type="hidden" name="vehicleName" value="${vehicle.displayName}">
-                <input type="hidden" name="pricePerDay" value="${vehicle.pricePerDay}">
-                <input type="hidden" name="depositAmount" value="${vehicle.depositAmount}">
-                <input type="hidden" name="pickupProvince" value="${vehicle.pickupProvince}">
-                <input type="hidden" name="pickupDistrict" value="${vehicle.pickupDistrict}">
-                <input type="hidden" name="pickupWard" value="${vehicle.pickupWard}">
-                <input type="hidden" name="pickupAddress" value="${vehicle.pickupAddress}">
-                <input type="hidden" name="redirect" value="/vehicle/detail?id=${vehicle.serviceID}">
-
-                <button type="submit" class="btn-book btn-cart">
-                    <i class="fa-solid fa-cart-plus me-2"></i>
-                    Thêm vào giỏ hàng
-                </button>
-            </form>
 
             <a href="${pageContext.request.contextPath}/feedback-list?type=Vehicle&serviceID=${vehicle.serviceID}"
                class="btn-review">

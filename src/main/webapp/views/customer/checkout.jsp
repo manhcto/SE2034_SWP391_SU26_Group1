@@ -296,11 +296,64 @@
                             <option value="Đà Nẵng" ${city == 'Đà Nẵng' ? 'selected' : ''}>Đà Nẵng</option>
                             <option value="Hải Phòng" ${city == 'Hải Phòng' ? 'selected' : ''}>Hải Phòng</option>
                             <option value="Cần Thơ" ${city == 'Cần Thơ' ? 'selected' : ''}>Cần Thơ</option>
-                            <option value="Quảng Ninh" ${city == 'Quảng Ninh' ? 'selected' : ''}>Quảng Ninh</option>
-                            <option value="Ninh Bình" ${city == 'Ninh Bình' ? 'selected' : ''}>Ninh Bình</option>
-                            <option value="Huế" ${city == 'Huế' ? 'selected' : ''}>Huế</option>
+                            <option value="An Giang" ${city == 'An Giang' ? 'selected' : ''}>An Giang</option>
+                            <option value="Bà Rịa - Vũng Tàu" ${city == 'Bà Rịa - Vũng Tàu' ? 'selected' : ''}>Bà Rịa - Vũng Tàu</option>
+                            <option value="Bắc Giang" ${city == 'Bắc Giang' ? 'selected' : ''}>Bắc Giang</option>
+                            <option value="Bắc Kạn" ${city == 'Bắc Kạn' ? 'selected' : ''}>Bắc Kạn</option>
+                            <option value="Bạc Liêu" ${city == 'Bạc Liêu' ? 'selected' : ''}>Bạc Liêu</option>
+                            <option value="Bắc Ninh" ${city == 'Bắc Ninh' ? 'selected' : ''}>Bắc Ninh</option>
+                            <option value="Bến Tre" ${city == 'Bến Tre' ? 'selected' : ''}>Bến Tre</option>
+                            <option value="Bình Định" ${city == 'Bình Định' ? 'selected' : ''}>Bình Định</option>
+                            <option value="Bình Dương" ${city == 'Bình Dương' ? 'selected' : ''}>Bình Dương</option>
+                            <option value="Bình Phước" ${city == 'Bình Phước' ? 'selected' : ''}>Bình Phước</option>
+                            <option value="Bình Thuận" ${city == 'Bình Thuận' ? 'selected' : ''}>Bình Thuận</option>
+                            <option value="Cà Mau" ${city == 'Cà Mau' ? 'selected' : ''}>Cà Mau</option>
+                            <option value="Cao Bằng" ${city == 'Cao Bằng' ? 'selected' : ''}>Cao Bằng</option>
+                            <option value="Đắk Lắk" ${city == 'Đắk Lắk' ? 'selected' : ''}>Đắk Lắk</option>
+                            <option value="Đắk Nông" ${city == 'Đắk Nông' ? 'selected' : ''}>Đắk Nông</option>
+                            <option value="Điện Biên" ${city == 'Điện Biên' ? 'selected' : ''}>Điện Biên</option>
+                            <option value="Đồng Nai" ${city == 'Đồng Nai' ? 'selected' : ''}>Đồng Nai</option>
+                            <option value="Đồng Tháp" ${city == 'Đồng Tháp' ? 'selected' : ''}>Đồng Tháp</option>
+                            <option value="Gia Lai" ${city == 'Gia Lai' ? 'selected' : ''}>Gia Lai</option>
+                            <option value="Hà Giang" ${city == 'Hà Giang' ? 'selected' : ''}>Hà Giang</option>
+                            <option value="Hà Nam" ${city == 'Hà Nam' ? 'selected' : ''}>Hà Nam</option>
+                            <option value="Hà Tĩnh" ${city == 'Hà Tĩnh' ? 'selected' : ''}>Hà Tĩnh</option>
+                            <option value="Hải Dương" ${city == 'Hải Dương' ? 'selected' : ''}>Hải Dương</option>
+                            <option value="Hậu Giang" ${city == 'Hậu Giang' ? 'selected' : ''}>Hậu Giang</option>
+                            <option value="Hòa Bình" ${city == 'Hòa Bình' ? 'selected' : ''}>Hòa Bình</option>
+                            <option value="Hưng Yên" ${city == 'Hưng Yên' ? 'selected' : ''}>Hưng Yên</option>
                             <option value="Khánh Hòa" ${city == 'Khánh Hòa' ? 'selected' : ''}>Khánh Hòa</option>
+                            <option value="Kiên Giang" ${city == 'Kiên Giang' ? 'selected' : ''}>Kiên Giang</option>
+                            <option value="Kon Tum" ${city == 'Kon Tum' ? 'selected' : ''}>Kon Tum</option>
+                            <option value="Lai Châu" ${city == 'Lai Châu' ? 'selected' : ''}>Lai Châu</option>
                             <option value="Lâm Đồng" ${city == 'Lâm Đồng' ? 'selected' : ''}>Lâm Đồng</option>
+                            <option value="Lạng Sơn" ${city == 'Lạng Sơn' ? 'selected' : ''}>Lạng Sơn</option>
+                            <option value="Lào Cai" ${city == 'Lào Cai' ? 'selected' : ''}>Lào Cai</option>
+                            <option value="Long An" ${city == 'Long An' ? 'selected' : ''}>Long An</option>
+                            <option value="Nam Định" ${city == 'Nam Định' ? 'selected' : ''}>Nam Định</option>
+                            <option value="Nghệ An" ${city == 'Nghệ An' ? 'selected' : ''}>Nghệ An</option>
+                            <option value="Ninh Bình" ${city == 'Ninh Bình' ? 'selected' : ''}>Ninh Bình</option>
+                            <option value="Ninh Thuận" ${city == 'Ninh Thuận' ? 'selected' : ''}>Ninh Thuận</option>
+                            <option value="Phú Thọ" ${city == 'Phú Thọ' ? 'selected' : ''}>Phú Thọ</option>
+                            <option value="Phú Yên" ${city == 'Phú Yên' ? 'selected' : ''}>Phú Yên</option>
+                            <option value="Quảng Bình" ${city == 'Quảng Bình' ? 'selected' : ''}>Quảng Bình</option>
+                            <option value="Quảng Nam" ${city == 'Quảng Nam' ? 'selected' : ''}>Quảng Nam</option>
+                            <option value="Quảng Ngãi" ${city == 'Quảng Ngãi' ? 'selected' : ''}>Quảng Ngãi</option>
+                            <option value="Quảng Ninh" ${city == 'Quảng Ninh' ? 'selected' : ''}>Quảng Ninh</option>
+                            <option value="Quảng Trị" ${city == 'Quảng Trị' ? 'selected' : ''}>Quảng Trị</option>
+                            <option value="Sóc Trăng" ${city == 'Sóc Trăng' ? 'selected' : ''}>Sóc Trăng</option>
+                            <option value="Sơn La" ${city == 'Sơn La' ? 'selected' : ''}>Sơn La</option>
+                            <option value="Tây Ninh" ${city == 'Tây Ninh' ? 'selected' : ''}>Tây Ninh</option>
+                            <option value="Thái Bình" ${city == 'Thái Bình' ? 'selected' : ''}>Thái Bình</option>
+                            <option value="Thái Nguyên" ${city == 'Thái Nguyên' ? 'selected' : ''}>Thái Nguyên</option>
+                            <option value="Thanh Hóa" ${city == 'Thanh Hóa' ? 'selected' : ''}>Thanh Hóa</option>
+                            <option value="Thừa Thiên Huế" ${city == 'Thừa Thiên Huế' ? 'selected' : ''}>Thừa Thiên Huế</option>
+                            <option value="Tiền Giang" ${city == 'Tiền Giang' ? 'selected' : ''}>Tiền Giang</option>
+                            <option value="Trà Vinh" ${city == 'Trà Vinh' ? 'selected' : ''}>Trà Vinh</option>
+                            <option value="Tuyên Quang" ${city == 'Tuyên Quang' ? 'selected' : ''}>Tuyên Quang</option>
+                            <option value="Vĩnh Long" ${city == 'Vĩnh Long' ? 'selected' : ''}>Vĩnh Long</option>
+                            <option value="Vĩnh Phúc" ${city == 'Vĩnh Phúc' ? 'selected' : ''}>Vĩnh Phúc</option>
+                            <option value="Yên Bái" ${city == 'Yên Bái' ? 'selected' : ''}>Yên Bái</option>
                         </select>
                     </div>
                 </div>

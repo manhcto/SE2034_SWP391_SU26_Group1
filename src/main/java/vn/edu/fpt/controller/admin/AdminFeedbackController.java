@@ -131,19 +131,11 @@ public class AdminFeedbackController extends HttpServlet {
             return "Accommodation";
         }
 
-        if ("vehicle".equals(value)
-                || "car".equals(value)
-                || "xe".equals(value)
-                || "thuexe".equals(value)
-                || "thuê xe".equals(value)) {
-            return "Vehicle";
-        }
-
         if ("tour".equals(value)) {
             return "Tour";
         }
 
-        return type.trim();
+        return "All";
     }
 
     private String convertServiceTypeToVietnamese(String type) {
@@ -151,10 +143,6 @@ public class AdminFeedbackController extends HttpServlet {
 
         if ("Accommodation".equals(serviceType)) {
             return "Khách sạn";
-        }
-
-        if ("Vehicle".equals(serviceType)) {
-            return "Xe";
         }
 
         if ("Tour".equals(serviceType)) {

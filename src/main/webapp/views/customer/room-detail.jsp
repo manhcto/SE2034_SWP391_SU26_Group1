@@ -293,7 +293,6 @@
             color: #1d4ed8;
         }
 
-        .btn-cart,
         .btn-direct-book {
             width: 100%;
             border: none;
@@ -305,14 +304,6 @@
             margin-top: 16px;
         }
 
-        .btn-cart {
-            background: white;
-            color: #1d4ed8;
-            border: 1px solid #bfdbfe;
-            margin-top: 10px;
-        }
-
-        .btn-cart:hover,
         .btn-direct-book:hover {
             filter: brightness(0.95);
         }
@@ -400,7 +391,7 @@
         <a href="${pageContext.request.contextPath}/accommodation">Khách sạn</a>
         <span>/</span>
 
-        <a href="${pageContext.request.contextPath}/accommodation/detail?id=${accommodation.serviceID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
+        <a href="${pageContext.request.contextPath}/accommodation/detail?id=${accommodation.accommodationID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
             ${accommodation.name}
         </a>
         <span>/</span>
@@ -426,12 +417,6 @@
                 <div class="alert alert-danger rounded-4 border-0 shadow-sm">
                     <i class="fa-solid fa-circle-xmark me-2"></i>
                     Thông tin đặt phòng chưa hợp lệ. Vui lòng kiểm tra lại ngày và số phòng.
-                </div>
-            </c:when>
-            <c:when test="${param.status == 'cartAdded'}">
-                <div class="alert alert-success rounded-4 border-0 shadow-sm">
-                    <i class="fa-solid fa-cart-plus me-2"></i>
-                    Đã thêm phòng vào giỏ hàng tạm.
                 </div>
             </c:when>
             <c:otherwise>
@@ -550,7 +535,7 @@
                       action="${pageContext.request.contextPath}/accommodation/room/detail"
                       method="get">
                     <input type="hidden" name="id" value="${room.roomID}">
-                    <input type="hidden" name="accommodationId" value="${accommodation.serviceID}">
+                    <input type="hidden" name="accommodationId" value="${accommodation.accommodationID}">
 
                     <div>
                         <label for="roomCheckIn">Ngày nhận phòng</label>
@@ -679,7 +664,7 @@
                     <c:otherwise>
                         <div class="missing-date-alert">
                             <i class="fa-solid fa-triangle-exclamation"></i>
-                            Bạn chưa chọn ngày nhận phòng và ngày trả phòng. Chọn lịch ngay tại đây để xem tạm tính và thêm phòng vào giỏ hàng.
+                            Bạn chưa chọn ngày nhận phòng và ngày trả phòng. Chọn lịch ngay tại đây để xem tạm tính và thanh toán đặt phòng.
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -697,7 +682,7 @@
                       action="${pageContext.request.contextPath}/booking/accommodation/form"
                       method="get"
                       class="m-0">
-                    <input type="hidden" name="accommodationID" value="${accommodation.serviceID}">
+                    <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
                     <input type="hidden" name="roomID" value="${room.roomID}">
                     <input type="hidden" name="checkIn" value="${checkIn}">
                     <input type="hidden" name="checkOut" value="${checkOut}">
@@ -707,39 +692,15 @@
                     <input type="hidden" name="guests" value="${guests}">
 
                     <button type="submit" class="btn-direct-book">
-                        <i class="fa-solid fa-calendar-check me-2"></i>
-                        Đặt phòng
+                        <i class="fa-solid fa-credit-card me-2"></i>
+                        Thanh toán
                     </button>
                 </form>
 
-                <form id="addRoomToCartForm"
-                      action="${pageContext.request.contextPath}/cart/add"
-                      method="post"
-                      class="m-0">
-                    <input type="hidden" name="type" value="room">
-                    <input type="hidden" name="accommodationID" value="${accommodation.serviceID}">
-                    <input type="hidden" name="accommodationName" value="${accommodation.name}">
-                    <input type="hidden" name="roomID" value="${room.roomID}">
-                    <input type="hidden" name="roomType" value="${room.roomType}">
-                    <input type="hidden" name="checkIn" value="${checkIn}">
-                    <input type="hidden" name="checkOut" value="${checkOut}">
-                    <input type="hidden" name="adults" value="${adults}">
-                    <input type="hidden" name="children" value="${children}">
-                    <input type="hidden" name="rooms" value="${rooms}">
-                    <input type="hidden" name="guests" value="${guests}">
-                    <input type="hidden" name="nights" value="${nights}">
-                    <input type="hidden" name="totalPrice" value="${totalPrice}">
-                    <input type="hidden" name="redirect" value="/accommodation/room/detail?id=${room.roomID}&accommodationId=${accommodation.serviceID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
-
-                    <button type="submit" class="btn-cart">
-                        <i class="fa-solid fa-cart-plus me-2"></i>
-                        Thêm vào giỏ hàng
-                    </button>
-                </form>
             </c:if>
 
             <a class="btn-list"
-               href="${pageContext.request.contextPath}/accommodation/detail?id=${accommodation.serviceID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
+               href="${pageContext.request.contextPath}/accommodation/detail?id=${accommodation.accommodationID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
                 <i class="fa-solid fa-arrow-left"></i>
                 Quay lại lưu trú
             </a>

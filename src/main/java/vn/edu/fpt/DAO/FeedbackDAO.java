@@ -21,32 +21,18 @@ public class FeedbackDAO {
 
     public List<Feedback> getFeedbacksByType(String type) {
         List<Feedback> feedbackList = new ArrayList<>();
-
         String serviceType = normalizeServiceType(type);
 
         StringBuilder sql = new StringBuilder();
         sql.append(getFeedbackSummarySelect());
-        sql.append(" FROM Feedback f ");
-        sql.append(" JOIN [User] u ON f.userID = u.userID ");
-        sql.append(" JOIN Booking b ON f.bookingID = b.bookingID ");
-        sql.append(" OUTER APPLY ( ");
-        sql.append("     SELECT TOP 1 bd.* ");
-        sql.append("     FROM Booking_Detail bd ");
-        sql.append("     WHERE bd.bookingID = b.bookingID ");
-        sql.append("     ORDER BY bd.bookingDetailID DESC ");
-        sql.append(" ) bd ");
-        sql.append(" LEFT JOIN Service s ON bd.serviceID = s.serviceID ");
-        sql.append(" LEFT JOIN Accommodation a ON bd.serviceID = a.serviceID ");
-        sql.append(" LEFT JOIN Vehicle v ON bd.serviceID = v.serviceID ");
-        sql.append(" LEFT JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID ");
-        sql.append(" LEFT JOIN Tour t ON ts.tourID = t.tourID ");
+        sql.append(getFeedbackSummaryFrom());
 
         if (!"All".equals(serviceType)) {
             sql.append(" WHERE ");
             sql.append(getServiceTypeCondition(serviceType));
         }
 
-        sql.append(" ORDER BY f.createDate DESC, f.feedbackID DESC ");
+        sql.append(" ORDER BY f.createdAt DESC, f.feedbackID DESC ");
 
         try (Connection connection = new DBConnection().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql.toString());
@@ -69,42 +55,34 @@ public class FeedbackDAO {
 
     public List<Feedback> getFeedbacksByService(String type, int serviceID, Integer currentUserID) {
         List<Feedback> feedbackList = new ArrayList<>();
-
         String serviceType = normalizeServiceType(type);
 
         StringBuilder sql = new StringBuilder();
         sql.append(getFeedbackSummarySelect());
-        sql.append(" FROM Feedback f ");
-        sql.append(" JOIN [User] u ON f.userID = u.userID ");
-        sql.append(" JOIN Booking b ON f.bookingID = b.bookingID ");
-        sql.append(" JOIN Booking_Detail bd ON b.bookingID = bd.bookingID ");
-        sql.append(" LEFT JOIN Service s ON bd.serviceID = s.serviceID ");
-        sql.append(" LEFT JOIN Accommodation a ON bd.serviceID = a.serviceID ");
-        sql.append(" LEFT JOIN Vehicle v ON bd.serviceID = v.serviceID ");
-        sql.append(" LEFT JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID ");
-        sql.append(" LEFT JOIN Tour t ON ts.tourID = t.tourID ");
-        sql.append(" WHERE bd.serviceID = ? ");
-
-        if (!"All".equals(serviceType)) {
-            sql.append(" AND ");
-            sql.append(getServiceTypeCondition(serviceType));
-        }
+        sql.append(getFeedbackSummaryFrom());
+        sql.append(" WHERE ");
+        sql.append(getServiceIDCondition(serviceType));
 
         if (currentUserID != null && currentUserID > 0) {
-            sql.append(" AND (f.status = 'Visible' OR f.userID = ?) ");
+            sql.append(" AND (f.status = N'Visible' OR f.userID = ?) ");
         } else {
-            sql.append(" AND f.status = 'Visible' ");
+            sql.append(" AND f.status = N'Visible' ");
         }
 
-        sql.append(" ORDER BY f.createDate DESC, f.feedbackID DESC ");
+        sql.append(" ORDER BY f.createdAt DESC, f.feedbackID DESC ");
 
         try (Connection connection = new DBConnection().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
-            preparedStatement.setInt(1, serviceID);
+            int parameterIndex = 1;
+            preparedStatement.setInt(parameterIndex++, serviceID);
+
+            if ("All".equals(serviceType)) {
+                preparedStatement.setInt(parameterIndex++, serviceID);
+            }
 
             if (currentUserID != null && currentUserID > 0) {
-                preparedStatement.setInt(2, currentUserID);
+                preparedStatement.setInt(parameterIndex, currentUserID);
             }
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -121,7 +99,8 @@ public class FeedbackDAO {
     }
 
     public Feedback getFeedbackByID(int feedbackID) {
-        String sql = "SELECT feedbackID, rate, content, createDate, status, image, userID, bookingID "
+        String sql = "SELECT feedbackID, rate, comment AS content, createdAt AS createDate, "
+                + "status, CAST(NULL AS nvarchar(500)) AS image, userID, bookingID "
                 + "FROM Feedback "
                 + "WHERE feedbackID = ?";
 
@@ -150,30 +129,21 @@ public class FeedbackDAO {
     public Map<String, Object> getFeedbackDetailByID(int feedbackID, Integer currentUserID) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ");
-        sql.append(" f.feedbackID, f.rate, f.content, f.createDate, f.status, f.image, ");
+        sql.append(" f.feedbackID, f.rate, f.comment AS content, f.createdAt AS createDate, f.status, ");
+        sql.append(" CAST(NULL AS nvarchar(500)) AS image, f.staffReply, ");
         sql.append(" f.userID, f.bookingID, ");
         sql.append(" u.firstName, u.lastName, u.email, ");
         sql.append(" b.bookingCode, b.bookingType, b.totalPrice, b.status AS bookingStatus, b.bookDate, ");
-        sql.append(" bd.bookingDetailID, bd.serviceID, bd.tourScheduleID, bd.quantity, ");
+        sql.append(" bd.bookingDetailID, bd.accommodationID, bd.roomID, bd.tourScheduleID, bd.quantity, ");
         sql.append(" bd.unitPrice, bd.subTotal, bd.startDate, bd.endDate, bd.note AS bookingDetailNote, ");
-        sql.append(" COALESCE(a.name, v.vehicleModel, t.tourName, s.serviceName, N'Dịch vụ') AS serviceName, ");
-        sql.append(" COALESCE(a.image, v.image, t.image, NULL) AS serviceImage, ");
+        sql.append(" t.tourID, ");
+        sql.append(" COALESCE(a.name, t.tourName, N'Dịch vụ') AS serviceName, ");
+        sql.append(" COALESCE(a.image, t.image, NULL) AS serviceImage, ");
+        sql.append(getServiceIDCase());
+        sql.append(" AS serviceID, ");
         sql.append(getServiceTypeCase());
         sql.append(" AS serviceType ");
-        sql.append(" FROM Feedback f ");
-        sql.append(" JOIN [User] u ON f.userID = u.userID ");
-        sql.append(" JOIN Booking b ON f.bookingID = b.bookingID ");
-        sql.append(" OUTER APPLY ( ");
-        sql.append("     SELECT TOP 1 bd.* ");
-        sql.append("     FROM Booking_Detail bd ");
-        sql.append("     WHERE bd.bookingID = b.bookingID ");
-        sql.append("     ORDER BY bd.bookingDetailID DESC ");
-        sql.append(" ) bd ");
-        sql.append(" LEFT JOIN Service s ON bd.serviceID = s.serviceID ");
-        sql.append(" LEFT JOIN Accommodation a ON bd.serviceID = a.serviceID ");
-        sql.append(" LEFT JOIN Vehicle v ON bd.serviceID = v.serviceID ");
-        sql.append(" LEFT JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID ");
-        sql.append(" LEFT JOIN Tour t ON ts.tourID = t.tourID ");
+        sql.append(getFeedbackSummaryFrom());
         sql.append(" WHERE f.feedbackID = ? ");
 
         try (Connection connection = new DBConnection().getConnection();
@@ -198,6 +168,7 @@ public class FeedbackDAO {
                     detail.put("status", status);
                     detail.put("statusText", convertStatusToVietnamese(status));
                     detail.put("image", resultSet.getString("image"));
+                    detail.put("staffReply", resultSet.getString("staffReply"));
 
                     detail.put("userID", userID);
                     detail.put("firstName", firstName);
@@ -215,6 +186,8 @@ public class FeedbackDAO {
 
                     detail.put("bookingDetailID", getNullableInt(resultSet, "bookingDetailID"));
                     detail.put("serviceID", getNullableInt(resultSet, "serviceID"));
+                    detail.put("accommodationID", getNullableInt(resultSet, "accommodationID"));
+                    detail.put("roomID", getNullableInt(resultSet, "roomID"));
                     detail.put("tourScheduleID", getNullableInt(resultSet, "tourScheduleID"));
                     detail.put("quantity", resultSet.getInt("quantity"));
                     detail.put("unitPrice", resultSet.getDouble("unitPrice"));
@@ -243,18 +216,17 @@ public class FeedbackDAO {
 
     public int insertFeedback(Feedback feedback) {
         String sql = "INSERT INTO Feedback "
-                + "(rate, content, createDate, status, image, userID, bookingID) "
-                + "VALUES (?, ?, GETDATE(), ?, ?, ?, ?)";
+                + "(bookingID, userID, rate, comment, status, createdAt) "
+                + "VALUES (?, ?, ?, ?, ?, GETDATE())";
 
         try (Connection connection = new DBConnection().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            preparedStatement.setDouble(1, feedback.getRate());
-            preparedStatement.setString(2, feedback.getContent());
-            preparedStatement.setString(3, normalizeStatus(feedback.getStatus()));
-            preparedStatement.setString(4, normalizeEmptyToNull(feedback.getImage()));
-            preparedStatement.setInt(5, feedback.getUserID());
-            preparedStatement.setInt(6, feedback.getBookingID());
+            preparedStatement.setInt(1, feedback.getBookingID());
+            preparedStatement.setInt(2, feedback.getUserID());
+            preparedStatement.setDouble(3, feedback.getRate());
+            preparedStatement.setString(4, feedback.getContent());
+            preparedStatement.setString(5, normalizeStatus(feedback.getStatus()));
 
             int affectedRows = preparedStatement.executeUpdate();
 
@@ -275,7 +247,7 @@ public class FeedbackDAO {
 
     public boolean updateFeedback(Feedback feedback) {
         String sql = "UPDATE Feedback "
-                + "SET rate = ?, content = ?, status = ?, image = ? "
+                + "SET rate = ?, comment = ?, status = ?, updatedAt = GETDATE() "
                 + "WHERE feedbackID = ?";
 
         try (Connection connection = new DBConnection().getConnection();
@@ -284,8 +256,7 @@ public class FeedbackDAO {
             preparedStatement.setDouble(1, feedback.getRate());
             preparedStatement.setString(2, feedback.getContent());
             preparedStatement.setString(3, normalizeStatus(feedback.getStatus()));
-            preparedStatement.setString(4, normalizeEmptyToNull(feedback.getImage()));
-            preparedStatement.setInt(5, feedback.getFeedbackID());
+            preparedStatement.setInt(4, feedback.getFeedbackID());
 
             return preparedStatement.executeUpdate() > 0;
 
@@ -298,7 +269,7 @@ public class FeedbackDAO {
 
     public boolean updateFeedbackByCustomer(Feedback feedback, int userID) {
         String sql = "UPDATE Feedback "
-                + "SET rate = ?, content = ?, image = ?, status = 'Hidden' "
+                + "SET rate = ?, comment = ?, status = N'Hidden', updatedAt = GETDATE() "
                 + "WHERE feedbackID = ? AND userID = ?";
 
         try (Connection connection = new DBConnection().getConnection();
@@ -306,9 +277,8 @@ public class FeedbackDAO {
 
             preparedStatement.setDouble(1, feedback.getRate());
             preparedStatement.setString(2, feedback.getContent());
-            preparedStatement.setString(3, normalizeEmptyToNull(feedback.getImage()));
-            preparedStatement.setInt(4, feedback.getFeedbackID());
-            preparedStatement.setInt(5, userID);
+            preparedStatement.setInt(3, feedback.getFeedbackID());
+            preparedStatement.setInt(4, userID);
 
             return preparedStatement.executeUpdate() > 0;
 
@@ -320,7 +290,7 @@ public class FeedbackDAO {
     }
 
     public boolean updateFeedbackStatus(int feedbackID, String status) {
-        String sql = "UPDATE Feedback SET status = ? WHERE feedbackID = ?";
+        String sql = "UPDATE Feedback SET status = ?, updatedAt = GETDATE() WHERE feedbackID = ?";
 
         try (Connection connection = new DBConnection().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -416,19 +386,9 @@ public class FeedbackDAO {
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT TOP 1 b.bookingID ");
-        sql.append("FROM Booking b ");
-        sql.append("JOIN Booking_Detail bd ON b.bookingID = bd.bookingID ");
-        sql.append("LEFT JOIN Accommodation a ON bd.serviceID = a.serviceID ");
-        sql.append("LEFT JOIN Vehicle v ON bd.serviceID = v.serviceID ");
-        sql.append("LEFT JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID ");
-        sql.append("LEFT JOIN Tour t ON ts.tourID = t.tourID ");
-        sql.append("WHERE b.userID = ? AND bd.serviceID = ? ");
-
-        if (!"All".equals(serviceType)) {
-            sql.append(" AND ");
-            sql.append(getServiceTypeCondition(serviceType));
-        }
-
+        sql.append(getFeedbackSummaryFrom());
+        sql.append(" WHERE b.userID = ? AND ");
+        sql.append(getServiceIDCondition(serviceType));
         sql.append(" ORDER BY b.bookDate DESC, b.bookingID DESC ");
 
         try (Connection connection = new DBConnection().getConnection();
@@ -436,6 +396,10 @@ public class FeedbackDAO {
 
             preparedStatement.setInt(1, userID);
             preparedStatement.setInt(2, serviceID);
+
+            if ("All".equals(serviceType)) {
+                preparedStatement.setInt(3, serviceID);
+            }
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
@@ -455,25 +419,19 @@ public class FeedbackDAO {
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT TOP 1 f.feedbackID ");
-        sql.append("FROM Feedback f ");
-        sql.append("JOIN Booking b ON f.bookingID = b.bookingID ");
-        sql.append("JOIN Booking_Detail bd ON b.bookingID = bd.bookingID ");
-        sql.append("LEFT JOIN Accommodation a ON bd.serviceID = a.serviceID ");
-        sql.append("LEFT JOIN Vehicle v ON bd.serviceID = v.serviceID ");
-        sql.append("LEFT JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID ");
-        sql.append("LEFT JOIN Tour t ON ts.tourID = t.tourID ");
-        sql.append("WHERE f.userID = ? AND bd.serviceID = ? ");
-
-        if (!"All".equals(serviceType)) {
-            sql.append(" AND ");
-            sql.append(getServiceTypeCondition(serviceType));
-        }
+        sql.append(getFeedbackSummaryFrom());
+        sql.append(" WHERE f.userID = ? AND ");
+        sql.append(getServiceIDCondition(serviceType));
 
         try (Connection connection = new DBConnection().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setInt(1, userID);
             preparedStatement.setInt(2, serviceID);
+
+            if ("All".equals(serviceType)) {
+                preparedStatement.setInt(3, serviceID);
+            }
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 return resultSet.next();
@@ -491,29 +449,20 @@ public class FeedbackDAO {
 
         StringBuilder sql = new StringBuilder();
         sql.append(getFeedbackSummarySelect());
-        sql.append(" FROM Feedback f ");
-        sql.append(" JOIN [User] u ON f.userID = u.userID ");
-        sql.append(" JOIN Booking b ON f.bookingID = b.bookingID ");
-        sql.append(" JOIN Booking_Detail bd ON b.bookingID = bd.bookingID ");
-        sql.append(" LEFT JOIN Service s ON bd.serviceID = s.serviceID ");
-        sql.append(" LEFT JOIN Accommodation a ON bd.serviceID = a.serviceID ");
-        sql.append(" LEFT JOIN Vehicle v ON bd.serviceID = v.serviceID ");
-        sql.append(" LEFT JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID ");
-        sql.append(" LEFT JOIN Tour t ON ts.tourID = t.tourID ");
-        sql.append(" WHERE f.userID = ? AND bd.serviceID = ? ");
-
-        if (!"All".equals(serviceType)) {
-            sql.append(" AND ");
-            sql.append(getServiceTypeCondition(serviceType));
-        }
-
-        sql.append(" ORDER BY f.createDate DESC, f.feedbackID DESC ");
+        sql.append(getFeedbackSummaryFrom());
+        sql.append(" WHERE f.userID = ? AND ");
+        sql.append(getServiceIDCondition(serviceType));
+        sql.append(" ORDER BY f.createdAt DESC, f.feedbackID DESC ");
 
         try (Connection connection = new DBConnection().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             preparedStatement.setInt(1, userID);
             preparedStatement.setInt(2, serviceID);
+
+            if ("All".equals(serviceType)) {
+                preparedStatement.setInt(3, serviceID);
+            }
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
@@ -533,18 +482,11 @@ public class FeedbackDAO {
         String sql;
 
         if ("Accommodation".equals(serviceType)) {
-            sql = "SELECT serviceID, name AS serviceName, image AS serviceImage, "
+            sql = "SELECT accommodationID AS serviceID, name AS serviceName, image AS serviceImage, "
                     + "province, district, ward, address, rate, type AS detailType, "
                     + "'Accommodation' AS serviceType "
                     + "FROM Accommodation "
-                    + "WHERE serviceID = ?";
-        } else if ("Vehicle".equals(serviceType)) {
-            sql = "SELECT serviceID, vehicleModel AS serviceName, image AS serviceImage, "
-                    + "pickup_province AS province, pickup_district AS district, pickup_ward AS ward, "
-                    + "pickup_address AS address, NULL AS rate, vehicle_type AS detailType, "
-                    + "'Vehicle' AS serviceType "
-                    + "FROM Vehicle "
-                    + "WHERE serviceID = ?";
+                    + "WHERE accommodationID = ?";
         } else {
             sql = "SELECT tourID AS serviceID, tourName AS serviceName, image AS serviceImage, "
                     + "startPlace AS province, endPlace AS district, NULL AS ward, "
@@ -638,29 +580,56 @@ public class FeedbackDAO {
         StringBuilder sql = new StringBuilder();
 
         sql.append("SELECT ");
-        sql.append(" f.feedbackID, f.rate, f.content, f.createDate, f.status, f.image, ");
+        sql.append(" f.feedbackID, f.rate, f.comment AS content, f.createdAt AS createDate, f.status, ");
+        sql.append(" CAST(NULL AS nvarchar(500)) AS image, ");
         sql.append(" f.userID, f.bookingID, ");
         sql.append(" u.firstName, u.lastName, u.email, ");
         sql.append(" b.bookingCode, b.bookingType, ");
-        sql.append(" bd.serviceID, ");
-        sql.append(" COALESCE(a.name, v.vehicleModel, t.tourName, s.serviceName, N'Dịch vụ') AS serviceName, ");
-        sql.append(" COALESCE(a.image, v.image, t.image, NULL) AS serviceImage, ");
+        sql.append(getServiceIDCase());
+        sql.append(" AS serviceID, ");
+        sql.append(" COALESCE(a.name, t.tourName, N'Dịch vụ') AS serviceName, ");
+        sql.append(" COALESCE(a.image, t.image, NULL) AS serviceImage, ");
         sql.append(getServiceTypeCase());
         sql.append(" AS serviceType ");
 
         return sql.toString();
     }
 
+    private String getFeedbackSummaryFrom() {
+        StringBuilder sql = new StringBuilder();
+
+        sql.append(" FROM Feedback f ");
+        sql.append(" JOIN [User] u ON f.userID = u.userID ");
+        sql.append(" JOIN Booking b ON f.bookingID = b.bookingID ");
+        sql.append(" OUTER APPLY ( ");
+        sql.append("     SELECT TOP 1 bd.* ");
+        sql.append("     FROM Booking_Detail bd ");
+        sql.append("     WHERE bd.bookingID = b.bookingID ");
+        sql.append("     ORDER BY bd.bookingDetailID DESC ");
+        sql.append(" ) bd ");
+        sql.append(" LEFT JOIN Accommodation a ON bd.accommodationID = a.accommodationID ");
+        sql.append(" LEFT JOIN Room r ON bd.roomID = r.roomID ");
+        sql.append(" LEFT JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID ");
+        sql.append(" LEFT JOIN Tour t ON ts.tourID = t.tourID ");
+
+        return sql.toString();
+    }
+
+    private String getServiceIDCase() {
+        return " CASE "
+                + " WHEN bd.accommodationID IS NOT NULL THEN bd.accommodationID "
+                + " WHEN t.tourID IS NOT NULL THEN t.tourID "
+                + " ELSE NULL "
+                + " END ";
+    }
+
     private String getServiceTypeCase() {
         return " CASE "
-                + " WHEN a.serviceID IS NOT NULL THEN 'Accommodation' "
-                + " WHEN v.serviceID IS NOT NULL THEN 'Vehicle' "
+                + " WHEN bd.accommodationID IS NOT NULL THEN 'Accommodation' "
                 + " WHEN t.tourID IS NOT NULL THEN 'Tour' "
                 + " WHEN LOWER(b.bookingType) LIKE '%accommodation%' THEN 'Accommodation' "
                 + " WHEN b.bookingType LIKE N'%lưu trú%' THEN 'Accommodation' "
                 + " WHEN b.bookingType LIKE N'%khách sạn%' THEN 'Accommodation' "
-                + " WHEN LOWER(b.bookingType) LIKE '%vehicle%' THEN 'Vehicle' "
-                + " WHEN b.bookingType LIKE N'%xe%' THEN 'Vehicle' "
                 + " WHEN LOWER(b.bookingType) LIKE '%tour%' THEN 'Tour' "
                 + " ELSE b.bookingType "
                 + " END ";
@@ -668,16 +637,10 @@ public class FeedbackDAO {
 
     private String getServiceTypeCondition(String serviceType) {
         if ("Accommodation".equals(serviceType)) {
-            return " (a.serviceID IS NOT NULL "
+            return " (bd.accommodationID IS NOT NULL "
                     + " OR LOWER(b.bookingType) LIKE '%accommodation%' "
                     + " OR b.bookingType LIKE N'%lưu trú%' "
                     + " OR b.bookingType LIKE N'%khách sạn%') ";
-        }
-
-        if ("Vehicle".equals(serviceType)) {
-            return " (v.serviceID IS NOT NULL "
-                    + " OR LOWER(b.bookingType) LIKE '%vehicle%' "
-                    + " OR b.bookingType LIKE N'%xe%') ";
         }
 
         if ("Tour".equals(serviceType)) {
@@ -687,6 +650,18 @@ public class FeedbackDAO {
         }
 
         return " 1 = 1 ";
+    }
+
+    private String getServiceIDCondition(String serviceType) {
+        if ("Accommodation".equals(serviceType)) {
+            return " bd.accommodationID = ? ";
+        }
+
+        if ("Tour".equals(serviceType)) {
+            return " t.tourID = ? ";
+        }
+
+        return " (bd.accommodationID = ? OR t.tourID = ?) ";
     }
 
     private String normalizeServiceType(String type) {
@@ -709,16 +684,12 @@ public class FeedbackDAO {
             return "Accommodation";
         }
 
-        if ("vehicle".equals(value)
-                || "car".equals(value)
-                || "xe".equals(value)
-                || "thuexe".equals(value)
-                || "thuê xe".equals(value)) {
-            return "Vehicle";
-        }
-
         if ("tour".equals(value)) {
             return "Tour";
+        }
+
+        if ("vehicle".equals(value) || "car".equals(value) || "xe".equals(value)) {
+            return "All";
         }
 
         return type.trim();
@@ -734,14 +705,6 @@ public class FeedbackDAO {
         }
 
         return "Hidden";
-    }
-
-    private String normalizeEmptyToNull(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
-
-        return value.trim();
     }
 
     private Integer getNullableInt(ResultSet resultSet, String columnName) throws Exception {
@@ -782,10 +745,6 @@ public class FeedbackDAO {
     private String convertServiceTypeToVietnamese(String serviceType) {
         if ("Accommodation".equalsIgnoreCase(serviceType)) {
             return "Khách sạn";
-        }
-
-        if ("Vehicle".equalsIgnoreCase(serviceType)) {
-            return "Xe";
         }
 
         if ("Tour".equalsIgnoreCase(serviceType)) {

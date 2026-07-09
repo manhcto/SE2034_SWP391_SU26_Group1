@@ -167,10 +167,10 @@
                                 <td>
                                     <span class="status-badge">
                                         <c:choose>
-                                            <c:when test="${booking.status == 'Pending'}">Chờ xử lý</c:when>
-                                            <c:when test="${booking.status == 'Confirmed'}">Đã xác nhận</c:when>
+                                            <c:when test="${booking.status == 'Pending'}">Đang hoạt động</c:when>
+                                            <c:when test="${booking.status == 'Confirmed'}">Đang hoạt động</c:when>
                                             <c:when test="${booking.status == 'Cancelled'}">Đã hủy</c:when>
-                                            <c:when test="${booking.status == 'Completed'}">Hoàn thành</c:when>
+                                            <c:when test="${booking.status == 'Completed'}">Đã hoàn thành</c:when>
                                             <c:otherwise>${booking.status}</c:otherwise>
                                         </c:choose>
                                     </span>
@@ -187,11 +187,6 @@
                                         <a class="action-link"
                                            href="${pageContext.request.contextPath}/booking-summary?bookingID=${booking.bookingID}">
                                             Xem chi tiết
-                                        </a>
-
-                                        <a class="action-link edit-link"
-                                           href="${pageContext.request.contextPath}/booking-edit?bookingID=${booking.bookingID}">
-                                            Sửa
                                         </a>
                                     </div>
                                 </td>

@@ -16,7 +16,8 @@ import java.util.List;
 @WebServlet(name = "ManageBookingController", urlPatterns = {
         "/staff/booking",
         "/staff/booking-edit",
-        "/staff/booking-delete"
+        "/staff/booking-delete",
+        "/staff/booking-status" // Thêm đường dẫn để xử lý nút Hoàn thành & Hủy
 })
 public class ManageBookingController extends HttpServlet {
 
@@ -65,6 +66,10 @@ public class ManageBookingController extends HttpServlet {
                 deleteBooking(request, response);
                 break;
 
+            case "/staff/booking-status":
+                updateBookingStatus(request, response); // Hàm xử lý cập nhật trạng thái đơn
+                break;
+
             default:
                 response.sendRedirect(request.getContextPath() + "/staff/booking");
                 break;
@@ -74,11 +79,54 @@ public class ManageBookingController extends HttpServlet {
     private void showBookingList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        String type = request.getParameter("type"); // Lấy tham số type từ URL bộ lọc
         BookingDAO bookingDAO = new BookingDAO();
         List<Booking> bookingList = bookingDAO.getAllBookings();
 
+        // Xử lý lọc danh sách nếu có tham số type (Tour / Accommodation)
+        if (type != null && !type.trim().isEmpty()) {
+            List<Booking> filteredList = new ArrayList<>();
+            for (Booking booking : bookingList) {
+                if (type.equalsIgnoreCase(booking.getBookingType())) {
+                    filteredList.add(booking);
+                }
+            }
+            bookingList = filteredList;
+        }
+
         request.setAttribute("bookingList", bookingList);
         request.getRequestDispatcher(STAFF_BOOKING_LIST_PAGE).forward(request, response);
+    }
+
+    // Hàm mới xử lý khi ấn nút "Hoàn thành" hoặc "Hủy" từ staff-booking-list.jsp
+    private void updateBookingStatus(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            int bookingID = Integer.parseInt(request.getParameter("bookingID"));
+            String status = request.getParameter("status"); // Sẽ nhận "Completed" hoặc "Cancelled"
+            String type = request.getParameter("type");     // Lấy type hiện tại để giữ nguyên tab khi tải lại trang
+
+            BookingDAO bookingDAO = new BookingDAO();
+
+            // Giả định bạn đã có hàm updateStatus() trong BookingDAO.
+            // Nếu chưa, hãy tạo hàm boolean updateStatus(int id, String status) trong DAO để update DB.
+            boolean isUpdated = bookingDAO.updateStatus(bookingID, status);
+
+            // Xây dựng URL để quay lại cùng tab đã chọn
+            String redirectUrl = request.getContextPath() + "/staff/booking";
+            if (type != null && !type.trim().isEmpty()) {
+                redirectUrl += "?type=" + type;
+            }
+
+            if (isUpdated) {
+                response.sendRedirect(redirectUrl + (redirectUrl.contains("?") ? "&" : "?") + "success=status");
+            } else {
+                response.sendRedirect(redirectUrl + (redirectUrl.contains("?") ? "&" : "?") + "error=status");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/staff/booking?error=invalid");
+        }
     }
 
     private void showEditBookingForm(HttpServletRequest request, HttpServletResponse response)
@@ -447,34 +495,10 @@ public class ManageBookingController extends HttpServlet {
     }
 
     private boolean isValidDistrict(String district) {
-        return "Quận Ba Đình".equals(district)
-                || "Quận Hoàn Kiếm".equals(district)
-                || "Quận Tây Hồ".equals(district)
-                || "Quận Long Biên".equals(district)
-                || "Quận Cầu Giấy".equals(district)
-                || "Quận Đống Đa".equals(district)
-                || "Quận Hai Bà Trưng".equals(district)
-                || "Quận Hoàng Mai".equals(district)
-                || "Quận Thanh Xuân".equals(district)
-                || "Quận Nam Từ Liêm".equals(district)
-                || "Quận Bắc Từ Liêm".equals(district)
-                || "Quận Hà Đông".equals(district)
-                || "Huyện Thanh Trì".equals(district)
-                || "Huyện Gia Lâm".equals(district)
-                || "Huyện Đông Anh".equals(district)
-                || "Huyện Sóc Sơn".equals(district);
+        return district != null && !district.trim().isEmpty();
     }
 
     private boolean isValidCity(String city) {
-        return "Hà Nội".equals(city)
-                || "Hồ Chí Minh".equals(city)
-                || "Đà Nẵng".equals(city)
-                || "Hải Phòng".equals(city)
-                || "Cần Thơ".equals(city)
-                || "Quảng Ninh".equals(city)
-                || "Ninh Bình".equals(city)
-                || "Huế".equals(city)
-                || "Khánh Hòa".equals(city)
-                || "Lâm Đồng".equals(city);
+        return city != null && !city.trim().isEmpty();
     }
 }

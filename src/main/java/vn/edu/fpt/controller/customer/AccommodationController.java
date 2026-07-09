@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
 import vn.edu.fpt.DAO.AccommodationDAO;
+import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.FacilityDAO;
 import vn.edu.fpt.DAO.RoomBookingDAO;
 import vn.edu.fpt.DAO.RoomDAO;
@@ -27,6 +28,7 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -45,9 +47,43 @@ import java.util.UUID;
 public class AccommodationController extends HttpServlet {
 
     private final AccommodationDAO accommodationDAO = new AccommodationDAO();
+    private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
     private final RoomDAO roomDAO = new RoomDAO();
     private final FacilityDAO facilityDAO = new FacilityDAO();
     private final RoomBookingDAO roomBookingDAO = new RoomBookingDAO();
+    private static final String HANOI_PROVINCE_NAME = "Thành phố Hà Nội";
+    private static final List<String> HANOI_DISTRICTS = Arrays.asList(
+            "Quận Ba Đình",
+            "Quận Hoàn Kiếm",
+            "Quận Tây Hồ",
+            "Quận Long Biên",
+            "Quận Cầu Giấy",
+            "Quận Đống Đa",
+            "Quận Hai Bà Trưng",
+            "Quận Hoàng Mai",
+            "Quận Thanh Xuân",
+            "Quận Nam Từ Liêm",
+            "Quận Bắc Từ Liêm",
+            "Quận Hà Đông",
+            "Thị xã Sơn Tây",
+            "Huyện Ba Vì",
+            "Huyện Chương Mỹ",
+            "Huyện Đan Phượng",
+            "Huyện Đông Anh",
+            "Huyện Gia Lâm",
+            "Huyện Hoài Đức",
+            "Huyện Mê Linh",
+            "Huyện Mỹ Đức",
+            "Huyện Phú Xuyên",
+            "Huyện Phúc Thọ",
+            "Huyện Quốc Oai",
+            "Huyện Sóc Sơn",
+            "Huyện Thạch Thất",
+            "Huyện Thanh Oai",
+            "Huyện Thanh Trì",
+            "Huyện Thường Tín",
+            "Huyện Ứng Hòa"
+    );
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -454,6 +490,10 @@ public class AccommodationController extends HttpServlet {
         request.setAttribute("nights", nights);
         request.setAttribute("totalPrice", totalPrice);
         request.setAttribute("detailUrl", detailUrl);
+        request.setAttribute("provinceOptions", administrativeUnitDAO.getActiveProvinceNames());
+        request.setAttribute("wardOptions", administrativeUnitDAO.getActiveWardNamesByProvince(HANOI_PROVINCE_NAME));
+        request.setAttribute("districtOptions", HANOI_DISTRICTS);
+        request.setAttribute("defaultProvince", HANOI_PROVINCE_NAME);
 
         request.getRequestDispatcher("/views/customer/accommodation-booking-form.jsp")
                 .forward(request, response);
@@ -476,7 +516,11 @@ public class AccommodationController extends HttpServlet {
         String lastName = safeTrim(request.getParameter("lastName"));
         String email = safeTrim(request.getParameter("email"));
         String phone = safeTrim(request.getParameter("phone"));
-        String address = safeTrim(request.getParameter("address"));
+        String streetAddress = safeTrim(request.getParameter("streetAddress"));
+        String ward = safeTrim(request.getParameter("ward"));
+        String district = safeTrim(request.getParameter("district"));
+        String city = safeTrim(request.getParameter("city"));
+        String address = buildFullAddress(streetAddress, ward, district, city);
         String identityNumber = normalizeIdentityNumber(request.getParameter("identityNumber"));
         Part identityImagePart = request.getPart("identityImage");
         String note = safeTrim(request.getParameter("note"));
@@ -497,7 +541,12 @@ public class AccommodationController extends HttpServlet {
         }
 
         if (isBlank(firstName) || isBlank(lastName) || isBlank(email) || isBlank(phone)
-                || isBlank(address) || !isValidIdentityNumber(identityNumber)
+                || !isValidStreetAddress(streetAddress)
+                || !isValidWard(city, ward)
+                || !isValidDistrict(district)
+                || !isValidProvince(city)
+                || isBlank(address) || address.length() > 255
+                || !isValidIdentityNumber(identityNumber)
                 || !isValidIdentityImage(identityImagePart)) {
             response.sendRedirect(buildBookingFormUrl(request, accommodationID, roomID, checkIn, checkOut,
                     adults, children, rooms) + "&status=invalidCustomerInfo");
@@ -547,8 +596,8 @@ public class AccommodationController extends HttpServlet {
             return;
         }
 
-        session.setAttribute("successMessage", "Dat phong thanh cong. Ma don: #" + bookingID);
-        response.sendRedirect(detailUrl + "&status=bookingSuccess");
+        session.setAttribute("successMessage", "Vui lòng hoàn tất thanh toán cho đơn #" + bookingID);
+        response.sendRedirect(request.getContextPath() + "/payment?bookingID=" + bookingID);
     }
 
     private boolean matchesKeyword(Accommodation accommodation, String keyword) {
@@ -740,6 +789,34 @@ public class AccommodationController extends HttpServlet {
     private boolean isValidIdentityNumber(String identityNumber) {
         String normalizedIdentityNumber = normalizeIdentityNumber(identityNumber);
         return normalizedIdentityNumber.matches("^[0-9]{9}$|^[0-9]{12}$");
+    }
+
+    private String buildFullAddress(String streetAddress, String ward, String district, String city) {
+        if (isBlank(streetAddress) || isBlank(ward) || isBlank(district) || isBlank(city)) {
+            return "";
+        }
+
+        return streetAddress + ", " + ward + ", " + district + ", " + city;
+    }
+
+    private boolean isValidStreetAddress(String streetAddress) {
+        if (isBlank(streetAddress) || streetAddress.length() > 120) {
+            return false;
+        }
+
+        return streetAddress.matches("^[\\p{L}0-9\\s,./-]+$");
+    }
+
+    private boolean isValidWard(String city, String ward) {
+        return administrativeUnitDAO.isValidProvinceWard(city, ward);
+    }
+
+    private boolean isValidDistrict(String district) {
+        return HANOI_DISTRICTS.contains(district);
+    }
+
+    private boolean isValidProvince(String city) {
+        return administrativeUnitDAO.getActiveProvinceNames().contains(city);
     }
 
     private String buildBookingFormUrl(HttpServletRequest request, int accommodationID, int roomID,

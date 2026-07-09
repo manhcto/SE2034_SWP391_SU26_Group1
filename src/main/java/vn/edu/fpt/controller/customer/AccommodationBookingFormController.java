@@ -1,14 +1,12 @@
 package vn.edu.fpt.controller.customer;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-@WebServlet(name = "AccommodationBookingFormController", urlPatterns = {"/booking/accommodation/form"})
 public class AccommodationBookingFormController extends HttpServlet {
 
     @Override

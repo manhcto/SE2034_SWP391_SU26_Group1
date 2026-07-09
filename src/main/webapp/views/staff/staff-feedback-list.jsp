@@ -605,7 +605,7 @@
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
       <i class="fa-solid fa-calendar-check"></i>
-      <span>Quản lý đặt chỗ</span>
+      <span>Đơn đặt</span>
     </a>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
@@ -648,9 +648,6 @@
     <div class="topbar">
       <div>
         <h1>Quản lý đánh giá khách hàng</h1>
-        <p>
-          Staff xem, duyệt, ẩn hoặc xóa đánh giá của khách hàng theo từng loại dịch vụ.
-        </p>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/home">
@@ -770,11 +767,6 @@
         Khách sạn
       </a>
 
-      <a class="tab-link ${type == 'Vehicle' ? 'active' : ''}"
-         href="${pageContext.request.contextPath}/staff/feedback?type=Vehicle">
-        <i class="fa-solid fa-car-side"></i>
-        Xe
-      </a>
     </div>
 
     <div class="content-card">
@@ -795,7 +787,7 @@
                 <th>Khách hàng</th>
                 <th>Dịch vụ</th>
                 <th>Số sao</th>
-                <th>Nội dung</th>
+                <th style="width: 35%">Nội dung</th>
                 <th>Ngày tạo</th>
                 <th>Trạng thái</th>
                 <th>Thao tác</th>
@@ -822,10 +814,6 @@
                           <i class="fa-solid fa-hotel"></i>
                           Khách sạn
                         </c:when>
-                        <c:when test="${feedback.serviceType == 'Vehicle'}">
-                          <i class="fa-solid fa-car-side"></i>
-                          Xe
-                        </c:when>
                         <c:when test="${feedback.serviceType == 'Tour'}">
                           <i class="fa-solid fa-map-location-dot"></i>
                           Tour
@@ -846,7 +834,7 @@
                   </td>
 
                   <td>
-                    <div class="content-preview">
+                    <div class="text-wrap text-break" style="color: #475569; font-weight: 600; min-width: 200px;">
                         ${feedback.content}
                     </div>
                   </td>
@@ -875,45 +863,21 @@
 
                   <td>
                     <div class="action-group">
-                      <a class="btn-action btn-view"
-                         href="${pageContext.request.contextPath}/staff/feedback-detail?feedbackID=${feedback.feedbackID}&type=${type}">
-                        <i class="fa-solid fa-eye"></i>
-                        Xem
-                      </a>
+                      <c:if test="${feedback.status != 'Visible'}">
+                        <form class="inline-form"
+                              action="${pageContext.request.contextPath}/staff/feedback-status"
+                              method="post">
+                          <input type="hidden" name="feedbackID" value="${feedback.feedbackID}">
+                          <input type="hidden" name="status" value="Visible">
+                          <input type="hidden" name="redirectTo" value="list">
+                          <input type="hidden" name="type" value="${type}">
 
-                      <c:choose>
-                        <c:when test="${feedback.status == 'Hidden'}">
-                          <form class="inline-form"
-                                action="${pageContext.request.contextPath}/staff/feedback-status"
-                                method="post">
-                            <input type="hidden" name="feedbackID" value="${feedback.feedbackID}">
-                            <input type="hidden" name="status" value="Visible">
-                            <input type="hidden" name="redirectTo" value="list">
-                            <input type="hidden" name="type" value="${type}">
-
-                            <button type="submit" class="btn-action btn-approve">
-                              <i class="fa-solid fa-check"></i>
-                              Duyệt
-                            </button>
-                          </form>
-                        </c:when>
-
-                        <c:otherwise>
-                          <form class="inline-form"
-                                action="${pageContext.request.contextPath}/staff/feedback-status"
-                                method="post">
-                            <input type="hidden" name="feedbackID" value="${feedback.feedbackID}">
-                            <input type="hidden" name="status" value="Hidden">
-                            <input type="hidden" name="redirectTo" value="list">
-                            <input type="hidden" name="type" value="${type}">
-
-                            <button type="submit" class="btn-action btn-hide">
-                              <i class="fa-solid fa-eye-slash"></i>
-                              Ẩn
-                            </button>
-                          </form>
-                        </c:otherwise>
-                      </c:choose>
+                          <button type="submit" class="btn-action btn-approve">
+                            <i class="fa-solid fa-check"></i>
+                            Duyệt
+                          </button>
+                        </form>
+                      </c:if>
 
                       <form class="inline-form"
                             action="${pageContext.request.contextPath}/staff/feedback-delete"

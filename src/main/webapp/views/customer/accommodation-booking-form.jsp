@@ -408,9 +408,38 @@
                         <span class="field-hint">JPG, JPEG, PNG hoặc WEBP; tối đa 5MB.</span>
                     </div>
 
-                    <div class="field full">
-                        <label for="address">Địa chỉ liên hệ</label>
-                        <input class="form-control" id="address" name="address" value="${user.address}" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" autocomplete="street-address" required>
+                    <div class="field">
+                        <label for="streetAddress">Số nhà, đường</label>
+                        <input class="form-control"
+                               id="streetAddress"
+                               name="streetAddress"
+                               maxlength="120"
+                               pattern="^[\p{L}0-9\s,./-]+$"
+                               placeholder="VD: 12 Tràng Tiền"
+                               autocomplete="street-address"
+                               required>
+                        <span class="field-hint">Chỉ nhập chữ, số, khoảng trắng và các ký tự , . / -</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="city">Tỉnh/Thành phố</label>
+                        <select class="form-select" id="city" name="city" required>
+                            <option value="">Chọn tỉnh/thành phố</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="district">Quận/Huyện</label>
+                        <select class="form-select" id="district" name="district" required disabled>
+                            <option value="">Chọn quận/huyện</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="ward">Phường/Xã</label>
+                        <select class="form-select" id="ward" name="ward" required disabled>
+                            <option value="">Chọn phường/xã</option>
+                        </select>
                     </div>
 
                     <div class="field full">
@@ -424,8 +453,8 @@
                         Hủy
                     </a>
                     <button class="btn-submit-booking" type="submit">
-                        <i class="fa-solid fa-calendar-check"></i>
-                        Đặt phòng
+                        <i class="fa-solid fa-credit-card"></i>
+                        Thanh toán
                     </button>
                 </div>
             </form>
@@ -483,5 +512,113 @@
 
 <jsp:include page="/views/common/client-footer.jsp"/>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const citySelect = document.getElementById("city");
+        const districtSelect = document.getElementById("district");
+        const wardSelect = document.getElementById("ward");
+
+        // Biến lưu trữ dữ liệu gốc từ API
+        let provincesData = [];
+
+        // 1. Tải danh sách Tỉnh/Thành phố
+        fetch("https://provinces.open-api.vn/api/?depth=3")
+            .then(response => response.json())
+            .then(data => {
+                provincesData = data;
+
+                data.forEach(province => {
+                    // Tên gửi về Backend lưu DB (bỏ chữ Tỉnh/Thành phố dư thừa theo ý Backend)
+                    let backendValue = province.name.replace("Thành phố ", "").replace("Tỉnh ", "");
+
+                    let option = document.createElement("option");
+                    option.value = backendValue;  // Giá trị submit form
+                    option.text = province.name;  // Tên hiển thị cho người dùng nhìn
+                    option.dataset.code = province.code; // Lưu mã định danh (Ví dụ: Hà Nội = 1)
+                    citySelect.appendChild(option);
+                });
+
+                // Tự động chọn lại dữ liệu cũ nếu có (Old Value)
+                const oldCity = "${city}";
+                if (oldCity) {
+                    citySelect.value = oldCity;
+                    citySelect.dispatchEvent(new Event("change"));
+                }
+            })
+            .catch(error => console.error("Lỗi tải API tỉnh thành:", error));
+
+        // 2. Khi người dùng chọn Tỉnh/Thành phố -> Mở khóa và tải Quận/Huyện
+        citySelect.addEventListener("change", function () {
+            districtSelect.innerHTML = '<option value="">Chọn quận/huyện</option>';
+            wardSelect.innerHTML = '<option value="">Chọn phường/xã</option>';
+            districtSelect.disabled = true;
+            wardSelect.disabled = true;
+
+            const selectedOption = citySelect.options[citySelect.selectedIndex];
+            if (!selectedOption || !selectedOption.value) return;
+
+            // Lấy mã Code thay vì lấy chữ tiếng Việt để tìm kiếm
+            const cityCode = selectedOption.dataset.code;
+            const province = provincesData.find(p => p.code == cityCode);
+
+            if (province && province.districts) {
+                province.districts.forEach(dist => {
+                    let option = document.createElement("option");
+                    option.value = dist.name;
+                    option.text = dist.name;
+                    option.dataset.code = dist.code; // Lưu mã định danh quận huyện
+                    districtSelect.appendChild(option);
+                });
+                districtSelect.disabled = false;
+
+                // Tự động chọn lại dữ liệu cũ nếu có
+                const oldDistrict = "${district}";
+                if (oldDistrict) {
+                    setTimeout(() => {
+                        districtSelect.value = oldDistrict;
+                        districtSelect.dispatchEvent(new Event("change"));
+                    }, 50);
+                }
+            }
+        });
+
+        // 3. Khi người dùng chọn Quận/Huyện -> Mở khóa và tải Phường/Xã
+        districtSelect.addEventListener("change", function () {
+            wardSelect.innerHTML = '<option value="">Chọn phường/xã</option>';
+            wardSelect.disabled = true;
+
+            const cityOption = citySelect.options[citySelect.selectedIndex];
+            const districtOption = districtSelect.options[districtSelect.selectedIndex];
+
+            if (!cityOption || !districtOption || !districtOption.value) return;
+
+            const cityCode = cityOption.dataset.code;
+            const districtCode = districtOption.dataset.code;
+
+            // Tìm chính xác cụm dữ liệu dựa trên Code định danh
+            const province = provincesData.find(p => p.code == cityCode);
+            if (province && province.districts) {
+                const district = province.districts.find(d => d.code == districtCode);
+
+                if (district && district.wards) {
+                    district.wards.forEach(w => {
+                        let option = document.createElement("option");
+                        option.value = w.name;
+                        option.text = w.name;
+                        wardSelect.appendChild(option);
+                    });
+                    wardSelect.disabled = false;
+
+                    // Tự động chọn lại dữ liệu cũ nếu có
+                    const oldWard = "${ward}";
+                    if (oldWard) {
+                        setTimeout(() => { wardSelect.value = oldWard; }, 50);
+                    }
+                }
+            }
+        });
+    });
+</script>
 </body>
 </html>

@@ -431,11 +431,6 @@
       <span>Lưu trú</span>
     </a>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-      <i class="fa-solid fa-car-side"></i>
-      <span>Phương tiện</span>
-    </a>
-
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
       <i class="fa-solid fa-map-location-dot"></i>
       <span>Tour</span>
