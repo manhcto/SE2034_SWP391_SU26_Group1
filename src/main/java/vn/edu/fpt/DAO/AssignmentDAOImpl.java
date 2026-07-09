@@ -187,6 +187,14 @@ public class AssignmentDAOImpl {
     }
 
     public List<AssignmentView> getConfirmedSchedulesForAssignment(String keyword) {
+        return getSchedulesForAssignment(keyword, true);
+    }
+
+    public List<AssignmentView> getAllSchedulesForAssignmentOptions(String keyword) {
+        return getSchedulesForAssignment(keyword, false);
+    }
+
+    private List<AssignmentView> getSchedulesForAssignment(String keyword, boolean onlyWithoutActiveAssignment) {
         List<AssignmentView> list = new ArrayList<>();
         List<Object> params = new ArrayList<>();
 
@@ -214,13 +222,19 @@ public class AssignmentDAOImpl {
             LEFT JOIN Booking b
                 ON b.bookingID = bd.bookingID
                AND b.bookingType = N'Tour'
-            WHERE NOT EXISTS (
+            WHERE 1 = 1
+            """);
+
+        if (onlyWithoutActiveAssignment) {
+            sql.append("""
+              AND NOT EXISTS (
                 SELECT 1
                 FROM Tour_Assignments existing
                 WHERE existing.tourScheduleID = ts.tourScheduleID
                   AND existing.assignmentStatus NOT IN (N'Cancelled', N'Rejected')
-            )
-            """);
+              )
+              """);
+        }
 
         String normalizedKeyword = blankToNull(keyword);
         if (normalizedKeyword != null) {

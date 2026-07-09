@@ -85,7 +85,7 @@ public class ManageAssignmentTourController extends HttpServlet {
                                        HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.setAttribute("scheduleList", assignmentDAO.getConfirmedSchedulesForAssignment(request.getParameter("keyword")));
+        request.setAttribute("scheduleList", assignmentDAO.getAllSchedulesForAssignmentOptions(request.getParameter("keyword")));
         request.setAttribute("guideList", assignmentDAO.getAllGuides());
 
         request.getRequestDispatcher("/views/staff/tour-assignment-create.jsp")

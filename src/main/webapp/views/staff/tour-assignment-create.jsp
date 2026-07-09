@@ -60,7 +60,7 @@
 
                     <div class="row g-4">
                         <div class="col-md-7">
-                            <label class="form-label">Lịch tour cần phân công</label>
+                            <label class="form-label">Lịch tour</label>
                             <select name="tourScheduleID" class="form-select" required>
                                 <option value="">Chọn lịch tour</option>
                                 <c:forEach var="s" items="${scheduleList}">
