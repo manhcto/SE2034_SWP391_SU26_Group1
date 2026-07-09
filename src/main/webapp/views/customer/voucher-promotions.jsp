@@ -95,6 +95,41 @@
             box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
         }
 
+        .save-alert {
+            margin: 0 0 22px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .save-alert.success {
+            border: 1px solid #bbf7d0;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .save-alert.info {
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .save-alert.warning {
+            border: 1px solid #fde68a;
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .save-alert.error {
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
         .voucher-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -220,6 +255,44 @@
             line-height: 1.7;
         }
 
+        .voucher-actions {
+            margin-top: 14px;
+        }
+
+        .save-voucher-form {
+            margin: 0;
+        }
+
+        .save-voucher-btn,
+        .saved-voucher-btn {
+            width: 100%;
+            min-height: 44px;
+            border: 0;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .save-voucher-btn {
+            background: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+        }
+
+        .save-voucher-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .saved-voucher-btn {
+            background: #e2e8f0;
+            color: #475569;
+            cursor: not-allowed;
+        }
+
         .empty-state {
             border: 1px dashed #cbd5e1;
             border-radius: 18px;
@@ -294,6 +367,39 @@
     </nav>
 
     <c:choose>
+        <c:when test="${param.save == 'success'}">
+            <div class="save-alert success">
+                <i class="fa-solid fa-circle-check"></i>
+                Lưu Voucher thành công.
+            </div>
+        </c:when>
+        <c:when test="${param.save == 'exists'}">
+            <div class="save-alert info">
+                <i class="fa-solid fa-circle-info"></i>
+                Voucher này đã được lưu trước đó.
+            </div>
+        </c:when>
+        <c:when test="${param.save == 'unavailable'}">
+            <div class="save-alert warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Voucher hiện không còn khả dụng.
+            </div>
+        </c:when>
+        <c:when test="${param.save == 'forbidden'}">
+            <div class="save-alert error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                Chỉ khách hàng mới có thể lưu Voucher.
+            </div>
+        </c:when>
+        <c:when test="${param.save == 'error'}">
+            <div class="save-alert error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                Không thể lưu Voucher. Vui lòng thử lại.
+            </div>
+        </c:when>
+    </c:choose>
+
+    <c:choose>
         <c:when test="${empty voucherList}">
             <section class="empty-state">
                 <i class="fa-regular fa-folder-open"></i>
@@ -312,6 +418,7 @@
                     <c:if test="${applicableType == 'Accommodation'}">
                         <c:set var="applicableLabel" value="Lưu trú"/>
                     </c:if>
+                    <c:set var="isSavedVoucher" value="${savedVoucherIds.contains(voucher.voucherID)}"/>
 
                     <article class="voucher-card">
                         <div class="voucher-card-head">
@@ -382,6 +489,29 @@
                                     <li>Voucher còn hiệu lực đến ngày <fmt:formatDate value="${voucher.endDate}" pattern="dd/MM/yyyy"/>.</li>
                                 </ul>
                             </details>
+
+                            <div class="voucher-actions">
+                                <c:choose>
+                                    <c:when test="${isSavedVoucher}">
+                                        <button class="saved-voucher-btn" type="button" disabled>
+                                            <i class="fa-solid fa-check"></i>
+                                            Đã lưu
+                                        </button>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <form class="save-voucher-form"
+                                              action="${pageContext.request.contextPath}/vouchers/save"
+                                              method="post">
+                                            <input type="hidden" name="voucherID" value="${voucher.voucherID}">
+                                            <input type="hidden" name="type" value="${selectedType}">
+                                            <button class="save-voucher-btn" type="submit">
+                                                <i class="fa-solid fa-bookmark"></i>
+                                                Lưu Voucher
+                                            </button>
+                                        </form>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
                         </div>
                     </article>
                 </c:forEach>
