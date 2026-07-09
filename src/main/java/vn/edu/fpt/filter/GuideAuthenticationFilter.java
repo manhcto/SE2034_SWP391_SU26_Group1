@@ -46,8 +46,12 @@ public class GuideAuthenticationFilter implements Filter {
 
         if (roleName != null) {
             String normalizedRoleName = roleName.trim().toLowerCase();
-            return "tour guide".equals(normalizedRoleName)
-                    || "guide".equals(normalizedRoleName);
+            if ("tour guide".equals(normalizedRoleName)
+                    || "tourguide".equals(normalizedRoleName)
+                    || "tour-guide".equals(normalizedRoleName)
+                    || "guide".equals(normalizedRoleName)) {
+                return true;
+            }
         }
 
         return user.getRoleID() == 3;

@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.DAO.AssignmentDAOImpl;
+import vn.edu.fpt.DAO.BookingTravelerDAO;
+import vn.edu.fpt.DAO.ItineraryLogDAO;
 import vn.edu.fpt.model.AssignmentView;
 import vn.edu.fpt.model.TourAssignments;
 import vn.edu.fpt.model.User;
@@ -15,16 +17,19 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.List;
 
-@WebServlet(name = "ManageAssignmentTourController", urlPatterns = {"/staff/assignment"})
+@WebServlet(name = "ManageAssignmentTourController", urlPatterns = {"/staff/assignment", "/staff/tour-assignment"})
 public class ManageAssignmentTourController extends HttpServlet {
 
     private AssignmentDAOImpl assignmentDAO;
+    private BookingTravelerDAO travelerDAO;
+    private ItineraryLogDAO itineraryLogDAO;
 
     @Override
     public void init() {
         assignmentDAO = new AssignmentDAOImpl();
+        travelerDAO = new BookingTravelerDAO();
+        itineraryLogDAO = new ItineraryLogDAO();
     }
 
     @Override
@@ -32,19 +37,15 @@ public class ManageAssignmentTourController extends HttpServlet {
                          HttpServletResponse response)
             throws ServletException, IOException {
 
-        String action = request.getParameter("action");
-
-        if (action == null) {
-            action = "list";
-        }
+        String action = trimToDefault(request.getParameter("action"), "list");
 
         switch (action) {
-            case "list" -> listAssignment(request, response);
-            case "view" -> viewAssignment(request, response);
-            case "create" -> showCreateForm(request, response);
-            case "edit" -> showEditForm(request, response);
+            case "create" -> showAddTourAssignment(request, response);
+            case "edit" -> showEditTourAssignment(request, response);
+            case "view" -> showViewTourAssignment(request, response);
+            case "list" -> showListTourAssignment(request, response);
             case "insert", "delete", "update" -> response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-            default -> listAssignment(request, response);
+            default -> showListTourAssignment(request, response);
         }
     }
 
@@ -54,43 +55,131 @@ public class ManageAssignmentTourController extends HttpServlet {
             throws IOException {
 
         request.setCharacterEncoding("UTF-8");
+        String action = trimToDefault(request.getParameter("action"), "list");
 
-        String action = request.getParameter("action");
-
-        if ("insert".equals(action)) {
-            insertAssignment(request, response);
-            return;
+        switch (action) {
+            case "insert" -> addTourAssignment(request, response);
+            case "update" -> editTourAssignment(request, response);
+            case "delete" -> deleteTourAssignment(request, response);
+            default -> response.sendRedirect(request.getContextPath() + "/staff/assignment");
         }
-
-        if ("update".equals(action)) {
-            updateAssignment(request, response);
-            return;
-        }
-
-        if ("delete".equals(action)) {
-            deleteAssignment(request, response);
-            return;
-        }
-
-        response.sendRedirect(request.getContextPath() + "/staff/assignment");
     }
 
-    private void listAssignment(HttpServletRequest request,
-                                HttpServletResponse response)
+    private void showListTourAssignment(HttpServletRequest request,
+                                        HttpServletResponse response)
             throws ServletException, IOException {
 
-        List<AssignmentView> list = assignmentDAO.getAllAssignments();
+        String keyword = request.getParameter("keyword");
+        String status = request.getParameter("status");
 
-        request.setAttribute("assignmentList", list);
-        request.getRequestDispatcher("/views/staff/assignment-management.jsp")
+        request.setAttribute("assignmentList", assignmentDAO.getAllAssignments(keyword, status));
+        request.setAttribute("scheduleList", assignmentDAO.getConfirmedSchedulesForAssignment(keyword));
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("status", status);
+
+        request.getRequestDispatcher("/views/staff/tour-assignment-list.jsp")
                 .forward(request, response);
     }
 
-    private void viewAssignment(HttpServletRequest request,
-                                HttpServletResponse response)
+    private void showAddTourAssignment(HttpServletRequest request,
+                                       HttpServletResponse response)
             throws ServletException, IOException {
 
-        int id = Integer.parseInt(request.getParameter("id"));
+        request.setAttribute("scheduleList", assignmentDAO.getConfirmedSchedulesForAssignment(request.getParameter("keyword")));
+        request.setAttribute("guideList", assignmentDAO.getAllGuides());
+
+        request.getRequestDispatcher("/views/staff/tour-assignment-create.jsp")
+                .forward(request, response);
+    }
+
+    private void addTourAssignment(HttpServletRequest request,
+                                   HttpServletResponse response)
+            throws IOException {
+
+        int tourScheduleID = parseRequiredInt(request.getParameter("tourScheduleID"));
+        int guideID = parseRequiredInt(request.getParameter("userID"));
+
+        if (tourScheduleID <= 0 || guideID <= 0) {
+            response.sendRedirect(request.getContextPath() + "/staff/assignment?action=create&error=missing");
+            return;
+        }
+
+        if (!assignmentDAO.isGuideAvailable(guideID, tourScheduleID, 0)) {
+            response.sendRedirect(request.getContextPath() + "/staff/assignment?action=create&error=guideBusy");
+            return;
+        }
+
+        TourAssignments assignment = buildAssignmentFromRequest(request);
+        assignment.setTourScheduleID(tourScheduleID);
+        assignment.setUserID(guideID);
+        assignment.setBookingID(parseOptionalInt(request.getParameter("bookingID")));
+
+        boolean inserted = assignmentDAO.addAssignment(assignment);
+        response.sendRedirect(request.getContextPath()
+                + "/staff/assignment"
+                + (inserted ? "?success=insert" : "?error=insert"));
+    }
+
+    private void showEditTourAssignment(HttpServletRequest request,
+                                        HttpServletResponse response)
+            throws ServletException, IOException {
+
+        int id = parseRequiredInt(request.getParameter("id"));
+        TourAssignments assignment = assignmentDAO.getAssignmentById(id);
+
+        if (assignment == null) {
+            response.sendRedirect(request.getContextPath() + "/staff/assignment?error=notFound");
+            return;
+        }
+
+        request.setAttribute("assignment", assignment);
+        request.setAttribute("assignmentDetail", assignmentDAO.getAssignmentDetail(id));
+        request.setAttribute("scheduleDetail", assignmentDAO.getScheduleById(assignment.getTourScheduleID()));
+        request.setAttribute("guideList", assignmentDAO.getAllGuides());
+
+        request.getRequestDispatcher("/views/staff/tour-assignment-edit.jsp")
+                .forward(request, response);
+    }
+
+    private void editTourAssignment(HttpServletRequest request,
+                                    HttpServletResponse response)
+            throws IOException {
+
+        int assignmentID = parseRequiredInt(request.getParameter("assignmentID"));
+        int tourScheduleID = parseRequiredInt(request.getParameter("tourScheduleID"));
+        int guideID = parseRequiredInt(request.getParameter("userID"));
+
+        if (assignmentID <= 0 || tourScheduleID <= 0 || guideID <= 0) {
+            response.sendRedirect(request.getContextPath() + "/staff/assignment?error=missing");
+            return;
+        }
+
+        if (!assignmentDAO.isGuideAvailable(guideID, tourScheduleID, assignmentID)) {
+            response.sendRedirect(request.getContextPath()
+                    + "/staff/assignment?action=edit&id=" + assignmentID + "&error=guideBusy");
+            return;
+        }
+
+        TourAssignments assignment = buildAssignmentFromRequest(request);
+        assignment.setAssignmentID(assignmentID);
+        assignment.setTourScheduleID(tourScheduleID);
+        assignment.setUserID(guideID);
+        assignment.setBookingID(parseOptionalInt(request.getParameter("bookingID")));
+        assignment.setActualStartAt(parseDateTime(request.getParameter("actualStartAt")));
+        assignment.setActualEndAt(parseDateTime(request.getParameter("actualEndAt")));
+        assignment.setRejectionReason(trimToNull(request.getParameter("rejectionReason")));
+
+        boolean updated = assignmentDAO.updateAssignment(assignment);
+        response.sendRedirect(request.getContextPath()
+                + "/staff/assignment"
+                + (updated ? "?success=update" : "?error=update"));
+    }
+
+    private void showViewTourAssignment(HttpServletRequest request,
+                                        HttpServletResponse response)
+            throws ServletException, IOException {
+
+        int id = parseRequiredInt(request.getParameter("id"));
         AssignmentView assignment = assignmentDAO.getAssignmentDetail(id);
 
         if (assignment == null) {
@@ -99,107 +188,29 @@ public class ManageAssignmentTourController extends HttpServlet {
         }
 
         request.setAttribute("assignment", assignment);
-        request.getRequestDispatcher("/views/staff/assignment-view.jsp")
+        request.setAttribute("travelerList", travelerDAO.getTravelersByAssignment(id));
+        request.setAttribute("progressLogs", itineraryLogDAO.getLogsByAssignment(id));
+
+        request.getRequestDispatcher("/views/staff/tour-assignment-view.jsp")
                 .forward(request, response);
     }
 
-    private void showCreateForm(HttpServletRequest request,
-                                HttpServletResponse response)
-            throws ServletException, IOException {
-
-        request.setAttribute("bookingList", assignmentDAO.getAllBookingsForAssignment());
-        request.setAttribute("guideList", assignmentDAO.getAllGuides());
-
-        request.getRequestDispatcher("/views/staff/assignment-create.jsp")
-                .forward(request, response);
-    }
-
-    private void insertAssignment(HttpServletRequest request,
-                                  HttpServletResponse response)
+    private void deleteTourAssignment(HttpServletRequest request,
+                                      HttpServletResponse response)
             throws IOException {
 
-        int bookingID = Integer.parseInt(request.getParameter("bookingID"));
-        int guideID = Integer.parseInt(request.getParameter("userID"));
-        int tourScheduleID = assignmentDAO.getTourScheduleIDByBookingID(bookingID);
+        int id = parseRequiredInt(request.getParameter("id"));
+        boolean deleted = id > 0 && assignmentDAO.deleteAssignment(id);
 
-        if (tourScheduleID == -1) {
-            response.sendRedirect(
-                    request.getContextPath()
-                            + "/staff/assignment?action=create&error=notFoundSchedule"
-            );
-            return;
-        }
-
-        TourAssignments assignment = buildAssignmentFromRequest(request);
-
-        assignment.setTourScheduleID(tourScheduleID);
-        assignment.setBookingID(bookingID);
-        assignment.setUserID(guideID);
-
-        assignmentDAO.addAssignment(assignment);
-
-        response.sendRedirect(request.getContextPath() + "/staff/assignment?success=insert");
-    }
-
-    private void deleteAssignment(HttpServletRequest request,
-                                  HttpServletResponse response)
-            throws IOException {
-
-        int id = Integer.parseInt(request.getParameter("id"));
-
-        assignmentDAO.deleteAssignment(id);
-        response.sendRedirect(request.getContextPath() + "/staff/assignment?success=delete");
-    }
-
-    private void showEditForm(HttpServletRequest request,
-                              HttpServletResponse response)
-            throws ServletException, IOException {
-
-        int id = Integer.parseInt(request.getParameter("id"));
-        TourAssignments assignment = assignmentDAO.getAssignmentById(id);
-
-        if (assignment == null) {
-            response.sendRedirect(request.getContextPath() + "/staff/assignment?error=notFound");
-            return;
-        }
-
-        AssignmentView assignmentDetail = assignmentDAO.getAssignmentDetail(id);
-
-        request.setAttribute("assignment", assignment);
-        request.setAttribute("assignmentDetail", assignmentDetail);
-        request.setAttribute("guideList", assignmentDAO.getAllGuides());
-
-        request.getRequestDispatcher("/views/staff/assignment-edit.jsp")
-                .forward(request, response);
-    }
-
-    private void updateAssignment(HttpServletRequest request,
-                                  HttpServletResponse response)
-            throws IOException {
-
-        int assignmentID = Integer.parseInt(request.getParameter("assignmentID"));
-        int tourScheduleID = Integer.parseInt(request.getParameter("tourScheduleID"));
-        int userID = Integer.parseInt(request.getParameter("userID"));
-
-        TourAssignments assignment = buildAssignmentFromRequest(request);
-
-        assignment.setAssignmentID(assignmentID);
-        assignment.setTourScheduleID(tourScheduleID);
-        assignment.setUserID(userID);
-        assignment.setBookingID(parseOptionalInt(request.getParameter("bookingID")));
-        assignment.setActualStartAt(parseDateTime(request.getParameter("actualStartAt")));
-        assignment.setActualEndAt(parseDateTime(request.getParameter("actualEndAt")));
-        assignment.setRejectionReason(trimToNull(request.getParameter("rejectionReason")));
-
-        assignmentDAO.updateAssignment(assignment);
-
-        response.sendRedirect(request.getContextPath() + "/staff/assignment?success=update");
+        response.sendRedirect(request.getContextPath()
+                + "/staff/assignment"
+                + (deleted ? "?success=delete" : "?error=delete"));
     }
 
     private TourAssignments buildAssignmentFromRequest(HttpServletRequest request) {
         TourAssignments assignment = new TourAssignments();
 
-        assignment.setRoleInTour(normalizeRoleInTour(request.getParameter("roleInTour")));
+        assignment.setRoleInTour(trimToDefault(request.getParameter("roleInTour"), "Tour Guide"));
         assignment.setAssignedBy(getCurrentUserID(request));
         assignment.setAssignmentStatus(normalizeAssignmentStatus(request.getParameter("assignmentStatus")));
         assignment.setPriorityLevel(normalizePriorityLevel(request.getParameter("priorityLevel")));
@@ -213,21 +224,13 @@ public class ManageAssignmentTourController extends HttpServlet {
         return assignment;
     }
 
-    private String normalizeRoleInTour(String roleInTour) {
-        if (roleInTour == null || roleInTour.trim().isEmpty()) {
-            return "Hướng dẫn viên";
-        }
-
-        return roleInTour.trim();
-    }
-
     private String normalizeAssignmentStatus(String status) {
         if (status == null) {
             return "Pending";
         }
 
         return switch (status.trim()) {
-            case "Accepted", "Confirmed", "In Progress", "Completed", "Cancelled", "Rejected" -> status.trim();
+            case "Pending", "Accepted", "Confirmed", "In Progress", "Completed", "Cancelled", "Rejected" -> status.trim();
             default -> "Pending";
         };
     }
@@ -238,7 +241,7 @@ public class ManageAssignmentTourController extends HttpServlet {
         }
 
         return switch (priorityLevel.trim()) {
-            case "Low", "High", "Urgent" -> priorityLevel.trim();
+            case "Low", "Normal", "High", "Urgent" -> priorityLevel.trim();
             default -> "Normal";
         };
     }
@@ -257,18 +260,21 @@ public class ManageAssignmentTourController extends HttpServlet {
         }
     }
 
-    private int parseOptionalInt(String raw) {
-        String value = trimToNull(raw);
-
-        if (value == null) {
-            return 0;
-        }
-
+    private int parseRequiredInt(String raw) {
         try {
-            return Integer.parseInt(value);
+            return Integer.parseInt(trimToDefault(raw, "0"));
         } catch (NumberFormatException ex) {
             return 0;
         }
+    }
+
+    private int parseOptionalInt(String raw) {
+        return parseRequiredInt(raw);
+    }
+
+    private String trimToDefault(String value, String fallback) {
+        String trimmed = trimToNull(value);
+        return trimmed == null ? fallback : trimmed;
     }
 
     private String trimToNull(String value) {

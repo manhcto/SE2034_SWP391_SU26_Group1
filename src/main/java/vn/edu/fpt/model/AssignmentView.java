@@ -27,6 +27,8 @@ public class AssignmentView {
     private Date endDate;
     private Date bookDate;
     private String status;
+    private String scheduleStatus;
+    private String bookingStatus;
     private String assignmentStatus;
     private String priorityLevel;
     private Date assignedAt;
@@ -58,6 +60,7 @@ public class AssignmentView {
     private int numberAdult;
     private int numberChildren;
     private int quantity;
+    private int bookingCount;
     private int maxParticipants;
     private int bookedQuantity;
     private double unitPrice;
@@ -259,6 +262,22 @@ public class AssignmentView {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getScheduleStatus() {
+        return scheduleStatus;
+    }
+
+    public void setScheduleStatus(String scheduleStatus) {
+        this.scheduleStatus = scheduleStatus;
+    }
+
+    public String getBookingStatus() {
+        return bookingStatus;
+    }
+
+    public void setBookingStatus(String bookingStatus) {
+        this.bookingStatus = bookingStatus;
     }
 
     public String getAssignmentStatus() {
@@ -507,6 +526,14 @@ public class AssignmentView {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public int getBookingCount() {
+        return bookingCount;
+    }
+
+    public void setBookingCount(int bookingCount) {
+        this.bookingCount = bookingCount;
     }
 
     public int getMaxParticipants() {
