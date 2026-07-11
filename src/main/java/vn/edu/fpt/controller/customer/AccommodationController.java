@@ -808,17 +808,7 @@ public class AccommodationController extends HttpServlet {
     }
 
     private boolean isValidWard(String city, String ward) {
-        if (!isValidAddressPart(ward, 100)) {
-            return false;
-        }
-
-        for (String provinceName : provinceNameCandidates(city)) {
-            if (administrativeUnitDAO.isValidProvinceWard(provinceName, ward)) {
-                return true;
-            }
-        }
-
-        return isValidProvince(city);
+        return isValidProvince(city) && isValidAddressPart(ward, 100);
     }
 
     private boolean isValidDistrict(String district) {
@@ -826,18 +816,7 @@ public class AccommodationController extends HttpServlet {
     }
 
     private boolean isValidProvince(String city) {
-        if (!isValidAddressPart(city, 100)) {
-            return false;
-        }
-
-        List<String> activeProvinceNames = administrativeUnitDAO.getActiveProvinceNames();
-        for (String provinceName : provinceNameCandidates(city)) {
-            if (activeProvinceNames.contains(provinceName)) {
-                return true;
-            }
-        }
-
-        return false;
+        return isValidAddressPart(city, 100);
     }
 
     private String buildBookingFormUrl(HttpServletRequest request, int accommodationID, int roomID,
