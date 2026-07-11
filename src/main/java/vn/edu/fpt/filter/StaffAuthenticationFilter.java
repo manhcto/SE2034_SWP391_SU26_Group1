@@ -12,9 +12,8 @@ import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/guide/*", "/views/guide/*"})
-public class GuideAuthenticationFilter extends AuthenticationFilterSupport implements Filter {
-
+@WebFilter(urlPatterns = {"/staff/*", "/views/staff/*"})
+public class StaffAuthenticationFilter extends AuthenticationFilterSupport implements Filter {
     @Override
     public void doFilter(ServletRequest request,
                          ServletResponse response,
@@ -25,7 +24,7 @@ public class GuideAuthenticationFilter extends AuthenticationFilterSupport imple
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         User user = getCurrentUser(httpRequest);
 
-        if (hasRole(user, 3, "TourGuide", "Tour Guide", "Guide")) {
+        if (hasRole(user, 2, "Staff")) {
             chain.doFilter(request, response);
             return;
         }

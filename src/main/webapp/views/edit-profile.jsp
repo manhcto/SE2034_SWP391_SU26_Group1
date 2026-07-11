@@ -1,5 +1,5 @@
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -12,7 +12,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-
     *{
       margin:0;
       padding:0;
@@ -21,7 +20,39 @@
     }
 
     body{
-      background:#f5f7fb;
+      --theme-main:#2563eb;
+      --theme-accent:#3b82f6;
+      --theme-dark:#1d4ed8;
+      --theme-soft:rgba(37,99,235,.12);
+      --theme-surface:#eff6ff;
+      background:linear-gradient(180deg,#f8fbff 0%,#eef4ff 100%);
+    }
+
+    body.staff-theme{
+      --theme-main:#0f766e;
+      --theme-accent:#14b8a6;
+      --theme-dark:#115e59;
+      --theme-soft:rgba(15,118,110,.12);
+      --theme-surface:#ecfdf5;
+      background:linear-gradient(180deg,#f2fbf9 0%,#e7f8f4 100%);
+    }
+
+    body.guide-theme{
+      --theme-main:#7c3aed;
+      --theme-accent:#a855f7;
+      --theme-dark:#5b21b6;
+      --theme-soft:rgba(124,58,237,.12);
+      --theme-surface:#f5f3ff;
+      background:linear-gradient(180deg,#faf7ff 0%,#f2ecff 100%);
+    }
+
+    body.admin-theme{
+      --theme-main:#dc2626;
+      --theme-accent:#f97316;
+      --theme-dark:#991b1b;
+      --theme-soft:rgba(220,38,38,.12);
+      --theme-surface:#fff1f2;
+      background:linear-gradient(180deg,#fff7f7 0%,#ffeded 100%);
     }
 
     .profile-container{
@@ -34,11 +65,14 @@
       background:#fff;
       border-radius:20px;
       overflow:hidden;
-      box-shadow:0 15px 35px rgba(0,0,0,.08);
+      border:1px solid rgba(148,163,184,.15);
+      box-shadow:0 20px 45px rgba(15,23,42,.08);
     }
 
     .profile-header{
-      background:linear-gradient(135deg,#2563eb,#3b82f6);
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,.2), transparent 45%),
+        linear-gradient(135deg,var(--theme-dark),var(--theme-main),var(--theme-accent));
       padding:40px;
       text-align:center;
       color:white;
@@ -60,6 +94,7 @@
 
     .profile-body{
       padding:35px;
+      background:linear-gradient(180deg,#ffffff 0%,var(--theme-surface) 100%);
     }
 
     .section-title{
@@ -92,14 +127,15 @@
       padding:12px;
       border:1px solid #cbd5e1;
       border-radius:10px;
+      background:#fff;
       outline:none;
       transition:.2s;
     }
 
     .form-group input:focus,
     .form-group select:focus{
-      border-color:#2563eb;
-      box-shadow:0 0 0 3px rgba(37,99,235,.15);
+      border-color:var(--theme-main);
+      box-shadow:0 0 0 3px var(--theme-soft);
     }
 
     .full-width{
@@ -123,6 +159,18 @@
       transition:.2s;
     }
 
+    .btn-return{
+      background:#ffffff;
+      color:var(--theme-main);
+      border:1px solid rgba(148,163,184,.35);
+      box-shadow:0 8px 20px rgba(15,23,42,.06);
+    }
+
+    .btn-return:hover{
+      background:var(--theme-surface);
+      border-color:var(--theme-main);
+    }
+
     .btn-delete{
       background:#ef4444;
       color:white;
@@ -133,16 +181,16 @@
     }
 
     .btn-save{
-      background:#2563eb;
+      background:linear-gradient(135deg,var(--theme-main),var(--theme-accent));
       color:white;
+      box-shadow:0 12px 24px var(--theme-soft);
     }
 
     .btn-save:hover{
-      background:#1d4ed8;
+      filter:brightness(.96);
     }
 
     @media(max-width:768px){
-
       .form-grid{
         grid-template-columns:1fr;
       }
@@ -157,48 +205,39 @@
         text-align:center;
       }
     }
-
   </style>
 
 </head>
-<body>
+<body class="${empty editProfileTheme ? 'customer-theme' : editProfileTheme.concat('-theme')}">
 
 <jsp:include page="/views/common/client-header.jsp"/>
 
 <div class="profile-container">
-
   <div class="profile-card">
-
     <div class="profile-header">
-
-      <img
-              class="avatar"
-              src="${pageContext.request.contextPath}/assets/images/default-avatar.jpg"
-              alt="Avatar">
+      <img class="avatar"
+           src="${pageContext.request.contextPath}/assets/images/default-avatar.jpg"
+           alt="Avatar">
 
       <h2>Edit Profile</h2>
-
       <p>Cập nhật thông tin cá nhân của bạn</p>
-
     </div>
 
     <div class="profile-body">
-
       <div class="section-title">
         Thông tin cá nhân
       </div>
 
       <form id="editProfileForm"
-            action="${pageContext.request.contextPath}/edit-profile"
+            action="${empty editProfileActionPath ? pageContext.request.contextPath.concat('/edit-profile') : editProfileActionPath}"
             method="post">
 
         <div class="form-grid">
-
           <div class="form-group">
             <label>Họ</label>
             <input type="text"
                    name="firstName"
-                   value="${sessionScope.user.firstName}"
+                   value="${empty param.firstName ? sessionScope.user.firstName : param.firstName}"
                    required>
           </div>
 
@@ -206,7 +245,7 @@
             <label>Tên</label>
             <input type="text"
                    name="lastName"
-                   value="${sessionScope.user.lastName}"
+                   value="${empty param.lastName ? sessionScope.user.lastName : param.lastName}"
                    required>
           </div>
 
@@ -221,24 +260,15 @@
             <label>Số điện thoại</label>
             <input type="text"
                    name="phone"
-                   value="${sessionScope.user.phone}">
+                   value="${empty param.phone ? sessionScope.user.phone : param.phone}">
           </div>
 
           <div class="form-group">
             <label>Giới tính</label>
-
             <select name="gender">
-
-              <option value="Male"
-              ${sessionScope.user.gender=='Male'?'selected':''}>
-                Nam
-              </option>
-
-              <option value="Female"
-              ${sessionScope.user.gender=='Female'?'selected':''}>
-                Nữ
-              </option>
-
+              <c:set var="selectedGender" value="${empty param.gender ? sessionScope.user.gender : param.gender}" />
+              <option value="Male" ${selectedGender == 'Male' ? 'selected' : ''}>Nam</option>
+              <option value="Female" ${selectedGender == 'Female' ? 'selected' : ''}>Nữ</option>
             </select>
           </div>
 
@@ -247,84 +277,53 @@
             <input type="date"
                    id="dob"
                    name="dob"
-                   value="${sessionScope.user.dob}"
+                   value="${empty param.dob ? sessionScope.user.dob : param.dob}"
                    required>
           </div>
 
           <div class="form-group full-width">
-
-            <label>Tỉnh / Thành phố</label>
-
-            <select name="address">
-
-              <option value="Hà Nội" ${sessionScope.user.address=='Hà Nội'?'selected':''}>Hà Nội</option>
-              <option value="TP. Hồ Chí Minh" ${sessionScope.user.address=='TP. Hồ Chí Minh'?'selected':''}>TP. Hồ Chí Minh</option>
-              <option value="Hải Phòng" ${sessionScope.user.address=='Hải Phòng'?'selected':''}>Hải Phòng</option>
-              <option value="Đà Nẵng" ${sessionScope.user.address=='Đà Nẵng'?'selected':''}>Đà Nẵng</option>
-              <option value="Cần Thơ" ${sessionScope.user.address=='Cần Thơ'?'selected':''}>Cần Thơ</option>
-
-              <option value="An Giang" ${sessionScope.user.address=='An Giang'?'selected':''}>An Giang</option>
-              <option value="Bắc Ninh" ${sessionScope.user.address=='Bắc Ninh'?'selected':''}>Bắc Ninh</option>
-              <option value="Cà Mau" ${sessionScope.user.address=='Cà Mau'?'selected':''}>Cà Mau</option>
-              <option value="Cao Bằng" ${sessionScope.user.address=='Cao Bằng'?'selected':''}>Cao Bằng</option>
-              <option value="Đắk Lắk" ${sessionScope.user.address=='Đắk Lắk'?'selected':''}>Đắk Lắk</option>
-
-              <option value="Điện Biên" ${sessionScope.user.address=='Điện Biên'?'selected':''}>Điện Biên</option>
-              <option value="Đồng Nai" ${sessionScope.user.address=='Đồng Nai'?'selected':''}>Đồng Nai</option>
-              <option value="Đồng Tháp" ${sessionScope.user.address=='Đồng Tháp'?'selected':''}>Đồng Tháp</option>
-              <option value="Gia Lai" ${sessionScope.user.address=='Gia Lai'?'selected':''}>Gia Lai</option>
-              <option value="Hà Tĩnh" ${sessionScope.user.address=='Hà Tĩnh'?'selected':''}>Hà Tĩnh</option>
-
-              <option value="Hưng Yên" ${sessionScope.user.address=='Hưng Yên'?'selected':''}>Hưng Yên</option>
-              <option value="Khánh Hòa" ${sessionScope.user.address=='Khánh Hòa'?'selected':''}>Khánh Hòa</option>
-              <option value="Lai Châu" ${sessionScope.user.address=='Lai Châu'?'selected':''}>Lai Châu</option>
-              <option value="Lâm Đồng" ${sessionScope.user.address=='Lâm Đồng'?'selected':''}>Lâm Đồng</option>
-              <option value="Lạng Sơn" ${sessionScope.user.address=='Lạng Sơn'?'selected':''}>Lạng Sơn</option>
-
-              <option value="Lào Cai" ${sessionScope.user.address=='Lào Cai'?'selected':''}>Lào Cai</option>
-              <option value="Nghệ An" ${sessionScope.user.address=='Nghệ An'?'selected':''}>Nghệ An</option>
-              <option value="Ninh Bình" ${sessionScope.user.address=='Ninh Bình'?'selected':''}>Ninh Bình</option>
-              <option value="Phú Thọ" ${sessionScope.user.address=='Phú Thọ'?'selected':''}>Phú Thọ</option>
-              <option value="Quảng Ngãi" ${sessionScope.user.address=='Quảng Ngãi'?'selected':''}>Quảng Ngãi</option>
-
-              <option value="Quảng Ninh" ${sessionScope.user.address=='Quảng Ninh'?'selected':''}>Quảng Ninh</option>
-              <option value="Quảng Trị" ${sessionScope.user.address=='Quảng Trị'?'selected':''}>Quảng Trị</option>
-              <option value="Sơn La" ${sessionScope.user.address=='Sơn La'?'selected':''}>Sơn La</option>
-              <option value="Tây Ninh" ${sessionScope.user.address=='Tây Ninh'?'selected':''}>Tây Ninh</option>
-              <option value="Thái Nguyên" ${sessionScope.user.address=='Thái Nguyên'?'selected':''}>Thái Nguyên</option>
-
-              <option value="Thanh Hóa" ${sessionScope.user.address=='Thanh Hóa'?'selected':''}>Thanh Hóa</option>
-              <option value="Tuyên Quang" ${sessionScope.user.address=='Tuyên Quang'?'selected':''}>Tuyên Quang</option>
-              <option value="Vĩnh Long" ${sessionScope.user.address=='Vĩnh Long'?'selected':''}>Vĩnh Long</option>
-              <option value="Huế" ${sessionScope.user.address=='Huế'?'selected':''}>Huế</option>
-
-            </select>
-
+            <label for="addressDetail">Địa chỉ chi tiết</label>
+            <input type="text"
+                   id="addressDetail"
+                   placeholder="Số nhà, tên đường (không bắt buộc)">
           </div>
 
-        </div>
+          <div class="form-group">
+            <label for="provinceSelect">Tỉnh / thành</label>
+            <select id="provinceSelect" required>
+              <option value="">-- Chọn tỉnh/thành --</option>
+            </select>
+          </div>
 
+          <div class="form-group">
+            <label for="wardSelect">Phường / xã</label>
+            <select id="wardSelect" required disabled>
+              <option value="">-- Chọn phường/xã --</option>
+            </select>
+          </div>
+
+          <input type="hidden"
+                 id="address"
+                 name="address"
+                 value="${empty param.address ? sessionScope.user.address : param.address}">
+        </div>
       </form>
 
       <div class="action">
-
         <c:choose>
           <c:when test="${sessionScope.user!=null && sessionScope.user.roleID==4}">
             <form action="${pageContext.request.contextPath}/delete-account"
                   method="post"
                   onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản này?');">
-
-              <button type="submit"
-                      class="btn btn-delete">
+              <button type="submit" class="btn btn-delete">
                 Xóa tài khoản
               </button>
-
             </form>
           </c:when>
-          <c:when test="${sessionScope.user != null && (sessionScope.user.roleID == 1 || sessionScope.user.roleID == 2 )}">
-            <form action="${pageContext.request.contextPath}/home" method="get">
+          <c:when test="${sessionScope.user != null && (sessionScope.user.roleID == 1 || sessionScope.user.roleID == 2 || sessionScope.user.roleID == 3)}">
+            <form action="${empty editProfileBackPath ? pageContext.request.contextPath.concat('/profile') : pageContext.request.contextPath.concat(editProfileBackPath)}" method="get">
               <button type="submit" class="btn btn-return">
-                <- Quay  lại Trang chủ
+                <- Quay lại Trang chủ
               </button>
             </form>
           </c:when>
@@ -335,19 +334,142 @@
                 class="btn btn-save">
           Lưu thay đổi
         </button>
-
       </div>
-
-
     </div>
-
   </div>
-
 </div>
-<script>
-  document.getElementById("editProfileForm").addEventListener("submit", function(e){
 
+<script>
+  const administrativeUnits = [
+    <c:forEach var="unit" items="${administrativeUnitList}" varStatus="loop">
+    {
+      province: "${unit.provinceName}",
+      ward: "${unit.wardName}",
+      wardType: "${unit.wardType}"
+    }${loop.last ? '' : ','}
+    </c:forEach>
+  ];
+
+  const provinceSelect = document.getElementById("provinceSelect");
+  const wardSelect = document.getElementById("wardSelect");
+  const addressDetailInput = document.getElementById("addressDetail");
+  const addressInput = document.getElementById("address");
+  const savedAddress = addressInput.value || "";
+
+  function uniqueProvinces() {
+    const seen = new Set();
+    return administrativeUnits.filter(function (unit) {
+      if (seen.has(unit.province)) {
+        return false;
+      }
+      seen.add(unit.province);
+      return true;
+    }).map(function (unit) {
+      return unit.province;
+    });
+  }
+
+  function wardsByProvince(province) {
+    return administrativeUnits.filter(function (unit) {
+      return unit.province === province;
+    });
+  }
+
+  function formatWard(unit) {
+    return (unit.wardType ? unit.wardType + " " : "") + unit.ward;
+  }
+
+  function fillSelect(select, options, placeholder, selectedValue) {
+    select.innerHTML = "";
+
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = placeholder;
+    select.appendChild(placeholderOption);
+
+    options.forEach(function (optionValue) {
+      const option = document.createElement("option");
+      option.value = optionValue;
+      option.textContent = optionValue;
+      option.selected = optionValue === selectedValue;
+      select.appendChild(option);
+    });
+  }
+
+  function fillWardSelect(province, selectedWard) {
+    const wards = wardsByProvince(province).map(formatWard);
+    fillSelect(wardSelect, wards, "-- Chọn phường/xã --", selectedWard);
+    wardSelect.disabled = !province;
+  }
+
+  function buildAddressText() {
+    const parts = [];
+    const detail = addressDetailInput.value.trim();
+    const ward = wardSelect.value.trim();
+    const province = provinceSelect.value.trim();
+
+    if (detail) {
+      parts.push(detail);
+    }
+    if (ward) {
+      parts.push(ward);
+    }
+    if (province) {
+      parts.push(province);
+    }
+
+    addressInput.value = parts.join(", ");
+  }
+
+  function parseSavedAddress(addressText) {
+    if (!addressText) {
+      return;
+    }
+
+    const matchedUnit = administrativeUnits.find(function (unit) {
+      const suffix = formatWard(unit) + ", " + unit.province;
+      return addressText === suffix || addressText.endsWith(", " + suffix);
+    });
+
+    if (!matchedUnit) {
+      if (uniqueProvinces().includes(addressText)) {
+        provinceSelect.value = addressText;
+        fillWardSelect(addressText, "");
+      }
+      return;
+    }
+
+    provinceSelect.value = matchedUnit.province;
+    fillWardSelect(matchedUnit.province, formatWard(matchedUnit));
+
+    const suffix = formatWard(matchedUnit) + ", " + matchedUnit.province;
+    if (addressText !== suffix) {
+      addressDetailInput.value = addressText.slice(0, addressText.length - suffix.length - 2);
+    }
+  }
+
+  fillSelect(provinceSelect, uniqueProvinces(), "-- Chọn tỉnh/thành --", "");
+  fillWardSelect("", "");
+  parseSavedAddress(savedAddress);
+
+  provinceSelect.addEventListener("change", function () {
+    fillWardSelect(provinceSelect.value, "");
+    buildAddressText();
+  });
+
+  wardSelect.addEventListener("change", buildAddressText);
+  addressDetailInput.addEventListener("input", buildAddressText);
+
+  document.getElementById("editProfileForm").addEventListener("submit", function(e){
     const dobValue = document.getElementById("dob").value;
+
+    buildAddressText();
+
+    if (!provinceSelect.value || !wardSelect.value || !addressInput.value.trim()) {
+      alert("Vui lòng chọn đủ tỉnh/thành và phường/xã.");
+      e.preventDefault();
+      return;
+    }
 
     if(!dobValue){
       alert("Vui lòng chọn ngày sinh.");
@@ -357,15 +479,10 @@
 
     const dob = new Date(dobValue);
     const today = new Date();
-
     let age = today.getFullYear() - dob.getFullYear();
-
     const monthDiff = today.getMonth() - dob.getMonth();
 
-    if (
-            monthDiff < 0 ||
-            (monthDiff === 0 && today.getDate() < dob.getDate())
-    ) {
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
       age--;
     }
 
@@ -373,7 +490,6 @@
       alert("Bạn phải từ 18 tuổi trở lên.");
       e.preventDefault();
     }
-
   });
 </script>
 

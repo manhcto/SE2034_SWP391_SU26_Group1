@@ -24,21 +24,29 @@ public class LoginController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         String email = trimToEmpty(request.getParameter("email"));
-        String password = trimToEmpty(request.getParameter("password"));
+        String password = valueOrEmpty(request.getParameter("password"));
         request.setAttribute("email", email);
 
         User user = userDAO.login(email, password);
 
         if (user != null) {
-            HttpSession session = request.getSession();
+            HttpSession oldSession = request.getSession(false);
+            String redirectAfterLogin = getRedirectAfterLogin(request, oldSession);
+
+            if (oldSession != null) {
+                oldSession.invalidate();
+            }
+
+            HttpSession session = request.getSession(true);
             session.setAttribute("user", user);
 
-            String redirectAfterLogin = getRedirectAfterLogin(request, session);
             session.removeAttribute("redirectAfterLogin");
 
             redirectByRole(request, response, user, redirectAfterLogin);
             return;
         }
+
+        clearLoggedInUser(request);
 
         User existingUser = userDAO.getUserByEmail(email);
 
@@ -48,11 +56,7 @@ public class LoginController extends HttpServlet {
             String status = existingUser.getStatus();
 
             if ("Inactive".equalsIgnoreCase(status)) {
-                request.setAttribute("error", "Tài khoản chưa được kích hoạt!");
-            } else if ("Blocked".equalsIgnoreCase(status)) {
-                request.setAttribute("error", "Tài khoản đã bị khóa!");
-            } else if ("Locked".equalsIgnoreCase(status)) {
-                request.setAttribute("error", "Tài khoản đang bị khóa!");
+                request.setAttribute("error", "Tài khoản đã xóa!");
             } else {
                 request.setAttribute("error", "Sai mật khẩu!");
             }
@@ -67,7 +71,7 @@ public class LoginController extends HttpServlet {
                          HttpServletResponse response)
             throws ServletException, IOException {
 
-        String redirect = request.getParameter("redirect");
+        String redirect = normalizeRedirect(request, request.getParameter("redirect"));
         HttpSession session = isSafeRedirect(redirect)
                 ? request.getSession()
                 : request.getSession(false);
@@ -77,10 +81,13 @@ public class LoginController extends HttpServlet {
                 session.setAttribute("redirectAfterLogin", redirect);
                 request.setAttribute("redirectAfterLogin", redirect);
             } else {
-                String redirectAfterLogin =
-                        (String) session.getAttribute("redirectAfterLogin");
+                String redirectAfterLogin = normalizeRedirect(
+                        request,
+                        (String) session.getAttribute("redirectAfterLogin")
+                );
 
                 if (isSafeRedirect(redirectAfterLogin)) {
+                    session.setAttribute("redirectAfterLogin", redirectAfterLogin);
                     request.setAttribute("redirectAfterLogin", redirectAfterLogin);
                 }
             }
@@ -124,10 +131,13 @@ public class LoginController extends HttpServlet {
     }
 
     private String getRedirectAfterLogin(HttpServletRequest request, HttpSession session) {
-        String redirect = request.getParameter("redirect");
+        String redirect = normalizeRedirect(request, request.getParameter("redirect"));
 
         if (!isSafeRedirect(redirect) && session != null) {
-            redirect = (String) session.getAttribute("redirectAfterLogin");
+            redirect = normalizeRedirect(
+                    request,
+                    (String) session.getAttribute("redirectAfterLogin")
+            );
         }
 
         return isSafeRedirect(redirect) ? redirect : "/home";
@@ -147,6 +157,35 @@ public class LoginController extends HttpServlet {
 
     private String trimToEmpty(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private String valueOrEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private void clearLoggedInUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.removeAttribute("user");
+        }
+    }
+
+    private String normalizeRedirect(HttpServletRequest request, String redirect) {
+        if (redirect == null) {
+            return null;
+        }
+
+        String value = redirect.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+
+        String contextPath = request.getContextPath();
+        if (!contextPath.isEmpty() && value.startsWith(contextPath + "/")) {
+            return value.substring(contextPath.length());
+        }
+
+        return value;
     }
 
     private String normalizeRoleName(String roleName) {

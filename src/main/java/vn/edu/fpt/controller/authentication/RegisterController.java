@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.UserDAO;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.time.format.DateTimeParseException;
 @WebServlet("/register")
 public class RegisterController extends HttpServlet {
 
+    private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
     private final UserDAO userDAO = new UserDAO();
 
     @Override
@@ -26,11 +28,11 @@ public class RegisterController extends HttpServlet {
 
         String firstName = trimToEmpty(request.getParameter("firstName"));
         String lastName  = trimToEmpty(request.getParameter("lastName"));
-        String email     = trimToEmpty(request.getParameter("email")).toLowerCase();
-        String password  = trimToEmpty(request.getParameter("password"));
-        String confirmPassword = trimToEmpty(request.getParameter("confirmPassword"));
+        String email     = trimToEmpty(request.getParameter("email"));
+        String password  = valueOrEmpty(request.getParameter("password"));
+        String confirmPassword = valueOrEmpty(request.getParameter("confirmPassword"));
         String phone     = trimToEmpty(request.getParameter("phone"));
-        String gender    = normalizeGender(request.getParameter("gender"));
+        String gender    = trimToEmpty(request.getParameter("gender"));
         String dob       = trimToEmpty(request.getParameter("dob"));
         String address   = trimToEmpty(request.getParameter("address"));
 
@@ -48,17 +50,19 @@ public class RegisterController extends HttpServlet {
         );
 
         if (validationError != null) {
+            applyAddressOptions(request);
             request.setAttribute("error", validationError);
             request.getRequestDispatcher("/views/register.jsp").forward(request, response);
             return;
         }
 
-        // Email đang tồn tại trong unique index của bảng User.
+        // Email da ton tai trong he thong.
         if (userDAO.isEmailExist(email)) {
+            applyAddressOptions(request);
 
             request.setAttribute(
                     "error",
-                    "Email đã tồn tại hoặc đang thuộc một tài khoản đã bị khóa!"
+                    "Email đã tồn tại!"
             );
 
             request.getRequestDispatcher(
@@ -95,6 +99,7 @@ public class RegisterController extends HttpServlet {
             );
 
         } else {
+            applyAddressOptions(request);
 
             request.setAttribute(
                     "error",
@@ -112,6 +117,7 @@ public class RegisterController extends HttpServlet {
                          HttpServletResponse response)
             throws ServletException, IOException {
 
+        applyAddressOptions(request);
         request.getRequestDispatcher(
                 "/views/register.jsp"
         ).forward(request, response);
@@ -160,25 +166,15 @@ public class RegisterController extends HttpServlet {
         return null;
     }
 
-    private String normalizeGender(String gender) {
-        String value = trimToEmpty(gender);
-
-        if ("Nam".equalsIgnoreCase(value)) {
-            return "Male";
-        }
-
-        if ("Nữ".equalsIgnoreCase(value) || "Nu".equalsIgnoreCase(value)) {
-            return "Female";
-        }
-
-        if ("Khác".equalsIgnoreCase(value) || "Khac".equalsIgnoreCase(value)) {
-            return "Other";
-        }
-
-        return value.isEmpty() ? "Other" : value;
-    }
-
     private String trimToEmpty(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private String valueOrEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private void applyAddressOptions(HttpServletRequest request) {
+        request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
     }
 }

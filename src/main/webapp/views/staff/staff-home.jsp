@@ -42,6 +42,7 @@
             overflow-y: auto;
             padding: 26px 18px;
             box-shadow: 8px 0 26px rgba(15, 23, 42, 0.18);
+            flex-direction: column;
         }
 
         .sidebar::-webkit-scrollbar {
@@ -133,6 +134,10 @@
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
         }
 
         .avatar {
@@ -495,12 +500,26 @@
             <span>Đánh giá khách hàng</span>
         </a>
 
+        <div class="sidebar-bottom">
+        <div class="nav-section-title">Tai khoan</div>
+
         <div class="admin-user">
-            <div class="avatar">AD</div>
+            <div class="avatar">ST</div>
             <div>
-                <div class="fw-bold">Nhân viên</div>
-                <small>Staff</small>
+                <div class="fw-bold">${sessionScope.user.firstName} ${sessionScope.user.lastName}</div>
+                <small>Nhân viên</small>
             </div>
+        </div>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/profile">
+            <i class="fa-solid fa-user"></i>
+            <span>Ho so</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Dang xuat</span>
+        </a>
         </div>
     </aside>
 
@@ -513,17 +532,6 @@
                 <p>Chào mừng bạn quay lại hệ thống quản trị du lịch.</p>
             </div>
 
-            <div class="top-actions">
-                <a class="top-action-btn btn-home" href="${pageContext.request.contextPath}/home">
-                    <i class="fa-solid fa-globe"></i>
-                    Trang khách hàng
-                </a>
-
-                <a class="top-action-btn btn-logout" href="${pageContext.request.contextPath}/logout">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    Đăng xuất
-                </a>
-            </div>
         </div>
 
         <section class="hero">
