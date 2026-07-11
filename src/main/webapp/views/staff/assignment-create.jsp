@@ -75,11 +75,18 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'paymentRequired'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                Chỉ những booking đã thanh toán mới được phân công tour.
+            </div>
+        </c:if>
+
         <section class="panel">
             <div class="panel-header">
                 <div>
                     <h2>Thông tin phân công</h2>
-                    <p>Các trường này được lưu trực tiếp vào bảng Tour_Assignments.</p>
+                    <p>Chỉ hiển thị booking tour đã thanh toán và lưu trực tiếp vào bảng Tour_Assignments.</p>
                 </div>
             </div>
 

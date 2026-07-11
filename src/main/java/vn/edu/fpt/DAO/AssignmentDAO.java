@@ -16,4 +16,8 @@ public interface AssignmentDAO {
     boolean updateAssignment(TourAssignments assignment);
 
     boolean deleteAssignment(int assignmentID);
+
+    List<AssignmentView> getAssignmentsByGuide(int guideID);
+
+    List<AssignmentView> getAssignmentsByGuide(int guideID, String status, String dateFrom, String dateTo);
 }
