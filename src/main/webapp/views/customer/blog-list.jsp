@@ -140,20 +140,6 @@
             color: #64748b;
         }
 
-        .custom-pagination .page-link {
-            border: none;
-            border-radius: 10px;
-            margin: 0 4px;
-            color: #334155;
-            font-weight: 700;
-            padding: 10px 16px;
-        }
-
-        .custom-pagination .page-item.active .page-link {
-            background: #2563eb;
-            color: #ffffff;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
-        }
     </style>
 </head>
 <body>
@@ -231,13 +217,13 @@
                     <div class="col-md-6 col-xl-4">
                         <article class="blog-card">
                             <c:choose>
-                                <c:when test="${empty post.thumbnailUrl}">
+                                <c:when test="${empty post.image}">
                                     <img class="blog-thumb"
                                          src="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"
                                          alt="WonderVN Blog">
                                 </c:when>
                                 <c:otherwise>
-                                    <img class="blog-thumb" src="${post.thumbnailUrl}" alt="${post.title}">
+                                    <img class="blog-thumb" src="${post.image}" alt="${post.title}">
                                 </c:otherwise>
                             </c:choose>
 
@@ -281,44 +267,6 @@
         </c:otherwise>
     </c:choose>
 
-    <c:if test="${maxPage > 1}">
-        <nav class="mt-5" aria-label="Blog pagination">
-            <ul class="pagination custom-pagination justify-content-center">
-                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                    <c:url var="prevUrl" value="/blog">
-                        <c:param name="keyword" value="${keyword}"/>
-                        <c:param name="category" value="${selectedCategory}"/>
-                        <c:param name="page" value="${currentPage - 1}"/>
-                    </c:url>
-                    <a class="page-link" href="${prevUrl}">
-                        <i class="fa-solid fa-chevron-left"></i> Trước
-                    </a>
-                </li>
-
-                <c:forEach begin="1" end="${maxPage}" var="i">
-                    <li class="page-item ${currentPage == i ? 'active' : ''}">
-                        <c:url var="pageUrl" value="/blog">
-                            <c:param name="keyword" value="${keyword}"/>
-                            <c:param name="category" value="${selectedCategory}"/>
-                            <c:param name="page" value="${i}"/>
-                        </c:url>
-                        <a class="page-link" href="${pageUrl}">${i}</a>
-                    </li>
-                </c:forEach>
-
-                <li class="page-item ${currentPage == maxPage ? 'disabled' : ''}">
-                    <c:url var="nextUrl" value="/blog">
-                        <c:param name="keyword" value="${keyword}"/>
-                        <c:param name="category" value="${selectedCategory}"/>
-                        <c:param name="page" value="${currentPage + 1}"/>
-                    </c:url>
-                    <a class="page-link" href="${nextUrl}">
-                        Sau <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </c:if>
 </main>
 
 <jsp:include page="/views/common/client-footer.jsp" />

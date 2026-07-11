@@ -82,7 +82,7 @@
             font-size: 14px;
         }
 
-        .thumbnail-preview {
+        .image-preview {
             width: 100%;
             height: 170px;
             border-radius: 12px;
@@ -183,9 +183,6 @@
                         <p class="m-0 mt-1 text-white-50">Tạo bài viết, lưu bản nháp và xuất bản nội dung cho khách hàng.</p>
                     </div>
                 </div>
-                <a href="${pageContext.request.contextPath}/blog" class="btn btn-light text-primary fw-bold">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Xem Blog
-                </a>
             </div>
 
             <c:if test="${not empty error}">
@@ -249,9 +246,10 @@
                             </c:choose>
                         </h2>
 
-                        <form action="${pageContext.request.contextPath}/staff/blog" method="post">
+                        <form action="${pageContext.request.contextPath}/staff/blog" method="post" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="save">
                             <input type="hidden" name="blogID" value="${editingPost.blogID}">
+                            <input type="hidden" name="existingImage" value="${editingPost.image}">
 
                             <div class="mb-3">
                                 <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
@@ -260,17 +258,10 @@
                             </div>
 
                             <div class="row g-3">
-                                <div class="col-md-7">
+                                <div class="col-md-12">
                                     <label class="form-label">Danh mục</label>
                                     <input class="form-control" type="text" name="category" maxlength="100"
                                            value="${editingPost.category}" placeholder="VD: Kinh nghiệm">
-                                </div>
-                                <div class="col-md-5">
-                                    <label class="form-label">Trạng thái</label>
-                                    <select class="form-select" name="status">
-                                        <option value="Published" ${editingPost.status == 'Published' ? 'selected' : ''}>Đã đăng</option>
-                                        <option value="Draft" ${editingPost.status != 'Published' ? 'selected' : ''}>Bản nháp</option>
-                                    </select>
                                 </div>
                             </div>
 
@@ -281,20 +272,21 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Link ảnh thumbnail</label>
-                                <input class="form-control" type="url" name="thumbnailUrl" id="thumbnailUrl"
-                                       value="${editingPost.thumbnailUrl}" placeholder="https://...">
+                                <label class="form-label">Ảnh</label>
+                                <input class="form-control" type="file" name="image" id="image"
+                                       accept="image/jpeg,image/png,image/webp"
+                                       value="${editingPost.image}" placeholder="">
                             </div>
 
                             <div class="mb-3">
                                 <c:set var="previewUrl" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"/>
-                                <c:if test="${not empty editingPost.thumbnailUrl}">
-                                    <c:set var="previewUrl" value="${editingPost.thumbnailUrl}"/>
+                                <c:if test="${not empty editingPost.image}">
+                                    <c:set var="previewUrl" value="${pageContext.request.contextPath}/${editingPost.image}"/>
                                 </c:if>
-                                <img id="thumbnailPreview"
-                                     class="thumbnail-preview"
+                                <img id="imagePreview"
+                                     class="image-preview"
                                      src="${previewUrl}"
-                                     alt="Thumbnail preview">
+                                     alt="image preview">
                             </div>
 
                             <div class="mb-3">
@@ -308,8 +300,11 @@
                             </div>
 
                             <div class="d-flex gap-2">
-                                <button class="btn btn-primary fw-bold flex-grow-1" type="submit">
-                                    <i class="fa-solid fa-floppy-disk me-1"></i>Lưu bài viết
+                                <button class="btn btn-outline-primary fw-bold flex-grow-1" type="submit" name="status" value="Draft">
+                                    <i class="fa-solid fa-floppy-disk me-1"></i>Lưu
+                                </button>
+                                <button class="btn btn-primary fw-bold flex-grow-1" type="submit" name="status" value="Published">
+                                    <i class="fa-solid fa-upload me-1"></i>Đăng
                                 </button>
                                 <c:if test="${not empty editingPost && editingPost.blogID > 0}">
                                     <a class="btn btn-outline-secondary fw-bold" href="${pageContext.request.contextPath}/staff/blog">
@@ -330,7 +325,7 @@
                             </div>
                         </div>
                         <form action="${pageContext.request.contextPath}/staff/blog" method="get" class="row g-2 align-items-center">
-                            <div class="col-lg-7">
+                            <div class="col-lg-5">
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-primary"></i></span>
                                     <input class="form-control" type="text" name="keyword" value="${keyword}" placeholder="Tìm bài theo tên...">
@@ -342,6 +337,13 @@
                                     <c:forEach items="${CATEGORY_LIST}" var="cat">
                                         <option value="${cat}" ${cat == selectedCategory ? 'selected' : ''}><c:out value="${cat}"/></option>
                                     </c:forEach>
+                                </select>
+                            </div>
+                            <div class="col-lg-2">
+                                <select class="form-select" name="status">
+                                    <option value="" ${empty selectedStatus ? 'selected' : ''}>Tất cả trạng thái</option>
+                                    <option value="Published" ${selectedStatus == 'Published' ? 'selected' : ''}>Đã đăng</option>
+                                    <option value="Draft" ${selectedStatus == 'Draft' ? 'selected' : ''}>Bản nháp</option>
                                 </select>
                             </div>
                             <div class="col-lg-2 d-grid">
@@ -377,13 +379,13 @@
                                                     <td>
                                                         <div class="d-flex align-items-center gap-3">
                                                             <c:choose>
-                                                                <c:when test="${empty post.thumbnailUrl}">
+                                                                <c:when test="${empty post.image}">
                                                                     <img src="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"
                                                                          alt="Blog"
                                                                          style="width:58px;height:58px;border-radius:10px;object-fit:cover;">
                                                                 </c:when>
                                                                 <c:otherwise>
-                                                                    <img src="${post.thumbnailUrl}"
+                                                                    <img src="${pageContext.request.contextPath}/${post.image}"
                                                                          alt="${post.title}"
                                                                          style="width:58px;height:58px;border-radius:10px;object-fit:cover;">
                                                                 </c:otherwise>
@@ -424,13 +426,6 @@
                                                         </c:choose>
                                                     </td>
                                                     <td class="text-center">
-                                                        <c:if test="${post.status == 'Published'}">
-                                                            <a class="action-btn btn-view"
-                                                               href="${pageContext.request.contextPath}/blog-detail?slug=${post.slug}"
-                                                               title="Xem bài viết">
-                                                                <i class="fa-solid fa-eye"></i>
-                                                            </a>
-                                                        </c:if>
                                                         <a class="action-btn btn-edit"
                                                            href="${pageContext.request.contextPath}/staff/blog?action=edit&id=${post.blogID}"
                                                            title="Sửa">
@@ -468,16 +463,18 @@
 </div>
 
 <script>
-    const thumbnailInput = document.getElementById("thumbnailUrl");
-    const thumbnailPreview = document.getElementById("thumbnailPreview");
-    const fallbackThumbnail = "${pageContext.request.contextPath}/assets/images/home/hero-bana.png";
+    const imageInput = document.getElementById("image");
+    const imagePreview = document.getElementById("imagePreview");
+    const fallbackimage = "${pageContext.request.contextPath}/assets/images/home/hero-bana.png";
 
-    thumbnailInput?.addEventListener("input", function () {
-        thumbnailPreview.src = this.value.trim() || fallbackThumbnail;
+    imageInput.addEventListener("change", function () {
+        if (this.files && this.files[0]) {
+            imagePreview.src = URL.createObjectURL(this.files[0]);
+        }
     });
 
-    thumbnailPreview?.addEventListener("error", function () {
-        this.src = fallbackThumbnail;
+    imagePreview?.addEventListener("error", function () {
+        this.src = fallbackimage;
     });
 
 </script>

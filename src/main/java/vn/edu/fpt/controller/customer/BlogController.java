@@ -39,18 +39,14 @@ public class BlogController extends HttpServlet {
             throws ServletException, IOException {
         String keyword = normalize(request.getParameter("keyword"));
         String category = normalize(request.getParameter("category"));
-        int pageIndex = parsePage(request.getParameter("page"));
 
-        List<BlogPost> posts = blogDAO.getPublishedPosts(keyword, category, pageIndex);
+        List<BlogPost> posts = blogDAO.getPublishedPosts(keyword, category);
         int totalPosts = blogDAO.countPublishedPosts(keyword, category);
-        int maxPage = (int) Math.ceil(totalPosts / (double) BlogDAO.CUSTOMER_PAGE_SIZE);
 
         request.setAttribute("BLOG_LIST", posts);
         request.setAttribute("CATEGORY_LIST", blogDAO.getPublishedCategories());
         request.setAttribute("keyword", keyword);
         request.setAttribute("selectedCategory", category);
-        request.setAttribute("currentPage", pageIndex);
-        request.setAttribute("maxPage", maxPage);
         request.setAttribute("totalPosts", totalPosts);
         request.getRequestDispatcher("/views/customer/blog-list.jsp").forward(request, response);
     }
@@ -80,15 +76,6 @@ public class BlogController extends HttpServlet {
         request.setAttribute("RELATED_POSTS",
                 blogDAO.getRelatedPublishedPosts(post.getCategory(), post.getBlogID(), 3));
         request.getRequestDispatcher("/views/customer/blog-detail.jsp").forward(request, response);
-    }
-
-    private int parsePage(String page) {
-        try {
-            int pageIndex = Integer.parseInt(page);
-            return Math.max(pageIndex, 1);
-        } catch (Exception e) {
-            return 1;
-        }
     }
 
     private String normalize(String value) {

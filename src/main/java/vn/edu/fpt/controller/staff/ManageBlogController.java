@@ -1,5 +1,7 @@
 package vn.edu.fpt.controller.staff;
 
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.Part;
 import vn.edu.fpt.DAO.BlogDAO;
 import vn.edu.fpt.model.BlogPost;
 import vn.edu.fpt.model.User;
@@ -9,11 +11,19 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.util.Locale;
 
 @WebServlet("/staff/blog")
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 10 * 1024 * 1024,
+        maxRequestSize = 50 * 1024 * 1024
+)
 public class ManageBlogController extends HttpServlet {
     private BlogDAO blogDAO;
 
@@ -83,6 +93,9 @@ public class ManageBlogController extends HttpServlet {
             }
 
             response.sendRedirect(request.getContextPath() + "/staff/blog?message=" + (success ? "saved" : "error"));
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("error", e.getMessage());
+            forwardManagement(request, response);
         } catch (Exception e) {
             e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/staff/blog?message=error");
@@ -93,15 +106,18 @@ public class ManageBlogController extends HttpServlet {
             throws ServletException, IOException {
         String keyword = normalize(request.getParameter("keyword"));
         String category = normalize(request.getParameter("category"));
+        String status = normalizeStatusFilter(request.getParameter("status"));
 
-        request.setAttribute("BLOG_LIST", blogDAO.getPostsForStaff(keyword, category));
+        request.setAttribute("BLOG_LIST", blogDAO.getPostsForStaff(keyword, category, status));
         request.setAttribute("CATEGORY_LIST", blogDAO.getStaffCategories());
         request.setAttribute("keyword", keyword);
         request.setAttribute("selectedCategory", category);
+        request.setAttribute("selectedStatus", status);
         request.getRequestDispatcher("/views/staff/blog-management.jsp").forward(request, response);
     }
 
-    private BlogPost buildPostFromRequest(HttpServletRequest request) {
+    private BlogPost buildPostFromRequest(HttpServletRequest request)
+            throws ServletException, IOException {
         int blogID = parseId(request.getParameter("blogID"));
         String title = normalize(request.getParameter("title"));
         String customSlug = normalize(request.getParameter("slug"));
@@ -113,11 +129,58 @@ public class ManageBlogController extends HttpServlet {
         post.setSlug(blogDAO.createUniqueSlug(baseSlug, blogID));
         post.setSummary(normalize(request.getParameter("summary")));
         post.setContent(normalize(request.getParameter("content")));
-        post.setThumbnailUrl(normalize(request.getParameter("thumbnailUrl")));
+        post.setImage(normalize(request.getParameter("existingImage")));
+        Part imagePart = request.getPart("image");
+
+        if (imagePart != null && imagePart.getSize() > 0) {
+            if (!isAllowedImage(imagePart)) {
+                throw new IllegalArgumentException("Chỉ được upload file ảnh JPG, PNG hoặc WebP.");
+            }
+
+            String fileName = Paths.get(imagePart.getSubmittedFileName())
+                    .getFileName()
+                    .toString();
+
+            String uploadPath = getServletContext().getRealPath("/uploads/blog");
+
+            File folder = new File(uploadPath);
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            imagePart.write(uploadPath + File.separator + fileName);
+
+            post.setImage("uploads/blog/" + fileName);
+        }
         post.setCategory(normalize(request.getParameter("category")));
         post.setStatus(normalizeStatus(request.getParameter("status")));
         post.setAuthorID(getCurrentUserID(request));
         return post;
+    }
+
+    private boolean isAllowedImage(Part part) {
+        String contentType = part.getContentType();
+        if (contentType == null) {
+            return false;
+        }
+
+        String normalizedType = contentType.toLowerCase(Locale.ROOT);
+        if (!("image/jpeg".equals(normalizedType)
+                || "image/png".equals(normalizedType)
+                || "image/webp".equals(normalizedType))) {
+            return false;
+        }
+
+        String submittedName = part.getSubmittedFileName();
+        if (submittedName == null) {
+            return false;
+        }
+
+        String fileName = submittedName.toLowerCase(Locale.ROOT);
+        return fileName.endsWith(".jpg")
+                || fileName.endsWith(".jpeg")
+                || fileName.endsWith(".png")
+                || fileName.endsWith(".webp");
     }
 
     private Integer getCurrentUserID(HttpServletRequest request) {
@@ -149,6 +212,17 @@ public class ManageBlogController extends HttpServlet {
             return "Published";
         }
         return "Draft";
+    }
+
+    private String normalizeStatusFilter(String status) {
+        String value = normalize(status);
+        if ("Published".equalsIgnoreCase(value)) {
+            return "Published";
+        }
+        if ("Draft".equalsIgnoreCase(value)) {
+            return "Draft";
+        }
+        return "";
     }
 
     private int parseId(String value) {

@@ -150,13 +150,13 @@
 
         <article class="article-hero mb-4">
             <c:choose>
-                <c:when test="${empty post.thumbnailUrl}">
+                <c:when test="${empty post.image}">
                     <img class="hero-image"
                          src="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"
                          alt="WonderVN Blog">
                 </c:when>
                 <c:otherwise>
-                    <img class="hero-image" src="${post.thumbnailUrl}" alt="${post.title}">
+                    <img class="hero-image" src="${post.image}" alt="${post.title}">
                 </c:otherwise>
             </c:choose>
 
