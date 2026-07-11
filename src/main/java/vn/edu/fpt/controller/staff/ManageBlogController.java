@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.util.Locale;
 
-@WebServlet("/staff/blog")
+@WebServlet(urlPatterns = {"/staff/blog", "/admin/blog"})
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
         maxFileSize = 10 * 1024 * 1024,
@@ -38,13 +38,26 @@ public class ManageBlogController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         String action = normalize(request.getParameter("action"));
+        boolean readOnly = isAdminRequest(request);
 
         try {
             switch (action) {
+                case "view":
+                    BlogPost viewingPost = blogDAO.getPostById(parseId(request.getParameter("id")));
+                    if (viewingPost == null) {
+                        response.sendRedirect(resolveManagementPath(request) + "?message=not_found");
+                        return;
+                    }
+                    forwardDetailView(request, response, viewingPost);
+                    break;
                 case "edit":
+                    if (readOnly) {
+                        response.sendRedirect(resolveManagementPath(request));
+                        return;
+                    }
                     BlogPost editingPost = blogDAO.getPostById(parseId(request.getParameter("id")));
                     if (editingPost == null) {
-                        response.sendRedirect(request.getContextPath() + "/staff/blog?message=not_found");
+                        response.sendRedirect(resolveManagementPath(request) + "?message=not_found");
                         return;
                     }
                     request.setAttribute("editingPost", editingPost);
@@ -52,13 +65,13 @@ public class ManageBlogController extends HttpServlet {
                     break;
                 case "delete":
                     blogDAO.deletePost(parseId(request.getParameter("id")));
-                    response.sendRedirect(request.getContextPath() + "/staff/blog?message=deleted");
+                    response.sendRedirect(resolveManagementPath(request) + "?message=deleted");
                     break;
                 case "status":
                     int blogID = parseId(request.getParameter("id"));
                     String status = normalizeStatus(request.getParameter("status"));
                     blogDAO.updatePostStatus(blogID, status);
-                    response.sendRedirect(request.getContextPath() + "/staff/blog?message=status_updated");
+                    response.sendRedirect(resolveManagementPath(request) + "?message=status_updated");
                     break;
                 case "list":
                 default:
@@ -67,7 +80,7 @@ public class ManageBlogController extends HttpServlet {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/staff/blog?message=error");
+            response.sendRedirect(resolveManagementPath(request) + "?message=error");
         }
     }
 
@@ -75,6 +88,10 @@ public class ManageBlogController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        if (isAdminRequest(request)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
 
         try {
             BlogPost post = buildPostFromRequest(request);
@@ -92,13 +109,13 @@ public class ManageBlogController extends HttpServlet {
                 success = blogDAO.insertPost(post);
             }
 
-            response.sendRedirect(request.getContextPath() + "/staff/blog?message=" + (success ? "saved" : "error"));
+            response.sendRedirect(resolveManagementPath(request) + "?message=" + (success ? "saved" : "error"));
         } catch (IllegalArgumentException e) {
             request.setAttribute("error", e.getMessage());
             forwardManagement(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/staff/blog?message=error");
+            response.sendRedirect(resolveManagementPath(request) + "?message=error");
         }
     }
 
@@ -107,13 +124,34 @@ public class ManageBlogController extends HttpServlet {
         String keyword = normalize(request.getParameter("keyword"));
         String category = normalize(request.getParameter("category"));
         String status = normalizeStatusFilter(request.getParameter("status"));
+        boolean adminRequest = isAdminRequest(request);
 
         request.setAttribute("BLOG_LIST", blogDAO.getPostsForStaff(keyword, category, status));
         request.setAttribute("CATEGORY_LIST", blogDAO.getStaffCategories());
         request.setAttribute("keyword", keyword);
         request.setAttribute("selectedCategory", category);
         request.setAttribute("selectedStatus", status);
+        request.setAttribute("blogManagementPath", resolveManagementPath(request));
+        request.setAttribute("blogManagementReadOnly", adminRequest);
+        request.setAttribute("blogManagementRole", adminRequest ? "admin" : "staff");
         request.getRequestDispatcher("/views/staff/blog-management.jsp").forward(request, response);
+    }
+
+    private void forwardDetailView(HttpServletRequest request, HttpServletResponse response, BlogPost post)
+            throws ServletException, IOException {
+        request.setAttribute("post", post);
+        request.setAttribute("RELATED_POSTS",
+                blogDAO.getRelatedPublishedPosts(post.getCategory(), post.getBlogID(), 3));
+        request.setAttribute("backToBlogManagementPath", resolveManagementPath(request));
+        request.getRequestDispatcher("/views/customer/blog-detail.jsp").forward(request, response);
+    }
+
+    private boolean isAdminRequest(HttpServletRequest request) {
+        return request.getServletPath() != null && request.getServletPath().startsWith("/admin/");
+    }
+
+    private String resolveManagementPath(HttpServletRequest request) {
+        return request.getContextPath() + (isAdminRequest(request) ? "/admin/blog" : "/staff/blog");
     }
 
     private BlogPost buildPostFromRequest(HttpServletRequest request)

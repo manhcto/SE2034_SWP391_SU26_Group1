@@ -24,6 +24,11 @@
             min-width: 0;
         }
 
+        .admin-main.with-admin-sidebar {
+            margin-left: 292px;
+            width: calc(100% - 292px);
+        }
+
         .page-banner {
             background: #0f766e;
             border-radius: 14px;
@@ -163,15 +168,29 @@
             .admin-layout {
                 display: block;
             }
+
+            .admin-main.with-admin-sidebar {
+                margin-left: 0;
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="admin-layout">
-    <jsp:include page="/views/common/admin-sidebar.jsp"/>
+    <c:choose>
+        <c:when test="${sessionScope.user.userID == 1}">
+            <jsp:include page="/views/common/admin-sidebar.jsp">
+                <jsp:param name="activeAdminMenu" value="blog"/>
+            </jsp:include>
+        </c:when>
+        <c:otherwise>
+            <jsp:include page="/views/common/staff-sidebar.jsp"/>
+        </c:otherwise>
+    </c:choose>
 
-    <main class="admin-main">
+    <main class="admin-main${blogManagementReadOnly ? ' with-admin-sidebar' : ''}">
         <jsp:include page="/views/common/admin-header.jsp"/>
 
         <div class="p-4">
@@ -233,90 +252,91 @@
             </div>
 
             <div class="row g-4">
+                <c:if test="${not blogManagementReadOnly}">
                 <div class="col-xl-4">
                     <div class="content-card position-sticky" style="top: 24px;">
-                        <h2 class="h5 fw-bold mb-3">
-                            <c:choose>
-                                <c:when test="${not empty editingPost && editingPost.blogID > 0}">
-                                    <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Sửa bài viết
-                                </c:when>
-                                <c:otherwise>
-                                    <i class="fa-solid fa-plus text-primary me-2"></i>Thêm bài viết
-                                </c:otherwise>
-                            </c:choose>
-                        </h2>
+                                <h2 class="h5 fw-bold mb-3">
+                                    <c:choose>
+                                        <c:when test="${not empty editingPost && editingPost.blogID > 0}">
+                                            <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Sửa bài viết
+                                        </c:when>
+                                        <c:otherwise>
+                                            <i class="fa-solid fa-plus text-primary me-2"></i>Thêm bài viết
+                                        </c:otherwise>
+                                    </c:choose>
+                                </h2>
 
-                        <form action="${pageContext.request.contextPath}/staff/blog" method="post" enctype="multipart/form-data">
-                            <input type="hidden" name="action" value="save">
-                            <input type="hidden" name="blogID" value="${editingPost.blogID}">
-                            <input type="hidden" name="existingImage" value="${editingPost.image}">
+                                <form action="${blogManagementPath}" method="post" enctype="multipart/form-data">
+                                    <input type="hidden" name="action" value="save">
+                                    <input type="hidden" name="blogID" value="${editingPost.blogID}">
+                                    <input type="hidden" name="existingImage" value="${editingPost.image}">
 
-                            <div class="mb-3">
-                                <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
-                                <input class="form-control" type="text" name="title" maxlength="255"
-                                       value="${editingPost.title}" required>
-                            </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="text" name="title" maxlength="255"
+                                               value="${editingPost.title}" required>
+                                    </div>
 
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <label class="form-label">Danh mục</label>
-                                    <input class="form-control" type="text" name="category" maxlength="100"
-                                           value="${editingPost.category}" placeholder="VD: Kinh nghiệm">
-                                </div>
-                            </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Danh mục</label>
+                                            <input class="form-control" type="text" name="category" maxlength="100"
+                                                   value="${editingPost.category}" placeholder="VD: Kinh nghiệm">
+                                        </div>
+                                    </div>
 
-                            <div class="mb-3 mt-3">
-                                <label class="form-label">Slug tùy chỉnh</label>
-                                <input class="form-control" type="text" name="slug" maxlength="255"
-                                       value="${editingPost.slug}" placeholder="Tự tạo từ tiêu đề nếu bỏ trống">
-                            </div>
+                                    <div class="mb-3 mt-3">
+                                        <label class="form-label">Slug tùy chỉnh</label>
+                                        <input class="form-control" type="text" name="slug" maxlength="255"
+                                               value="${editingPost.slug}" placeholder="Tự tạo từ tiêu đề nếu bỏ trống">
+                                    </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Ảnh</label>
-                                <input class="form-control" type="file" name="image" id="image"
-                                       accept="image/jpeg,image/png,image/webp"
-                                       value="${editingPost.image}" placeholder="">
-                            </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Ảnh</label>
+                                        <input class="form-control" type="file" name="image" id="image"
+                                               accept="image/jpeg,image/png,image/webp"
+                                               value="${editingPost.image}" placeholder="">
+                                    </div>
 
-                            <div class="mb-3">
-                                <c:set var="previewUrl" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"/>
-                                <c:if test="${not empty editingPost.image}">
-                                    <c:set var="previewUrl" value="${pageContext.request.contextPath}/${editingPost.image}"/>
-                                </c:if>
-                                <img id="imagePreview"
-                                     class="image-preview"
-                                     src="${previewUrl}"
-                                     alt="image preview">
-                            </div>
+                                    <div class="mb-3">
+                                        <c:if test="${not empty editingPost.image}">
+                                            <c:set var="previewUrl" value="${pageContext.request.contextPath}/${editingPost.image}"/>
+                                        </c:if>
+                                        <img id="imagePreview"
+                                             class="image-preview"
+                                             src="${previewUrl}"
+                                             alt="image preview">
+                                    </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Tóm tắt</label>
-                                <textarea class="form-control" name="summary" rows="3" maxlength="500"><c:out value="${editingPost.summary}"/></textarea>
-                            </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Tóm tắt</label>
+                                        <textarea class="form-control" name="summary" rows="3" maxlength="500"><c:out value="${editingPost.summary}"/></textarea>
+                                    </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Nội dung <span class="text-danger">*</span></label>
-                                <textarea class="form-control" name="content" rows="10" required><c:out value="${editingPost.content}"/></textarea>
-                            </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Nội dung <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" name="content" rows="10" required><c:out value="${editingPost.content}"/></textarea>
+                                    </div>
 
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-outline-primary fw-bold flex-grow-1" type="submit" name="status" value="Draft">
-                                    <i class="fa-solid fa-floppy-disk me-1"></i>Lưu
-                                </button>
-                                <button class="btn btn-primary fw-bold flex-grow-1" type="submit" name="status" value="Published">
-                                    <i class="fa-solid fa-upload me-1"></i>Đăng
-                                </button>
-                                <c:if test="${not empty editingPost && editingPost.blogID > 0}">
-                                    <a class="btn btn-outline-secondary fw-bold" href="${pageContext.request.contextPath}/staff/blog">
-                                        Hủy
-                                    </a>
-                                </c:if>
-                            </div>
-                        </form>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-outline-primary fw-bold flex-grow-1" type="submit" name="status" value="Draft">
+                                            <i class="fa-solid fa-floppy-disk me-1"></i>Lưu
+                                        </button>
+                                        <button class="btn btn-primary fw-bold flex-grow-1" type="submit" name="status" value="Published">
+                                            <i class="fa-solid fa-upload me-1"></i>Đăng
+                                        </button>
+                                        <c:if test="${not empty editingPost && editingPost.blogID > 0}">
+                                            <a class="btn btn-outline-secondary fw-bold" href="${blogManagementPath}">
+                                                Hủy
+                                            </a>
+                                        </c:if>
+                                    </div>
+                                </form>
                     </div>
                 </div>
+                </c:if>
 
-                <div class="col-xl-8">
+                <div class="${blogManagementReadOnly ? 'col-12' : 'col-xl-8'}">
                     <div class="content-card mb-3">
                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
                             <div>
@@ -324,7 +344,7 @@
                                 <p class="text-muted mb-0">Chỉ bài viết Đã đăng mới xuất hiện trên trang khách hàng.</p>
                             </div>
                         </div>
-                        <form action="${pageContext.request.contextPath}/staff/blog" method="get" class="row g-2 align-items-center">
+                        <form action="${blogManagementPath}" method="get" class="row g-2 align-items-center">
                             <div class="col-lg-5">
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-primary"></i></span>
@@ -405,12 +425,12 @@
                                                         <c:choose>
                                                             <c:when test="${post.status == 'Published'}">
                                                                 <span class="badge-status status-published">
-                                                                    <i class="fa-solid fa-circle-check"></i> Đã đăng
+                                                                    <i class="fa-solid"></i> Đã đăng
                                                                 </span>
                                                             </c:when>
                                                             <c:otherwise>
                                                                 <span class="badge-status status-draft">
-                                                                    <i class="fa-solid fa-pen"></i> Bản nháp
+                                                                    <i class="fa-solid"></i> Bản nháp
                                                                 </span>
                                                             </c:otherwise>
                                                         </c:choose>
@@ -426,23 +446,30 @@
                                                         </c:choose>
                                                     </td>
                                                     <td class="text-center">
+                                                        <a class="action-btn btn-view"
+                                                           href="${blogManagementPath}?action=view&id=${post.blogID}"
+                                                           title="Xem chi tiết">
+                                                            <i class="fa-solid fa-eye"></i>
+                                                        </a>
+                                                        <c:if test="${not blogManagementReadOnly}">
                                                         <a class="action-btn btn-edit"
-                                                           href="${pageContext.request.contextPath}/staff/blog?action=edit&id=${post.blogID}"
+                                                           href="${blogManagementPath}?action=edit&id=${post.blogID}"
                                                            title="Sửa">
                                                             <i class="fa-solid fa-pen-to-square"></i>
                                                         </a>
+                                                        </c:if>
                                                         <a class="action-btn"
-                                                           href="${pageContext.request.contextPath}/staff/blog?action=status&id=${post.blogID}&status=Published"
+                                                           href="${blogManagementPath}?action=status&id=${post.blogID}&status=Published"
                                                            title="Đăng bài">
                                                             <i class="fa-solid fa-upload"></i>
                                                         </a>
                                                         <a class="action-btn"
-                                                           href="${pageContext.request.contextPath}/staff/blog?action=status&id=${post.blogID}&status=Draft"
+                                                           href="${blogManagementPath}?action=status&id=${post.blogID}&status=Draft"
                                                            title="Đưa về bản nháp">
                                                             <i class="fa-solid fa-file-pen"></i>
                                                         </a>
                                                         <a class="action-btn btn-delete"
-                                                           href="${pageContext.request.contextPath}/staff/blog?action=delete&id=${post.blogID}"
+                                                           href="${blogManagementPath}?action=delete&id=${post.blogID}"
                                                            onclick="return confirm('Bạn có chắc muốn xóa bài viết này không?');"
                                                            title="Xóa">
                                                             <i class="fa-solid fa-trash-can"></i>
