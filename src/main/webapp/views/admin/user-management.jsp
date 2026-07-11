@@ -456,12 +456,22 @@
                    href="${pageContext.request.contextPath}/admin/user">
                     Quản lí người dùng
                 </a>
+
+                <a class="sidebar-link"
+                   href="${pageContext.request.contextPath}/staff/blog">
+                    Quản lý Blog
+                </a>
             </c:when>
 
             <c:when test="${sessionScope.user.roleID == 2}">
                 <a class="sidebar-link active"
                    href="${pageContext.request.contextPath}/admin/user">
                     Xem người dùng
+                </a>
+
+                <a class="sidebar-link"
+                   href="${pageContext.request.contextPath}/staff/blog">
+                    Quản lý Blog
                 </a>
             </c:when>
 
@@ -477,7 +487,7 @@
         </div>
 
         <div class="row g-3 mb-4">
-            <div class="col-md-3"><div class="stat-card"><h3>${totalUsers}</h3><p>Tổng người dùng</p></div></div>
+            <div class="col-md-3"><div class="stat-card"><h3>${activeUserCount}</h3><p>Tổng người dùng hoạt động</p></div></div>
             <div class="col-md-3"><div class="stat-card"><h3>${staffCount}</h3><p>Nhân viên</p></div></div>
             <div class="col-md-3"><div class="stat-card"><h3>${tourGuideCount}</h3><p>Hướng dẫn viên</p></div></div>
             <div class="col-md-3"><div class="stat-card"><h3>${customerCount}</h3><p>Khách hàng</p></div></div>
@@ -502,8 +512,7 @@
                     <select class="form-select" name="status">
                         <option value="">Tất cả trạng thái</option>
                         <option value="Active">Hoạt động</option>
-                        <option value="Inactive">Xóa bởi người dùng</option>
-                        <option value="Blocked">Xóa bởi Admin</option>
+                        <option value="Inactive">Đã xóa</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -549,9 +558,8 @@
                         <td>
                             <c:choose>
                                 <c:when test="${u.status == 'Active'}">Hoạt động</c:when>
-                                <c:when test="${u.status == 'Inactive'}">Xóa bởi người dùng</c:when>
-                                <c:when test="${u.status == 'Blocked'}">Đã bị admin xóa</c:when>
-                                <c:otherwise>${u.status}</c:otherwise>
+                                <c:when test="${u.status == 'Inactive'}">Đã xóa</c:when>
+                                <c:otherwise>Đã xóa</c:otherwise>
                             </c:choose>
                         </td>
                         <td>
@@ -570,11 +578,15 @@
                                         Sửa
                                     </button>
 
-                                    <a class="btn btn-outline-danger btn-sm"
-                                       href="${pageContext.request.contextPath}/admin/user/block?id=${u.userID}"
-                                       onclick="return confirm('Bạn có chắc muốn khóa tài khoản này?')">
-                                        Chặn
-                                    </a>
+                                    <form action="${pageContext.request.contextPath}/admin/user/delete"
+                                          method="post"
+                                          style="display:inline"
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản này? Tài khoản sẽ được đánh dấu đã xóa.');">
+                                        <input type="hidden" name="id" value="${u.userID}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            Xóa
+                                        </button>
+                                    </form>
 
                                 </c:if>
 
