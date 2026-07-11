@@ -2,6 +2,7 @@ package vn.edu.fpt.controller.customer;
 
 import vn.edu.fpt.DAO.BookingDAO;
 import vn.edu.fpt.model.Booking;
+import vn.edu.fpt.model.User;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -9,7 +10,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,10 +27,9 @@ public class BookingEditController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        User currentUser = getCurrentUser(request);
-
-        if (currentUser == null) {
-            request.getSession().setAttribute("redirectAfterLogin", buildCurrentUrl(request));
+        User user = getCurrentUser(request);
+        if (user == null) {
+            request.getSession().setAttribute("redirectAfterLogin", currentPathWithQuery(request));
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -54,7 +53,7 @@ public class BookingEditController extends HttpServlet {
                 return;
             }
 
-            if (!isOwner(booking, currentUser)) {
+            if (booking.getUserID() == null || !booking.getUserID().equals(user.getUserID())) {
                 response.sendRedirect(request.getContextPath() + "/booking-list");
                 return;
             }
@@ -76,10 +75,8 @@ public class BookingEditController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        User currentUser = getCurrentUser(request);
-
-        if (currentUser == null) {
-            request.getSession().setAttribute("redirectAfterLogin", buildCurrentUrl(request));
+        User user = getCurrentUser(request);
+        if (user == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
@@ -116,7 +113,7 @@ public class BookingEditController extends HttpServlet {
 
             if (oldBooking == null) {
                 errors.add("Booking không tồn tại trong hệ thống.");
-            } else if (!isOwner(oldBooking, currentUser)) {
+            } else if (oldBooking.getUserID() == null || !oldBooking.getUserID().equals(user.getUserID())) {
                 errors.add("Bạn không có quyền sửa booking này.");
             } else if (!"Pending".equals(oldBooking.getStatus())) {
                 errors.add("Chỉ có thể sửa booking khi trạng thái đang là Pending.");
@@ -184,22 +181,10 @@ public class BookingEditController extends HttpServlet {
         return session == null ? null : (User) session.getAttribute("user");
     }
 
-    private boolean isOwner(Booking booking, User user) {
-        return booking != null
-                && user != null
-                && booking.getUserID() != null
-                && booking.getUserID() == user.getUserID();
-    }
-
-    private String buildCurrentUrl(HttpServletRequest request) {
-        String queryString = request.getQueryString();
-        String path = request.getRequestURI().substring(request.getContextPath().length());
-
-        if (queryString == null || queryString.trim().isEmpty()) {
-            return path;
-        }
-
-        return path + "?" + queryString;
+    private String currentPathWithQuery(HttpServletRequest request) {
+        String path = request.getServletPath();
+        String query = request.getQueryString();
+        return query == null || query.isBlank() ? path : path + "?" + query;
     }
 
     private int parseBookingID(String bookingIDRaw, List<String> errors) {

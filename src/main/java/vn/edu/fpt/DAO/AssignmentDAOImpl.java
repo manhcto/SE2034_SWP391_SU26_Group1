@@ -372,7 +372,6 @@ public class AssignmentDAOImpl {
                 b.[status] AS bookingStatus,
                 b.bookDate,
                 b.totalPrice,
-                p.[status] AS paymentStatus,
                 bd.tourScheduleID,
                 bd.quantity AS detailQuantity,
                 bd.unitPrice,
@@ -386,8 +385,6 @@ public class AssignmentDAOImpl {
                 ts.maxParticipants,
                 ts.quantity AS bookedQuantity
             FROM Booking b
-            JOIN Payment p
-                ON b.bookingID = p.bookingID
             JOIN Booking_Detail bd
                 ON b.bookingID = bd.bookingID
             JOIN Tour_Scheduler ts
@@ -395,7 +392,6 @@ public class AssignmentDAOImpl {
             JOIN Tour t
                 ON ts.tourID = t.tourID
             WHERE bd.tourScheduleID IS NOT NULL
-              AND p.[status] = N'Paid'
             ORDER BY b.bookingID DESC
             """;
 
@@ -442,32 +438,6 @@ public class AssignmentDAOImpl {
         return list;
     }
 
-    public boolean isBookingPaid(int bookingID) {
-        String sql = """
-            SELECT 1
-            FROM Payment
-            WHERE bookingID = ?
-              AND [status] = N'Paid'
-            """;
-
-        DBConnection db = new DBConnection();
-
-        try (
-                Connection conn = db.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setInt(1, bookingID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
-
     public List<User> getAllGuides() {
         List<User> list = new ArrayList<>();
 
@@ -483,7 +453,7 @@ public class AssignmentDAOImpl {
             FROM [User] u
             JOIN [Role] r
                 ON u.roleID = r.roleID
-            WHERE r.roleName = N'Tour Guide'
+            WHERE r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
               AND u.[status] = N'Active'
             ORDER BY u.userID DESC
             """;
@@ -544,20 +514,10 @@ public class AssignmentDAOImpl {
     }
 
     public List<AssignmentView> getAssignmentsByGuide(int guideID) {
-        return getAssignmentsByGuide(guideID, null, null, null);
-    }
-
-    public List<AssignmentView> getAssignmentsByGuide(int guideID,
-                                                      String status,
-                                                      String dateFrom,
-                                                      String dateTo) {
         List<AssignmentView> list = new ArrayList<>();
 
         String sql = ASSIGNMENT_SELECT + """
             WHERE ta.userID = ?
-              AND (? IS NULL OR ta.assignmentStatus = ?)
-              AND (? IS NULL OR CAST(ts.startDate AS DATE) >= CAST(? AS DATE))
-              AND (? IS NULL OR CAST(ts.startDate AS DATE) <= CAST(? AS DATE))
             ORDER BY ts.startDate ASC, ta.assignedAt DESC, ta.assignmentID DESC
             """;
 
@@ -567,18 +527,7 @@ public class AssignmentDAOImpl {
                 Connection conn = db.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-            String normalizedStatus = blankToNull(status);
-            String normalizedDateFrom = blankToNull(dateFrom);
-            String normalizedDateTo = blankToNull(dateTo);
-
-            int index = 1;
-            ps.setInt(index++, guideID);
-            ps.setString(index++, normalizedStatus);
-            ps.setString(index++, normalizedStatus);
-            ps.setString(index++, normalizedDateFrom);
-            ps.setString(index++, normalizedDateFrom);
-            ps.setString(index++, normalizedDateTo);
-            ps.setString(index++, normalizedDateTo);
+            ps.setInt(1, guideID);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {

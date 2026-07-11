@@ -447,7 +447,7 @@
 
         <nav class="wv-nav" id="wvMainNav">
             <a href="${pageContext.request.contextPath}/tour">Tour trọn gói</a>
-            <a href="${pageContext.request.contextPath}/booking">Đặt tour</a>
+            <a href="${pageContext.request.contextPath}/tour">Đặt tour</a>
             <a href="${pageContext.request.contextPath}/accommodation">Lưu trú</a>
             <a href="${pageContext.request.contextPath}/blog">Blog</a>
         </nav>

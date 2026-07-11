@@ -1,7 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <c:set var="currentPath" value="${pageContext.request.servletPath}" />
+<c:set var="requestUri" value="${pageContext.request.requestURI}" />
 
 <style>
     .staff-sidebar {
@@ -148,7 +150,7 @@
 
     <div class="staff-nav-section-title">Dịch vụ du lịch</div>
 
-    <a class="staff-sidebar-link ${currentPath == '/views/staff/tour-management.jsp' ? 'active' : ''}"
+    <a class="staff-sidebar-link ${currentPath == '/views/staff/tour-management.jsp' || currentPath == '/views/staff/tour-form.jsp' || currentPath == '/views/staff/tour-detail.jsp' || fn:contains(requestUri, '/staff/tour') ? 'active' : ''}"
        href="${pageContext.request.contextPath}/staff/tour">
         <i class="fa-solid fa-map-location-dot"></i>
         <span>Quản lý Tour</span>
@@ -162,10 +164,10 @@
 
     <div class="staff-nav-section-title">Vận hành</div>
 
-    <a class="staff-sidebar-link ${currentPath == '/views/staff/staff-booking-list.jsp' || currentPath == '/views/staff/staff-booking-detail.jsp' || currentPath == '/views/staff/staff-booking-edit.jsp' ? 'active' : ''}"
+    <a class="staff-sidebar-link ${currentPath == '/views/staff/staff-booking-list.jsp' || currentPath == '/views/staff/staff-booking-edit.jsp' ? 'active' : ''}"
        href="${pageContext.request.contextPath}/staff/booking">
         <i class="fa-solid fa-calendar-check"></i>
-        <span>Quản lý Booking</span>
+        <span>Quản lý đặt chỗ</span>
     </a>
 
     <a class="staff-sidebar-link ${currentPath == '/views/staff/payment-management.jsp' ? 'active' : ''}"

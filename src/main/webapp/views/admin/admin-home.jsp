@@ -453,12 +453,12 @@
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
             <i class="fa-solid fa-calendar-check"></i>
-            <span>Đơn đặt</span>
+            <span>Xem Booking</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
             <i class="fa-solid fa-comments"></i>
-            <span>Đánh giá khách hàng</span>
+            <span>Xem Feedback</span>
         </a>
 
         <div class="sidebar-bottom">
@@ -591,7 +591,7 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-calendar-check"></i>
                     </div>
-                    <h5>Đơn đặt</h5>
+                    <h5>Xem Booking</h5>
                     <p>Admin xem danh sách booking và chi tiết booking, không chỉnh sửa dữ liệu booking.</p>
                     <span class="module-open">Mở Booking View <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
@@ -602,7 +602,7 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h5>Đánh giá khách hàng</h5>
+                    <h5>Xem Feedback</h5>
                     <p>Admin xem danh sách feedback và chi tiết feedback của khách hàng, không duyệt hoặc chỉnh sửa.</p>
                     <span class="module-open">Mở Feedback View <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>

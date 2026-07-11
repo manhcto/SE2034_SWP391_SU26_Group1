@@ -40,6 +40,16 @@
             <span>Quản lý lưu trú</span>
         </a>
 
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
+            <i class="fa-solid fa-car-side"></i>
+            <span>Quản lý phương tiện</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/service">
+            <i class="fa-solid fa-briefcase"></i>
+            <span>Quản lý dịch vụ</span>
+        </a>
+
         <div class="nav-section-title">Vận hành</div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">

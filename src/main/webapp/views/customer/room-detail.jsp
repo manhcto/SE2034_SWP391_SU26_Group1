@@ -664,7 +664,7 @@
                     <c:otherwise>
                         <div class="missing-date-alert">
                             <i class="fa-solid fa-triangle-exclamation"></i>
-                            Bạn chưa chọn ngày nhận phòng và ngày trả phòng. Chọn lịch ngay tại đây để xem tạm tính và thanh toán đặt phòng.
+                            Bạn chưa chọn ngày nhận phòng và ngày trả phòng. Chọn lịch ngay tại đây để xem tạm tính và đặt phòng.
                         </div>
                     </c:otherwise>
                 </c:choose>
@@ -692,11 +692,10 @@
                     <input type="hidden" name="guests" value="${guests}">
 
                     <button type="submit" class="btn-direct-book">
-                        <i class="fa-solid fa-credit-card me-2"></i>
-                        Thanh toán
+                        <i class="fa-solid fa-calendar-check me-2"></i>
+                        Đặt phòng
                     </button>
                 </form>
-
             </c:if>
 
             <a class="btn-list"

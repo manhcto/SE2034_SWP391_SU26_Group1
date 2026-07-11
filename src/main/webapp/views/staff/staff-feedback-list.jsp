@@ -1,13 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>WonderVN | Quản lý đánh giá khách hàng</title>
+  <title>WonderVN | Staff Feedback Management</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -174,7 +173,6 @@
       color: #64748b;
       margin: 6px 0 0;
       font-size: 15px;
-      line-height: 1.6;
     }
 
     .top-action-btn {
@@ -189,7 +187,6 @@
       box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
       background: #0f172a;
       color: #ffffff;
-      white-space: nowrap;
     }
 
     .top-action-btn:hover {
@@ -217,115 +214,12 @@
       margin-bottom: 20px;
     }
 
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 22px;
-      padding: 18px;
-      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
-    }
-
-    .stat-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 16px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: #ffffff;
-      margin-bottom: 12px;
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    }
-
-    .stat-label {
-      color: #64748b;
-      font-size: 13px;
-      font-weight: 800;
-      margin-bottom: 4px;
-    }
-
-    .stat-value {
-      color: #0f172a;
-      font-size: 24px;
-      font-weight: 900;
-    }
-
-    .tab-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 24px;
-      padding: 14px;
-      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
-      margin-bottom: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .tab-link {
-      min-height: 44px;
-      border-radius: 999px;
-      padding: 10px 16px;
-      text-decoration: none;
-      color: #334155;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      font-size: 14px;
-      font-weight: 900;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: 0.18s ease;
-    }
-
-    .tab-link:hover {
-      color: #1d4ed8;
-      background: #eff6ff;
-      border-color: #bfdbfe;
-    }
-
-    .tab-link.active {
-      color: #ffffff;
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      border-color: transparent;
-      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
-    }
-
     .content-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 24px;
       padding: 24px;
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-    }
-
-    .content-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-
-    .content-card-header h2 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 900;
-      color: #0f172a;
-    }
-
-    .content-card-header p {
-      margin: 5px 0 0;
-      color: #64748b;
-      font-size: 14px;
-      font-weight: 700;
     }
 
     .table {
@@ -335,55 +229,23 @@
     .table thead th {
       background: #f8fafc;
       color: #334155;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 900;
       border-bottom: 1px solid #e2e8f0;
-      padding: 15px 12px;
+      padding: 16px 14px;
       white-space: nowrap;
     }
 
     .table tbody td {
-      padding: 15px 12px;
+      padding: 15px 14px;
       vertical-align: middle;
       color: #0f172a;
-      font-size: 13.5px;
+      font-size: 14px;
     }
 
     .feedback-id {
       font-weight: 900;
       color: #4e46dc;
-      white-space: nowrap;
-    }
-
-    .customer-name {
-      font-weight: 900;
-      color: #0f172a;
-      margin-bottom: 3px;
-    }
-
-    .customer-email {
-      color: #64748b;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .service-name {
-      font-weight: 900;
-      color: #0f172a;
-      max-width: 220px;
-    }
-
-    .service-type {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 5px;
-      padding: 5px 9px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #3730a3;
-      font-size: 12px;
-      font-weight: 900;
     }
 
     .rate-badge {
@@ -397,19 +259,16 @@
       color: #92400e;
       font-size: 13px;
       font-weight: 900;
-      white-space: nowrap;
     }
 
     .status-badge {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
       padding: 6px 12px;
       border-radius: 999px;
       font-size: 13px;
       font-weight: 900;
-      white-space: nowrap;
     }
 
     .status-visible {
@@ -436,24 +295,23 @@
       gap: 8px;
       align-items: center;
       flex-wrap: wrap;
-      min-width: 220px;
     }
 
-    .btn-action {
-      min-height: 36px;
+    .btn-view,
+    .btn-approve,
+    .btn-hide {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 7px;
-      padding: 8px 12px;
+      padding: 9px 14px;
       border-radius: 999px;
       color: #ffffff;
       text-decoration: none;
-      font-size: 12.5px;
+      font-size: 13px;
       font-weight: 900;
       white-space: nowrap;
       border: none;
-      font-family: inherit;
     }
 
     .btn-view {
@@ -475,19 +333,10 @@
     }
 
     .btn-hide {
-      background: #f97316;
-    }
-
-    .btn-hide:hover {
-      background: #ea580c;
-      color: #ffffff;
-    }
-
-    .btn-delete {
       background: #dc2626;
     }
 
-    .btn-delete:hover {
+    .btn-hide:hover {
       background: #b91c1c;
       color: #ffffff;
     }
@@ -501,34 +350,10 @@
       background: #f8fafc;
       border: 1px dashed #cbd5e1;
       border-radius: 18px;
-      padding: 46px 24px;
+      padding: 40px;
       text-align: center;
       color: #64748b;
       font-weight: 800;
-    }
-
-    .empty-box i {
-      font-size: 42px;
-      color: #94a3b8;
-      margin-bottom: 12px;
-    }
-
-    .empty-box h3 {
-      margin: 0 0 8px;
-      color: #0f172a;
-      font-size: 22px;
-      font-weight: 900;
-    }
-
-    .empty-box p {
-      margin: 0;
-      color: #64748b;
-    }
-
-    @media (max-width: 1200px) {
-      .stat-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
     }
 
     @media (max-width: 992px) {
@@ -554,21 +379,6 @@
 
       .top-action-btn {
         margin-top: 16px;
-      }
-    }
-
-    @media (max-width: 620px) {
-      .stat-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .tab-link {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .content-card {
-        padding: 16px;
       }
     }
   </style>
@@ -605,7 +415,7 @@
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
       <i class="fa-solid fa-calendar-check"></i>
-      <span>Đơn đặt</span>
+      <span>Quản lý đặt chỗ</span>
     </a>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
@@ -636,9 +446,9 @@
     </a>
 
     <div class="admin-user">
-      <div class="avatar">ST</div>
+      <div class="avatar">AD</div>
       <div>
-        <div class="fw-bold">Nhân viên</div>
+        <div class="fw-bold">Quản trị viên</div>
         <small>Staff</small>
       </div>
     </div>
@@ -647,7 +457,8 @@
   <main class="main-content">
     <div class="topbar">
       <div>
-        <h1>Quản lý đánh giá khách hàng</h1>
+        <h1>Staff Feedback Management</h1>
+        <p>Staff xem feedback của khách hàng và duyệt hoặc ẩn feedback trước khi công khai.</p>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/home">
@@ -659,137 +470,48 @@
     <c:if test="${param.success == 'status'}">
       <div class="success-box">
         <i class="fa-solid fa-circle-check me-2"></i>
-        Cập nhật trạng thái đánh giá thành công.
-      </div>
-    </c:if>
-
-    <c:if test="${param.success == 'delete'}">
-      <div class="success-box">
-        <i class="fa-solid fa-circle-check me-2"></i>
-        Xóa đánh giá thành công.
+        Cập nhật trạng thái feedback thành công.
       </div>
     </c:if>
 
     <c:if test="${param.error == 'invalid'}">
       <div class="error-box">
-        <i class="fa-solid fa-triangle-exclamation me-2"></i>
-        Mã đánh giá không hợp lệ.
+        Feedback ID không hợp lệ.
       </div>
     </c:if>
 
     <c:if test="${param.error == 'status'}">
       <div class="error-box">
-        <i class="fa-solid fa-triangle-exclamation me-2"></i>
-        Cập nhật trạng thái đánh giá thất bại.
+        Trạng thái feedback không hợp lệ.
       </div>
     </c:if>
 
     <c:if test="${param.error == 'notfound'}">
       <div class="error-box">
-        <i class="fa-solid fa-triangle-exclamation me-2"></i>
-        Không tìm thấy đánh giá.
+        Không tìm thấy feedback.
       </div>
     </c:if>
 
-    <c:if test="${param.error == 'delete'}">
+    <c:if test="${param.error == 'update'}">
       <div class="error-box">
-        <i class="fa-solid fa-triangle-exclamation me-2"></i>
-        Xóa đánh giá thất bại.
+        Cập nhật trạng thái feedback thất bại.
       </div>
     </c:if>
-
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class="fa-solid fa-comments"></i>
-        </div>
-        <div class="stat-label">Loại đang xem</div>
-        <div class="stat-value">${typeText}</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class="fa-solid fa-layer-group"></i>
-        </div>
-        <div class="stat-label">Số đánh giá</div>
-        <div class="stat-value">${fn:length(feedbackList)}</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class="fa-solid fa-eye"></i>
-        </div>
-        <div class="stat-label">Đã công khai</div>
-        <div class="stat-value">
-          <c:set var="visibleCount" value="0"/>
-          <c:forEach var="fb" items="${feedbackList}">
-            <c:if test="${fb.status == 'Visible'}">
-              <c:set var="visibleCount" value="${visibleCount + 1}"/>
-            </c:if>
-          </c:forEach>
-          ${visibleCount}
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class="fa-solid fa-eye-slash"></i>
-        </div>
-        <div class="stat-label">Đang ẩn / chờ duyệt</div>
-        <div class="stat-value">
-          <c:set var="hiddenCount" value="0"/>
-          <c:forEach var="fb" items="${feedbackList}">
-            <c:if test="${fb.status != 'Visible'}">
-              <c:set var="hiddenCount" value="${hiddenCount + 1}"/>
-            </c:if>
-          </c:forEach>
-          ${hiddenCount}
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-card">
-      <a class="tab-link ${type == 'All' ? 'active' : ''}"
-         href="${pageContext.request.contextPath}/staff/feedback?type=All">
-        <i class="fa-solid fa-border-all"></i>
-        Tất cả
-      </a>
-
-      <a class="tab-link ${type == 'Tour' ? 'active' : ''}"
-         href="${pageContext.request.contextPath}/staff/feedback?type=Tour">
-        <i class="fa-solid fa-map-location-dot"></i>
-        Tour
-      </a>
-
-      <a class="tab-link ${type == 'Accommodation' ? 'active' : ''}"
-         href="${pageContext.request.contextPath}/staff/feedback?type=Accommodation">
-        <i class="fa-solid fa-hotel"></i>
-        Khách sạn
-      </a>
-
-    </div>
 
     <div class="content-card">
-      <div class="content-card-header">
-        <div>
-          <h2>Danh sách đánh giá</h2>
-          <p>Hiển thị các đánh giá thuộc tab: ${typeText}</p>
-        </div>
-      </div>
-
       <c:choose>
         <c:when test="${not empty feedbackList}">
           <div class="table-responsive">
             <table class="table align-middle">
               <thead>
               <tr>
-                <th>Mã</th>
-                <th>Khách hàng</th>
-                <th>Dịch vụ</th>
-                <th>Số sao</th>
-                <th style="width: 35%">Nội dung</th>
+                <th>Feedback ID</th>
+                <th>Rate</th>
+                <th>Nội dung</th>
                 <th>Ngày tạo</th>
-                <th>Trạng thái</th>
+                <th>Status</th>
+                <th>User ID</th>
+                <th>Booking ID</th>
                 <th>Thao tác</th>
               </tr>
               </thead>
@@ -802,39 +524,14 @@
                   </td>
 
                   <td>
-                    <div class="customer-name">${feedback.customerName}</div>
-                    <div class="customer-email">${feedback.customerEmail}</div>
-                  </td>
-
-                  <td>
-                    <div class="service-name">${feedback.serviceName}</div>
-                    <div class="service-type">
-                      <c:choose>
-                        <c:when test="${feedback.serviceType == 'Accommodation'}">
-                          <i class="fa-solid fa-hotel"></i>
-                          Khách sạn
-                        </c:when>
-                        <c:when test="${feedback.serviceType == 'Tour'}">
-                          <i class="fa-solid fa-map-location-dot"></i>
-                          Tour
-                        </c:when>
-                        <c:otherwise>
-                          <i class="fa-solid fa-briefcase"></i>
-                          Dịch vụ
-                        </c:otherwise>
-                      </c:choose>
-                    </div>
-                  </td>
-
-                  <td>
                                         <span class="rate-badge">
                                             <i class="fa-solid fa-star"></i>
-                                            <fmt:formatNumber value="${feedback.rate}" maxFractionDigits="0"/> / 5
+                                            <fmt:formatNumber value="${feedback.rate}" maxFractionDigits="0"/>
                                         </span>
                   </td>
 
                   <td>
-                    <div class="text-wrap text-break" style="color: #475569; font-weight: 600; min-width: 200px;">
+                    <div class="content-preview">
                         ${feedback.content}
                     </div>
                   </td>
@@ -846,51 +543,57 @@
                   <td>
                     <c:choose>
                       <c:when test="${feedback.status == 'Visible'}">
-                                                <span class="status-badge status-visible">
-                                                    <i class="fa-solid fa-circle-check"></i>
-                                                    Hiển thị
-                                                </span>
+                        <span class="status-badge status-visible">Visible</span>
                       </c:when>
-
                       <c:otherwise>
-                                                <span class="status-badge status-hidden">
-                                                    <i class="fa-solid fa-eye-slash"></i>
-                                                    Đang ẩn
-                                                </span>
+                        <span class="status-badge status-hidden">Hidden</span>
                       </c:otherwise>
                     </c:choose>
                   </td>
 
+                  <td>${feedback.userID}</td>
+
+                  <td>${feedback.bookingID}</td>
+
                   <td>
                     <div class="action-group">
-                      <c:if test="${feedback.status != 'Visible'}">
-                        <form class="inline-form"
-                              action="${pageContext.request.contextPath}/staff/feedback-status"
-                              method="post">
-                          <input type="hidden" name="feedbackID" value="${feedback.feedbackID}">
-                          <input type="hidden" name="status" value="Visible">
-                          <input type="hidden" name="redirectTo" value="list">
-                          <input type="hidden" name="type" value="${type}">
+                      <a class="btn-view"
+                         href="${pageContext.request.contextPath}/staff/feedback-detail?feedbackID=${feedback.feedbackID}">
+                        <i class="fa-solid fa-eye"></i>
+                        Xem
+                      </a>
 
-                          <button type="submit" class="btn-action btn-approve">
-                            <i class="fa-solid fa-check"></i>
-                            Duyệt
-                          </button>
-                        </form>
-                      </c:if>
+                      <c:choose>
+                        <c:when test="${feedback.status == 'Hidden'}">
+                          <form class="inline-form"
+                                action="${pageContext.request.contextPath}/staff/feedback-status"
+                                method="post">
+                            <input type="hidden" name="feedbackID" value="${feedback.feedbackID}">
+                            <input type="hidden" name="status" value="Visible">
+                            <input type="hidden" name="redirectTo" value="list">
 
-                      <form class="inline-form"
-                            action="${pageContext.request.contextPath}/staff/feedback-delete"
-                            method="post"
-                            onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này không?');">
-                        <input type="hidden" name="feedbackID" value="${feedback.feedbackID}">
-                        <input type="hidden" name="type" value="${type}">
+                            <button type="submit" class="btn-approve">
+                              <i class="fa-solid fa-check"></i>
+                              Approve
+                            </button>
+                          </form>
+                        </c:when>
 
-                        <button type="submit" class="btn-action btn-delete">
-                          <i class="fa-solid fa-trash"></i>
-                          Xóa
-                        </button>
-                      </form>
+                        <c:otherwise>
+                          <form class="inline-form"
+                                action="${pageContext.request.contextPath}/staff/feedback-status"
+                                method="post">
+                            <input type="hidden" name="feedbackID" value="${feedback.feedbackID}">
+                            <input type="hidden" name="status" value="Hidden">
+                            <input type="hidden" name="redirectTo" value="list">
+
+                            <button type="submit" class="btn-hide">
+                              <i class="fa-solid fa-eye-slash"></i>
+                              Hide
+                            </button>
+                          </form>
+                        </c:otherwise>
+                      </c:choose>
                     </div>
                   </td>
                 </tr>
@@ -902,9 +605,7 @@
 
         <c:otherwise>
           <div class="empty-box">
-            <i class="fa-regular fa-comment-dots"></i>
-            <h3>Chưa có đánh giá nào</h3>
-            <p>Hiện chưa có đánh giá thuộc tab ${typeText}.</p>
+            Chưa có feedback nào trong hệ thống.
           </div>
         </c:otherwise>
       </c:choose>

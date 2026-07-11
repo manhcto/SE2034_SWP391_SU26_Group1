@@ -122,14 +122,6 @@ public class ManageAssignmentTourController extends HttpServlet {
         int guideID = Integer.parseInt(request.getParameter("userID"));
         int tourScheduleID = assignmentDAO.getTourScheduleIDByBookingID(bookingID);
 
-        if (!assignmentDAO.isBookingPaid(bookingID)) {
-            response.sendRedirect(
-                    request.getContextPath()
-                            + "/staff/assignment?action=create&error=paymentRequired"
-            );
-            return;
-        }
-
         if (tourScheduleID == -1) {
             response.sendRedirect(
                     request.getContextPath()
@@ -195,17 +187,6 @@ public class ManageAssignmentTourController extends HttpServlet {
         assignment.setTourScheduleID(tourScheduleID);
         assignment.setUserID(userID);
         assignment.setBookingID(parseOptionalInt(request.getParameter("bookingID")));
-
-        if (assignment.getBookingID() > 0 && !assignmentDAO.isBookingPaid(assignment.getBookingID())) {
-            response.sendRedirect(
-                    request.getContextPath()
-                            + "/staff/assignment?action=edit&id="
-                            + assignmentID
-                            + "&error=paymentRequired"
-            );
-            return;
-        }
-
         assignment.setActualStartAt(parseDateTime(request.getParameter("actualStartAt")));
         assignment.setActualEndAt(parseDateTime(request.getParameter("actualEndAt")));
         assignment.setRejectionReason(trimToNull(request.getParameter("rejectionReason")));

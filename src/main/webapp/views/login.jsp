@@ -17,7 +17,7 @@
             <span>Wonder</span><span>VN</span><span class="auth-flag"><i class="fa-solid fa-star"></i></span>
         </div>
         <h1>Tiếp tục hành trình cùng WonderVN</h1>
-        <p>Đăng nhập để đặt tour, đặt phòng, theo dõi đơn và quản lý thông tin chuyến đi của bạn trong một nơi duy nhất.</p>
+        <p>Đăng nhập để đặt phòng, thuê xe, theo dõi đơn và quản lý thông tin chuyến đi của bạn trong một nơi duy nhất.</p>
     </section>
 
     <section class="auth-panel">
@@ -38,7 +38,7 @@
 
                 <div class="auth-field">
                     <label for="email">Email</label>
-                    <input class="auth-input" id="email" type="email" name="email" value="${not empty email ? email : param.email}" placeholder="you@example.com" required>
+                    <input class="auth-input" id="email" type="email" name="email" placeholder="you@example.com" required>
                 </div>
 
                 <div class="auth-field">

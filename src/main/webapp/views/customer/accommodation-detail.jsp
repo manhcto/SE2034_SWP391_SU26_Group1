@@ -244,27 +244,6 @@
             filter: brightness(0.95);
         }
 
-        .btn-review {
-            width: 100%;
-            border: none;
-            background: linear-gradient(135deg, #0f766e, #0d9488);
-            color: white;
-            border-radius: 16px;
-            padding: 14px 18px;
-            font-weight: 900;
-            text-decoration: none;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .btn-review:hover {
-            color: white;
-            filter: brightness(0.95);
-        }
-
         .btn-list {
             width: 100%;
             border: 1px solid #cbd5e1;
@@ -859,12 +838,6 @@
                 <i class="fa-solid fa-bed me-2"></i>
                 Xem phòng còn trống
             </button>
-
-            <a class="btn-review"
-               href="${pageContext.request.contextPath}/feedback-list?type=Accommodation&serviceID=${accommodation.accommodationID}">
-                <i class="fa-solid fa-star"></i>
-                Xem đánh giá
-            </a>
 
             <a class="btn-list"
                href="${pageContext.request.contextPath}/accommodation?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">

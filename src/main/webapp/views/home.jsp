@@ -1,5 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -9,125 +11,13 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=1000">
 
     <style>
-        .success-toast {
-            position: fixed;
-            top: 92px;
-            right: 24px;
-            z-index: 9999;
-            min-width: 300px;
-            max-width: 420px;
-            background: #dcfce7;
-            color: #166534;
-            border: 1px solid #86efac;
-            border-radius: 18px;
-            padding: 15px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 14px 34px rgba(22, 101, 52, 0.18);
-            font-weight: 800;
-            pointer-events: none;
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.4s ease, transform 0.4s ease;
-        }
-
-        .success-toast.hide {
-            opacity: 0;
-            transform: translateY(-14px);
-        }
-
-        .success-toast-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #22c55e;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            flex-shrink: 0;
-        }
-
-        .success-toast-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .success-toast-title {
-            display: block;
-            font-size: 15px;
-            font-weight: 900;
-            margin-bottom: 3px;
-        }
-
-        .success-toast-message {
-            margin: 0;
-            font-size: 14px;
-            line-height: 1.5;
-            color: #166534;
-        }
-
-        .success-toast-progress {
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            height: 4px;
-            width: 100%;
-            background: #22c55e;
-            border-radius: 0 0 18px 18px;
-            animation: successToastProgress 5s linear forwards;
-        }
-
-        @keyframes successToastProgress {
-            from {
-                width: 100%;
-            }
-
-            to {
-                width: 0;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .success-toast {
-                left: 16px;
-                right: 16px;
-                top: 82px;
-                min-width: 0;
-                max-width: none;
-            }
-        }
+        .real-tour-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .empty-box { padding: 28px; border-radius: 24px; background: #fff; border: 1px dashed #cbd5e1; color: #64748b; font-weight: 800; text-align: center; }
     </style>
 </head>
 <body>
 
 <jsp:include page="/views/common/client-header.jsp" />
-
-<c:if test="${not empty sessionScope.successMessage}">
-    <div id="successToast" class="success-toast">
-        <div class="success-toast-icon">✓</div>
-        <div class="success-toast-content">
-            <span class="success-toast-title">
-                <c:choose>
-                    <c:when test="${not empty sessionScope.successTitle}">
-                        ${sessionScope.successTitle}
-                    </c:when>
-                    <c:otherwise>
-                        Đặt chỗ thành công
-                    </c:otherwise>
-                </c:choose>
-            </span>
-
-            <p class="success-toast-message">${sessionScope.successMessage}</p>
-        </div>
-        <div class="success-toast-progress"></div>
-    </div>
-
-    <c:remove var="successTitle" scope="session" />
-    <c:remove var="successMessage" scope="session" />
-</c:if>
 
 <main class="home-page">
 
@@ -188,11 +78,10 @@
                         <label>
                             <span id="fieldOneLabel">Điểm khởi hành</span>
                             <select id="fieldOneInput" name="from">
-                                <option>Hà Nội</option>
-                                <option>TP. Hồ Chí Minh</option>
-                                <option>Đà Nẵng</option>
-                                <option>Hải Phòng</option>
-                                <option>Cần Thơ</option>
+                                <option value="">Tất cả điểm khởi hành</option>
+                                <c:forEach var="place" items="${startPlaces}">
+                                    <option value="${place}">${place}</option>
+                                </c:forEach>
                             </select>
                         </label>
 
@@ -200,11 +89,9 @@
                             <span id="fieldTwoLabel">Điểm đến</span>
                             <select id="fieldTwoInput" name="destination">
                                 <option value="">Chọn điểm đến</option>
-                                <option>Đà Nẵng</option>
-                                <option>Hạ Long</option>
-                                <option>Sa Pa</option>
-                                <option>Ninh Bình</option>
-                                <option>Phú Quốc</option>
+                                <c:forEach var="place" items="${destinations}">
+                                    <option value="${place}">${place}</option>
+                                </c:forEach>
                             </select>
                         </label>
 
@@ -292,83 +179,44 @@
                 <a class="outline-btn" href="${pageContext.request.contextPath}/tour">Xem thêm</a>
             </div>
 
-            <div class="tour-grid">
-                <article class="tour-card">
-                    <div class="tour-image image-ha-long">
-                        <span>Hot</span>
+            <c:choose>
+                <c:when test="${empty featuredTours}">
+                    <div class="empty-box">Hiện chưa có tour nổi bật đang mở bán.</div>
+                </c:when>
+                <c:otherwise>
+                    <div class="tour-grid">
+                        <c:forEach var="tour" items="${featuredTours}">
+                            <c:set var="firstSchedule" value="${tour.scheduleList[0]}" />
+                            <c:set var="tourImage" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png" />
+                            <c:if test="${not empty tour.image}">
+                                <c:choose>
+                                    <c:when test="${fn:startsWith(tour.image, 'http')}"><c:set var="tourImage" value="${tour.image}" /></c:when>
+                                    <c:otherwise><c:set var="tourImage" value="${pageContext.request.contextPath}${tour.image}" /></c:otherwise>
+                                </c:choose>
+                            </c:if>
+                            <article class="tour-card">
+                                <div class="tour-image real-tour-image">
+                                    <img src="${tourImage}" alt="${tour.tourName}" onerror="this.src='${pageContext.request.contextPath}/assets/images/home/hero-bana.png';">
+                                    <span>${empty tour.regionName ? 'WonderVN' : tour.regionName}</span>
+                                </div>
+                                <div class="tour-body">
+                                    <h3>${tour.tourName}</h3>
+                                    <p>Khởi hành: ${tour.startPlace}</p>
+                                    <p>Thời lượng: ${tour.numberOfDay} ngày <c:if test="${not empty tour.numberOfNights}">${tour.numberOfNights} đêm</c:if></p>
+                                    <p>Lịch gần nhất: <fmt:formatDate value="${firstSchedule.startDate}" pattern="dd/MM/yyyy" /></p>
+                                    <div class="tour-price-row">
+                                        <div>
+                                            <span>Giá từ</span>
+                                            <strong><fmt:formatNumber value="${not empty firstSchedule.adultPrice ? firstSchedule.adultPrice : tour.adultPrice}" pattern="#,#00" />đ</strong>
+                                        </div>
+                                        <a href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">Xem chi tiết</a>
+                                    </div>
+                                </div>
+                            </article>
+                        </c:forEach>
                     </div>
-                    <div class="tour-body">
-                        <h3>Hà Nội, Ninh Bình, Hạ Long 4N3Đ</h3>
-                        <p>Khởi hành: TP. Hồ Chí Minh</p>
-                        <p>Thời lượng: 4 ngày 3 đêm</p>
-                        <p>Lịch gần nhất: 15/06/2026</p>
-                        <div class="tour-price-row">
-                            <div>
-                                <span>Giá từ</span>
-                                <strong>5.990.000đ</strong>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=1">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card">
-                    <div class="tour-image image-da-nang">
-                        <span>Best choice</span>
-                    </div>
-                    <div class="tour-body">
-                        <h3>Đà Nẵng, Hội An, Bà Nà Hills 3N2Đ</h3>
-                        <p>Khởi hành: Hà Nội</p>
-                        <p>Thời lượng: 3 ngày 2 đêm</p>
-                        <p>Lịch gần nhất: 20/06/2026</p>
-                        <div class="tour-price-row">
-                            <div>
-                                <span>Giá từ</span>
-                                <strong>4.590.000đ</strong>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=2">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card">
-                    <div class="tour-image image-phu-quoc">
-                        <span>New</span>
-                    </div>
-                    <div class="tour-body">
-                        <h3>Phú Quốc, VinWonders, Grand World 3N2Đ</h3>
-                        <p>Khởi hành: TP. Hồ Chí Minh</p>
-                        <p>Thời lượng: 3 ngày 2 đêm</p>
-                        <p>Lịch gần nhất: 25/06/2026</p>
-                        <div class="tour-price-row">
-                            <div>
-                                <span>Giá từ</span>
-                                <strong>6.490.000đ</strong>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=3">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card">
-                    <div class="tour-image image-sapa">
-                        <span>Popular</span>
-                    </div>
-                    <div class="tour-body">
-                        <h3>Sa Pa, Fansipan, Bản Cát Cát 3N2Đ</h3>
-                        <p>Khởi hành: Hà Nội</p>
-                        <p>Thời lượng: 3 ngày 2 đêm</p>
-                        <p>Lịch gần nhất: 28/06/2026</p>
-                        <div class="tour-price-row">
-                            <div>
-                                <span>Giá từ</span>
-                                <strong>3.990.000đ</strong>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=4">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-            </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </section>
 
@@ -376,90 +224,153 @@
         <div class="home-container">
             <div class="section-head">
                 <div>
-                    <p class="section-kicker">Tour trọn gói WonderVN</p>
-                    <h2>Tour do công ty trực tiếp tạo và quản lý</h2>
-                    <p>Mỗi tour có lịch khởi hành, số chỗ, giá bán và chương trình rõ ràng.</p>
+                    <p class="section-kicker">Tour đang mở bán</p>
+                    <h2>Tour do WonderVN trực tiếp thiết kế và vận hành</h2>
+                    <p>Chia nhanh theo miền để khách chọn điểm đến phù hợp, vẫn giữ một danh sách chung ngay trên trang chủ.</p>
                 </div>
                 <a class="outline-btn" href="${pageContext.request.contextPath}/tours">Xem thêm</a>
             </div>
 
+            <div class="region-tour-grid">
+                <article class="region-tour-panel">
+                    <div class="region-panel-head">
+                        <span>⛰️</span>
+                        <div>
+                            <h3>Tour miền Bắc</h3>
+                            <p>Hạ Long, Ninh Bình, Sa Pa, Hà Giang...</p>
+                        </div>
+                    </div>
+                    <c:choose>
+                        <c:when test="${empty northTours}">
+                            <div class="mini-empty">Chưa có tour miền Bắc đang mở bán.</div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="region-mini-list">
+                                <c:forEach var="tour" items="${northTours}">
+                                    <c:set var="firstSchedule" value="${tour.scheduleList[0]}" />
+                                    <a class="region-mini-card" href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">
+                                        <strong>${tour.tourName}</strong>
+                                        <span>${tour.numberOfDay} ngày • từ <fmt:formatNumber value="${not empty firstSchedule.adultPrice ? firstSchedule.adultPrice : tour.adultPrice}" pattern="#,#00" />đ</span>
+                                    </a>
+                                </c:forEach>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </article>
+
+                <article class="region-tour-panel">
+                    <div class="region-panel-head">
+                        <span>🌉</span>
+                        <div>
+                            <h3>Tour miền Trung</h3>
+                            <p>Đà Nẵng, Huế, Hội An, Nha Trang...</p>
+                        </div>
+                    </div>
+                    <c:choose>
+                        <c:when test="${empty centralTours}">
+                            <div class="mini-empty">Chưa có tour miền Trung đang mở bán.</div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="region-mini-list">
+                                <c:forEach var="tour" items="${centralTours}">
+                                    <c:set var="firstSchedule" value="${tour.scheduleList[0]}" />
+                                    <a class="region-mini-card" href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">
+                                        <strong>${tour.tourName}</strong>
+                                        <span>${tour.numberOfDay} ngày • từ <fmt:formatNumber value="${not empty firstSchedule.adultPrice ? firstSchedule.adultPrice : tour.adultPrice}" pattern="#,#00" />đ</span>
+                                    </a>
+                                </c:forEach>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </article>
+
+                <article class="region-tour-panel">
+                    <div class="region-panel-head">
+                        <span>🏝️</span>
+                        <div>
+                            <h3>Tour miền Nam</h3>
+                            <p>Phú Quốc, Vũng Tàu, Cần Thơ, Cà Mau...</p>
+                        </div>
+                    </div>
+                    <c:choose>
+                        <c:when test="${empty southTours}">
+                            <div class="mini-empty">Chưa có tour miền Nam đang mở bán.</div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="region-mini-list">
+                                <c:forEach var="tour" items="${southTours}">
+                                    <c:set var="firstSchedule" value="${tour.scheduleList[0]}" />
+                                    <a class="region-mini-card" href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">
+                                        <strong>${tour.tourName}</strong>
+                                        <span>${tour.numberOfDay} ngày • từ <fmt:formatNumber value="${not empty firstSchedule.adultPrice ? firstSchedule.adultPrice : tour.adultPrice}" pattern="#,#00" />đ</span>
+                                    </a>
+                                </c:forEach>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </article>
+            </div>
+
+            <div class="section-subhead">
+                <div>
+                    <h3>Tour trọn gói mới nhất</h3>
+                    <p>Danh sách 10 tour đang mở bán trên hệ thống.</p>
+                </div>
+            </div>
+
             <div class="filter-list">
                 <button class="filter-btn active" type="button" data-region="all">Tất cả</button>
-                <button class="filter-btn" type="button" data-region="north">Miền Bắc</button>
-                <button class="filter-btn" type="button" data-region="central">Miền Trung</button>
-                <button class="filter-btn" type="button" data-region="south">Miền Nam</button>
-                <button class="filter-btn" type="button" data-region="international">Nước ngoài</button>
+                <button class="filter-btn" type="button" data-region="Miền Bắc">Miền Bắc</button>
+                <button class="filter-btn" type="button" data-region="Miền Trung">Miền Trung</button>
+                <button class="filter-btn" type="button" data-region="Miền Nam">Miền Nam</button>
             </div>
 
-            <div class="tour-grid">
-                <article class="tour-card package-card" data-region="north">
-                    <div class="tour-image image-moc-chau"><span>Miền Bắc</span></div>
-                    <div class="tour-body">
-                        <h3>Mộc Châu, Nông Trường Chè, Rừng Thông Bản Áng</h3>
-                        <p>Mã chương trình: <strong>NDHAN120</strong></p>
-                        <p>Khởi hành: Hà Nội</p>
-                        <p>Thời lượng: 2 ngày 1 đêm</p>
-                        <div class="date-list"><span>13/06</span><span>20/06</span><span>27/06</span></div>
-                        <div class="tour-price-row">
-                            <div><span>Giá từ</span><strong>2.190.000đ</strong></div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=5">Xem chi tiết</a>
-                        </div>
+            <c:choose>
+                <c:when test="${empty packageTours}">
+                    <div class="empty-box">Chưa có tour trọn gói đang mở bán.</div>
+                </c:when>
+                <c:otherwise>
+                    <div class="tour-grid">
+                        <c:forEach var="tour" items="${packageTours}">
+                            <c:set var="firstSchedule" value="${tour.scheduleList[0]}" />
+                            <c:set var="tourImage" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png" />
+                            <c:if test="${not empty tour.image}">
+                                <c:choose>
+                                    <c:when test="${fn:startsWith(tour.image, 'http')}"><c:set var="tourImage" value="${tour.image}" /></c:when>
+                                    <c:otherwise><c:set var="tourImage" value="${pageContext.request.contextPath}${tour.image}" /></c:otherwise>
+                                </c:choose>
+                            </c:if>
+                            <article class="tour-card package-card" data-region="${tour.regionName}">
+                                <div class="tour-image real-tour-image">
+                                    <img src="${tourImage}" alt="${tour.tourName}" onerror="this.src='${pageContext.request.contextPath}/assets/images/home/hero-bana.png';">
+                                    <span>${empty tour.regionName ? 'WonderVN' : tour.regionName}</span>
+                                </div>
+                                <div class="tour-body">
+                                    <h3>${tour.tourName}</h3>
+                                    <p>Mã chương trình: <strong>${tour.tourCode}</strong></p>
+                                    <p>Khởi hành: ${tour.startPlace}</p>
+                                    <p>Thời lượng: ${tour.numberOfDay} ngày <c:if test="${not empty tour.numberOfNights}">${tour.numberOfNights} đêm</c:if></p>
+                                    <div class="date-list">
+                                        <c:forEach var="schedule" items="${tour.scheduleList}">
+                                            <span><fmt:formatDate value="${schedule.startDate}" pattern="dd/MM" /></span>
+                                        </c:forEach>
+                                    </div>
+                                    <div class="tour-price-row">
+                                        <div><span>Giá từ</span><strong><fmt:formatNumber value="${not empty firstSchedule.adultPrice ? firstSchedule.adultPrice : tour.adultPrice}" pattern="#,#00" />đ</strong></div>
+                                        <a href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">Xem chi tiết</a>
+                                    </div>
+                                </div>
+                            </article>
+                        </c:forEach>
                     </div>
-                </article>
-
-                <article class="tour-card package-card" data-region="north">
-                    <div class="tour-image image-cao-bang"><span>Miền Bắc</span></div>
-                    <div class="tour-body">
-                        <h3>Tinh Hoa Cực Bắc, Lạng Sơn, Cao Bằng</h3>
-                        <p>Mã chương trình: <strong>NDSGN150</strong></p>
-                        <p>Khởi hành: TP. Hồ Chí Minh</p>
-                        <p>Thời lượng: 6 ngày 5 đêm</p>
-                        <div class="date-list"><span>02/06</span><span>09/06</span><span>16/06</span></div>
-                        <div class="tour-price-row">
-                            <div><span>Giá từ</span><strong>13.190.000đ</strong></div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=6">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card package-card" data-region="central">
-                    <div class="tour-image image-da-nang"><span>Miền Trung</span></div>
-                    <div class="tour-body">
-                        <h3>Đà Nẵng, Hội An, Huế 4N3Đ</h3>
-                        <p>Mã chương trình: <strong>WVNMT221</strong></p>
-                        <p>Khởi hành: Hà Nội</p>
-                        <p>Thời lượng: 4 ngày 3 đêm</p>
-                        <div class="date-list"><span>18/06</span><span>09/07</span><span>23/07</span></div>
-                        <div class="tour-price-row">
-                            <div><span>Giá từ</span><strong>7.990.000đ</strong></div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=7">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card package-card" data-region="south">
-                    <div class="tour-image image-phu-quoc"><span>Miền Nam</span></div>
-                    <div class="tour-body">
-                        <h3>Phú Quốc, Hòn Thơm, Sunset Town 3N2Đ</h3>
-                        <p>Mã chương trình: <strong>WVNPQ330</strong></p>
-                        <p>Khởi hành: TP. Hồ Chí Minh</p>
-                        <p>Thời lượng: 3 ngày 2 đêm</p>
-                        <div class="date-list"><span>21/06</span><span>05/07</span><span>19/07</span></div>
-                        <div class="tour-price-row">
-                            <div><span>Giá từ</span><strong>6.290.000đ</strong></div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=8">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-            </div>
+                </c:otherwise>
+            </c:choose>
 
             <div class="popular-searches">
                 <span>Tìm kiếm nổi bật:</span>
-                <a href="#">Hà Giang</a>
-                <a href="#">Quảng Ninh</a>
-                <a href="#">Lào Cai</a>
-                <a href="#">Ninh Bình</a>
-                <a href="#">Cao Bằng</a>
+                <c:forEach var="place" items="${destinations}" begin="0" end="5">
+                    <a href="${pageContext.request.contextPath}/tour?destination=${place}">${place}</a>
+                </c:forEach>
             </div>
         </div>
     </section>
@@ -469,22 +380,20 @@
 
 <button class="scroll-top" id="scrollTop" type="button">↑</button>
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const successToast = document.getElementById("successToast");
-
-        if (successToast) {
-            setTimeout(function () {
-                successToast.classList.add("hide");
-
-                setTimeout(function () {
-                    successToast.remove();
-                }, 500);
-            }, 5000);
-        }
-    });
-</script>
+<c:if test="${not empty sessionScope.successMessage}">
+    <div id="successToast" class="success-toast">
+        <div class="toast-body">
+            <div class="toast-icon">✓</div>
+            <div class="toast-content">
+                <span class="toast-title">Đặt Tour Thành Công!</span>
+                <p class="toast-desc">${sessionScope.successMessage}</p>
+            </div>
+            <button type="button" class="toast-close-btn" onclick="dismissToast()">×</button>
+        </div>
+        <div class="toast-progress"></div>
+    </div>
+    <c:remove var="successMessage" scope="session" />
+</c:if>
 
 </body>
 </html>

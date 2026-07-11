@@ -159,11 +159,11 @@ public class Booking {
 
     public String getDisplayStatus() {
         if ("Pending".equalsIgnoreCase(status)) {
-            return "Đang xử lý";
+            return "Chờ xử lý";
         }
 
         if ("Confirmed".equalsIgnoreCase(status)) {
-            return "Đã duyệt";
+            return "Đã xác nhận";
         }
 
         if ("Cancelled".equalsIgnoreCase(status)) {

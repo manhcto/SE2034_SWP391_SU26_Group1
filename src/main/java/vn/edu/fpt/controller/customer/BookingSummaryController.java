@@ -12,7 +12,6 @@ import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 @WebServlet(name = "BookingSummaryController", urlPatterns = {"/booking-summary"})
 public class BookingSummaryController extends HttpServlet {
@@ -23,6 +22,15 @@ public class BookingSummaryController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
+
+        HttpSession session = request.getSession(false);
+        User user = session == null ? null : (User) session.getAttribute("user");
+
+        if (user == null) {
+            request.getSession().setAttribute("redirectAfterLogin", currentPathWithQuery(request));
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         String bookingIDRaw = request.getParameter("bookingID");
 
@@ -43,11 +51,8 @@ public class BookingSummaryController extends HttpServlet {
                 return;
             }
 
-            HttpSession session = request.getSession(false);
-            User user = session == null ? null : (User) session.getAttribute("user");
-            int ownerUserID = getIntValue(bookingSummary.get("userID"));
-
-            if (!canAccessBooking(session, user, ownerUserID, bookingID)) {
+            Object ownerID = bookingSummary.get("userID");
+            if (!(ownerID instanceof Integer) || ((Integer) ownerID) != user.getUserID()) {
                 response.sendRedirect(request.getContextPath() + "/booking-list");
                 return;
             }
@@ -60,25 +65,9 @@ public class BookingSummaryController extends HttpServlet {
         }
     }
 
-    private int getIntValue(Object value) {
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
-        }
-
-        return 0;
-    }
-
-    @SuppressWarnings("unchecked")
-    private boolean canAccessBooking(HttpSession session, User user, int ownerUserID, int bookingID) {
-        if (ownerUserID > 0) {
-            return user != null && ownerUserID == user.getUserID();
-        }
-
-        if (session == null) {
-            return false;
-        }
-
-        Object guestBookings = session.getAttribute("guestBookingIDs");
-        return guestBookings instanceof Set && ((Set<Integer>) guestBookings).contains(bookingID);
+    private String currentPathWithQuery(HttpServletRequest request) {
+        String path = request.getServletPath();
+        String query = request.getQueryString();
+        return query == null || query.isBlank() ? path : path + "?" + query;
     }
 }

@@ -37,6 +37,12 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label">Phương tiện</label>
+                    <input type="text" class="form-control"
+                           value="${assignmentDetail.vehicleName}" readonly>
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label">Ngày khởi hành</label>
                     <input type="text" class="form-control"
                            value="${assignmentDetail.departureDate}" readonly>

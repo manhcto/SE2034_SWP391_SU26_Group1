@@ -1,0 +1,102 @@
+package vn.edu.fpt.controller.staff;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import vn.edu.fpt.model.Tour;
+import vn.edu.fpt.model.TourSchedule;
+
+import java.io.IOException;
+import java.util.List;
+
+@WebServlet(name = "AddTourScheduleController", urlPatterns = {"/staff/tour/schedule/add"})
+public class AddTourScheduleController extends StaffTourScheduleSupport {
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+        Integer tourID = parsePositiveInt(request.getParameter("tourID"));
+        Tour tour = tourID == null ? null : getTourForSchedule(tourID);
+
+        if (tour == null) {
+            response.sendRedirect(request.getContextPath() + "/staff/tour?message=notFound");
+            return;
+        }
+        if (!canManageScheduleForTour(tour)) {
+            response.sendRedirect(request.getContextPath() + "/staff/tour/schedule?tourID=" + tourID + "&message=noSchedulePermission");
+            return;
+        }
+
+        TourSchedule schedule = buildDefaultSchedule(tour);
+        forwardScheduleForm(
+                request,
+                response,
+                tour,
+                schedule,
+                "add",
+                request.getContextPath() + "/staff/tour/schedule/add",
+                "Thêm lịch khởi hành",
+                "Lưu lịch",
+                null
+        );
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+        ScheduleFormData data = readScheduleFormData(request);
+        Integer tourID = parsePositiveInt(data.tourIDRaw);
+        Tour tour = tourID == null ? null : getTourForSchedule(tourID);
+        if (tour == null) {
+            response.sendRedirect(request.getContextPath() + "/staff/tour?message=notFound");
+            return;
+        }
+
+        List<String> errors = validateScheduleData(data, tour, null, false, false);
+        TourSchedule schedule = buildScheduleFromData(data, tour, null, false);
+
+        if (!errors.isEmpty()) {
+            forwardScheduleForm(
+                    request,
+                    response,
+                    tour,
+                    schedule,
+                    "add",
+                    request.getContextPath() + "/staff/tour/schedule/add",
+                    "Thêm lịch khởi hành",
+                    "Lưu lịch",
+                    errors
+            );
+            return;
+        }
+
+        boolean success = tourDAO.insertTourSchedule(schedule);
+        response.sendRedirect(request.getContextPath()
+                + "/staff/tour/schedule?tourID=" + tour.getTourID()
+                + "&message=" + (success ? "scheduleAddSuccess" : "scheduleAddFail"));
+    }
+
+    private TourSchedule buildDefaultSchedule(Tour tour) {
+        TourSchedule schedule = new TourSchedule();
+        schedule.setTourID(tour.getTourID());
+        schedule.setAdultPrice(tour.getAdultPrice());
+        schedule.setChildPrice(tour.getChildrenPrice());
+        schedule.setInfantPrice(tour.getInfantPrice());
+        schedule.setSingleRoomSurcharge(tour.getSingleRoomSurcharge());
+        schedule.setDepositPercent(0);
+        schedule.setVatPercent(DEFAULT_VAT);
+        schedule.setCancellationPolicy(DEFAULT_CANCELLATION_POLICY);
+        schedule.setScheduleStatus(canOpenScheduleForTour(tour) ? "Open" : "Planned");
+        schedule.setScheduleTransportType(resolveScheduleTransportType(tour, null));
+        int defaultSeat = getSeatOptions(schedule.getScheduleTransportType()).isEmpty() ? 0 : getSeatOptions(schedule.getScheduleTransportType()).get(0);
+        schedule.setMaxParticipants(defaultSeat);
+        schedule.setMinParticipants((int) Math.ceil(defaultSeat * 0.5));
+        schedule.setMaxParticipantsPerBooking(Math.min(10, Math.max(1, defaultSeat)));
+        return schedule;
+    }
+}

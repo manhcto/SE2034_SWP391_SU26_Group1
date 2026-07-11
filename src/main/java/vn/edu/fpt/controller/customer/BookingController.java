@@ -1,7 +1,10 @@
 package vn.edu.fpt.controller.customer;
 
 import vn.edu.fpt.DAO.BookingDAO;
+import vn.edu.fpt.DAO.TourDAO;
 import vn.edu.fpt.model.Booking;
+import vn.edu.fpt.model.Tour;
+import vn.edu.fpt.model.TourSchedule;
 import vn.edu.fpt.model.User;
 
 import jakarta.servlet.ServletException;
@@ -13,9 +16,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @WebServlet(name = "BookingController", urlPatterns = {"/booking"})
 public class BookingController extends HttpServlet {
@@ -26,6 +27,35 @@ public class BookingController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
+        String scheduleIDRaw = getTrimValue(request, "tourScheduleID");
+        if (scheduleIDRaw.isEmpty() || !scheduleIDRaw.matches("\\d+")) {
+            response.sendRedirect(request.getContextPath() + "/tour?message=selectSchedule");
+            return;
+        }
+
+        int scheduleID;
+        try {
+            scheduleID = Integer.parseInt(scheduleIDRaw);
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/tour?message=selectSchedule");
+            return;
+        }
+
+        TourDAO tourDAO = new TourDAO();
+        TourSchedule schedule = tourDAO.getScheduleById(scheduleID);
+        if (schedule == null || !"Open".equalsIgnoreCase(schedule.getScheduleStatus()) || schedule.getRemainingSeats() <= 0) {
+            response.sendRedirect(request.getContextPath() + "/tour?message=scheduleUnavailable");
+            return;
+        }
+
+        Tour tour = tourDAO.getPublishedTourById(schedule.getTourID());
+        if (tour == null) {
+            response.sendRedirect(request.getContextPath() + "/tour?message=notFound");
+            return;
+        }
+
+        request.setAttribute("selectedTour", tour);
+        request.setAttribute("selectedSchedule", schedule);
         request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
     }
 
@@ -266,7 +296,6 @@ public class BookingController extends HttpServlet {
 
             if (bookingID > 0) {
                 HttpSession currentSession = request.getSession();
-                rememberGuestBooking(currentSession, bookingID, booking.getUserID());
                 currentSession.setAttribute("successMessage", "Đặt tour thành công! Mã đơn: " + bookingCode);
                 response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
             } else {
@@ -287,29 +316,34 @@ public class BookingController extends HttpServlet {
     }
 
     private boolean isValidDistrict(String district) {
-        return district != null && !district.trim().isEmpty();
+        return "Quận Ba Đình".equals(district)
+                || "Quận Hoàn Kiếm".equals(district)
+                || "Quận Tây Hồ".equals(district)
+                || "Quận Long Biên".equals(district)
+                || "Quận Cầu Giấy".equals(district)
+                || "Quận Đống Đa".equals(district)
+                || "Quận Hai Bà Trưng".equals(district)
+                || "Quận Hoàng Mai".equals(district)
+                || "Quận Thanh Xuân".equals(district)
+                || "Quận Nam Từ Liêm".equals(district)
+                || "Quận Bắc Từ Liêm".equals(district)
+                || "Quận Hà Đông".equals(district)
+                || "Huyện Thanh Trì".equals(district)
+                || "Huyện Gia Lâm".equals(district)
+                || "Huyện Đông Anh".equals(district)
+                || "Huyện Sóc Sơn".equals(district);
     }
 
     private boolean isValidCity(String city) {
-        return city != null && !city.trim().isEmpty();
-    }
-
-    @SuppressWarnings("unchecked")
-    private void rememberGuestBooking(HttpSession session, int bookingID, Integer userID) {
-        if (session == null || bookingID <= 0 || userID != null) {
-            return;
-        }
-
-        Object existing = session.getAttribute("guestBookingIDs");
-        Set<Integer> guestBookingIDs;
-
-        if (existing instanceof Set) {
-            guestBookingIDs = (Set<Integer>) existing;
-        } else {
-            guestBookingIDs = new HashSet<>();
-        }
-
-        guestBookingIDs.add(bookingID);
-        session.setAttribute("guestBookingIDs", guestBookingIDs);
+        return "Hà Nội".equals(city)
+                || "Hồ Chí Minh".equals(city)
+                || "Đà Nẵng".equals(city)
+                || "Hải Phòng".equals(city)
+                || "Cần Thơ".equals(city)
+                || "Quảng Ninh".equals(city)
+                || "Ninh Bình".equals(city)
+                || "Huế".equals(city)
+                || "Khánh Hòa".equals(city)
+                || "Lâm Đồng".equals(city);
     }
 }

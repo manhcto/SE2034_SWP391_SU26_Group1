@@ -262,38 +262,53 @@
             </div>
 
             <div class="booking-card">
-                <h3>Hà Nội - Ninh Bình - Hạ Long 4N3Đ</h3>
+                <c:choose>
+                    <c:when test="${not empty selectedTour and not empty selectedSchedule}">
+                        <h3>${selectedTour.tourName}</h3>
 
-                <p>
-                    Hành trình khám phá miền Bắc với các điểm đến nổi bật như Hà Nội,
-                    Ninh Bình và Vịnh Hạ Long. Tour phù hợp cho gia đình, nhóm bạn và khách du lịch muốn
-                    trải nghiệm lịch trình rõ ràng, thuận tiện.
-                </p>
+                        <p>
+                            Mã tour: <strong>${selectedTour.tourCode}</strong>. Vui lòng kiểm tra lịch khởi hành,
+                            số chỗ còn nhận và giá tour trước khi chuyển sang bước nhập thông tin booking.
+                        </p>
 
-                <div class="booking-info">
-                    <p><strong>Khởi hành:</strong> TP. Hồ Chí Minh</p>
-                    <p><strong>Thời lượng:</strong> 4 ngày 3 đêm</p>
-                    <p><strong>Ngày đi:</strong> 15/06/2026</p>
-                    <p><strong>Số chỗ còn nhận:</strong> 20</p>
-                </div>
+                        <div class="booking-info">
+                            <p><strong>Khởi hành:</strong> ${selectedTour.startPlace}</p>
+                            <p><strong>Điểm đến:</strong> ${selectedTour.endPlace}</p>
+                            <p><strong>Thời lượng:</strong> ${selectedTour.numberOfDay} ngày <c:if test="${not empty selectedTour.numberOfNights}">${selectedTour.numberOfNights} đêm</c:if></p>
+                            <p><strong>Ngày đi:</strong> <fmt:formatDate value="${selectedSchedule.startDate}" pattern="dd/MM/yyyy" /></p>
+                            <p><strong>Ngày về:</strong> <fmt:formatDate value="${selectedSchedule.endDate}" pattern="dd/MM/yyyy" /></p>
+                            <p><strong>Số chỗ còn nhận:</strong> ${selectedSchedule.remainingSeats}</p>
+                        </div>
 
-                <div class="price-note">
-                    <span>Giá tour sẽ được hệ thống tính theo lịch trình đã chọn.</span>
-                </div>
+                        <div class="price-note">
+                            Giá người lớn: <span><fmt:formatNumber value="${selectedSchedule.adultPrice}" pattern="#,#00" />đ</span>
+                            <br>
+                            Giá trẻ em: <span><fmt:formatNumber value="${selectedSchedule.childPrice}" pattern="#,#00" />đ</span>
+                        </div>
 
-                <form action="${pageContext.request.contextPath}/views/customer/checkout.jsp"
-                      method="get"
-                      class="booking-actions">
+                        <form action="${pageContext.request.contextPath}/views/customer/checkout.jsp"
+                              method="get"
+                              class="booking-actions">
 
-                    <input type="hidden" name="tourScheduleID" value="1">
-                    <input type="hidden" name="tourName" value="Hà Nội - Ninh Bình - Hạ Long 4N3Đ">
+                            <input type="hidden" name="tourScheduleID" value="${selectedSchedule.tourScheduleID}">
+                            <input type="hidden" name="tourName" value="${selectedTour.tourName}">
 
-                    <button type="submit">
-                        Tiếp tục đến Checkout
-                    </button>
-                </form>
-            </div>
-        </div>
+                            <button type="submit">
+                                Tiếp tục đến Checkout
+                            </button>
+                        </form>
+                    </c:when>
+                    <c:otherwise>
+                        <h3>Chưa chọn lịch khởi hành</h3>
+                        <p>Bạn cần chọn một lịch khởi hành còn mở bán trước khi đặt tour.</p>
+                        <div class="booking-actions">
+                            <a href="${pageContext.request.contextPath}/tour" style="display:block;width:100%;border-radius:8px;background:#2563eb;color:#fff;padding:16px;font-weight:800;text-decoration:none;">
+                                Quay lại danh sách tour
+                            </a>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </div>        </div>
     </section>
 </main>
 

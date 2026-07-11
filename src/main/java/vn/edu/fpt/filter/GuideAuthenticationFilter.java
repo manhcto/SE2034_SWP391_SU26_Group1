@@ -8,12 +8,13 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/guide/*", "/views/guide/*"})
-public class GuideAuthenticationFilter extends AuthenticationFilterSupport implements Filter {
+@WebFilter("/guide/*")
+public class GuideAuthenticationFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request,
@@ -23,18 +24,32 @@ public class GuideAuthenticationFilter extends AuthenticationFilterSupport imple
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
-        User user = getCurrentUser(httpRequest);
+        HttpSession session = httpRequest.getSession(false);
 
-        if (hasRole(user, 3, "TourGuide", "Tour Guide", "Guide")) {
+        Object user = session == null ? null : session.getAttribute("user");
+
+        if (user instanceof User currentUser && isTourGuide(currentUser)) {
             chain.doFilter(request, response);
             return;
         }
 
         if (user == null) {
-            redirectToLogin(httpRequest, httpResponse);
+            httpResponse.sendRedirect(httpRequest.getContextPath() + "/login");
             return;
         }
 
-        deny(httpResponse);
+        httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+    }
+
+    private boolean isTourGuide(User user) {
+        String roleName = user.getRoleName();
+
+        if (roleName != null) {
+            String normalizedRoleName = roleName.trim().toLowerCase();
+            return "tour guide".equals(normalizedRoleName)
+                    || "guide".equals(normalizedRoleName);
+        }
+
+        return user.getRoleID() == 3;
     }
 }

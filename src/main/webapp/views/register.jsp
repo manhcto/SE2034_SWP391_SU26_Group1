@@ -23,7 +23,7 @@
     <section class="auth-panel">
         <div class="auth-card">
             <h2>Đăng ký tài khoản</h2>
-            <p class="auth-subtitle">Điền thông tin chính xác để WonderVN hỗ trợ bạn tốt hơn khi đặt phòng và đặt tour.</p>
+            <p class="auth-subtitle">Điền thông tin chính xác để WonderVN hỗ trợ bạn tốt hơn khi đặt phòng, tour và phương tiện.</p>
 
             <c:if test="${not empty error}">
                 <div class="auth-alert error">${error}</div>

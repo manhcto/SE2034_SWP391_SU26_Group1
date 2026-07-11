@@ -1,91 +1,146 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Danh sách Booking</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
-
+    <title>Đơn booking | WonderVN</title>
     <style>
-        .booking-list-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
+        * {
+            box-sizing: border-box;
         }
 
-        .booking-list-card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #0f172a;
+        }
+
+        .booking-body {
             padding: 24px;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
             overflow-x: auto;
         }
 
         .booking-table {
             width: 100%;
-            border-collapse: collapse;
             min-width: 980px;
-        }
-
-        .booking-table th,
-        .booking-table td {
-            padding: 14px 12px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-            font-size: 14px;
-            color: #111827;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
         .booking-table th {
-            background: #f9fafb;
-            color: #374151;
-            font-weight: 800;
+            padding: 13px 12px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5eaf3;
+            color: #475569;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.45px;
+            text-transform: uppercase;
+            white-space: nowrap;
         }
 
-        .booking-table tr:hover {
-            background: #f9fafb;
+        .booking-table td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #edf2f7;
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+
+        .booking-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .booking-code {
+            color: #1d4ed8;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .muted {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 4px;
         }
 
         .status-badge {
+            min-height: 28px;
+            padding: 0 10px;
+            border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 5px 10px;
-            border-radius: 999px;
-            background: #fef3c7;
-            color: #92400e;
-            font-size: 13px;
-            font-weight: 700;
+            background: #fff7ed;
+            color: #c2410c;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.35px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .status-badge.confirmed,
+        .status-badge.completed {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .status-badge.cancelled {
+            background: #fef2f2;
+            color: #dc2626;
         }
 
         .price-text {
             color: #dc2626;
-            font-weight: 800;
+            font-size: 14px;
+            font-weight: 900;
             white-space: nowrap;
+        }
+
+        .identity-cell {
+            min-width: 150px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .identity-thumb {
+            width: 44px;
+            height: 32px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #dbe5f2;
+            background: #f8fafc;
         }
 
         .action-group {
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
         }
 
         .action-link {
+            min-height: 34px;
+            padding: 0 12px;
+            border-radius: 999px;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 8px 14px;
-            border-radius: 999px;
+            gap: 8px;
             background: #2563eb;
             color: #ffffff;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 11px;
+            font-weight: 900;
             text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
             white-space: nowrap;
         }
 
@@ -94,116 +149,188 @@
             color: #ffffff;
         }
 
-        .edit-link {
+        .action-link.edit-link {
             background: #f59e0b;
         }
 
-        .edit-link:hover {
+        .action-link.edit-link:hover {
             background: #d97706;
-            color: #ffffff;
         }
 
         .empty-box {
+            padding: 54px 24px;
             text-align: center;
-            padding: 40px 20px;
-            color: #6b7280;
-            font-size: 16px;
+        }
+
+        .empty-box i {
+            color: #94a3b8;
+            font-size: 34px;
+            margin-bottom: 14px;
+        }
+
+        .empty-box h3 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .empty-box p {
+            margin: 8px 0 0;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
         }
     </style>
 </head>
 
 <body>
+<jsp:include page="/views/common/client-header.jsp"/>
 
-<jsp:include page="/views/common/client-header.jsp" />
+<main class="account-page">
+    <div class="account-shell">
+        <jsp:include page="/views/common/account-sidebar.jsp"/>
 
-<main>
-    <section class="booking-list-container">
-        <div class="section-head" style="justify-content: center; text-align: center; margin-bottom: 36px;">
-            <div>
-                <p class="section-kicker">Booking</p>
-                <h2>Danh sách Booking</h2>
-                <p>Danh sách các đơn đặt tour đã được ghi nhận trong hệ thống.</p>
-            </div>
-        </div>
+        <section class="account-content">
+            <article class="account-panel">
+                <div class="account-panel-head">
+                    <p class="account-kicker">Tài khoản</p>
+                    <h1 class="account-title">Đơn booking</h1>
+                    <p class="account-subtitle">Theo dõi các đơn tour và lưu trú đã đặt bằng tài khoản của bạn.</p>
+                </div>
 
-        <div class="booking-list-card">
-            <c:choose>
-                <c:when test="${empty bookingList}">
-                    <div class="empty-box">
-                        Chưa có đơn đặt tour nào.
-                    </div>
-                </c:when>
+                <c:choose>
+                    <c:when test="${empty bookingList}">
+                        <div class="empty-box">
+                            <i class="fa-solid fa-receipt"></i>
+                            <h3>Chưa có đơn booking</h3>
+                            <p>Các đơn tour và lưu trú của bạn sẽ xuất hiện tại đây.</p>
+                        </div>
+                    </c:when>
 
-                <c:otherwise>
-                    <table class="booking-table">
-                        <thead>
-                        <tr>
-                            <th>Mã Booking</th>
-                            <th>Khách hàng</th>
-                            <th>Email</th>
-                            <th>Số điện thoại</th>
-                            <th>Ngày đặt</th>
-                            <th>Trạng thái</th>
-                            <th>Tổng tiền</th>
-                            <th>Thao tác</th>
-                        </tr>
-                        </thead>
+                    <c:otherwise>
+                        <div class="booking-body">
+                            <table class="booking-table">
+                                <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Dịch vụ</th>
+                                    <th>Khách hàng</th>
+                                    <th>CCCD</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Trạng thái</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                                </thead>
 
-                        <tbody>
-                        <c:forEach items="${bookingList}" var="booking">
-                            <tr>
-                                <td>${booking.bookingCode}</td>
+                                <tbody>
+                                <c:forEach items="${bookingList}" var="booking">
+                                    <tr>
+                                        <td>
+                                            <div class="booking-code">${booking.bookingCode}</div>
+                                            <div class="muted">${booking.displayType}</div>
+                                        </td>
 
-                                <td>${booking.firstName} ${booking.lastName}</td>
+                                        <td>
+                                            <div>
+                                                <c:choose>
+                                                    <c:when test="${not empty booking.serviceName}">
+                                                        ${booking.serviceName}
+                                                    </c:when>
+                                                    <c:otherwise>Chưa có dịch vụ</c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                            <c:if test="${not empty booking.serviceStartDate}">
+                                                <div class="muted">
+                                                    <fmt:formatDate value="${booking.serviceStartDate}" pattern="dd/MM/yyyy"/>
+                                                    -
+                                                    <fmt:formatDate value="${booking.serviceEndDate}" pattern="dd/MM/yyyy"/>
+                                                </div>
+                                            </c:if>
+                                        </td>
 
-                                <td>${booking.email}</td>
+                                        <td>
+                                            <div>${booking.firstName} ${booking.lastName}</div>
+                                            <div class="muted">${booking.phone}</div>
+                                        </td>
 
-                                <td>${booking.phone}</td>
+                                        <td>
+                                            <div class="identity-cell">
+                                                <span>
+                                                    <c:choose>
+                                                        <c:when test="${not empty booking.identityNumber}">
+                                                            ${booking.identityNumber}
+                                                        </c:when>
+                                                        <c:otherwise>Không có</c:otherwise>
+                                                    </c:choose>
+                                                </span>
 
-                                <td>
-                                    <fmt:formatDate value="${booking.bookDate}" pattern="dd/MM/yyyy HH:mm"/>
-                                </td>
+                                                <c:if test="${not empty booking.identityImageUrl}">
+                                                    <c:choose>
+                                                        <c:when test="${fn:startsWith(booking.identityImageUrl, 'http')}">
+                                                            <c:set var="identityImageSrc" value="${booking.identityImageUrl}"/>
+                                                        </c:when>
+                                                        <c:when test="${fn:startsWith(booking.identityImageUrl, '/')}">
+                                                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}${booking.identityImageUrl}"/>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}/${booking.identityImageUrl}"/>
+                                                        </c:otherwise>
+                                                    </c:choose>
 
-                                <td>
-                                    <span class="status-badge">
-                                        <c:choose>
-                                            <c:when test="${booking.status == 'Pending'}">Đang xử lý</c:when>
-                                            <c:when test="${booking.status == 'Confirmed'}">Đã duyệt</c:when>
-                                            <c:when test="${booking.status == 'Cancelled'}">Đã hủy</c:when>
-                                            <c:when test="${booking.status == 'Completed'}">Đã hoàn thành</c:when>
-                                            <c:otherwise>${booking.status}</c:otherwise>
-                                        </c:choose>
-                                    </span>
-                                </td>
+                                                    <a href="${identityImageSrc}" target="_blank" rel="noopener">
+                                                        <img class="identity-thumb" src="${identityImageSrc}" alt="Ảnh CCCD">
+                                                    </a>
+                                                </c:if>
+                                            </div>
+                                        </td>
 
-                                <td>
-                                    <span class="price-text">
-                                        <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
-                                    </span>
-                                </td>
+                                        <td>
+                                            <fmt:formatDate value="${booking.bookDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                        </td>
 
-                                <td>
-                                    <div class="action-group">
-                                        <a class="action-link"
-                                           href="${pageContext.request.contextPath}/booking-summary?bookingID=${booking.bookingID}">
-                                            Xem chi tiết
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                        </tbody>
-                    </table>
-                </c:otherwise>
-            </c:choose>
-        </div>
-    </section>
+                                        <td>
+                                            <span class="status-badge ${fn:toLowerCase(booking.status)}">
+                                                ${booking.displayStatus}
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <span class="price-text">
+                                                <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VND
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <div class="action-group">
+                                                <a class="action-link"
+                                                   href="${pageContext.request.contextPath}/booking-summary?bookingID=${booking.bookingID}">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                    Xem
+                                                </a>
+
+                                                <c:if test="${booking.bookingType == 'Tour'}">
+                                                    <a class="action-link edit-link"
+                                                       href="${pageContext.request.contextPath}/booking-edit?bookingID=${booking.bookingID}">
+                                                        <i class="fa-solid fa-pen"></i>
+                                                        Sửa
+                                                    </a>
+                                                </c:if>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                                </tbody>
+                            </table>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </article>
+        </section>
+    </div>
 </main>
 
-<jsp:include page="/views/common/client-footer.jsp" />
-
-<button class="scroll-top" id="scrollTop" type="button">↑</button>
-<script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
-
+<jsp:include page="/views/common/client-footer.jsp"/>
 </body>
 </html>

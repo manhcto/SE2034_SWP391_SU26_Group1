@@ -17,6 +17,7 @@ public class DBConnection {
         return DriverManager.getConnection(url, userID, password);
     }
 
+    // Hàm main dùng để chạy thử xem kết nối thành công hay chưa
     public static void main(String[] args) {
         try {
             DBConnection db = new DBConnection();
