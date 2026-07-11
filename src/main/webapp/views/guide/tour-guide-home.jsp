@@ -596,7 +596,7 @@
 
             <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/profile">
                 <i class="fa-solid fa-user"></i>
-                <span>Ho so</span>
+                <span>Hồ sơ</span>
             </a>
 
             <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">

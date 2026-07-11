@@ -16,64 +16,7 @@
 
 <body>
 <div class="workspace-layout">
-    <aside class="workspace-sidebar">
-        <div class="brand-box">
-            <div class="brand-logo staff">WV</div>
-            <h2>WonderVN</h2>
-            <p>Travel ERP System</p>
-        </div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ nhân viên</span>
-        </a>
-
-        <div class="nav-section-title">Dịch vụ du lịch</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>Quản lý Tour</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
-            <i class="fa-solid fa-hotel"></i>
-            <span>Quản lý lưu trú</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/vehicle?action=list">
-            <i class="fa-solid fa-car-side"></i>
-            <span>Quản lý phương tiện</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/service">
-            <i class="fa-solid fa-briefcase"></i>
-            <span>Quản lý dịch vụ</span>
-        </a>
-
-        <div class="nav-section-title">Vận hành</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Quản lý đặt chỗ</span>
-        </a>
-
-        <a class="sidebar-link active staff" href="${pageContext.request.contextPath}/staff/assignment">
-            <i class="fa-solid fa-user-tie"></i>
-            <span>Điều phối hướng dẫn viên</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
-            <i class="fa-solid fa-credit-card"></i>
-            <span>Quản lý thanh toán</span>
-        </a>
-
-        <div class="nav-section-title">Tài khoản</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Đăng xuất</span>
-        </a>
-    </aside>
+    <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
     <main class="main-content">
         <div class="topbar">

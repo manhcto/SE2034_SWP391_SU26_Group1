@@ -16,7 +16,7 @@
 </head>
 <body>
 <div class="admin-layout">
-    <jsp:include page="/views/common/admin-sidebar.jsp" />
+    <jsp:include page="/views/common/staff-sidebar.jsp" />
     <main class="admin-main">
         <section class="page-card topbar">
             <div>

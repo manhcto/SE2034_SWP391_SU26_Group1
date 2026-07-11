@@ -39,11 +39,11 @@
     <a class="sidebar-link${param.activeGuideMenu eq 'profile' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/guide/profile">
         <i class="fa-solid fa-user"></i>
-        <span>Ho so</span>
+        <span>Hồ sơ</span>
     </a>
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
         <i class="fa-solid fa-right-from-bracket"></i>
-        <span>Dang xuat</span>
+        <span>Đăng xuất</span>
     </a>
 </aside>

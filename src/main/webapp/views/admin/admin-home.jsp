@@ -422,6 +422,10 @@
 <body>
 <div class="admin-layout">
 
+    <jsp:include page="/views/common/admin-sidebar.jsp">
+        <jsp:param name="activeAdminMenu" value="home"/>
+    </jsp:include>
+    <%--
     <aside class="admin-sidebar">
         <div class="brand-box">
             <div class="brand-logo">AD</div>
@@ -474,15 +478,16 @@
 
             <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/profile">
                 <i class="fa-solid fa-user"></i>
-                <span>Ho so</span>
+                <span>Hồ Sơ</span>
             </a>
 
             <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
                 <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Dang xuat</span>
+                <span>Đăng xuất</span>
             </a>
         </div>
     </aside>
+    --%>
 
     <main class="main-content">
 

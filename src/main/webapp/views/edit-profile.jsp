@@ -210,7 +210,20 @@
 </head>
 <body class="${empty editProfileTheme ? 'customer-theme' : editProfileTheme.concat('-theme')}">
 
-<jsp:include page="/views/common/client-header.jsp"/>
+<c:if test="${sessionScope.user.roleID == 4}">
+  <jsp:include page="/views/common/client-header.jsp"/>
+</c:if>
+
+<c:set var="editProfileHomePath" value="${pageContext.request.contextPath}/home"/>
+<c:if test="${sessionScope.user.roleID == 1}">
+  <c:set var="editProfileHomePath" value="${pageContext.request.contextPath}/admin/home"/>
+</c:if>
+<c:if test="${sessionScope.user.roleID == 2}">
+  <c:set var="editProfileHomePath" value="${pageContext.request.contextPath}/staff/home"/>
+</c:if>
+<c:if test="${sessionScope.user.roleID == 3}">
+  <c:set var="editProfileHomePath" value="${pageContext.request.contextPath}/guide/home"/>
+</c:if>
 
 <div class="profile-container">
   <div class="profile-card">
@@ -321,7 +334,7 @@
             </form>
           </c:when>
           <c:when test="${sessionScope.user != null && (sessionScope.user.roleID == 1 || sessionScope.user.roleID == 2 || sessionScope.user.roleID == 3)}">
-            <form action="${empty editProfileBackPath ? pageContext.request.contextPath.concat('/profile') : pageContext.request.contextPath.concat(editProfileBackPath)}" method="get">
+            <form action="${editProfileHomePath}" method="get">
               <button type="submit" class="btn btn-return">
                 <- Quay lại Trang chủ
               </button>

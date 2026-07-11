@@ -440,10 +440,72 @@
 
 <div class="admin-layout">
 
+    <jsp:include page="/views/common/admin-sidebar.jsp">
+        <jsp:param name="activeAdminMenu" value="user"/>
+    </jsp:include>
+    <%--
     <aside class="admin-sidebar">
-        <div class="brand-logo">AD</div>
-        <h3 class="mt-3">WonderVN</h3>
+        <div class="brand-box">
+            <div class="brand-logo">AD</div>
+            <h2>WonderVN</h2>
+            <p>Admin Control Center</p>
+        </div>
 
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
+            <i class="fa-solid fa-house"></i>
+            <span>Admin Home</span>
+        </a>
+
+        <div class="nav-section-title">Quản trị hệ thống</div>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/user">
+            <i class="fa-solid fa-users-gear"></i>
+            <span>Quản lý người dùng</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour-approval">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Phê duyệt tour</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Đơn đặt</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
+            <i class="fa-solid fa-comments"></i>
+            <span>Đánh giá khách hàng</span>
+        </a>
+
+        <div class="sidebar-bottom">
+            <div class="nav-section-title">Tài khoản</div>
+
+            <div class="admin-user">
+                <div class="avatar">AD</div>
+                <div>
+                    <div class="fw-bold">${sessionScope.user.firstName} ${sessionScope.user.lastName}</div>
+                    <small>Quản trị viên</small>
+                </div>
+            </div>
+
+            <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/profile">
+                <i class="fa-solid fa-user"></i>
+                <span>Hồ sơ</span>
+            </a>
+
+            <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Đăng xuất</span>
+            </a>
+        </div>
+
+        <!--
         <c:choose>
 
             <c:when test="${sessionScope.user.roleID == 1}">
@@ -476,8 +538,10 @@
             </c:when>
 
         </c:choose>
+        -->
 
     </aside>
+    --%>
 
     <main class="main-content">
 

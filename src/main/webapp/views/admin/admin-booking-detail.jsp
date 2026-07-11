@@ -286,6 +286,10 @@
 <body>
 <div class="admin-layout">
 
+  <jsp:include page="/views/common/admin-sidebar.jsp">
+    <jsp:param name="activeAdminMenu" value="booking"/>
+  </jsp:include>
+  <%--
   <aside class="admin-sidebar">
     <div class="brand-box">
       <div class="brand-logo">AD</div>
@@ -340,6 +344,7 @@
       </div>
     </div>
   </aside>
+  --%>
 
   <main class="main-content">
     <div class="topbar">

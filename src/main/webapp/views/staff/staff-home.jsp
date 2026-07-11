@@ -654,7 +654,26 @@
                 </a>
             </div>
 
-                    <p>Quản lý vé tham quan, vé vui chơi và dịch vụ bên ngoài.</p>
+            <div class="col-md-3">
+                <a class="module-card"
+                   href="${pageContext.request.contextPath}/staff/voucher">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-gift"></i>
+                    </div>
+                    <h5>Quản lý Voucher</h5>
+                    <p>Tạo mã giảm giá, chiến dịch ưu đãi và điều kiện áp dụng.</p>
+                    <span class="module-open">Mở chức năng</span>
+                </a>
+            </div>
+
+            <div class="col-md-3">
+                <a class="module-card"
+                   href="${pageContext.request.contextPath}/staff/blog">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-newspaper"></i>
+                    </div>
+                    <h5>Quản lý Blog</h5>
+                    <p>Đăng bài viết, tin tức du lịch và nội dung truyền thông.</p>
                     <span class="module-open">Mở chức năng</span>
                 </a>
             </div>

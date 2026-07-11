@@ -80,6 +80,13 @@
             letter-spacing: 0.45px;
             text-transform: uppercase;
             white-space: nowrap;
+            border: 1px solid var(--theme-main);
+        }
+
+        .profile-edit.secondary {
+            background: #ffffff;
+            color: var(--theme-main);
+            border: 1px solid var(--theme-main);
         }
 
         .profile-body {
@@ -128,99 +135,8 @@
         }
 
         .workspace-shell {
-            max-width: 1240px;
+            max-width: 1140px;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 250px minmax(0, 1fr);
-            gap: 22px;
-            align-items: start;
-        }
-
-        .workspace-sidebar {
-            position: sticky;
-            top: 24px;
-            background: #ffffff;
-            border: 1px solid #e5eaf3;
-            border-radius: 18px;
-            padding: 14px;
-            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.07);
-            display: flex;
-            flex-direction: column;
-            min-height: calc(100vh - 48px);
-        }
-
-        .workspace-user {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 10px 14px;
-            border-bottom: 1px solid #edf2f7;
-            margin-bottom: 10px;
-        }
-
-        .workspace-user-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--theme-main), var(--theme-dark));
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 900;
-        }
-
-        .workspace-user-name {
-            color: #0f172a;
-            font-size: 13px;
-            font-weight: 900;
-            line-height: 1.25;
-        }
-
-        .workspace-user-role {
-            color: var(--theme-main);
-            font-size: 11px;
-            font-weight: 800;
-            margin-top: 3px;
-        }
-
-        .workspace-nav {
-            display: grid;
-            gap: 6px;
-            flex: 1;
-        }
-
-        .workspace-nav-bottom {
-            margin-top: auto;
-            display: grid;
-            gap: 6px;
-        }
-
-        .workspace-nav-link {
-            min-height: 44px;
-            border-radius: 12px;
-            padding: 0 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #475569;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 900;
-            letter-spacing: 0.35px;
-            text-transform: uppercase;
-        }
-
-        .workspace-nav-link i {
-            width: 18px;
-            text-align: center;
-        }
-
-        .workspace-nav-link:hover,
-        .workspace-nav-link.active {
-            background: rgba(37, 99, 235, 0.08);
-            color: var(--theme-main);
         }
 
         .workspace-content {
@@ -265,15 +181,42 @@
             line-height: 1.6;
         }
 
+        .profile-actions {
+            padding: 0 28px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .profile-actions-left,
+        .profile-actions-right {
+            display: flex;
+        }
+
+        .profile-actions-right {
+            margin-left: auto;
+        }
+
         @media (max-width: 900px) {
             .workspace-page { padding: 22px 14px 36px; }
-            .workspace-shell { grid-template-columns: 1fr; }
-            .workspace-sidebar { position: static; }
         }
 
         @media (max-width: 720px) {
             .profile-hero { align-items: flex-start; flex-direction: column; }
             .profile-grid { grid-template-columns: 1fr; }
+            .profile-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .profile-actions-left,
+            .profile-actions-right {
+                width: 100%;
+            }
+            .profile-actions .profile-edit {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -285,37 +228,7 @@
 
 <main class="workspace-page">
     <div class="workspace-shell">
-        <c:choose>
-            <c:when test="${empty profileTheme || profileTheme == 'customer'}">
-                <jsp:include page="/views/common/account-sidebar.jsp"/>
-            </c:when>
-            <c:otherwise>
-                <aside class="workspace-sidebar">
-                    <div class="workspace-user">
-                        <div class="workspace-user-avatar">
-                            ${sessionScope.user.firstName.substring(0,1)}${sessionScope.user.lastName.substring(0,1)}
-                        </div>
-                        <div>
-                            <div class="workspace-user-name">${sessionScope.user.firstName} ${sessionScope.user.lastName}</div>
-                            <div class="workspace-user-role">${profileRoleLabel}</div>
-                        </div>
-                    </div>
-
-                    <div class="workspace-nav-bottom">
-                        <a class="workspace-nav-link active" href="${pageContext.request.contextPath}${pageContext.request.servletPath}">
-                            <i class="fa-solid fa-user"></i>
-                            Ho so
-                        </a>
-                        <a class="workspace-nav-link" href="${profileLogoutPath}">
-                            <i class="fa-solid fa-right-from-bracket"></i>
-                            Dang xuat
-                        </a>
-                    </div>
-                </aside>
-            </c:otherwise>
-        </c:choose>
-
-        <section class="${empty profileTheme || profileTheme == 'customer' ? 'account-content' : 'workspace-content'}">
+        <section class="workspace-content">
             <article class="account-panel">
                 <div class="profile-hero">
                     <div class="profile-main">
@@ -327,11 +240,6 @@
                             <div class="profile-email">${sessionScope.user.email}</div>
                         </div>
                     </div>
-
-                    <a class="profile-edit" href="${profileEditPath}">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                        Chinh sua
-                    </a>
                 </div>
 
                 <div class="account-panel-head">
@@ -396,6 +304,22 @@
                                 </c:choose>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <div class="profile-actions-left">
+                        <a class="profile-edit secondary" href="${profileHomePath}">
+                            <i class="fa-solid fa-house"></i>
+                            Quay ve trang chu
+                        </a>
+                    </div>
+
+                    <div class="profile-actions-right">
+                        <a class="profile-edit" href="${profileEditPath}">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            Chinh sua
+                        </a>
                     </div>
                 </div>
             </article>
