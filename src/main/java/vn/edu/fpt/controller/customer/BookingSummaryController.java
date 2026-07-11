@@ -12,6 +12,7 @@ import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 @WebServlet(name = "BookingSummaryController", urlPatterns = {"/booking-summary"})
 public class BookingSummaryController extends HttpServlet {
@@ -46,7 +47,7 @@ public class BookingSummaryController extends HttpServlet {
             User user = session == null ? null : (User) session.getAttribute("user");
             int ownerUserID = getIntValue(bookingSummary.get("userID"));
 
-            if (user != null && ownerUserID > 0 && ownerUserID != user.getUserID()) {
+            if (!canAccessBooking(session, user, ownerUserID, bookingID)) {
                 response.sendRedirect(request.getContextPath() + "/booking-list");
                 return;
             }
@@ -65,5 +66,19 @@ public class BookingSummaryController extends HttpServlet {
         }
 
         return 0;
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean canAccessBooking(HttpSession session, User user, int ownerUserID, int bookingID) {
+        if (ownerUserID > 0) {
+            return user != null && ownerUserID == user.getUserID();
+        }
+
+        if (session == null) {
+            return false;
+        }
+
+        Object guestBookings = session.getAttribute("guestBookingIDs");
+        return guestBookings instanceof Set && ((Set<Integer>) guestBookings).contains(bookingID);
     }
 }

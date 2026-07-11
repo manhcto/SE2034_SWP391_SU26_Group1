@@ -13,7 +13,9 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @WebServlet(name = "BookingController", urlPatterns = {"/booking"})
 public class BookingController extends HttpServlet {
@@ -264,6 +266,7 @@ public class BookingController extends HttpServlet {
 
             if (bookingID > 0) {
                 HttpSession currentSession = request.getSession();
+                rememberGuestBooking(currentSession, bookingID, booking.getUserID());
                 currentSession.setAttribute("successMessage", "Đặt tour thành công! Mã đơn: " + bookingCode);
                 response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
             } else {
@@ -289,5 +292,24 @@ public class BookingController extends HttpServlet {
 
     private boolean isValidCity(String city) {
         return city != null && !city.trim().isEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void rememberGuestBooking(HttpSession session, int bookingID, Integer userID) {
+        if (session == null || bookingID <= 0 || userID != null) {
+            return;
+        }
+
+        Object existing = session.getAttribute("guestBookingIDs");
+        Set<Integer> guestBookingIDs;
+
+        if (existing instanceof Set) {
+            guestBookingIDs = (Set<Integer>) existing;
+        } else {
+            guestBookingIDs = new HashSet<>();
+        }
+
+        guestBookingIDs.add(bookingID);
+        session.setAttribute("guestBookingIDs", guestBookingIDs);
     }
 }

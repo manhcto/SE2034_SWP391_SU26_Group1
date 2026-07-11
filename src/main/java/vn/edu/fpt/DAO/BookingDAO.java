@@ -2,7 +2,6 @@ package vn.edu.fpt.DAO;
 
 import vn.edu.fpt.common.DBConnection;
 import vn.edu.fpt.model.Booking;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -99,6 +98,7 @@ public class BookingDAO {
 
     // Insert booking, detail and update schedule in one transaction
     public int insertBookingTransactionReturnID(Booking booking, int tourScheduleID, double unitPrice) {
+
         String sqlBooking = "INSERT INTO Booking (bookingCode, bookingType, firstName, lastName, email, "
                 + "phone, address, note, numberAdult, numberChildren, numberInfant, totalPrice, "
                 + "isBookedForOther, userID, status, bookDate) "
@@ -113,50 +113,60 @@ public class BookingDAO {
                 + "AND quantity + ? <= maxParticipants";
 
         try (Connection conn = new DBConnection().getConnection()) {
+
             conn.setAutoCommit(false);
 
-            try (PreparedStatement psBooking = conn.prepareStatement(sqlBooking, Statement.RETURN_GENERATED_KEYS)) {
+            try {
 
-                psBooking.setString(1, booking.getBookingCode());
-                psBooking.setString(2, booking.getBookingType());
-                psBooking.setString(3, booking.getFirstName());
-                psBooking.setString(4, booking.getLastName());
-                psBooking.setString(5, booking.getEmail());
-                psBooking.setString(6, booking.getPhone());
-                psBooking.setString(7, booking.getAddress());
-                psBooking.setString(8, booking.getNote());
-                psBooking.setInt(9, booking.getNumberAdult());
-                psBooking.setInt(10, booking.getNumberChildren());
-                psBooking.setDouble(11, booking.getTotalPrice());
-                psBooking.setBoolean(12, booking.isBookedForOther());
-
-                if (booking.getUserID() != null) {
-                    psBooking.setInt(13, booking.getUserID());
-                } else {
-                    psBooking.setNull(13, java.sql.Types.INTEGER);
-                }
-
-                int affectedRows = psBooking.executeUpdate();
-
-                if (affectedRows == 0) {
-                    conn.rollback();
-                    return -1;
-                }
-
+                //-------------------------------------------------------
+                // 1. Booking
+                //-------------------------------------------------------
                 int generatedBookingID;
 
-                try (ResultSet generatedKeys = psBooking.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        generatedBookingID = generatedKeys.getInt(1);
+                try (PreparedStatement psBooking = conn.prepareStatement(sqlBooking, Statement.RETURN_GENERATED_KEYS)) {
+
+                    psBooking.setString(1, booking.getBookingCode());
+                    psBooking.setString(2, booking.getBookingType());
+                    psBooking.setString(3, booking.getFirstName());
+                    psBooking.setString(4, booking.getLastName());
+                    psBooking.setString(5, booking.getEmail());
+                    psBooking.setString(6, booking.getPhone());
+                    psBooking.setString(7, booking.getAddress());
+                    psBooking.setString(8, booking.getNote());
+                    psBooking.setInt(9, booking.getNumberAdult());
+                    psBooking.setInt(10, booking.getNumberChildren());
+                    psBooking.setDouble(11, booking.getTotalPrice());
+                    psBooking.setBoolean(12, booking.isBookedForOther());
+
+                    if (booking.getUserID() != null) {
+                        psBooking.setInt(13, booking.getUserID());
                     } else {
+                        psBooking.setNull(13, java.sql.Types.INTEGER);
+                    }
+
+                    if (psBooking.executeUpdate() == 0) {
                         conn.rollback();
                         return -1;
                     }
+
+                    try (ResultSet rs = psBooking.getGeneratedKeys()) {
+
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return -1;
+                        }
+
+                        generatedBookingID = rs.getInt(1);
+                    }
                 }
 
+                //-------------------------------------------------------
+                // 2. Booking Detail
+                //-------------------------------------------------------
                 int totalQuantity = booking.getNumberAdult() + booking.getNumberChildren();
 
                 try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
+
                     psDetail.setInt(1, generatedBookingID);
                     psDetail.setInt(2, tourScheduleID);
                     psDetail.setInt(3, totalQuantity);
@@ -166,14 +176,16 @@ public class BookingDAO {
                     psDetail.executeUpdate();
                 }
 
-                try (PreparedStatement psUpdateSchedule = conn.prepareStatement(sqlUpdateSchedule)) {
-                    psUpdateSchedule.setInt(1, totalQuantity);
-                    psUpdateSchedule.setInt(2, tourScheduleID);
-                    psUpdateSchedule.setInt(3, totalQuantity);
+                //-------------------------------------------------------
+                // 3. Update Tour Scheduler
+                //-------------------------------------------------------
+                try (PreparedStatement psUpdate = conn.prepareStatement(sqlUpdateSchedule)) {
 
-                    int updatedRows = psUpdateSchedule.executeUpdate();
+                    psUpdate.setInt(1, totalQuantity);
+                    psUpdate.setInt(2, tourScheduleID);
+                    psUpdate.setInt(3, totalQuantity);
 
-                    if (updatedRows == 0) {
+                    if (psUpdate.executeUpdate() == 0) {
                         conn.rollback();
                         return -1;
                     }
@@ -183,7 +195,9 @@ public class BookingDAO {
                 return generatedBookingID;
 
             } catch (Exception e) {
+
                 conn.rollback();
+
                 System.out.println("Lỗi Transaction, đã rollback dữ liệu: " + e.getMessage());
                 e.printStackTrace();
             } finally {
@@ -191,6 +205,7 @@ public class BookingDAO {
             }
 
         } catch (Exception e) {
+
             System.out.println("Lỗi kết nối hoặc xử lý BookingDAO: " + e.getMessage());
             e.printStackTrace();
         }
@@ -784,6 +799,9 @@ public class BookingDAO {
         String sqlDeleteFeedback = "DELETE FROM Feedback "
                 + "WHERE bookingID = ?";
 
+        String sqlDeletePayment = "DELETE FROM Payment "
+                + "WHERE bookingID = ?";
+
         String sqlDeleteDetail = "DELETE FROM Booking_Detail "
                 + "WHERE bookingID = ?";
 
@@ -817,6 +835,11 @@ public class BookingDAO {
             try (PreparedStatement psDeleteFeedback = conn.prepareStatement(sqlDeleteFeedback)) {
                 psDeleteFeedback.setInt(1, bookingID);
                 psDeleteFeedback.executeUpdate();
+            }
+
+            try (PreparedStatement psDeletePayment = conn.prepareStatement(sqlDeletePayment)) {
+                psDeletePayment.setInt(1, bookingID);
+                psDeletePayment.executeUpdate();
             }
 
             try (PreparedStatement psDeleteDetail = conn.prepareStatement(sqlDeleteDetail)) {
@@ -870,6 +893,99 @@ public class BookingDAO {
 
         } catch (Exception e) {
             System.out.println("Lỗi cập nhật trạng thái booking: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean cancelPendingBookingAndRelease(int bookingID) {
+        String sqlGetBooking = """
+                SELECT
+                    b.[status],
+                    bd.tourScheduleID,
+                    bd.quantity
+                FROM Booking b
+                LEFT JOIN Booking_Detail bd
+                    ON b.bookingID = bd.bookingID
+                WHERE b.bookingID = ?
+                """;
+
+        String sqlReleaseTour = """
+                UPDATE Tour_Scheduler
+                SET quantity = CASE
+                    WHEN quantity - ? < 0 THEN 0
+                    ELSE quantity - ?
+                END
+                WHERE tourScheduleID = ?
+                """;
+
+        String sqlCancelBooking = """
+                UPDATE Booking
+                SET [status] = N'Cancelled',
+                    updatedAt = GETDATE()
+                WHERE bookingID = ?
+                  AND [status] = N'Pending'
+                """;
+
+        try (Connection conn = new DBConnection().getConnection()) {
+            conn.setAutoCommit(false);
+
+            try {
+                String currentStatus = null;
+                int tourScheduleID = 0;
+                int quantity = 0;
+
+                try (PreparedStatement ps = conn.prepareStatement(sqlGetBooking)) {
+                    ps.setInt(1, bookingID);
+
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return false;
+                        }
+
+                        currentStatus = rs.getString("status");
+                        tourScheduleID = rs.getInt("tourScheduleID");
+                        quantity = rs.getInt("quantity");
+                    }
+                }
+
+                if (!"Pending".equalsIgnoreCase(currentStatus)) {
+                    conn.commit();
+                    return true;
+                }
+
+                if (tourScheduleID > 0 && quantity > 0) {
+                    try (PreparedStatement ps = conn.prepareStatement(sqlReleaseTour)) {
+                        ps.setInt(1, quantity);
+                        ps.setInt(2, quantity);
+                        ps.setInt(3, tourScheduleID);
+                        ps.executeUpdate();
+                    }
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(sqlCancelBooking)) {
+                    ps.setInt(1, bookingID);
+
+                    if (ps.executeUpdate() == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+
+                conn.commit();
+                return true;
+
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Loi huy booking cho thanh toan: " + e.getMessage());
             e.printStackTrace();
         }
 
