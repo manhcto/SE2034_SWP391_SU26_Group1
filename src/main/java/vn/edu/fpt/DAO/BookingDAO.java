@@ -859,4 +859,95 @@ public class BookingDAO {
 
         return false;
     }
+
+    public boolean cancelPendingBookingAndRelease(int bookingID) {
+        String sqlGetBooking = """
+                SELECT
+                    b.[status],
+                    bd.tourScheduleID,
+                    bd.quantity
+                FROM Booking b
+                LEFT JOIN Booking_Detail bd
+                    ON b.bookingID = bd.bookingID
+                WHERE b.bookingID = ?
+                """;
+
+        String sqlReleaseTour = """
+                UPDATE Tour_Scheduler
+                SET quantity = CASE
+                    WHEN quantity - ? < 0 THEN 0
+                    ELSE quantity - ?
+                END
+                WHERE tourScheduleID = ?
+                """;
+
+        String sqlCancelBooking = """
+                UPDATE Booking
+                SET [status] = N'Cancelled',
+                    updatedAt = GETDATE()
+                WHERE bookingID = ?
+                  AND [status] = N'Pending'
+                """;
+
+        try (Connection conn = new DBConnection().getConnection()) {
+            conn.setAutoCommit(false);
+
+            try {
+                String currentStatus;
+                int tourScheduleID = 0;
+                int quantity = 0;
+
+                try (PreparedStatement ps = conn.prepareStatement(sqlGetBooking)) {
+                    ps.setInt(1, bookingID);
+
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return false;
+                        }
+
+                        currentStatus = rs.getString("status");
+                        tourScheduleID = rs.getInt("tourScheduleID");
+                        quantity = rs.getInt("quantity");
+                    }
+                }
+
+                if (!"Pending".equalsIgnoreCase(currentStatus)) {
+                    conn.commit();
+                    return true;
+                }
+
+                if (tourScheduleID > 0 && quantity > 0) {
+                    try (PreparedStatement ps = conn.prepareStatement(sqlReleaseTour)) {
+                        ps.setInt(1, quantity);
+                        ps.setInt(2, quantity);
+                        ps.setInt(3, tourScheduleID);
+                        ps.executeUpdate();
+                    }
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(sqlCancelBooking)) {
+                    ps.setInt(1, bookingID);
+
+                    if (ps.executeUpdate() == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+
+                conn.commit();
+                return true;
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (Exception e) {
+            System.out.println("Loi huy booking cho thanh toan: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }
