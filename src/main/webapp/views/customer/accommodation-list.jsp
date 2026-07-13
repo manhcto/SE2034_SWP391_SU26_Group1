@@ -569,10 +569,35 @@
 
         .card-actions {
             margin-top: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .feedback-btn {
+            flex: 0 0 auto;
+            height: 56px;
+            padding: 0 20px;
+            border: 2px solid #2563eb;
+            border-radius: 18px;
+            background: #fff;
+            color: #2563eb;
+            font-size: 17px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+            text-decoration: none;
+            transition: background .2s ease;
+        }
+
+        .feedback-btn:hover {
+            background: #eff6ff;
         }
 
         .detail-btn {
-            width: 100%;
+            flex: 1;
             height: 56px;
             border: none;
             border-radius: 18px;
@@ -766,7 +791,7 @@
                         <option value="">Tất cả tỉnh/thành</option>
                         <c:forEach var="provinceName" items="${provinceList}">
                             <option value="${fn:escapeXml(provinceName)}"
-                                    ${selectedProvince == provinceName ? 'selected' : ''}>
+                                ${selectedProvince == provinceName ? 'selected' : ''}>
                                 <c:out value="${provinceName}"/>
                             </option>
                         </c:forEach>
@@ -974,7 +999,7 @@
                             </div>
 
                             <div class="location-secondary">
-                                    <c:out value="${acc.fullAddress}"/>
+                                <c:out value="${acc.fullAddress}"/>
                             </div>
 
                             <div class="meta-row">
@@ -1040,6 +1065,11 @@
                             </div>
 
                             <div class="card-actions">
+                                <a class="feedback-btn"
+                                   href="${pageContext.request.contextPath}/feedback-list?accommodationID=${acc.accommodationID}">
+                                    <i class="fa-regular fa-comment-dots"></i>
+                                    Feedback
+                                </a>
                                 <a class="detail-btn"
                                    href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.accommodationID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">
                                     Xem chi tiết

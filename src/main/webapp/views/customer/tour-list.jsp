@@ -78,6 +78,9 @@
         .tour-card-footer span { display: block; color: #64748b; font-size: 12px; font-weight: 800; }
         .tour-card-footer strong { color: #ea580c; font-size: 22px; font-weight: 950; }
         .tour-card-footer a { height: 42px; padding: 0 14px; border-radius: 13px; background: #2563eb; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 900; white-space: nowrap; }
+        .tour-card-actions { display: flex; align-items: center; gap: 8px; }
+        .tour-card-actions .feedback-btn { background: #fff; color: #2563eb; border: 2px solid #2563eb; }
+        .tour-card-actions .feedback-btn:hover { background: #eff6ff; }
         .empty-box { padding: 34px; border-radius: 24px; background: #fff; border: 1px dashed #cbd5e1; text-align: center; color: #64748b; font-weight: 800; }
         .notice-box { margin-bottom: 20px; padding: 14px 16px; border-radius: 18px; background: #fff7ed; color: #9a3412; font-weight: 800; border: 1px solid #fed7aa; }
         @media (max-width: 1180px) { .tour-filter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .customer-tour-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -187,7 +190,10 @@
                                         <span>Giá từ</span>
                                         <strong><fmt:formatNumber value="${not empty firstSchedule.adultPrice ? firstSchedule.adultPrice : tour.adultPrice}" pattern="#,#00" />đ</strong>
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">Xem chi tiết</a>
+                                    <div class="tour-card-actions">
+                                        <a class="feedback-btn" href="${pageContext.request.contextPath}/feedback-list?tourID=${tour.tourID}">Feedback</a>
+                                        <a href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">Xem chi tiết</a>
+                                    </div>
                                 </div>
                             </div>
                         </article>

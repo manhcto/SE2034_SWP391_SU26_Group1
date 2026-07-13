@@ -152,8 +152,20 @@
         <div class="section-head" style="justify-content: center; text-align: center; margin-bottom: 36px;">
             <div>
                 <p class="section-kicker">Feedback</p>
-                <h2>Danh sách Feedback</h2>
-                <p>Danh sách các đánh giá của khách hàng trong hệ thống.</p>
+                <c:choose>
+                    <c:when test="${filterType == 'tour'}">
+                        <h2>Feedback của Tour #${filterID}</h2>
+                        <p>Các đánh giá của khách hàng đã đặt tour này.</p>
+                    </c:when>
+                    <c:when test="${filterType == 'accommodation'}">
+                        <h2>Feedback của Nơi lưu trú #${filterID}</h2>
+                        <p>Các đánh giá của khách hàng đã đặt nơi lưu trú này.</p>
+                    </c:when>
+                    <c:otherwise>
+                        <h2>Danh sách Feedback</h2>
+                        <p>Danh sách các đánh giá của khách hàng trong hệ thống.</p>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
 

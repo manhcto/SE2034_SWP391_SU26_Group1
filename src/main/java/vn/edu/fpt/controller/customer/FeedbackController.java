@@ -87,7 +87,38 @@ public class FeedbackController extends HttpServlet {
             throws ServletException, IOException {
 
         FeedbackDAO feedbackDAO = new FeedbackDAO();
-        List<Feedback> feedbackList = feedbackDAO.getAllFeedbacks();
+        List<Feedback> feedbackList;
+
+        String tourIDRaw = request.getParameter("tourID");
+        String accommodationIDRaw = request.getParameter("accommodationID");
+
+        if (tourIDRaw != null && !tourIDRaw.trim().isEmpty()) {
+            // Lọc feedback theo tour
+            try {
+                int tourID = Integer.parseInt(tourIDRaw.trim());
+                feedbackList = feedbackDAO.getFeedbacksByTourID(tourID);
+
+                request.setAttribute("filterType", "tour");
+                request.setAttribute("filterID", tourID);
+            } catch (NumberFormatException e) {
+                feedbackList = feedbackDAO.getAllFeedbacks();
+            }
+
+        } else if (accommodationIDRaw != null && !accommodationIDRaw.trim().isEmpty()) {
+            // Lọc feedback theo nơi lưu trú
+            try {
+                int accommodationID = Integer.parseInt(accommodationIDRaw.trim());
+                feedbackList = feedbackDAO.getFeedbacksByAccommodationID(accommodationID);
+
+                request.setAttribute("filterType", "accommodation");
+                request.setAttribute("filterID", accommodationID);
+            } catch (NumberFormatException e) {
+                feedbackList = feedbackDAO.getAllFeedbacks();
+            }
+
+        } else {
+            feedbackList = feedbackDAO.getAllFeedbacks();
+        }
 
         request.setAttribute("feedbackList", feedbackList);
         request.getRequestDispatcher(LIST_PAGE).forward(request, response);
