@@ -67,6 +67,34 @@ public class VoucherDAO {
         return vouchers;
     }
 
+    public List<Voucher> getVisiblePromotionVouchers() {
+        List<Voucher> vouchers = new ArrayList<>();
+
+        String sql =
+                "SELECT voucherID, code, [description], percentDiscount, amountDiscount, " +
+                        "minOrderAmount, quantity, applicableType, usedCount, startDate, endDate, " +
+                        "[status], createdAt, updatedAt " +
+                        "FROM [dbo].[Voucher] " +
+                        "WHERE [status] = N'Active' " +
+                        "AND usedCount < quantity " +
+                        "AND CAST(GETDATE() AS DATE) <= CAST(endDate AS DATE) " +
+                        "ORDER BY startDate ASC, endDate ASC, voucherID DESC";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                vouchers.add(mapVoucher(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return vouchers;
+    }
+
     public boolean isVoucherAvailableForCustomer(int voucherID) {
         String sql =
                 "SELECT COUNT(1) FROM [dbo].[Voucher] " +
@@ -74,6 +102,32 @@ public class VoucherDAO {
                         "AND [status] = N'Active' " +
                         "AND usedCount < quantity " +
                         "AND GETDATE() BETWEEN startDate AND endDate";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, voucherID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean isVoucherSaveableForCustomer(int voucherID) {
+        String sql =
+                "SELECT COUNT(1) FROM [dbo].[Voucher] " +
+                        "WHERE voucherID = ? " +
+                        "AND [status] = N'Active' " +
+                        "AND usedCount < quantity " +
+                        "AND CAST(GETDATE() AS DATE) <= CAST(endDate AS DATE)";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

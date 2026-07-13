@@ -12,8 +12,11 @@ import vn.edu.fpt.model.User;
 import vn.edu.fpt.model.Voucher;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -35,14 +38,39 @@ public class VoucherPromotionController extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         String selectedType = resolveType(request.getParameter("type"));
-        List<Voucher> availableVouchers = voucherDAO.getAvailableVouchersForCustomer();
-        List<Voucher> filteredVouchers = filterByType(availableVouchers, selectedType);
+        List<Voucher> promotionVouchers = voucherDAO.getVisiblePromotionVouchers();
+        List<Voucher> filteredVouchers = filterByType(promotionVouchers, selectedType);
         Set<Integer> savedVoucherIds = getSavedVoucherIds(request);
+        List<Voucher> visibleVouchers = filterSavedVouchers(filteredVouchers, savedVoucherIds);
+        Set<Integer> upcomingVoucherIds = getUpcomingVoucherIds(visibleVouchers);
 
         request.setAttribute("selectedType", selectedType);
-        request.setAttribute("voucherList", filteredVouchers);
+        request.setAttribute("voucherList", visibleVouchers);
         request.setAttribute("savedVoucherIds", savedVoucherIds);
+        request.setAttribute("upcomingVoucherIds", upcomingVoucherIds);
         request.getRequestDispatcher(PROMOTION_PAGE).forward(request, response);
+    }
+
+    private Set<Integer> getUpcomingVoucherIds(List<Voucher> vouchers) {
+        Set<Integer> upcomingVoucherIds = new HashSet<>();
+        LocalDate today = LocalDate.now();
+
+        for (Voucher voucher : vouchers) {
+            LocalDate startDate = toLocalDate(voucher.getStartDate());
+            if (startDate != null && today.isBefore(startDate)) {
+                upcomingVoucherIds.add(voucher.getVoucherID());
+            }
+        }
+
+        return upcomingVoucherIds;
+    }
+
+    private LocalDate toLocalDate(java.util.Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     private Set<Integer> getSavedVoucherIds(HttpServletRequest request) {
@@ -54,6 +82,21 @@ public class VoucherPromotionController extends HttpServlet {
         }
 
         return userVoucherDAO.getSavedVoucherIdsByUser(user.getUserID());
+    }
+
+    private List<Voucher> filterSavedVouchers(List<Voucher> vouchers, Set<Integer> savedVoucherIds) {
+        if (savedVoucherIds == null || savedVoucherIds.isEmpty()) {
+            return vouchers;
+        }
+
+        List<Voucher> visibleVouchers = new ArrayList<>();
+        for (Voucher voucher : vouchers) {
+            if (!savedVoucherIds.contains(voucher.getVoucherID())) {
+                visibleVouchers.add(voucher);
+            }
+        }
+
+        return visibleVouchers;
     }
 
     private List<Voucher> filterByType(List<Voucher> vouchers, String selectedType) {

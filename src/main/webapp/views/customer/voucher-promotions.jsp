@@ -224,6 +224,19 @@
             gap: 7px;
         }
 
+        .available-note.upcoming {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .voucher-start-note {
+            margin-top: -6px;
+            color: #92400e;
+            font-size: 12px;
+            font-weight: 900;
+            line-height: 1.5;
+        }
+
         .condition-box {
             margin-top: auto;
             border-top: 1px solid #edf2f7;
@@ -419,6 +432,7 @@
                         <c:set var="applicableLabel" value="Lưu trú"/>
                     </c:if>
                     <c:set var="isSavedVoucher" value="${savedVoucherIds.contains(voucher.voucherID)}"/>
+                    <c:set var="isUpcomingVoucher" value="${upcomingVoucherIds.contains(voucher.voucherID)}"/>
 
                     <article class="voucher-card">
                         <div class="voucher-card-head">
@@ -448,10 +462,23 @@
                                 </c:choose>
                             </p>
 
-                            <div class="available-note">
-                                <i class="fa-solid fa-circle-check"></i>
-                                Còn lượt sử dụng
-                            </div>
+                            <c:choose>
+                                <c:when test="${isUpcomingVoucher}">
+                                    <div class="available-note upcoming">
+                                        <i class="fa-solid fa-clock"></i>
+                                        Sắp có hiệu lực
+                                    </div>
+                                    <div class="voucher-start-note">
+                                        Có thể sử dụng từ <fmt:formatDate value="${voucher.startDate}" pattern="dd/MM/yyyy"/>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="available-note">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        Có thể sử dụng
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
 
                             <div class="voucher-meta">
                                 <div class="voucher-row">

@@ -52,7 +52,7 @@ public class SaveVoucherController extends HttpServlet {
         }
 
         Integer voucherID = parsePositiveInt(request.getParameter("voucherID"));
-        if (voucherID == null || !voucherDAO.isVoucherAvailableForCustomer(voucherID)) {
+        if (voucherID == null || !voucherDAO.isVoucherSaveableForCustomer(voucherID)) {
             response.sendRedirect(buildSaveRedirect(request, selectedType, "unavailable"));
             return;
         }
