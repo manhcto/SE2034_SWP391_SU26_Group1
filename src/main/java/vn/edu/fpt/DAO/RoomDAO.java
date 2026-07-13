@@ -5,378 +5,418 @@ import vn.edu.fpt.model.Room;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RoomDAO {
 
+    private static final Logger LOGGER = Logger.getLogger(RoomDAO.class.getName());
     private static final String BASE_SELECT =
-            "SELECT " +
-                    "roomID, roomType, numberOfRooms, priceOfRoom, [status], accommodationID, " +
+            "SELECT roomID, roomType, numberOfRooms, priceOfRoom, [status], accommodationID, " +
                     "roomAvailability, [image], [description], bedCount, bedType, " +
-                    "maxAdults, maxChildren, roomSize " +
-                    "FROM [dbo].[Room] ";
+                    "maxAdults, maxChildren, roomSize, createdAt, updatedAt FROM [dbo].[Room] ";
+    private static final String INSERT_SQL =
+            "INSERT INTO [dbo].[Room] " +
+                    "(roomType, numberOfRooms, priceOfRoom, [status], accommodationID, roomAvailability, " +
+                    "[image], [description], bedCount, bedType, maxAdults, maxChildren, roomSize) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     public List<Room> getAllRooms() {
-        List<Room> list = new ArrayList<>();
-
-        String sql = BASE_SELECT +
-                "ORDER BY roomID DESC";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                list.add(mapRoom(rs));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+        return findMany(BASE_SELECT + "ORDER BY roomID DESC", null);
     }
 
     public List<Room> getRoomsByAccommodation(int accommodationID) {
-        List<Room> list = new ArrayList<>();
-
         String sql = BASE_SELECT +
-                "WHERE accommodationID = ? " +
-                "ORDER BY priceOfRoom ASC, roomID DESC";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, accommodationID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapRoom(rs));
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+                "WHERE accommodationID = ? ORDER BY priceOfRoom ASC, roomID DESC";
+        return findMany(sql, accommodationID);
     }
 
     public List<Room> getAvailableRoomsByAccommodation(int accommodationID) {
-        List<Room> list = new ArrayList<>();
-
         String sql = BASE_SELECT +
-                "WHERE accommodationID = ? " +
-                "AND [status] = N'Available' " +
-                "AND roomAvailability > 0 " +
-                "ORDER BY priceOfRoom ASC, roomID DESC";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, accommodationID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapRoom(rs));
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+                "WHERE accommodationID = ? AND [status] = N'Available' " +
+                "AND roomAvailability > 0 ORDER BY priceOfRoom ASC, roomID DESC";
+        return findMany(sql, accommodationID);
     }
 
-    public List<Room> getAvailableRoomsByAccommodationAndDate(int accommodationID, String checkIn, String checkOut) {
-        List<Room> list = new ArrayList<>();
+    public List<Room> getAllAvailableRooms() {
+        String sql = BASE_SELECT +
+                "WHERE [status] IN (N'Available', N'Active') AND roomAvailability > 0 " +
+                "ORDER BY accommodationID, priceOfRoom, roomID";
+        return findMany(sql, null);
+    }
 
-        LocalDate checkInDate;
-        LocalDate checkOutDate;
-
-        try {
-            checkInDate = LocalDate.parse(checkIn);
-            checkOutDate = LocalDate.parse(checkOut);
-
-            if (!checkOutDate.isAfter(checkInDate)) {
-                return list;
-            }
-        } catch (Exception e) {
-            return list;
+    public List<Room> getAvailableRoomsByAccommodationAndDate(
+            int accommodationID, String checkIn, String checkOut) {
+        if (!isValidDateRange(checkIn, checkOut)) {
+            return new ArrayList<>();
         }
 
-        String sql =
-                "SELECT r.roomID, r.roomType, r.numberOfRooms, r.priceOfRoom, r.[status], r.accommodationID, " +
-                        "(r.roomAvailability - ISNULL(booked.bookedQuantity, 0)) AS roomAvailability, " +
-                        "r.[image], r.[description], r.bedCount, r.bedType, " +
-                        "r.maxAdults, r.maxChildren, r.roomSize " +
-                        "FROM [dbo].[Room] r " +
-                        "LEFT JOIN ( " +
-                        "    SELECT bd.roomID, SUM(bd.quantity) AS bookedQuantity " +
-                        "    FROM [dbo].[Booking_Detail] bd " +
-                        "    INNER JOIN [dbo].[Booking] b ON bd.bookingID = b.bookingID " +
-                        "    WHERE bd.accommodationID = ? " +
-                        "    AND bd.roomID IS NOT NULL " +
-                        "    AND b.bookingType = N'Accommodation' " +
-                        "    AND b.[status] IN (N'Pending', N'Confirmed') " +
-                        "    AND bd.startDate < ? " +
-                        "    AND bd.endDate > ? " +
-                        "    GROUP BY bd.roomID " +
-                        ") booked ON booked.roomID = r.roomID " +
-                        "WHERE r.accommodationID = ? " +
-                        "AND r.[status] = N'Available' " +
-                        "AND (r.roomAvailability - ISNULL(booked.bookedQuantity, 0)) > 0 " +
-                        "ORDER BY r.priceOfRoom ASC, r.roomID DESC";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, accommodationID);
-            ps.setDate(2, Date.valueOf(checkOutDate));
-            ps.setDate(3, Date.valueOf(checkInDate));
-            ps.setInt(4, accommodationID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapRoom(rs));
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+        // roomAvailability is reserved atomically when a booking is created.
+        return getAvailableRoomsByAccommodation(accommodationID);
     }
 
     public Room getRoomById(int roomID) {
-        String sql = BASE_SELECT +
-                "WHERE roomID = ?";
+        return findOne(BASE_SELECT + "WHERE roomID = ?", roomID, null);
+    }
 
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, roomID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapRoom(rs);
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
+    public Room getRoomByIdAndAccommodation(int roomID, int accommodationID) {
+        return findOne(
+                BASE_SELECT + "WHERE roomID = ? AND accommodationID = ?",
+                roomID,
+                accommodationID);
     }
 
     public boolean addRoom(Room room) {
-        String sql =
-                "INSERT INTO [dbo].[Room] " +
-                        "(roomType, numberOfRooms, priceOfRoom, [status], accommodationID, roomAvailability, " +
-                        "[image], [description], bedCount, bedType, maxAdults, maxChildren, roomSize) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        return addRoomAndReturnId(room) > 0;
+    }
 
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+    public int addRoomAndReturnId(Room room) {
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            bindRoomForInsert(statement, room);
 
-            ps.setString(1, room.getRoomType());
-            ps.setInt(2, room.getNumberOfRooms());
-            ps.setBigDecimal(3, room.getPriceOfRoom());
-            ps.setString(4, room.getStatus());
-            ps.setInt(5, room.getAccommodationID());
-            ps.setInt(6, room.getRoomAvailability());
-            ps.setString(7, room.getImage());
-            ps.setString(8, room.getDescription());
-            ps.setInt(9, room.getBedCount());
-            ps.setString(10, room.getBedType());
-            ps.setInt(11, room.getMaxAdults());
-            ps.setInt(12, room.getMaxChildren());
-            ps.setBigDecimal(13, room.getRoomSize());
+            if (statement.executeUpdate() == 0) {
+                return 0;
+            }
 
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                return keys.next() ? keys.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            logFailure("add room", e);
+            return 0;
         }
+    }
 
-        return false;
+    public int addRoomWithFacilities(Room room, int[] facilityIDs) {
+        try (Connection connection = new DBConnection().getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                int roomID = insertRoom(connection, room);
+                if (roomID == 0) {
+                    connection.rollback();
+                    return 0;
+                }
+                new FacilityDAO().replaceRoomFacilities(connection, roomID, facilityIDs);
+                connection.commit();
+                return roomID;
+            } catch (SQLException e) {
+                rollback(connection, e);
+                logFailure("add room with facilities", e);
+                return 0;
+            } finally {
+                restoreAutoCommit(connection);
+            }
+        } catch (SQLException e) {
+            logFailure("open room insert transaction", e);
+            return 0;
+        }
     }
 
     public boolean updateRoom(Room room) {
         String sql =
-                "UPDATE [dbo].[Room] " +
-                        "SET roomType = ?, numberOfRooms = ?, priceOfRoom = ?, [status] = ?, " +
-                        "accommodationID = ?, roomAvailability = ?, [image] = ?, [description] = ?, " +
-                        "bedCount = ?, bedType = ?, maxAdults = ?, maxChildren = ?, roomSize = ? " +
-                        "WHERE roomID = ?";
+                "UPDATE [dbo].[Room] SET roomType = ?, numberOfRooms = ?, priceOfRoom = ?, " +
+                        "[status] = ?, roomAvailability = ?, [image] = ?, [description] = ?, " +
+                        "bedCount = ?, bedType = ?, maxAdults = ?, maxChildren = ?, roomSize = ?, " +
+                        "updatedAt = GETDATE() WHERE roomID = ? AND accommodationID = ?";
 
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, room.getRoomType());
-            ps.setInt(2, room.getNumberOfRooms());
-            ps.setBigDecimal(3, room.getPriceOfRoom());
-            ps.setString(4, room.getStatus());
-            ps.setInt(5, room.getAccommodationID());
-            ps.setInt(6, room.getRoomAvailability());
-            ps.setString(7, room.getImage());
-            ps.setString(8, room.getDescription());
-            ps.setInt(9, room.getBedCount());
-            ps.setString(10, room.getBedType());
-            ps.setInt(11, room.getMaxAdults());
-            ps.setInt(12, room.getMaxChildren());
-            ps.setBigDecimal(13, room.getRoomSize());
-            ps.setInt(14, room.getRoomID());
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            bindRoomForUpdate(statement, room);
+            return statement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            logFailure("update room", e);
+            return false;
         }
+    }
 
-        return false;
+    public boolean updateRoomWithFacilities(Room room, int[] facilityIDs) {
+        String sql =
+                "UPDATE [dbo].[Room] SET roomType = ?, numberOfRooms = ?, priceOfRoom = ?, " +
+                        "[status] = ?, roomAvailability = ?, [image] = ?, [description] = ?, " +
+                        "bedCount = ?, bedType = ?, maxAdults = ?, maxChildren = ?, roomSize = ?, " +
+                        "updatedAt = GETDATE() WHERE roomID = ? AND accommodationID = ?";
+
+        try (Connection connection = new DBConnection().getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                bindRoomForUpdate(statement, room);
+                if (statement.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+                new FacilityDAO().replaceRoomFacilities(
+                        connection, room.getRoomID(), facilityIDs);
+                connection.commit();
+                return true;
+            } catch (SQLException e) {
+                rollback(connection, e);
+                logFailure("update room with facilities", e);
+                return false;
+            } finally {
+                restoreAutoCommit(connection);
+            }
+        } catch (SQLException e) {
+            logFailure("open room update transaction", e);
+            return false;
+        }
     }
 
     public boolean deleteRoom(int roomID) {
-        String sqlDeleteFacility =
-                "DELETE FROM [dbo].[Room_Facility] WHERE roomID = ?";
+        Room room = getRoomById(roomID);
+        return room != null && deleteRoom(roomID, room.getAccommodationID());
+    }
 
-        String sqlDeleteRoom =
-                "DELETE FROM [dbo].[Room] WHERE roomID = ?";
+    public boolean deleteRoom(int roomID, int accommodationID) {
+        String deleteRoom =
+                "DELETE FROM [dbo].[Room] WHERE roomID = ? AND accommodationID = ?";
 
-        Connection conn = null;
+        try (Connection connection = new DBConnection().getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                int deleted = executeRoomDelete(connection, deleteRoom, roomID, accommodationID);
 
-        try {
-            conn = new DBConnection().getConnection();
-            conn.setAutoCommit(false);
+                if (deleted != 1) {
+                    connection.rollback();
+                    return false;
+                }
 
-            try (PreparedStatement psFacility = conn.prepareStatement(sqlDeleteFacility)) {
-                psFacility.setInt(1, roomID);
-                psFacility.executeUpdate();
+                connection.commit();
+                return true;
+            } catch (SQLException e) {
+                rollback(connection, e);
+                logFailure("delete room", e);
+                return false;
+            } finally {
+                restoreAutoCommit(connection);
             }
-
-            try (PreparedStatement psRoom = conn.prepareStatement(sqlDeleteRoom)) {
-                psRoom.setInt(1, roomID);
-                psRoom.executeUpdate();
-            }
-
-            conn.commit();
-            return true;
-
-        } catch (Exception e) {
-            rollbackQuietly(conn);
-            e.printStackTrace();
-
-        } finally {
-            closeQuietly(conn);
+        } catch (SQLException e) {
+            logFailure("open connection to delete room", e);
+            return false;
         }
+    }
 
-        return false;
+    public boolean hasBookingReferences(int roomID, int accommodationID) {
+        String sql =
+                "SELECT TOP 1 1 FROM [dbo].[Booking_Detail] " +
+                        "WHERE roomID = ? AND accommodationID = ?";
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, roomID);
+            statement.setInt(2, accommodationID);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        } catch (SQLException e) {
+            logFailure("check room booking reference", e);
+            return true;
+        }
+    }
+
+    public boolean deactivateRoom(int roomID, int accommodationID) {
+        String sql =
+                "UPDATE [dbo].[Room] SET [status] = N'Unavailable', updatedAt = GETDATE() " +
+                        "WHERE roomID = ? AND accommodationID = ?";
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, roomID);
+            statement.setInt(2, accommodationID);
+            return statement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            logFailure("deactivate room", e);
+            return false;
+        }
     }
 
     public BigDecimal getMinRoomPriceByAccommodation(int accommodationID) {
         String sql =
-                "SELECT MIN(priceOfRoom) AS minPrice " +
-                        "FROM [dbo].[Room] " +
-                        "WHERE accommodationID = ? " +
-                        "AND [status] = N'Available' " +
+                "SELECT MIN(priceOfRoom) AS minPrice FROM [dbo].[Room] " +
+                        "WHERE accommodationID = ? AND [status] = N'Available' " +
                         "AND roomAvailability > 0";
 
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, accommodationID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    BigDecimal minPrice = rs.getBigDecimal("minPrice");
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, accommodationID);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    BigDecimal minPrice = resultSet.getBigDecimal("minPrice");
                     return minPrice == null ? BigDecimal.ZERO : minPrice;
                 }
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            logFailure("load minimum room price", e);
         }
-
         return BigDecimal.ZERO;
     }
 
     public int getTotalAvailableRoomsByAccommodation(int accommodationID) {
         String sql =
-                "SELECT SUM(roomAvailability) AS totalAvailable " +
-                        "FROM [dbo].[Room] " +
-                        "WHERE accommodationID = ? " +
-                        "AND [status] = N'Available'";
+                "SELECT SUM(roomAvailability) AS totalAvailable FROM [dbo].[Room] " +
+                        "WHERE accommodationID = ? AND [status] = N'Available'";
 
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, accommodationID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("totalAvailable");
-                }
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, accommodationID);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? resultSet.getInt("totalAvailable") : 0;
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            logFailure("load total available rooms", e);
+            return 0;
         }
-
-        return 0;
     }
 
-    private Room mapRoom(ResultSet rs) throws Exception {
+    private List<Room> findMany(String sql, Integer accommodationID) {
+        List<Room> rooms = new ArrayList<>();
+
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            if (accommodationID != null) {
+                statement.setInt(1, accommodationID);
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    rooms.add(mapRoom(resultSet));
+                }
+            }
+        } catch (SQLException e) {
+            logFailure("load rooms", e);
+        }
+        return rooms;
+    }
+
+    private Room findOne(String sql, int roomID, Integer accommodationID) {
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, roomID);
+            if (accommodationID != null) {
+                statement.setInt(2, accommodationID);
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? mapRoom(resultSet) : null;
+            }
+        } catch (SQLException e) {
+            logFailure("find room", e);
+            return null;
+        }
+    }
+
+    private void bindRoomForInsert(PreparedStatement statement, Room room) throws SQLException {
+        statement.setString(1, room.getRoomType());
+        statement.setInt(2, room.getNumberOfRooms());
+        statement.setBigDecimal(3, room.getPriceOfRoom());
+        statement.setString(4, room.getStatus());
+        statement.setInt(5, room.getAccommodationID());
+        statement.setInt(6, room.getRoomAvailability());
+        statement.setString(7, room.getImage());
+        statement.setString(8, room.getDescription());
+        statement.setInt(9, room.getBedCount());
+        statement.setString(10, room.getBedType());
+        statement.setInt(11, room.getMaxAdults());
+        statement.setInt(12, room.getMaxChildren());
+        statement.setBigDecimal(13, room.getRoomSize());
+    }
+
+    private int insertRoom(Connection connection, Room room) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            bindRoomForInsert(statement, room);
+            if (statement.executeUpdate() != 1) {
+                return 0;
+            }
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                return keys.next() ? keys.getInt(1) : 0;
+            }
+        }
+    }
+
+    private void bindRoomForUpdate(PreparedStatement statement, Room room)
+            throws SQLException {
+        statement.setString(1, room.getRoomType());
+        statement.setInt(2, room.getNumberOfRooms());
+        statement.setBigDecimal(3, room.getPriceOfRoom());
+        statement.setString(4, room.getStatus());
+        statement.setInt(5, room.getRoomAvailability());
+        statement.setString(6, room.getImage());
+        statement.setString(7, room.getDescription());
+        statement.setInt(8, room.getBedCount());
+        statement.setString(9, room.getBedType());
+        statement.setInt(10, room.getMaxAdults());
+        statement.setInt(11, room.getMaxChildren());
+        statement.setBigDecimal(12, room.getRoomSize());
+        statement.setInt(13, room.getRoomID());
+        statement.setInt(14, room.getAccommodationID());
+    }
+
+    private int executeRoomDelete(
+            Connection connection, String sql, int roomID, int accommodationID) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, roomID);
+            statement.setInt(2, accommodationID);
+            return statement.executeUpdate();
+        }
+    }
+
+    private Room mapRoom(ResultSet resultSet) throws SQLException {
         Room room = new Room();
-
-        room.setRoomID(rs.getInt("roomID"));
-        room.setRoomType(rs.getString("roomType"));
-        room.setNumberOfRooms(rs.getInt("numberOfRooms"));
-
-        BigDecimal price = rs.getBigDecimal("priceOfRoom");
-        room.setPriceOfRoom(price == null ? BigDecimal.ZERO : price);
-
-        room.setStatus(rs.getString("status"));
-        room.setAccommodationID(rs.getInt("accommodationID"));
-        room.setRoomAvailability(rs.getInt("roomAvailability"));
-        room.setImage(rs.getString("image"));
-        room.setDescription(rs.getString("description"));
-        room.setBedCount(rs.getInt("bedCount"));
-        room.setBedType(rs.getString("bedType"));
-        room.setMaxAdults(rs.getInt("maxAdults"));
-        room.setMaxChildren(rs.getInt("maxChildren"));
-
-        BigDecimal roomSize = rs.getBigDecimal("roomSize");
-        room.setRoomSize(roomSize == null ? BigDecimal.ZERO : roomSize);
-
+        room.setRoomID(resultSet.getInt("roomID"));
+        room.setRoomType(resultSet.getString("roomType"));
+        room.setNumberOfRooms(resultSet.getInt("numberOfRooms"));
+        room.setPriceOfRoom(resultSet.getBigDecimal("priceOfRoom"));
+        room.setStatus(resultSet.getString("status"));
+        room.setAccommodationID(resultSet.getInt("accommodationID"));
+        room.setRoomAvailability(resultSet.getInt("roomAvailability"));
+        room.setImage(resultSet.getString("image"));
+        room.setDescription(resultSet.getString("description"));
+        room.setBedCount(resultSet.getInt("bedCount"));
+        room.setBedType(resultSet.getString("bedType"));
+        room.setMaxAdults(resultSet.getInt("maxAdults"));
+        room.setMaxChildren(resultSet.getInt("maxChildren"));
+        room.setRoomSize(resultSet.getBigDecimal("roomSize"));
+        if (resultSet.getTimestamp("createdAt") != null) {
+            room.setCreatedAt(resultSet.getTimestamp("createdAt").toLocalDateTime());
+        }
+        if (resultSet.getTimestamp("updatedAt") != null) {
+            room.setUpdatedAt(resultSet.getTimestamp("updatedAt").toLocalDateTime());
+        }
         return room;
     }
 
-    private void rollbackQuietly(Connection conn) {
-        if (conn != null) {
-            try {
-                conn.rollback();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    private boolean isValidDateRange(String checkIn, String checkOut) {
+        try {
+            LocalDate checkInDate = LocalDate.parse(checkIn);
+            LocalDate checkOutDate = LocalDate.parse(checkOut);
+            return checkOutDate.isAfter(checkInDate);
+        } catch (RuntimeException e) {
+            return false;
         }
     }
 
-    private void closeQuietly(Connection conn) {
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    private void rollback(Connection connection, SQLException cause) {
+        try {
+            connection.rollback();
+        } catch (SQLException rollbackError) {
+            cause.addSuppressed(rollbackError);
         }
+    }
+
+    private void restoreAutoCommit(Connection connection) {
+        try {
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            logFailure("restore auto-commit", e);
+        }
+    }
+
+    private void logFailure(String operation, SQLException error) {
+        LOGGER.log(Level.SEVERE, "Failed to " + operation, error);
     }
 }

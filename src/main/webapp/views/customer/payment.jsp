@@ -114,6 +114,12 @@
             border-color: #bbf7d0;
         }
 
+        .payment-alert.info {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
         @media (max-width: 720px) {
             .payment-grid {
                 grid-template-columns: 1fr;
@@ -144,13 +150,7 @@
 
             <c:if test="${not payosConfigured}">
                 <div class="payment-alert error">
-                    Chưa cấu hình PayOS. Cần PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY và APP_BASE_URL.
-                </div>
-            </c:if>
-
-            <c:if test="${mockPaymentEnabled}">
-                <div class="payment-alert success">
-                    Mock payment mode is enabled for dev/test.
+                    PayOS chưa được cấu hình trên máy chủ. Vui lòng liên hệ nhân viên WonderVN.
                 </div>
             </c:if>
 
@@ -174,9 +174,9 @@
                     <span class="payment-label">Trạng thái thanh toán</span>
                     <span class="payment-status ${payment.paid ? 'paid' : ''}">
                         <c:choose>
-                            <c:when test="${payment.status == 'Paid'}">Đã thanh toán</c:when>
-                            <c:when test="${payment.status == 'Failed'}">Thất bại</c:when>
-                            <c:when test="${payment.status == 'Cancelled'}">Đã hủy</c:when>
+                            <c:when test="${payment.status == 'Đã thanh toán' || payment.status == 'Paid'}">Đã thanh toán</c:when>
+                            <c:when test="${payment.status == 'Thất bại' || payment.status == 'Failed'}">Thất bại</c:when>
+                            <c:when test="${payment.status == 'Đã hủy' || payment.status == 'Cancelled'}">Đã hủy</c:when>
                             <c:otherwise>Chờ thanh toán</c:otherwise>
                         </c:choose>
                     </span>
@@ -196,23 +196,16 @@
             </div>
 
             <div class="payment-actions">
-                <c:if test="${payment.status != 'Paid' && bookingSummary.status == 'Pending'}">
-                    <form action="${pageContext.request.contextPath}/payment" method="post">
-                        <input type="hidden" name="bookingID" value="${bookingSummary.bookingID}">
-                        <button class="payment-btn payment-btn-primary" type="submit" ${payosConfigured ? '' : 'disabled'}>
-                            Thanh toán qua PayOS
-                        </button>
-                    </form>
-
-                    <c:if test="${mockPaymentEnabled}">
+                <c:if test="${not payment.paid && (bookingSummary.status == 'Đang xử lý' || bookingSummary.status == 'Pending')}">
+                    <c:if test="${payosConfigured}">
                         <form action="${pageContext.request.contextPath}/payment" method="post">
                             <input type="hidden" name="bookingID" value="${bookingSummary.bookingID}">
-                            <input type="hidden" name="action" value="mockSuccess">
-                            <button class="payment-btn payment-btn-outline" type="submit">
-                                Mock thanh toan thanh cong
+                            <button class="payment-btn payment-btn-primary" type="submit">
+                                Thanh toán qua PayOS
                             </button>
                         </form>
                     </c:if>
+
                 </c:if>
 
                 <a class="payment-btn payment-btn-outline"

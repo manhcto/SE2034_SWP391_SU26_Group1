@@ -159,7 +159,7 @@
         }
 
         .account-nav {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
         }
 
         .account-nav-link {
@@ -202,6 +202,11 @@
            href="${pageContext.request.contextPath}/my-vouchers">
             <i class="fa-solid fa-ticket"></i>
             Voucher
+        </a>
+        <a class="account-nav-link ${activeAccountTab == 'blogs' ? 'active' : ''}"
+           href="${pageContext.request.contextPath}/my-blogs">
+            <i class="fa-solid fa-newspaper"></i>
+            Blog của tôi
         </a>
     </nav>
 </aside>

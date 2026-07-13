@@ -299,16 +299,16 @@
 
                   <td>
                     <c:choose>
-                      <c:when test="${booking.status == 'Pending'}">
+                      <c:when test="${booking.status == 'Đang xử lý' || booking.status == 'Pending'}">
                         <span class="status-badge status-pending">Chờ xử lý</span>
                       </c:when>
-                      <c:when test="${booking.status == 'Confirmed'}">
+                      <c:when test="${booking.status == 'Đã duyệt' || booking.status == 'Confirmed'}">
                         <span class="status-badge status-confirmed">Đã xác nhận</span>
                       </c:when>
-                      <c:when test="${booking.status == 'Completed'}">
+                      <c:when test="${booking.status == 'Hoàn thành' || booking.status == 'Completed'}">
                         <span class="status-badge status-completed">Đã hoàn thành</span>
                       </c:when>
-                      <c:when test="${booking.status == 'Cancelled'}">
+                      <c:when test="${booking.status == 'Đã hủy' || booking.status == 'Cancelled'}">
                         <span class="status-badge status-cancelled">Đã hủy</span>
                       </c:when>
                       <c:otherwise>

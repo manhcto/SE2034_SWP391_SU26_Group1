@@ -66,9 +66,6 @@
                         <label for="confirmPassword">Nhập lại mật khẩu</label>
                         <div class="password-wrap">
                             <input class="auth-input" id="confirmPassword" type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
-                            <button class="password-toggle" type="button" data-password-toggle="confirmPassword" aria-label="Hiện mật khẩu">
-                                <i class="fa-regular fa-eye"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -91,7 +88,7 @@
 
                 <div class="auth-field">
                     <label for="addressDetail">Địa chỉ chi tiết</label>
-                    <input class="auth-input" id="addressDetail" type="text" placeholder="Số nhà, tên đường (không bắt buộc)">
+                    <input class="auth-input" id="addressDetail" name="streetAddress" type="text" value="${param.streetAddress}" placeholder="Số nhà, tên đường (không bắt buộc)">
                 </div>
 
                 <div class="auth-grid">
@@ -110,6 +107,7 @@
                 </div>
 
                 <input type="hidden" id="address" name="address" value="${param.address}">
+                <input type="hidden" id="administrativeUnitID" name="administrativeUnitID" value="${param.administrativeUnitID}">
                 <input type="hidden" name="roleID" value="4">
                 <button class="auth-button" type="submit">Tạo tài khoản</button>
             </form>
@@ -125,6 +123,7 @@
     const administrativeUnits = [
         <c:forEach var="unit" items="${administrativeUnitList}" varStatus="loop">
         {
+            id: "${unit.administrativeUnitID}",
             province: "${unit.provinceName}",
             ward: "${unit.wardName}",
             wardType: "${unit.wardType}"
@@ -136,6 +135,7 @@
     const wardSelect = document.getElementById("wardSelect");
     const addressDetailInput = document.getElementById("addressDetail");
     const addressInput = document.getElementById("address");
+    const administrativeUnitIDInput = document.getElementById("administrativeUnitID");
     const savedAddress = addressInput.value || "";
 
     function uniqueProvinces() {
@@ -158,7 +158,7 @@
     }
 
     function formatWard(unit) {
-        return (unit.wardType ? unit.wardType + " " : "") + unit.ward;
+        return unit.ward;
     }
 
     function fillSelect(select, options, placeholder, selectedValue) {
@@ -189,6 +189,11 @@
         const detail = addressDetailInput.value.trim();
         const ward = wardSelect.value.trim();
         const province = provinceSelect.value.trim();
+        const selectedUnit = administrativeUnits.find(function (unit) {
+            return unit.province === province && formatWard(unit) === ward;
+        });
+
+        administrativeUnitIDInput.value = selectedUnit ? selectedUnit.id : "";
 
         if (detail) {
             parts.push(detail);
@@ -223,6 +228,7 @@
 
         provinceSelect.value = matchedUnit.province;
         fillWardSelect(matchedUnit.province, formatWard(matchedUnit));
+        administrativeUnitIDInput.value = matchedUnit.id;
 
         const suffix = formatWard(matchedUnit) + ", " + matchedUnit.province;
         if (addressText !== suffix) {

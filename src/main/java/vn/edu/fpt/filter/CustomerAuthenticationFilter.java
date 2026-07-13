@@ -30,6 +30,7 @@ import java.io.IOException;
         "/feedback-add",
         "/feedback-edit",
         "/my-vouchers",
+        "/my-blogs",
         "/views/customer/*",
         "/views/edit-profile.jsp"
 })

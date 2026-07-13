@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -281,6 +282,51 @@
             font-weight: 650;
         }
 
+        .field-message {
+            display: block;
+            min-height: 18px;
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .field-message.error {
+            color: #dc2626;
+        }
+
+        .field-message.success {
+            color: #16a34a;
+        }
+
+        .form-control.is-invalid,
+        .form-select.is-invalid {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-control.is-valid,
+        .form-select.is-valid {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+        }
+
+        .identity-preview {
+            display: none;
+            margin-top: 10px;
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8fafc;
+            max-width: 260px;
+        }
+
+        .identity-preview img {
+            width: 100%;
+            max-height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
         .booking-alert {
             border-radius: 8px;
             border: 1px solid #fecaca;
@@ -317,7 +363,7 @@
 <jsp:include page="/views/common/client-header.jsp"/>
 
 <main class="container booking-page">
-    <div class="page-head">
+    <header class="page-head">
         <div>
             <div class="page-kicker">
                 <i class="fa-solid fa-clipboard-check"></i>
@@ -329,16 +375,32 @@
             </p>
         </div>
 
-        <a class="btn-soft-back" href="${detailUrl}">
+        <a class="btn-soft-back" href="${fn:escapeXml(detailUrl)}">
             <i class="fa-solid fa-arrow-left"></i>
             Quay lại phòng
         </a>
-    </div>
+    </header>
 
-    <c:if test="${param.status == 'invalidCustomerInfo'}">
-        <div class="alert booking-alert shadow-sm">
+    <c:if test="${param.status == 'invalidCustomerInfo'
+            || param.status == 'invalidIdentityNumber'
+            || param.status == 'invalidIdentityImage'
+            || param.status == 'invalidAddress'}">
+        <div class="alert booking-alert shadow-sm" role="alert">
             <i class="fa-solid fa-circle-exclamation me-2"></i>
-            Vui lòng kiểm tra lại thông tin khách lưu trú. CCCD/CMND phải gồm 9 hoặc 12 chữ số; ảnh CCCD hỗ trợ JPG, JPEG, PNG hoặc WEBP và tối đa 5MB.
+            <c:choose>
+                <c:when test="${param.status == 'invalidIdentityNumber'}">
+                    CCCD/CMND chưa hợp lệ. Vui lòng nhập đúng 9 hoặc 12 chữ số, có thể nhập liền hoặc có khoảng trắng.
+                </c:when>
+                <c:when test="${param.status == 'invalidIdentityImage'}">
+                    Ảnh CCCD/CMND chưa hợp lệ. Vui lòng chọn ảnh JPG, JPEG, PNG hoặc WEBP và dung lượng tối đa 5MB.
+                </c:when>
+                <c:when test="${param.status == 'invalidAddress'}">
+                    Địa chỉ chưa hợp lệ. Vui lòng chọn tỉnh/thành phố, phường/xã và nhập số nhà, đường.
+                </c:when>
+                <c:otherwise>
+                    Vui lòng kiểm tra lại họ tên, email hoặc số điện thoại của khách lưu trú.
+                </c:otherwise>
+            </c:choose>
         </div>
     </c:if>
 
@@ -352,7 +414,7 @@
                 Thông tin được lấy từ tài khoản của bạn, có thể chỉnh lại nếu người nhận phòng dùng thông tin khác.
             </p>
 
-            <form action="${pageContext.request.contextPath}/booking/accommodation" method="post" enctype="multipart/form-data">
+            <form action="${pageContext.request.contextPath}/booking/accommodation" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
                 <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
                 <input type="hidden" name="roomID" value="${room.roomID}">
                 <input type="hidden" name="checkIn" value="${checkIn}">
@@ -389,12 +451,11 @@
                                id="identityNumber"
                                name="identityNumber"
                                inputmode="numeric"
-                               minlength="9"
                                maxlength="23"
-                               pattern="([0-9][ .-]?){9}|([0-9][ .-]?){12}"
                                placeholder="Nhập 9 hoặc 12 chữ số"
                                required>
                         <span class="field-hint">Có thể nhập liền hoặc có khoảng trắng, hệ thống sẽ tự chuẩn hóa.</span>
+                        <span class="field-message" id="identityNumberMessage"></span>
                     </div>
 
                     <div class="field">
@@ -406,16 +467,44 @@
                                accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp"
                                required>
                         <span class="field-hint">JPG, JPEG, PNG hoặc WEBP; tối đa 5MB.</span>
+                        <span class="field-message" id="identityImageMessage"></span>
+                        <div class="identity-preview" id="identityPreview">
+                            <img id="identityPreviewImage" alt="Ảnh CCCD / CMND đã chọn">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="city">Tỉnh/Thành phố</label>
+                        <select class="form-select" id="city" name="provinceCode" required>
+                            <option value="">Chọn tỉnh/thành phố</option>
+                        </select>
+                        <span class="field-message" id="cityMessage"></span>
+                    </div>
+
+                    <div class="field">
+                        <label for="administrativeUnitID">Phường/Xã</label>
+                        <select class="form-select" id="administrativeUnitID" name="administrativeUnitID" required disabled>
+                            <option value="">Chọn phường/xã</option>
+                        </select>
+                        <span class="field-message" id="wardMessage"></span>
                     </div>
 
                     <div class="field full">
-                        <label for="address">Địa chỉ liên hệ</label>
-                        <input class="form-control" id="address" name="address" value="${user.address}" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" autocomplete="street-address" required>
+                        <label for="streetAddress">Số nhà, đường</label>
+                        <input class="form-control"
+                               id="streetAddress"
+                               name="streetAddress"
+                               maxlength="120"
+                               placeholder="VD: 12 Tràng Tiền"
+                               autocomplete="street-address"
+                               required>
+                        <span class="field-hint">Chỉ nhập chữ, số, khoảng trắng và các ký tự , . / -</span>
+                        <span class="field-message" id="streetAddressMessage"></span>
                     </div>
 
                     <div class="field full">
-                        <label for="note">Ghi chú cho nơi lưu trú</label>
-                        <textarea class="form-control" id="note" name="note" placeholder="Ví dụ: nhận phòng muộn, cần phòng yên tĩnh, hỗ trợ trẻ em..."></textarea>
+                        <label for="note">Ghi chú cho nơi lưu trú (nếu có)</label>
+                        <textarea class="form-control" id="note" name="note" placeholder="Nếu có: nhận phòng muộn, cần phòng yên tĩnh, hỗ trợ trẻ em..."></textarea>
                     </div>
                 </div>
 
@@ -424,8 +513,8 @@
                         Hủy
                     </a>
                     <button class="btn-submit-booking" type="submit">
-                        <i class="fa-solid fa-calendar-check"></i>
-                        Đặt phòng
+                        <i class="fa-solid fa-credit-card"></i>
+                        Thanh toán
                     </button>
                 </div>
             </form>
@@ -433,16 +522,16 @@
 
         <aside class="summary-card">
             <div class="summary-image">
-                <img src="${room.image}"
-                     alt="${room.roomType}"
+                <img src="${fn:escapeXml(room.image)}"
+                     alt="${fn:escapeXml(room.roomType)}"
                      onerror="this.src='https://placehold.co/800x450?text=WonderVN+Room';">
             </div>
 
             <div class="summary-body">
-                <div class="summary-title">${room.roomType}</div>
+                <div class="summary-title"><c:out value="${room.roomType}"/></div>
                 <div class="summary-place">
                     <i class="fa-solid fa-location-dot me-1"></i>
-                    ${accommodation.name}
+                    <c:out value="${accommodation.name}"/>
                 </div>
 
                 <div class="summary-line">
@@ -483,5 +572,302 @@
 
 <jsp:include page="/views/common/client-footer.jsp"/>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form[action$='/booking/accommodation']");
+        const citySelect = document.getElementById("city");
+        const wardSelect = document.getElementById("administrativeUnitID");
+        const identityNumberInput = document.getElementById("identityNumber");
+        const identityImageInput = document.getElementById("identityImage");
+        const identityNumberMessage = document.getElementById("identityNumberMessage");
+        const identityImageMessage = document.getElementById("identityImageMessage");
+        const cityMessage = document.getElementById("cityMessage");
+        const wardMessage = document.getElementById("wardMessage");
+        const identityPreview = document.getElementById("identityPreview");
+        const identityPreviewImage = document.getElementById("identityPreviewImage");
+        const streetAddressInput = document.getElementById("streetAddress");
+        const streetAddressMessage = document.getElementById("streetAddressMessage");
+
+        const administrativeUnits = ${administrativeUnitsJson};
+        let previewObjectUrl = null;
+
+        function normalizeIdentityNumber(value) {
+            return (value || "").replace(/\D/g, "");
+        }
+
+        function setFieldState(input, messageEl, valid, message) {
+            if (!input || !messageEl) {
+                return;
+            }
+
+            input.classList.toggle("is-valid", valid);
+            input.classList.toggle("is-invalid", !valid);
+            messageEl.classList.toggle("success", valid);
+            messageEl.classList.toggle("error", !valid);
+            messageEl.textContent = message;
+        }
+
+        function clearFieldState(input, messageEl) {
+            if (!input || !messageEl) {
+                return;
+            }
+
+            input.classList.remove("is-valid", "is-invalid");
+            messageEl.classList.remove("success", "error");
+            messageEl.textContent = "";
+        }
+
+        function validateIdentityNumber(showEmptyError) {
+            const digits = normalizeIdentityNumber(identityNumberInput.value);
+
+            if (!digits) {
+                if (showEmptyError) {
+                    setFieldState(identityNumberInput, identityNumberMessage, false, "Vui lòng nhập CCCD/CMND.");
+                } else {
+                    clearFieldState(identityNumberInput, identityNumberMessage);
+                }
+                return false;
+            }
+
+            if (digits.length !== 9 && digits.length !== 12) {
+                setFieldState(identityNumberInput, identityNumberMessage, false, "CCCD/CMND phải gồm đúng 9 hoặc 12 chữ số.");
+                return false;
+            }
+
+            setFieldState(identityNumberInput, identityNumberMessage, true, "CCCD/CMND hợp lệ.");
+            return true;
+        }
+
+        function normalizeIdentityInput() {
+            const digits = normalizeIdentityNumber(identityNumberInput.value);
+            if (digits) {
+                identityNumberInput.value = digits;
+            }
+            validateIdentityNumber(false);
+        }
+
+        function validateIdentityImage(showEmptyError) {
+            const file = identityImageInput.files && identityImageInput.files[0];
+
+            if (!file) {
+                if (previewObjectUrl) {
+                    URL.revokeObjectURL(previewObjectUrl);
+                    previewObjectUrl = null;
+                }
+                identityPreview.style.display = "none";
+                identityPreviewImage.removeAttribute("src");
+
+                if (showEmptyError) {
+                    setFieldState(identityImageInput, identityImageMessage, false, "Vui lòng chọn ảnh CCCD/CMND.");
+                } else {
+                    clearFieldState(identityImageInput, identityImageMessage);
+                }
+                return false;
+            }
+
+            const allowedTypes = ["image/jpeg", "image/jpg", "image/pjpeg", "image/png", "image/webp"];
+            const allowedExtensions = /\.(jpe?g|png|webp)$/i;
+            const validType = allowedTypes.includes((file.type || "").toLowerCase()) || allowedExtensions.test(file.name || "");
+            const validSize = file.size <= 5 * 1024 * 1024;
+
+            if (!validType) {
+                identityPreview.style.display = "none";
+                setFieldState(identityImageInput, identityImageMessage, false, "Ảnh CCCD phải là JPG, JPEG, PNG hoặc WEBP.");
+                return false;
+            }
+
+            if (!validSize) {
+                identityPreview.style.display = "none";
+                setFieldState(identityImageInput, identityImageMessage, false, "Ảnh CCCD không được vượt quá 5MB.");
+                return false;
+            }
+
+            if (previewObjectUrl) {
+                URL.revokeObjectURL(previewObjectUrl);
+            }
+
+            previewObjectUrl = URL.createObjectURL(file);
+            identityPreviewImage.src = previewObjectUrl;
+            identityPreview.style.display = "block";
+            setFieldState(identityImageInput, identityImageMessage, true, "Ảnh CCCD hợp lệ.");
+            return true;
+        }
+
+        function validateStreetAddress(showEmptyError) {
+            const value = (streetAddressInput.value || "").trim();
+            const validPattern = /^[\p{L}0-9\s,./-]+$/u;
+
+            if (!value) {
+                if (showEmptyError) {
+                    setFieldState(streetAddressInput, streetAddressMessage, false, "Vui lòng nhập số nhà, đường.");
+                } else {
+                    clearFieldState(streetAddressInput, streetAddressMessage);
+                }
+                return false;
+            }
+
+            if (value.length > 120 || !validPattern.test(value)) {
+                setFieldState(streetAddressInput, streetAddressMessage, false, "Chỉ dùng chữ, số, khoảng trắng và ký tự , . / -");
+                return false;
+            }
+
+            setFieldState(streetAddressInput, streetAddressMessage, true, "Địa chỉ cụ thể hợp lệ.");
+            return true;
+        }
+
+        function groupUnitsByProvince(units) {
+            const provinceMap = new Map();
+
+            (units || []).forEach(function (unit) {
+                const provinceCode = (unit.provinceCode || "").trim();
+                const provinceName = (unit.provinceName || "").trim();
+                const wardName = (unit.wardName || "").trim();
+                const administrativeUnitID = Number(unit.administrativeUnitID);
+
+                if (!provinceCode || !provinceName || !wardName || !administrativeUnitID) {
+                    return;
+                }
+
+                if (!provinceMap.has(provinceCode)) {
+                    provinceMap.set(provinceCode, {
+                        provinceName: provinceName,
+                        wards: []
+                    });
+                }
+
+                provinceMap.get(provinceCode).wards.push({
+                    administrativeUnitID: administrativeUnitID,
+                    wardName: wardName,
+                    wardType: (unit.wardType || "").trim()
+                });
+            });
+
+            return provinceMap;
+        }
+
+        const provinceMap = groupUnitsByProvince(administrativeUnits);
+
+        function populateProvinceOptions() {
+            citySelect.innerHTML = '<option value="">Chọn tỉnh/thành phố</option>';
+
+            Array.from(provinceMap.entries()).forEach(function ([provinceCode, province]) {
+                const option = document.createElement("option");
+                option.value = provinceCode;
+                option.textContent = province.provinceName;
+                citySelect.appendChild(option);
+            });
+        }
+
+        function resetWardOptions(disabled) {
+            wardSelect.innerHTML = '<option value="">Chọn phường/xã</option>';
+            wardSelect.disabled = disabled;
+        }
+
+        function populateWardOptions(provinceCode) {
+            resetWardOptions(true);
+
+            const province = provinceMap.get(provinceCode);
+            const wards = province ? province.wards : [];
+            if (!wards.length) {
+                return;
+            }
+
+            wards.forEach(function (ward) {
+                const option = document.createElement("option");
+                option.value = ward.administrativeUnitID;
+                const normalizedWardName = ward.wardName.toLowerCase();
+                const normalizedWardType = ward.wardType.toLowerCase();
+                option.textContent = ward.wardType && !normalizedWardName.startsWith(normalizedWardType + " ")
+                    ? ward.wardType + " " + ward.wardName
+                    : ward.wardName;
+                wardSelect.appendChild(option);
+            });
+
+            wardSelect.disabled = false;
+        }
+
+        function validateAddressSelect(select, messageEl, emptyMessage, validMessage, showEmptyError) {
+            if (!select.value) {
+                if (showEmptyError) {
+                    setFieldState(select, messageEl, false, emptyMessage);
+                } else {
+                    clearFieldState(select, messageEl);
+                }
+                return false;
+            }
+
+            setFieldState(select, messageEl, true, validMessage);
+            return true;
+        }
+
+        function validateCity(showEmptyError) {
+            return validateAddressSelect(
+                citySelect,
+                cityMessage,
+                "Vui lòng chọn tỉnh/thành phố.",
+                "Tỉnh/thành phố hợp lệ.",
+                showEmptyError
+            );
+        }
+
+        function validateWard(showEmptyError) {
+            return validateAddressSelect(
+                wardSelect,
+                wardMessage,
+                "Vui lòng chọn phường/xã.",
+                "Phường/xã hợp lệ.",
+                showEmptyError
+            );
+        }
+
+        identityNumberInput.addEventListener("input", function () {
+            validateIdentityNumber(false);
+        });
+
+        identityNumberInput.addEventListener("blur", normalizeIdentityInput);
+        identityImageInput.addEventListener("change", function () {
+            validateIdentityImage(true);
+        });
+        streetAddressInput.addEventListener("input", function () {
+            validateStreetAddress(false);
+        });
+        streetAddressInput.addEventListener("blur", function () {
+            streetAddressInput.value = (streetAddressInput.value || "").trim();
+            validateStreetAddress(true);
+        });
+
+        citySelect.addEventListener("change", function () {
+            clearFieldState(wardSelect, wardMessage);
+            validateCity(false);
+            populateWardOptions(citySelect.value);
+        });
+
+        wardSelect.addEventListener("change", function () {
+            validateWard(false);
+        });
+
+        populateProvinceOptions();
+        resetWardOptions(true);
+
+        form.addEventListener("submit", function (event) {
+            const isIdentityValid = validateIdentityNumber(true);
+            const isImageValid = validateIdentityImage(true);
+            const isCityValid = validateCity(true);
+            const isWardValid = validateWard(true);
+            const isStreetValid = validateStreetAddress(true);
+
+            if (!isIdentityValid || !isImageValid || !isCityValid || !isWardValid || !isStreetValid) {
+                event.preventDefault();
+                const firstInvalid = form.querySelector(".is-invalid");
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                }
+            } else {
+                identityNumberInput.value = normalizeIdentityNumber(identityNumberInput.value);
+            }
+        });
+    });
+</script>
 </body>
 </html>

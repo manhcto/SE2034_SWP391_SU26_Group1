@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -115,6 +116,11 @@
             background: #f1f5f9;
             color: #475569;
         }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
 .table thead th {
             color: #64748b;
             font-size: 12px;
@@ -164,6 +170,23 @@
         .btn-delete {
             color: #dc2626;
         }
+
+        .blog-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.58);
+        }
+
+        .blog-dialog {
+            width: min(780px, 100%);
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
+        }
 @media (max-width: 992px) {
             .admin-layout {
                 display: block;
@@ -180,7 +203,7 @@
 
 <div class="admin-layout">
     <c:choose>
-        <c:when test="${sessionScope.user.userID == 1}">
+        <c:when test="${blogManagementRole == 'admin'}">
             <jsp:include page="/views/common/admin-sidebar.jsp">
                 <jsp:param name="activeAdminMenu" value="blog"/>
             </jsp:include>
@@ -190,7 +213,7 @@
         </c:otherwise>
     </c:choose>
 
-    <main class="admin-main${blogManagementReadOnly ? ' with-admin-sidebar' : ''}">
+    <main class="admin-main${blogManagementRole == 'admin' ? ' with-admin-sidebar' : ''}">
         <jsp:include page="/views/common/admin-header.jsp"/>
 
         <div class="p-4">
@@ -199,9 +222,14 @@
                     <i class="fa-solid fa-newspaper" style="font-size: 2.4rem;"></i>
                     <div>
                         <h1 class="h3 fw-bold m-0">Quản lý Blog</h1>
-                        <p class="m-0 mt-1 text-white-50">Tạo bài viết, lưu bản nháp và xuất bản nội dung cho khách hàng.</p>
+                        <p class="m-0 mt-1 text-white-50">Duyệt bài viết khách hàng và xuất bản nội dung WonderVN.</p>
                     </div>
                 </div>
+                <c:if test="${not blogManagementReadOnly}">
+                    <a class="btn btn-light fw-bold" href="${blogManagementPath}?action=new">
+                        <i class="fa-solid fa-plus me-1"></i>Thêm blog
+                    </a>
+                </c:if>
             </div>
 
             <c:if test="${not empty error}">
@@ -222,28 +250,36 @@
 
             <c:set var="total" value="0"/>
             <c:set var="publishedCount" value="0"/>
+            <c:set var="pendingCount" value="0"/>
             <c:set var="draftCount" value="0"/>
 
             <c:forEach items="${BLOG_LIST}" var="post">
                 <c:set var="total" value="${total + 1}"/>
                 <c:if test="${post.status == 'Published'}"><c:set var="publishedCount" value="${publishedCount + 1}"/></c:if>
-                <c:if test="${post.status != 'Published'}"><c:set var="draftCount" value="${draftCount + 1}"/></c:if>
+                <c:if test="${post.status == 'Pending'}"><c:set var="pendingCount" value="${pendingCount + 1}"/></c:if>
+                <c:if test="${post.status == 'Draft'}"><c:set var="draftCount" value="${draftCount + 1}"/></c:if>
             </c:forEach>
 
             <div class="row g-3 mb-4">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="stat-card">
                         <div class="stat-icon" style="background:#e0f2fe;color:#0369a1;"><i class="fa-solid fa-layer-group"></i></div>
                         <div><h3>${total}</h3><p>Tổng bài viết</p></div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="stat-card">
                         <div class="stat-icon" style="background:#dcfce7;color:#166534;"><i class="fa-solid fa-circle-check"></i></div>
                         <div><h3>${publishedCount}</h3><p>Đã đăng</p></div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background:#fef3c7;color:#92400e;"><i class="fa-solid fa-clock"></i></div>
+                        <div><h3>${pendingCount}</h3><p>Chờ duyệt</p></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="stat-card">
                         <div class="stat-icon" style="background:#f1f5f9;color:#475569;"><i class="fa-solid fa-pen"></i></div>
                         <div><h3>${draftCount}</h3><p>Bản nháp</p></div>
@@ -252,9 +288,9 @@
             </div>
 
             <div class="row g-4">
-                <c:if test="${not blogManagementReadOnly}">
-                <div class="col-xl-4">
-                    <div class="content-card position-sticky" style="top: 24px;">
+                <c:if test="${not blogManagementReadOnly && showBlogForm}">
+                <div class="blog-modal" role="dialog" aria-modal="true" aria-label="Biểu mẫu blog">
+                    <div class="blog-dialog content-card">
                                 <h2 class="h5 fw-bold mb-3">
                                     <c:choose>
                                         <c:when test="${not empty editingPost && editingPost.blogID > 0}">
@@ -277,14 +313,6 @@
                                                value="${editingPost.title}" required>
                                     </div>
 
-                                    <div class="row g-3">
-                                        <div class="col-md-12">
-                                            <label class="form-label">Danh mục</label>
-                                            <input class="form-control" type="text" name="category" maxlength="100"
-                                                   value="${editingPost.category}" placeholder="VD: Kinh nghiệm">
-                                        </div>
-                                    </div>
-
                                     <div class="mb-3 mt-3">
                                         <label class="form-label">Slug tùy chỉnh</label>
                                         <input class="form-control" type="text" name="slug" maxlength="255"
@@ -299,8 +327,12 @@
                                     </div>
 
                                     <div class="mb-3">
+                                        <c:set var="previewUrl" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"/>
                                         <c:if test="${not empty editingPost.image}">
-                                            <c:set var="previewUrl" value="${pageContext.request.contextPath}/${editingPost.image}"/>
+                                            <c:set var="previewUrl" value="${editingPost.image}"/>
+                                            <c:if test="${not fn:startsWith(editingPost.image, 'http')}">
+                                                <c:set var="previewUrl" value="${pageContext.request.contextPath}/${editingPost.image}"/>
+                                            </c:if>
                                         </c:if>
                                         <img id="imagePreview"
                                              class="image-preview"
@@ -336,7 +368,7 @@
                 </div>
                 </c:if>
 
-                <div class="${blogManagementReadOnly ? 'col-12' : 'col-xl-8'}">
+                <div class="col-12">
                     <div class="content-card mb-3">
                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
                             <div>
@@ -345,24 +377,17 @@
                             </div>
                         </div>
                         <form action="${blogManagementPath}" method="get" class="row g-2 align-items-center">
-                            <div class="col-lg-5">
+                            <div class="col-lg-8">
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-primary"></i></span>
                                     <input class="form-control" type="text" name="keyword" value="${keyword}" placeholder="Tìm bài theo tên...">
                                 </div>
                             </div>
-                            <div class="col-lg-3">
-                                <select class="form-select" name="category">
-                                    <option value="" ${empty selectedCategory ? 'selected' : ''}>Tất cả danh mục</option>
-                                    <c:forEach items="${CATEGORY_LIST}" var="cat">
-                                        <option value="${cat}" ${cat == selectedCategory ? 'selected' : ''}><c:out value="${cat}"/></option>
-                                    </c:forEach>
-                                </select>
-                            </div>
                             <div class="col-lg-2">
                                 <select class="form-select" name="status">
                                     <option value="" ${empty selectedStatus ? 'selected' : ''}>Tất cả trạng thái</option>
                                     <option value="Published" ${selectedStatus == 'Published' ? 'selected' : ''}>Đã đăng</option>
+                                    <option value="Pending" ${selectedStatus == 'Pending' ? 'selected' : ''}>Chờ duyệt</option>
                                     <option value="Draft" ${selectedStatus == 'Draft' ? 'selected' : ''}>Bản nháp</option>
                                 </select>
                             </div>
@@ -377,7 +402,6 @@
                                     <thead class="table-light">
                                     <tr>
                                         <th>Bài viết</th>
-                                        <th>Danh mục</th>
                                         <th>Trạng thái</th>
                                         <th>Ngày đăng</th>
                                         <th class="text-center">Hành động</th>
@@ -387,7 +411,7 @@
                                     <c:choose>
                                         <c:when test="${empty BLOG_LIST}">
                                             <tr>
-                                                <td colspan="5" class="text-center text-muted py-5">
+                                                <td colspan="4" class="text-center text-muted py-5">
                                                     <i class="fa-regular fa-folder-open fs-2 d-block mb-2"></i>
                                                     Không tìm thấy bài viết phù hợp.
                                                 </td>
@@ -405,7 +429,11 @@
                                                                          style="width:58px;height:58px;border-radius:10px;object-fit:cover;">
                                                                 </c:when>
                                                                 <c:otherwise>
-                                                                    <img src="${pageContext.request.contextPath}/${post.image}"
+                                                                    <c:set var="postImageUrl" value="${post.image}"/>
+                                                                    <c:if test="${not fn:startsWith(post.image, 'http')}">
+                                                                        <c:set var="postImageUrl" value="${pageContext.request.contextPath}/${post.image}"/>
+                                                                    </c:if>
+                                                                    <img src="${postImageUrl}"
                                                                          alt="${post.title}"
                                                                          style="width:58px;height:58px;border-radius:10px;object-fit:cover;">
                                                                 </c:otherwise>
@@ -417,15 +445,15 @@
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <span class="badge rounded-pill text-bg-light border">
-                                                            <c:out value="${empty post.category ? 'Chưa phân loại' : post.category}"/>
-                                                        </span>
-                                                    </td>
-                                                    <td>
                                                         <c:choose>
                                                             <c:when test="${post.status == 'Published'}">
                                                                 <span class="badge-status status-published">
                                                                     <i class="fa-solid"></i> Đã đăng
+                                                                </span>
+                                                            </c:when>
+                                                            <c:when test="${post.status == 'Pending'}">
+                                                                <span class="badge-status status-pending">
+                                                                    <i class="fa-solid fa-clock"></i> Chờ duyệt
                                                                 </span>
                                                             </c:when>
                                                             <c:otherwise>
@@ -458,22 +486,28 @@
                                                             <i class="fa-solid fa-pen-to-square"></i>
                                                         </a>
                                                         </c:if>
-                                                        <a class="action-btn"
-                                                           href="${blogManagementPath}?action=status&id=${post.blogID}&status=Published"
-                                                           title="Đăng bài">
-                                                            <i class="fa-solid fa-upload"></i>
-                                                        </a>
-                                                        <a class="action-btn"
-                                                           href="${blogManagementPath}?action=status&id=${post.blogID}&status=Draft"
-                                                           title="Đưa về bản nháp">
-                                                            <i class="fa-solid fa-file-pen"></i>
-                                                        </a>
-                                                        <a class="action-btn btn-delete"
-                                                           href="${blogManagementPath}?action=delete&id=${post.blogID}"
-                                                           onclick="return confirm('Bạn có chắc muốn xóa bài viết này không?');"
-                                                           title="Xóa">
-                                                            <i class="fa-solid fa-trash-can"></i>
-                                                        </a>
+                                                        <c:if test="${post.status != 'Published'}">
+                                                            <a class="action-btn"
+                                                               href="${blogManagementPath}?action=status&id=${post.blogID}&status=Published"
+                                                               title="Duyệt đăng">
+                                                                <i class="fa-solid fa-circle-check"></i>
+                                                            </a>
+                                                        </c:if>
+                                                        <c:if test="${post.status != 'Draft'}">
+                                                            <a class="action-btn"
+                                                               href="${blogManagementPath}?action=status&id=${post.blogID}&status=Draft"
+                                                               title="Đưa về bản nháp">
+                                                                <i class="fa-solid fa-file-pen"></i>
+                                                            </a>
+                                                        </c:if>
+                                                        <c:if test="${not blogManagementReadOnly}">
+                                                            <a class="action-btn btn-delete"
+                                                               href="${blogManagementPath}?action=delete&id=${post.blogID}"
+                                                               onclick="return confirm('Bạn có chắc muốn xóa bài viết này không?');"
+                                                               title="Xóa">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </a>
+                                                        </c:if>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -494,7 +528,7 @@
     const imagePreview = document.getElementById("imagePreview");
     const fallbackimage = "${pageContext.request.contextPath}/assets/images/home/hero-bana.png";
 
-    imageInput.addEventListener("change", function () {
+    imageInput?.addEventListener("change", function () {
         if (this.files && this.files[0]) {
             imagePreview.src = URL.createObjectURL(this.files[0]);
         }

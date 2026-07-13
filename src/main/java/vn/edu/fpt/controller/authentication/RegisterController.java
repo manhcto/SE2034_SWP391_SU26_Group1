@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.UserDAO;
+import vn.edu.fpt.model.AdministrativeUnit;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -34,7 +35,14 @@ public class RegisterController extends HttpServlet {
         String phone     = trimToEmpty(request.getParameter("phone"));
         String gender    = trimToEmpty(request.getParameter("gender"));
         String dob       = trimToEmpty(request.getParameter("dob"));
-        String address   = trimToEmpty(request.getParameter("address"));
+        String streetAddress = trimToEmpty(request.getParameter("streetAddress"));
+        int administrativeUnitID = parsePositiveInt(request.getParameter("administrativeUnitID"));
+        AdministrativeUnit administrativeUnit = administrativeUnitID > 0
+                ? administrativeUnitDAO.getActiveUnitByID(administrativeUnitID)
+                : null;
+        String address = administrativeUnit == null ? ""
+                : joinAddress(streetAddress,
+                administrativeUnit.getWardName(), administrativeUnit.getProvinceName());
 
         int roleID = 4; // Customer
 
@@ -164,6 +172,22 @@ public class RegisterController extends HttpServlet {
         }
 
         return null;
+    }
+
+    private int parsePositiveInt(String value) {
+        try {
+            int number = Integer.parseInt(trimToEmpty(value));
+            return number > 0 ? number : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private String joinAddress(String streetAddress, String wardName, String provinceName) {
+        if (streetAddress.isEmpty()) {
+            return wardName + ", " + provinceName;
+        }
+        return streetAddress + ", " + wardName + ", " + provinceName;
     }
 
     private String trimToEmpty(String value) {

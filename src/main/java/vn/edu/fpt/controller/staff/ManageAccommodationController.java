@@ -5,6 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import vn.edu.fpt.DAO.AccommodationDAO;
 import vn.edu.fpt.DAO.AdministrativeUnitDAO;
@@ -13,6 +14,7 @@ import vn.edu.fpt.DAO.RoomDAO;
 import vn.edu.fpt.model.Accommodation;
 import vn.edu.fpt.model.Facility;
 import vn.edu.fpt.model.Room;
+import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -20,7 +22,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet(name = "ManageAccommodationController", urlPatterns = {"/staff/accommodation"})
 public class ManageAccommodationController extends HttpServlet {
@@ -48,14 +53,6 @@ public class ManageAccommodationController extends HttpServlet {
 
             case "detail":
                 showAccommodationDetail(request, response);
-                break;
-
-            case "delete":
-                deleteAccommodation(request, response);
-                break;
-
-            case "deleteRoom":
-                deleteRoom(request, response);
                 break;
 
             default:
@@ -96,6 +93,14 @@ public class ManageAccommodationController extends HttpServlet {
                 updateRoomFacilities(request, response);
                 break;
 
+            case "delete":
+                deleteAccommodation(request, response);
+                break;
+
+            case "deleteRoom":
+                deleteRoom(request, response);
+                break;
+
             default:
                 response.sendRedirect(request.getContextPath() + "/staff/accommodation?action=list");
                 break;
@@ -107,19 +112,28 @@ public class ManageAccommodationController extends HttpServlet {
 
         List<Accommodation> accommodationList = accommodationDAO.getAllAccommodations();
         List<Facility> accommodationFacilityOptions = facilityDAO.getAccommodationFacilityOptions();
+        Map<Integer, List<Room>> roomsByAccommodation = new HashMap<>();
+        Map<Integer, List<Facility>> facilitiesByAccommodation =
+                facilityDAO.getAccommodationFacilitiesGroupedForEdit();
+
+        for (Room room : roomDAO.getAllRooms()) {
+            roomsByAccommodation
+                    .computeIfAbsent(room.getAccommodationID(), ignored -> new ArrayList<>())
+                    .add(room);
+        }
 
         for (Accommodation accommodation : accommodationList) {
             int accommodationID = accommodation.getAccommodationID();
-
-            List<Room> roomList = roomDAO.getRoomsByAccommodation(accommodationID);
-            List<Facility> facilityList = facilityDAO.getFacilitiesByAccommodation(accommodationID);
-
-            accommodation.setRoomList(roomList);
-            accommodation.setFacilityList(facilityList);
+            accommodation.setRoomList(
+                    roomsByAccommodation.getOrDefault(accommodationID, List.of()));
+            accommodation.setFacilityList(
+                    facilitiesByAccommodation.getOrDefault(accommodationID, List.of()));
         }
 
         request.setAttribute("accommodationList", accommodationList);
         request.setAttribute("accommodationFacilityOptions", accommodationFacilityOptions);
+        request.setAttribute("accommodationFacilityEditOptions",
+                facilityDAO.getAccommodationFacilityEditOptions());
         request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
 
         request.getRequestDispatcher("/views/staff/accommodation-management.jsp")
@@ -146,18 +160,25 @@ public class ManageAccommodationController extends HttpServlet {
         }
 
         List<Room> roomList = roomDAO.getRoomsByAccommodation(accommodationID);
-
+        Map<Integer, List<Facility>> facilitiesByRoom =
+                facilityDAO.getRoomFacilitiesGroupedForEdit();
         for (Room room : roomList) {
-            room.setFacilityList(facilityDAO.getFacilitiesByRoom(room.getRoomID()));
+            room.setFacilityList(
+                    facilitiesByRoom.getOrDefault(room.getRoomID(), List.of()));
         }
 
         accommodation.setRoomList(roomList);
-        accommodation.setFacilityList(facilityDAO.getFacilitiesByAccommodation(accommodationID));
+        accommodation.setFacilityList(
+                facilityDAO.getAccommodationFacilitiesGroupedForEdit()
+                        .getOrDefault(accommodationID, List.of()));
 
         request.setAttribute("accommodation", accommodation);
         request.setAttribute("roomList", roomList);
         request.setAttribute("accommodationFacilityOptions", facilityDAO.getAccommodationFacilityOptions());
+        request.setAttribute("accommodationFacilityEditOptions",
+                facilityDAO.getAccommodationFacilityEditOptions());
         request.setAttribute("roomFacilityOptions", facilityDAO.getRoomFacilityOptions());
+        request.setAttribute("roomFacilityEditOptions", facilityDAO.getRoomFacilityEditOptions());
 
         request.getRequestDispatcher("/views/staff/accommodation-detail.jsp")
                 .forward(request, response);
@@ -167,7 +188,7 @@ public class ManageAccommodationController extends HttpServlet {
             throws IOException {
 
         AccommodationData data = readAccommodationData(request);
-        List<String> errors = validateAccommodationInput(data);
+        Map<String, String> errors = validateAccommodationInput(data);
 
         if (!errors.isEmpty()) {
             saveErrors(request, errors);
@@ -178,13 +199,13 @@ public class ManageAccommodationController extends HttpServlet {
         }
 
         Accommodation accommodation = buildAccommodation(0, data);
+        HttpSession session = request.getSession(false);
+        User currentUser = session == null ? null : (User) session.getAttribute("user");
+        accommodation.setCreatedByUserID(currentUser == null ? null : currentUser.getUserID());
 
-        int newAccommodationID = accommodationDAO.addAccommodationAndReturnId(accommodation);
-
-        if (newAccommodationID > 0) {
-            int[] facilityIDs = facilityDAO.parseFacilityIDs(request.getParameterValues("facilityIDs"));
-            facilityDAO.updateAccommodationFacilities(newAccommodationID, facilityIDs);
-        }
+        int[] facilityIDs = facilityDAO.parseFacilityIDs(request.getParameterValues("facilityIDs"));
+        int newAccommodationID = accommodationDAO.addAccommodationWithFacilities(
+                accommodation, facilityIDs);
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/accommodation?action=list&status="
@@ -195,12 +216,14 @@ public class ManageAccommodationController extends HttpServlet {
             throws IOException {
 
         AccommodationData data = readAccommodationData(request);
-        List<String> errors = validateAccommodationInput(data);
+        Map<String, String> errors = validateAccommodationInput(data);
 
         Integer accommodationID = parsePositiveInt(data.accommodationIDRaw);
 
         if (accommodationID == null) {
-            errors.add("Mã nơi lưu trú không hợp lệ.");
+            errors.put("accommodationID", "Mã nơi lưu trú không hợp lệ.");
+        } else if (accommodationDAO.getAccommodationById(accommodationID) == null) {
+            errors.put("accommodationID", "Nơi lưu trú không tồn tại.");
         }
 
         if (!errors.isEmpty()) {
@@ -213,12 +236,9 @@ public class ManageAccommodationController extends HttpServlet {
 
         Accommodation accommodation = buildAccommodation(accommodationID, data);
 
-        boolean success = accommodationDAO.updateAccommodation(accommodation);
-
-        if (success) {
-            int[] facilityIDs = facilityDAO.parseFacilityIDs(request.getParameterValues("facilityIDs"));
-            facilityDAO.updateAccommodationFacilities(accommodationID, facilityIDs);
-        }
+        int[] facilityIDs = facilityDAO.parseFacilityIDs(request.getParameterValues("facilityIDs"));
+        boolean success = accommodationDAO.updateAccommodationWithFacilities(
+                accommodation, facilityIDs);
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/accommodation?action=list&status="
@@ -236,23 +256,36 @@ public class ManageAccommodationController extends HttpServlet {
             return;
         }
 
-        boolean success = accommodationDAO.deleteAccommodation(accommodationID);
+        if (accommodationDAO.getAccommodationById(accommodationID) == null) {
+            response.sendRedirect(request.getContextPath()
+                    + "/staff/accommodation?action=list&status=notFound");
+            return;
+        }
+
+        boolean referenced = accommodationDAO.hasBookingReferences(accommodationID);
+        boolean success = referenced
+                ? accommodationDAO.deactivateAccommodation(accommodationID)
+                : accommodationDAO.deleteAccommodation(accommodationID);
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/accommodation?action=list&status="
-                + (success ? "deleteSuccess" : "deleteFail"));
+                + (success
+                ? (referenced ? "deactivateSuccess" : "deleteSuccess")
+                : "deleteFail"));
     }
 
     private void addRoom(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         RoomData data = readRoomData(request);
-        List<String> errors = validateRoomInput(data);
+        Map<String, String> errors = validateRoomInput(data);
 
         Integer accommodationID = parsePositiveInt(data.accommodationIDRaw);
 
         if (accommodationID == null) {
-            errors.add("Mã nơi lưu trú không hợp lệ.");
+            errors.put("accommodationID", "Mã nơi lưu trú không hợp lệ.");
+        } else if (accommodationDAO.getAccommodationById(accommodationID) == null) {
+            errors.put("accommodationID", "Nơi lưu trú không tồn tại.");
         }
 
         if (!errors.isEmpty()) {
@@ -265,7 +298,8 @@ public class ManageAccommodationController extends HttpServlet {
         }
 
         Room room = buildRoom(0, accommodationID, data);
-        boolean success = roomDAO.addRoom(room);
+        int[] facilityIDs = facilityDAO.parseFacilityIDs(request.getParameterValues("facilityIDs"));
+        boolean success = roomDAO.addRoomWithFacilities(room, facilityIDs) > 0;
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/accommodation?action=detail&id=" + accommodationID
@@ -276,17 +310,22 @@ public class ManageAccommodationController extends HttpServlet {
             throws IOException {
 
         RoomData data = readRoomData(request);
-        List<String> errors = validateRoomInput(data);
+        Map<String, String> errors = validateRoomInput(data);
 
         Integer roomID = parsePositiveInt(data.roomIDRaw);
         Integer accommodationID = parsePositiveInt(data.accommodationIDRaw);
 
         if (roomID == null) {
-            errors.add("Mã phòng không hợp lệ.");
+            errors.put("roomID", "Mã phòng không hợp lệ.");
         }
 
         if (accommodationID == null) {
-            errors.add("Mã nơi lưu trú không hợp lệ.");
+            errors.put("accommodationID", "Mã nơi lưu trú không hợp lệ.");
+        }
+
+        if (roomID != null && accommodationID != null
+                && roomDAO.getRoomByIdAndAccommodation(roomID, accommodationID) == null) {
+            errors.put("roomID", "Phòng không thuộc nơi lưu trú này hoặc không tồn tại.");
         }
 
         if (!errors.isEmpty()) {
@@ -299,7 +338,8 @@ public class ManageAccommodationController extends HttpServlet {
         }
 
         Room room = buildRoom(roomID, accommodationID, data);
-        boolean success = roomDAO.updateRoom(room);
+        int[] facilityIDs = facilityDAO.parseFacilityIDs(request.getParameterValues("facilityIDs"));
+        boolean success = roomDAO.updateRoomWithFacilities(room, facilityIDs);
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/accommodation?action=detail&id=" + accommodationID
@@ -318,11 +358,16 @@ public class ManageAccommodationController extends HttpServlet {
             return;
         }
 
-        boolean success = roomDAO.deleteRoom(roomID);
+        boolean referenced = roomDAO.hasBookingReferences(roomID, accommodationID);
+        boolean success = referenced
+                ? roomDAO.deactivateRoom(roomID, accommodationID)
+                : roomDAO.deleteRoom(roomID, accommodationID);
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/accommodation?action=detail&id=" + accommodationID
-                + "&status=" + (success ? "deleteRoomSuccess" : "deleteRoomFail"));
+                + "&status=" + (success
+                ? (referenced ? "deactivateRoomSuccess" : "deleteRoomSuccess")
+                : "deleteRoomFail"));
     }
 
     private void updateAccommodationFacilities(HttpServletRequest request, HttpServletResponse response)
@@ -331,6 +376,12 @@ public class ManageAccommodationController extends HttpServlet {
         Integer accommodationID = parsePositiveInt(request.getParameter("accommodationID"));
 
         if (accommodationID == null) {
+            response.sendRedirect(request.getContextPath()
+                    + "/staff/accommodation?action=list&status=facilityFail");
+            return;
+        }
+
+        if (accommodationDAO.getAccommodationById(accommodationID) == null) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/accommodation?action=list&status=facilityFail");
             return;
@@ -353,6 +404,13 @@ public class ManageAccommodationController extends HttpServlet {
         if (roomID == null || accommodationID == null) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/accommodation?action=list&status=roomFacilityFail");
+            return;
+        }
+
+        if (roomDAO.getRoomByIdAndAccommodation(roomID, accommodationID) == null) {
+            response.sendRedirect(request.getContextPath()
+                    + "/staff/accommodation?action=detail&id=" + accommodationID
+                    + "&status=roomFacilityFail");
             return;
         }
 
@@ -415,7 +473,7 @@ public class ManageAccommodationController extends HttpServlet {
         accommodation.setAddress(data.address);
         accommodation.setPhone(data.phone);
         accommodation.setDescription(data.description);
-        accommodation.setRate(Double.parseDouble(normalizeDecimal(data.rateRaw)));
+        accommodation.setRate(parseBigDecimal(data.rateRaw));
         accommodation.setType(data.type);
         accommodation.setStatus(data.status);
         accommodation.setCheckInTime(parseTime(data.checkInTimeRaw));
@@ -443,142 +501,127 @@ public class ManageAccommodationController extends HttpServlet {
         room.setBedType(data.bedType);
         room.setMaxAdults(Integer.parseInt(data.maxAdultsRaw.trim()));
         room.setMaxChildren(Integer.parseInt(data.maxChildrenRaw.trim()));
-        room.setRoomSize(new BigDecimal(normalizeDecimal(data.roomSizeRaw)));
+        room.setRoomSize(parseBigDecimal(data.roomSizeRaw));
 
         return room;
     }
 
-    private List<String> validateAccommodationInput(AccommodationData data) {
-        List<String> errors = new ArrayList<>();
+    private Map<String, String> validateAccommodationInput(AccommodationData data) {
+        Map<String, String> errors = new LinkedHashMap<>();
 
         if (isBlank(data.name) || data.name.length() < 2 || data.name.length() > 255) {
-            errors.add("Tên nơi lưu trú phải từ 2 đến 255 ký tự.");
+            errors.put("name", "Tên nơi lưu trú phải từ 2 đến 255 ký tự.");
         }
 
-        if (isBlank(data.image)) {
-            errors.add("Ảnh nơi lưu trú không được để trống.");
-        } else if (!isValidUrl(data.image)) {
-            errors.add("Ảnh nơi lưu trú phải bắt đầu bằng http:// hoặc https://.");
+        if (!isBlank(data.image) && !isValidUrl(data.image)) {
+            errors.put("image", "Ảnh nơi lưu trú phải bắt đầu bằng http:// hoặc https://.");
         }
 
         if (isBlank(data.address) || data.address.length() < 3 || data.address.length() > 255) {
-            errors.add("Địa chỉ cụ thể phải từ 3 đến 255 ký tự.");
+            errors.put("address", "Địa chỉ cụ thể phải từ 3 đến 255 ký tự.");
         }
 
-        if (isBlank(data.phone)) {
-            errors.add("Số điện thoại không được để trống.");
-        } else if (!data.phone.matches("^[0-9]{8,15}$")) {
-            errors.add("Số điện thoại phải gồm 8 đến 15 chữ số.");
+        if (!isBlank(data.phone) && !data.phone.matches("^[0-9]{10,11}$")) {
+            errors.put("phone", "Số điện thoại phải gồm 10 đến 11 chữ số.");
         }
 
-        if (isBlank(data.description) || data.description.length() < 10 || data.description.length() > 2000) {
-            errors.add("Mô tả nơi lưu trú phải từ 10 đến 2000 ký tự.");
+        if (data.description.length() > 1000) {
+            errors.put("description", "Mô tả nơi lưu trú không được vượt quá 1000 ký tự.");
         }
 
-        Double rate = parseDouble(data.rateRaw);
-        if (rate == null || rate < 0 || rate > 5) {
-            errors.add("Đánh giá phải từ 0 đến 5.");
+        BigDecimal rate = parseBigDecimal(data.rateRaw);
+        if (!isBlank(data.rateRaw) && (rate == null
+                || rate.compareTo(BigDecimal.ZERO) < 0
+                || rate.compareTo(new BigDecimal("5")) > 0)) {
+            errors.put("rate", "Đánh giá phải từ 0 đến 5.");
         }
 
         if (!isValidAccommodationType(data.type)) {
-            errors.add("Loại lưu trú không hợp lệ.");
+            errors.put("type", "Loại lưu trú không hợp lệ.");
         }
 
         if (!isValidAccommodationStatus(data.status)) {
-            errors.add("Trạng thái lưu trú không hợp lệ.");
+            errors.put("status", "Trạng thái lưu trú không hợp lệ.");
         }
 
-        if (parseTime(data.checkInTimeRaw) == null) {
-            errors.add("Giờ nhận phòng không hợp lệ.");
+        if (!isBlank(data.checkInTimeRaw) && parseTime(data.checkInTimeRaw) == null) {
+            errors.put("checkInTime", "Giờ nhận phòng không hợp lệ.");
         }
 
-        if (parseTime(data.checkOutTimeRaw) == null) {
-            errors.add("Giờ trả phòng không hợp lệ.");
+        if (!isBlank(data.checkOutTimeRaw) && parseTime(data.checkOutTimeRaw) == null) {
+            errors.put("checkOutTime", "Giờ trả phòng không hợp lệ.");
         }
 
         if (!administrativeUnitDAO.isValidProvinceWard(data.province, data.ward)) {
-            errors.add("Tỉnh/thành và phường/xã không hợp lệ theo danh mục hành chính.");
+            errors.put("ward", "Tỉnh/thành và phường/xã không hợp lệ theo danh mục hành chính.");
         }
 
         return errors;
     }
 
-    private List<String> validateRoomInput(RoomData data) {
-        List<String> errors = new ArrayList<>();
+    private Map<String, String> validateRoomInput(RoomData data) {
+        Map<String, String> errors = new LinkedHashMap<>();
 
-        if (isBlank(data.roomType) || data.roomType.length() < 2 || data.roomType.length() > 100) {
-            errors.add("Loại phòng phải từ 2 đến 100 ký tự.");
+        if (isBlank(data.roomType) || data.roomType.length() > 100) {
+            errors.put("roomType", "Loại phòng là bắt buộc và không được vượt quá 100 ký tự.");
         }
 
-        Integer numberOfRooms = parsePositiveInt(data.numberOfRoomsRaw);
+        Integer numberOfRooms = parseNonNegativeInt(data.numberOfRoomsRaw);
         if (numberOfRooms == null || numberOfRooms > 1000) {
-            errors.add("Tổng số phòng phải từ 1 đến 1000.");
+            errors.put("numberOfRooms", "Tổng số phòng phải từ 0 đến 1000.");
         }
 
         BigDecimal price = parseBigDecimal(data.priceOfRoomRaw);
         if (price == null || price.compareTo(BigDecimal.ZERO) <= 0
                 || price.compareTo(new BigDecimal("1000000000")) > 0) {
-            errors.add("Giá phòng phải lớn hơn 0 và không vượt quá 1.000.000.000.");
+            errors.put("priceOfRoom", "Giá phòng phải lớn hơn 0 và không vượt quá 1.000.000.000.");
         }
 
         if (!isValidRoomStatus(data.status)) {
-            errors.add("Trạng thái phòng không hợp lệ.");
+            errors.put("status", "Trạng thái phòng không hợp lệ.");
         }
 
         Integer roomAvailability = parseNonNegativeInt(data.roomAvailabilityRaw);
         if (roomAvailability == null || roomAvailability > 1000) {
-            errors.add("Số phòng còn trống phải từ 0 đến 1000.");
+            errors.put("roomAvailability", "Số phòng còn trống phải từ 0 đến 1000.");
         }
 
         if (numberOfRooms != null && roomAvailability != null && roomAvailability > numberOfRooms) {
-            errors.add("Số phòng còn trống không được lớn hơn tổng số phòng.");
+            errors.put("roomAvailability", "Số phòng còn trống không được lớn hơn tổng số phòng.");
         }
 
-        if (isBlank(data.image)) {
-            errors.add("Ảnh phòng không được để trống.");
-        } else if (!isValidUrl(data.image)) {
-            errors.add("Ảnh phòng phải bắt đầu bằng http:// hoặc https://.");
+        if (!isBlank(data.image) && !isValidUrl(data.image)) {
+            errors.put("image", "Ảnh phòng phải bắt đầu bằng http:// hoặc https://.");
         }
 
-        if (isBlank(data.description) || data.description.length() < 10 || data.description.length() > 2000) {
-            errors.add("Mô tả phòng phải từ 10 đến 2000 ký tự.");
+        if (data.description.length() > 2000) {
+            errors.put("description", "Mô tả phòng không được vượt quá 2000 ký tự.");
         }
 
         Integer bedCount = parsePositiveInt(data.bedCountRaw);
         if (bedCount == null || bedCount > 20) {
-            errors.add("Số giường phải từ 1 đến 20.");
+            errors.put("bedCount", "Số giường phải từ 1 đến 20.");
         }
 
-        if (isBlank(data.bedType) || data.bedType.length() < 2 || data.bedType.length() > 50) {
-            errors.add("Loại giường phải từ 2 đến 50 ký tự.");
+        if (data.bedType.length() > 50) {
+            errors.put("bedType", "Loại giường không được vượt quá 50 ký tự.");
         }
 
         Integer maxAdults = parsePositiveInt(data.maxAdultsRaw);
         if (maxAdults == null || maxAdults > 50) {
-            errors.add("Số người lớn tối đa phải từ 1 đến 50.");
+            errors.put("maxAdults", "Số người lớn tối đa phải từ 1 đến 50.");
         }
 
         Integer maxChildren = parseNonNegativeInt(data.maxChildrenRaw);
         if (maxChildren == null || maxChildren > 50) {
-            errors.add("Số trẻ em tối đa phải từ 0 đến 50.");
-        }
-
-        if (bedCount != null && maxAdults != null && maxChildren != null) {
-            int totalGuests = maxAdults + maxChildren;
-
-            if (bedCount == 1 && totalGuests > 4) {
-                errors.add("1 giường không nên vượt quá 4 khách. Hãy tăng số giường hoặc giảm sức chứa.");
-            }
-
-            if (bedCount == 2 && totalGuests > 6) {
-                errors.add("2 giường không nên vượt quá 6 khách. Hãy kiểm tra lại sức chứa.");
-            }
+            errors.put("maxChildren", "Số trẻ em tối đa phải từ 0 đến 50.");
         }
 
         BigDecimal roomSize = parseBigDecimal(data.roomSizeRaw);
-        if (roomSize == null || roomSize.compareTo(BigDecimal.ZERO) <= 0
-                || roomSize.compareTo(new BigDecimal("1000")) > 0) {
-            errors.add("Diện tích phòng phải lớn hơn 0 và không vượt quá 1000 m².");
+        if (!isBlank(data.roomSizeRaw) && (roomSize == null
+                || roomSize.compareTo(BigDecimal.ZERO) <= 0
+                || roomSize.compareTo(new BigDecimal("1000")) > 0)) {
+            errors.put("roomSize", "Diện tích phòng phải lớn hơn 0 và không vượt quá 1000 m².");
         }
 
         return errors;
@@ -656,18 +699,6 @@ public class ManageAccommodationController extends HttpServlet {
         }
     }
 
-    private Double parseDouble(String value) {
-        try {
-            if (value == null || value.trim().isEmpty()) {
-                return null;
-            }
-
-            return Double.parseDouble(normalizeDecimal(value));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     private BigDecimal parseBigDecimal(String value) {
         try {
             if (value == null || value.trim().isEmpty()) {
@@ -684,8 +715,18 @@ public class ManageAccommodationController extends HttpServlet {
         return value == null ? "" : value.trim().replace(",", ".");
     }
 
-    private void saveErrors(HttpServletRequest request, List<String> errors) {
-        request.getSession().setAttribute("errors", errors);
+    private void saveErrors(HttpServletRequest request, Map<String, String> errors) {
+        HttpSession session = request.getSession();
+        session.setAttribute("errors", new ArrayList<>(errors.values()));
+        session.setAttribute("fieldErrors", errors);
+
+        Map<String, String> formValues = new HashMap<>();
+        request.getParameterMap().forEach((name, values) -> {
+            if (values != null && values.length > 0) {
+                formValues.put(name, values[0]);
+            }
+        });
+        session.setAttribute("formValues", formValues);
     }
 
     private String safeTrim(String value) {

@@ -291,10 +291,10 @@
               <span class="info-label">Trạng thái</span>
               <span class="info-value">
                 <c:choose>
-                  <c:when test="${booking.status == 'Pending'}">Chờ xử lý</c:when>
-                  <c:when test="${booking.status == 'Confirmed'}">Đã xác nhận</c:when>
-                  <c:when test="${booking.status == 'Cancelled'}">Đã hủy</c:when>
-                  <c:when test="${booking.status == 'Completed'}">Hoàn thành</c:when>
+                  <c:when test="${booking.status == 'Đang xử lý' || booking.status == 'Pending'}">Đang xử lý</c:when>
+                  <c:when test="${booking.status == 'Đã duyệt' || booking.status == 'Confirmed'}">Đã duyệt</c:when>
+                  <c:when test="${booking.status == 'Đã hủy' || booking.status == 'Cancelled'}">Đã hủy</c:when>
+                  <c:when test="${booking.status == 'Hoàn thành' || booking.status == 'Completed'}">Hoàn thành</c:when>
                   <c:otherwise>${booking.status}</c:otherwise>
                 </c:choose>
               </span>
@@ -369,45 +369,18 @@
             </div>
 
             <div class="form-group">
-              <label for="district">Quận / Huyện</label>
-              <select id="district" name="district">
-                <option value="">-- Chọn quận / huyện --</option>
-                <option value="Quận Ba Đình" ${district == 'Quận Ba Đình' ? 'selected' : ''}>Quận Ba Đình</option>
-                <option value="Quận Hoàn Kiếm" ${district == 'Quận Hoàn Kiếm' ? 'selected' : ''}>Quận Hoàn Kiếm</option>
-                <option value="Quận Tây Hồ" ${district == 'Quận Tây Hồ' ? 'selected' : ''}>Quận Tây Hồ</option>
-                <option value="Quận Long Biên" ${district == 'Quận Long Biên' ? 'selected' : ''}>Quận Long Biên</option>
-                <option value="Quận Cầu Giấy" ${district == 'Quận Cầu Giấy' ? 'selected' : ''}>Quận Cầu Giấy</option>
-                <option value="Quận Đống Đa" ${district == 'Quận Đống Đa' ? 'selected' : ''}>Quận Đống Đa</option>
-                <option value="Quận Hai Bà Trưng" ${district == 'Quận Hai Bà Trưng' ? 'selected' : ''}>Quận Hai Bà Trưng</option>
-                <option value="Quận Hoàng Mai" ${district == 'Quận Hoàng Mai' ? 'selected' : ''}>Quận Hoàng Mai</option>
-                <option value="Quận Thanh Xuân" ${district == 'Quận Thanh Xuân' ? 'selected' : ''}>Quận Thanh Xuân</option>
-                <option value="Quận Nam Từ Liêm" ${district == 'Quận Nam Từ Liêm' ? 'selected' : ''}>Quận Nam Từ Liêm</option>
-                <option value="Quận Bắc Từ Liêm" ${district == 'Quận Bắc Từ Liêm' ? 'selected' : ''}>Quận Bắc Từ Liêm</option>
-                <option value="Quận Hà Đông" ${district == 'Quận Hà Đông' ? 'selected' : ''}>Quận Hà Đông</option>
-                <option value="Huyện Thanh Trì" ${district == 'Huyện Thanh Trì' ? 'selected' : ''}>Huyện Thanh Trì</option>
-                <option value="Huyện Gia Lâm" ${district == 'Huyện Gia Lâm' ? 'selected' : ''}>Huyện Gia Lâm</option>
-                <option value="Huyện Đông Anh" ${district == 'Huyện Đông Anh' ? 'selected' : ''}>Huyện Đông Anh</option>
-                <option value="Huyện Sóc Sơn" ${district == 'Huyện Sóc Sơn' ? 'selected' : ''}>Huyện Sóc Sơn</option>
+              <label for="provinceSelect">Tỉnh / Thành phố</label>
+              <select id="provinceSelect" required>
+                <option value="">-- Chọn tỉnh / thành phố --</option>
               </select>
-              <span class="field-error-message" id="districtError"></span>
             </div>
 
             <div class="form-group">
-              <label for="city">Tỉnh / Thành phố</label>
-              <select id="city" name="city">
-                <option value="">-- Chọn tỉnh / thành phố --</option>
-                <option value="Hà Nội" ${city == 'Hà Nội' ? 'selected' : ''}>Hà Nội</option>
-                <option value="Hồ Chí Minh" ${city == 'Hồ Chí Minh' ? 'selected' : ''}>Hồ Chí Minh</option>
-                <option value="Đà Nẵng" ${city == 'Đà Nẵng' ? 'selected' : ''}>Đà Nẵng</option>
-                <option value="Hải Phòng" ${city == 'Hải Phòng' ? 'selected' : ''}>Hải Phòng</option>
-                <option value="Cần Thơ" ${city == 'Cần Thơ' ? 'selected' : ''}>Cần Thơ</option>
-                <option value="Quảng Ninh" ${city == 'Quảng Ninh' ? 'selected' : ''}>Quảng Ninh</option>
-                <option value="Ninh Bình" ${city == 'Ninh Bình' ? 'selected' : ''}>Ninh Bình</option>
-                <option value="Huế" ${city == 'Huế' ? 'selected' : ''}>Huế</option>
-                <option value="Khánh Hòa" ${city == 'Khánh Hòa' ? 'selected' : ''}>Khánh Hòa</option>
-                <option value="Lâm Đồng" ${city == 'Lâm Đồng' ? 'selected' : ''}>Lâm Đồng</option>
+              <label for="administrativeUnitID">Phường / Xã</label>
+              <select id="administrativeUnitID" name="administrativeUnitID" required disabled>
+                <option value="">-- Chọn phường / xã --</option>
               </select>
-              <span class="field-error-message" id="cityError"></span>
+              <span class="field-error-message" id="administrativeUnitIDError"></span>
             </div>
 
             <div class="form-group">
@@ -480,8 +453,45 @@
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
 
 <script>
+  const administrativeUnits = [
+    <c:forEach var="unit" items="${administrativeUnitList}" varStatus="loop">
+    { id: "${unit.administrativeUnitID}", province: "${unit.provinceName}", ward: "${unit.wardName}" }${loop.last ? '' : ','}
+    </c:forEach>
+  ];
+
   document.addEventListener("DOMContentLoaded", function () {
     const editBookingForm = document.querySelector("form[action$='/booking-edit']");
+    const provinceSelect = document.getElementById("provinceSelect");
+    const wardSelect = document.getElementById("administrativeUnitID");
+    const selectedUnitID = "${selectedAdministrativeUnitID}";
+
+    [...new Set(administrativeUnits.map(unit => unit.province))].forEach(function (province) {
+      const option = document.createElement("option");
+      option.value = province;
+      option.textContent = province;
+      provinceSelect.appendChild(option);
+    });
+
+    function fillWards(province, selectedID) {
+      wardSelect.innerHTML = '<option value="">-- Chọn phường / xã --</option>';
+      administrativeUnits.filter(unit => unit.province === province).forEach(function (unit) {
+        const option = document.createElement("option");
+        option.value = unit.id;
+        option.textContent = unit.ward;
+        option.selected = unit.id === selectedID;
+        wardSelect.appendChild(option);
+      });
+      wardSelect.disabled = !province;
+    }
+
+    const selectedUnit = administrativeUnits.find(unit => unit.id === selectedUnitID);
+    if (selectedUnit) {
+      provinceSelect.value = selectedUnit.province;
+      fillWards(selectedUnit.province, selectedUnitID);
+    }
+    provinceSelect.addEventListener("change", function () {
+      fillWards(this.value, "");
+    });
 
     const fields = {
       firstName: {
@@ -584,24 +594,12 @@
         }
       },
 
-      district: {
-        element: document.getElementById("district"),
-        error: document.getElementById("districtError"),
+      administrativeUnitID: {
+        element: wardSelect,
+        error: document.getElementById("administrativeUnitIDError"),
         validate: function (value) {
           if (value.trim() === "") {
-            return "Vui lòng chọn quận / huyện.";
-          }
-
-          return "";
-        }
-      },
-
-      city: {
-        element: document.getElementById("city"),
-        error: document.getElementById("cityError"),
-        validate: function (value) {
-          if (value.trim() === "") {
-            return "Vui lòng chọn tỉnh / thành phố.";
+            return "Vui lòng chọn tỉnh/thành phố và phường/xã.";
           }
 
           return "";

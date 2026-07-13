@@ -128,10 +128,25 @@
             grid-column: 1 / -1;
         }
 
+        .account-page,
         .workspace-page {
             min-height: 100vh;
             background: #f5f7fb;
             padding: 28px 24px 40px;
+        }
+
+        .account-shell {
+            max-width: 1240px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 238px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .account-shell.single {
+            max-width: 1140px;
+            grid-template-columns: minmax(0, 1fr);
         }
 
         .workspace-shell {
@@ -139,6 +154,7 @@
             margin: 0 auto;
         }
 
+        .account-content,
         .workspace-content {
             min-width: 0;
         }
@@ -199,7 +215,9 @@
         }
 
         @media (max-width: 900px) {
+            .account-page,
             .workspace-page { padding: 22px 14px 36px; }
+            .account-shell { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 720px) {
@@ -221,14 +239,18 @@
     </style>
 </head>
 
-<body class="${empty profileTheme ? 'customer-theme' : profileTheme.concat('-theme')}">
+<body class="${empty profileTheme ? 'customer' : profileTheme}-theme">
 <c:if test="${empty profileTheme || profileTheme == 'customer'}">
     <jsp:include page="/views/common/client-header.jsp"/>
 </c:if>
 
-<main class="workspace-page">
-    <div class="workspace-shell">
-        <section class="workspace-content">
+<main class="account-page">
+    <div class="account-shell ${empty profileTheme || profileTheme == 'customer' ? '' : 'single'}">
+        <c:if test="${empty profileTheme || profileTheme == 'customer'}">
+            <jsp:include page="/views/common/account-sidebar.jsp"/>
+        </c:if>
+
+        <section class="account-content">
             <article class="account-panel">
                 <div class="profile-hero">
                     <div class="profile-main">

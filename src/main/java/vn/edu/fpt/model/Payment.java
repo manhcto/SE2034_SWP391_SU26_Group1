@@ -6,11 +6,11 @@ import java.sql.Timestamp;
 public class Payment {
     private int paymentID;
     private int bookingID;
-    private Long payosOrderCode;
+    private String paymentMethod;
     private BigDecimal totalAmount;
     private String status;
+    private String paymentType;
     private String transactionCode;
-    private Timestamp expiredAt;
     private Timestamp paymentDate;
     private String note;
     private Timestamp createdAt;
@@ -31,12 +31,12 @@ public class Payment {
         this.bookingID = bookingID;
     }
 
-    public Long getPayosOrderCode() {
-        return payosOrderCode;
+    public String getPaymentMethod() {
+        return paymentMethod;
     }
 
-    public void setPayosOrderCode(Long payosOrderCode) {
-        this.payosOrderCode = payosOrderCode;
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     public BigDecimal getTotalAmount() {
@@ -55,20 +55,20 @@ public class Payment {
         this.status = status;
     }
 
+    public String getPaymentType() {
+        return paymentType;
+    }
+
+    public void setPaymentType(String paymentType) {
+        this.paymentType = paymentType;
+    }
+
     public String getTransactionCode() {
         return transactionCode;
     }
 
     public void setTransactionCode(String transactionCode) {
         this.transactionCode = transactionCode;
-    }
-
-    public Timestamp getExpiredAt() {
-        return expiredAt;
-    }
-
-    public void setExpiredAt(Timestamp expiredAt) {
-        this.expiredAt = expiredAt;
     }
 
     public Timestamp getPaymentDate() {
@@ -96,6 +96,6 @@ public class Payment {
     }
 
     public boolean isPaid() {
-        return "Paid".equalsIgnoreCase(status);
+        return "Đã thanh toán".equalsIgnoreCase(status) || "Paid".equalsIgnoreCase(status);
     }
 }

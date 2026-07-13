@@ -297,16 +297,16 @@
 
     <c:forEach var="bk" items="${bookingList}">
         <c:choose>
-            <c:when test="${bk.status == 'Pending'}">
+            <c:when test="${bk.status == 'Đang xử lý' || bk.status == 'Pending'}">
                 <c:set var="pendingCount" value="${pendingCount + 1}"/>
             </c:when>
-            <c:when test="${bk.status == 'Confirmed'}">
+            <c:when test="${bk.status == 'Đã duyệt' || bk.status == 'Confirmed'}">
                 <c:set var="confirmedCount" value="${confirmedCount + 1}"/>
             </c:when>
-            <c:when test="${bk.status == 'Completed'}">
+            <c:when test="${bk.status == 'Hoàn thành' || bk.status == 'Completed'}">
                 <c:set var="completedCount" value="${completedCount + 1}"/>
             </c:when>
-            <c:when test="${bk.status == 'Cancelled'}">
+            <c:when test="${bk.status == 'Đã hủy' || bk.status == 'Cancelled'}">
                 <c:set var="cancelledCount" value="${cancelledCount + 1}"/>
             </c:when>
         </c:choose>
@@ -350,10 +350,10 @@
 
             <select class="form-select" id="statusFilter">
                 <option value="">Tất cả trạng thái</option>
-                <option value="Pending">Đang xử lý</option>
-                <option value="Confirmed">Đã duyệt</option>
-                <option value="Completed">Hoàn thành</option>
-                <option value="Cancelled">Đã hủy</option>
+                <option value="Đang xử lý">Đang xử lý</option>
+                <option value="Đã duyệt">Đã duyệt</option>
+                <option value="Hoàn thành">Hoàn thành</option>
+                <option value="Đã hủy">Đã hủy</option>
             </select>
 
             <button class="btn btn-outline-secondary fw-bold" type="submit">
@@ -382,7 +382,7 @@
                             </thead>
                             <tbody>
                             <c:forEach items="${bookingList}" var="booking">
-                                <tr data-status="${booking.status}"
+                                <tr data-status="${booking.displayStatus}"
                                     data-search-content="${booking.bookingCode} ${booking.firstName} ${booking.lastName} ${booking.email} ${booking.phone} ${booking.serviceName}">
                                     <td>
                                         <span class="booking-code">${booking.bookingCode}</span>
@@ -410,16 +410,16 @@
                                     </td>
                                     <td>
                                         <c:choose>
-                                            <c:when test="${booking.status == 'Pending'}">
+                                            <c:when test="${booking.status == 'Đang xử lý' || booking.status == 'Pending'}">
                                                 <span class="status-pill status-pending">Đang xử lý</span>
                                             </c:when>
-                                            <c:when test="${booking.status == 'Confirmed'}">
+                                            <c:when test="${booking.status == 'Đã duyệt' || booking.status == 'Confirmed'}">
                                                 <span class="status-pill status-confirmed">Đã duyệt</span>
                                             </c:when>
-                                            <c:when test="${booking.status == 'Completed'}">
+                                            <c:when test="${booking.status == 'Hoàn thành' || booking.status == 'Completed'}">
                                                 <span class="status-pill status-completed">Hoàn thành</span>
                                             </c:when>
-                                            <c:when test="${booking.status == 'Cancelled'}">
+                                            <c:when test="${booking.status == 'Đã hủy' || booking.status == 'Cancelled'}">
                                                 <span class="status-pill status-cancelled">Đã hủy</span>
                                             </c:when>
                                             <c:otherwise>
@@ -434,10 +434,10 @@
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
 
-                                            <c:if test="${booking.status != 'Pending'}">
+                                            <c:if test="${booking.status != 'Đang xử lý' && booking.status != 'Pending'}">
                                                 <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post">
                                                     <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                                                    <input type="hidden" name="status" value="Pending">
+                                                    <input type="hidden" name="status" value="Đang xử lý">
                                                     <input type="hidden" name="type" value="${param.type}">
                                                     <button class="icon-btn warning" type="submit" title="Chuyển về đang xử lý">
                                                         <i class="fa-solid fa-clock"></i>
@@ -445,10 +445,10 @@
                                                 </form>
                                             </c:if>
 
-                                            <c:if test="${booking.status != 'Confirmed'}">
+                                            <c:if test="${booking.status != 'Đã duyệt' && booking.status != 'Confirmed'}">
                                                 <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post">
                                                     <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                                                    <input type="hidden" name="status" value="Confirmed">
+                                                    <input type="hidden" name="status" value="Đã duyệt">
                                                     <input type="hidden" name="type" value="${param.type}">
                                                     <button class="icon-btn success" type="submit" title="Duyệt booking">
                                                         <i class="fa-solid fa-check"></i>
@@ -456,11 +456,11 @@
                                                 </form>
                                             </c:if>
 
-                                            <c:if test="${booking.status != 'Cancelled'}">
+                                            <c:if test="${booking.status != 'Đã hủy' && booking.status != 'Cancelled'}">
                                                 <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post"
                                                       onsubmit="return confirm('Bạn chắc chắn muốn hủy booking này?');">
                                                     <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                                                    <input type="hidden" name="status" value="Cancelled">
+                                                    <input type="hidden" name="status" value="Đã hủy">
                                                     <input type="hidden" name="type" value="${param.type}">
                                                     <button class="icon-btn danger" type="submit" title="Hủy booking">
                                                         <i class="fa-solid fa-xmark"></i>

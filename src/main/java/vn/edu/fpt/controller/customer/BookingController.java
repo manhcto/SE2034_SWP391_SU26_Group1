@@ -1,7 +1,9 @@
 package vn.edu.fpt.controller.customer;
 
 import vn.edu.fpt.DAO.BookingDAO;
+import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.TourDAO;
+import vn.edu.fpt.model.AdministrativeUnit;
 import vn.edu.fpt.model.Booking;
 import vn.edu.fpt.model.Tour;
 import vn.edu.fpt.model.TourSchedule;
@@ -17,9 +19,11 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @WebServlet(name = "BookingController", urlPatterns = {"/booking"})
 public class BookingController extends HttpServlet {
+    private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -56,7 +60,12 @@ public class BookingController extends HttpServlet {
 
         request.setAttribute("selectedTour", tour);
         request.setAttribute("selectedSchedule", schedule);
-        request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
+        if ("1".equals(request.getParameter("checkout"))) {
+            request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
+            request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
+        } else {
+            request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
+        }
     }
 
     @Override
@@ -75,8 +84,10 @@ public class BookingController extends HttpServlet {
             String phone = getTrimValue(request, "phone");
 
             String streetAddress = getTrimValue(request, "streetAddress");
-            String district = getTrimValue(request, "district");
-            String city = getTrimValue(request, "city");
+            int administrativeUnitID = parsePositiveInt(request.getParameter("administrativeUnitID"));
+            AdministrativeUnit administrativeUnit = administrativeUnitID > 0
+                    ? administrativeUnitDAO.getActiveUnitByID(administrativeUnitID)
+                    : null;
 
             String note = getTrimValue(request, "note");
             String isBookedForOtherStr = request.getParameter("isBookedForOther");
@@ -125,22 +136,15 @@ public class BookingController extends HttpServlet {
                 errors.add("Số nhà, đường chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
             }
 
-            if (district.isEmpty()) {
-                errors.add("Vui lòng chọn quận / huyện.");
-            } else if (!isValidDistrict(district)) {
-                errors.add("Quận / huyện không hợp lệ.");
-            }
-
-            if (city.isEmpty()) {
-                errors.add("Vui lòng chọn tỉnh / thành phố.");
-            } else if (!isValidCity(city)) {
-                errors.add("Tỉnh / thành phố không hợp lệ.");
+            if (administrativeUnit == null) {
+                errors.add("Vui lòng chọn tỉnh/thành phố và phường/xã hợp lệ.");
             }
 
             String address = "";
 
-            if (!streetAddress.isEmpty() && !district.isEmpty() && !city.isEmpty()) {
-                address = streetAddress + ", " + district + ", " + city;
+            if (!streetAddress.isEmpty() && administrativeUnit != null) {
+                address = streetAddress + ", " + administrativeUnit.getWardName()
+                        + ", " + administrativeUnit.getProvinceName();
 
                 if (address.length() > 255) {
                     errors.add("Địa chỉ đầy đủ không được vượt quá 255 ký tự.");
@@ -258,8 +262,8 @@ public class BookingController extends HttpServlet {
                 request.setAttribute("phone", phone);
 
                 request.setAttribute("streetAddress", streetAddress);
-                request.setAttribute("district", district);
-                request.setAttribute("city", city);
+                request.setAttribute("selectedAdministrativeUnitID", administrativeUnitID);
+                request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
 
                 request.setAttribute("note", note);
 
@@ -268,7 +272,8 @@ public class BookingController extends HttpServlet {
             }
 
             boolean isBookedForOther = isBookedForOtherStr != null && isBookedForOtherStr.equals("on");
-            String bookingCode = "BK-" + System.currentTimeMillis() % 1000000;
+            String bookingCode = "TR-" + UUID.randomUUID()
+                    .toString().substring(0, 8).toUpperCase();
 
             Booking booking = new Booking();
             booking.setBookingCode(bookingCode);
@@ -315,35 +320,12 @@ public class BookingController extends HttpServlet {
         return value == null ? "" : value.trim();
     }
 
-    private boolean isValidDistrict(String district) {
-        return "Quận Ba Đình".equals(district)
-                || "Quận Hoàn Kiếm".equals(district)
-                || "Quận Tây Hồ".equals(district)
-                || "Quận Long Biên".equals(district)
-                || "Quận Cầu Giấy".equals(district)
-                || "Quận Đống Đa".equals(district)
-                || "Quận Hai Bà Trưng".equals(district)
-                || "Quận Hoàng Mai".equals(district)
-                || "Quận Thanh Xuân".equals(district)
-                || "Quận Nam Từ Liêm".equals(district)
-                || "Quận Bắc Từ Liêm".equals(district)
-                || "Quận Hà Đông".equals(district)
-                || "Huyện Thanh Trì".equals(district)
-                || "Huyện Gia Lâm".equals(district)
-                || "Huyện Đông Anh".equals(district)
-                || "Huyện Sóc Sơn".equals(district);
-    }
-
-    private boolean isValidCity(String city) {
-        return "Hà Nội".equals(city)
-                || "Hồ Chí Minh".equals(city)
-                || "Đà Nẵng".equals(city)
-                || "Hải Phòng".equals(city)
-                || "Cần Thơ".equals(city)
-                || "Quảng Ninh".equals(city)
-                || "Ninh Bình".equals(city)
-                || "Huế".equals(city)
-                || "Khánh Hòa".equals(city)
-                || "Lâm Đồng".equals(city);
+    private int parsePositiveInt(String value) {
+        try {
+            int number = Integer.parseInt(value == null ? "" : value.trim());
+            return number > 0 ? number : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }

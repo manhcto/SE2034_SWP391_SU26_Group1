@@ -231,6 +231,23 @@ body.auth-body {
     box-shadow: 0 22px 42px rgba(37, 99, 235, 0.34);
 }
 
+.auth-remember {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    width: fit-content;
+    color: var(--auth-muted);
+    font-size: 14px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.auth-remember input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--auth-blue);
+}
+
 .auth-alert {
     margin: 0 0 16px;
     padding: 13px 15px;

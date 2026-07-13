@@ -2,6 +2,7 @@ package vn.edu.fpt.controller.authentication;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,10 +11,15 @@ import vn.edu.fpt.DAO.UserDAO;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @WebServlet("/login")
 public class LoginController extends HttpServlet {
 
+    private static final String REMEMBER_EMAIL_COOKIE = "wondervn_remember_email";
+    private static final int REMEMBER_EMAIL_MAX_AGE = 30 * 24 * 60 * 60;
     private final UserDAO userDAO = new UserDAO();
 
     @Override
@@ -25,7 +31,9 @@ public class LoginController extends HttpServlet {
 
         String email = trimToEmpty(request.getParameter("email"));
         String password = valueOrEmpty(request.getParameter("password"));
+        boolean remember = "on".equals(request.getParameter("remember"));
         request.setAttribute("email", email);
+        request.setAttribute("remember", remember);
 
         User user = userDAO.login(email, password);
 
@@ -39,6 +47,8 @@ public class LoginController extends HttpServlet {
 
             HttpSession session = request.getSession(true);
             session.setAttribute("user", user);
+
+            updateRememberEmailCookie(request, response, remember ? email : null);
 
             session.removeAttribute("redirectAfterLogin");
 
@@ -70,6 +80,12 @@ public class LoginController extends HttpServlet {
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
             throws ServletException, IOException {
+
+        String rememberedEmail = readRememberedEmail(request);
+        if (!rememberedEmail.isEmpty()) {
+            request.setAttribute("rememberedEmail", rememberedEmail);
+            request.setAttribute("remember", true);
+        }
 
         String redirect = normalizeRedirect(request, request.getParameter("redirect"));
         HttpSession session = isSafeRedirect(redirect)
@@ -209,5 +225,37 @@ public class LoginController extends HttpServlet {
         }
 
         return user.getRoleID() == 2;
+    }
+
+    private String readRememberedEmail(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return "";
+        }
+
+        for (Cookie cookie : cookies) {
+            if (REMEMBER_EMAIL_COOKIE.equals(cookie.getName())) {
+                try {
+                    return URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
+                } catch (IllegalArgumentException ignored) {
+                    return "";
+                }
+            }
+        }
+        return "";
+    }
+
+    private void updateRememberEmailCookie(HttpServletRequest request,
+                                           HttpServletResponse response,
+                                           String email) {
+        String value = email == null
+                ? ""
+                : URLEncoder.encode(email, StandardCharsets.UTF_8);
+        Cookie cookie = new Cookie(REMEMBER_EMAIL_COOKIE, value);
+        cookie.setPath(request.getContextPath().isEmpty() ? "/" : request.getContextPath());
+        cookie.setHttpOnly(true);
+        cookie.setSecure(request.isSecure());
+        cookie.setMaxAge(email == null ? 0 : REMEMBER_EMAIL_MAX_AGE);
+        response.addCookie(cookie);
     }
 }

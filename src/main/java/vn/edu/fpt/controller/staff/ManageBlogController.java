@@ -38,7 +38,7 @@ public class ManageBlogController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         String action = normalize(request.getParameter("action"));
-        boolean readOnly = isAdminRequest(request);
+        boolean readOnly = false;
 
         try {
             switch (action) {
@@ -61,9 +61,22 @@ public class ManageBlogController extends HttpServlet {
                         return;
                     }
                     request.setAttribute("editingPost", editingPost);
+                    request.setAttribute("showBlogForm", true);
+                    forwardManagement(request, response);
+                    break;
+                case "new":
+                    if (readOnly) {
+                        response.sendRedirect(resolveManagementPath(request));
+                        return;
+                    }
+                    request.setAttribute("showBlogForm", true);
                     forwardManagement(request, response);
                     break;
                 case "delete":
+                    if (readOnly) {
+                        response.sendRedirect(resolveManagementPath(request));
+                        return;
+                    }
                     blogDAO.deletePost(parseId(request.getParameter("id")));
                     response.sendRedirect(resolveManagementPath(request) + "?message=deleted");
                     break;
@@ -88,15 +101,11 @@ public class ManageBlogController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        if (isAdminRequest(request)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
-
         try {
             BlogPost post = buildPostFromRequest(request);
             if (post.getTitle().isEmpty() || post.getContent().isEmpty()) {
                 request.setAttribute("editingPost", post);
+                request.setAttribute("showBlogForm", true);
                 request.setAttribute("error", "Vui lòng nhập tiêu đề và nội dung bài viết.");
                 forwardManagement(request, response);
                 return;
@@ -111,6 +120,7 @@ public class ManageBlogController extends HttpServlet {
 
             response.sendRedirect(resolveManagementPath(request) + "?message=" + (success ? "saved" : "error"));
         } catch (IllegalArgumentException e) {
+            request.setAttribute("showBlogForm", true);
             request.setAttribute("error", e.getMessage());
             forwardManagement(request, response);
         } catch (Exception e) {
@@ -132,8 +142,11 @@ public class ManageBlogController extends HttpServlet {
         request.setAttribute("selectedCategory", category);
         request.setAttribute("selectedStatus", status);
         request.setAttribute("blogManagementPath", resolveManagementPath(request));
-        request.setAttribute("blogManagementReadOnly", adminRequest);
+        request.setAttribute("blogManagementReadOnly", false);
         request.setAttribute("blogManagementRole", adminRequest ? "admin" : "staff");
+        request.setAttribute("showBlogForm",
+                Boolean.TRUE.equals(request.getAttribute("showBlogForm"))
+                        || request.getAttribute("editingPost") != null);
         request.getRequestDispatcher("/views/staff/blog-management.jsp").forward(request, response);
     }
 
@@ -175,7 +188,7 @@ public class ManageBlogController extends HttpServlet {
                 throw new IllegalArgumentException("Chỉ được upload file ảnh JPG, PNG hoặc WebP.");
             }
 
-            String fileName = Paths.get(imagePart.getSubmittedFileName())
+            String fileName = System.currentTimeMillis() + "-" + Paths.get(imagePart.getSubmittedFileName())
                     .getFileName()
                     .toString();
 
@@ -192,8 +205,17 @@ public class ManageBlogController extends HttpServlet {
         }
         post.setCategory(normalize(request.getParameter("category")));
         post.setStatus(normalizeStatus(request.getParameter("status")));
-        post.setAuthorID(getCurrentUserID(request));
+        post.setAuthorID(resolveAuthorIDForSave(request, blogID));
         return post;
+    }
+
+    private Integer resolveAuthorIDForSave(HttpServletRequest request, int blogID) {
+        if (blogID <= 0) {
+            return getCurrentUserID(request);
+        }
+
+        BlogPost existingPost = blogDAO.getPostById(blogID);
+        return existingPost != null ? existingPost.getAuthorID() : getCurrentUserID(request);
     }
 
     private boolean isAllowedImage(Part part) {
@@ -249,6 +271,9 @@ public class ManageBlogController extends HttpServlet {
         if ("Published".equalsIgnoreCase(value)) {
             return "Published";
         }
+        if ("Pending".equalsIgnoreCase(value)) {
+            return "Pending";
+        }
         return "Draft";
     }
 
@@ -259,6 +284,9 @@ public class ManageBlogController extends HttpServlet {
         }
         if ("Draft".equalsIgnoreCase(value)) {
             return "Draft";
+        }
+        if ("Pending".equalsIgnoreCase(value)) {
+            return "Pending";
         }
         return "";
     }

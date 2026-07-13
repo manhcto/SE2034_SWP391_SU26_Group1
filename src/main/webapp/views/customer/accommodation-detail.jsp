@@ -1,12 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | ${accommodation.name}</title>
+<title>WonderVN | ${fn:escapeXml(accommodation.name)}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -449,8 +450,8 @@
 
 <jsp:include page="/views/common/client-header.jsp"/>
 
-<div class="container detail-page">
-    <div class="breadcrumb-line">
+<main class="container detail-page">
+    <nav class="breadcrumb-line" aria-label="Điều hướng trang">
         <button type="button" class="btn-back-page" onclick="history.back()">
             <i class="fa-solid fa-arrow-left"></i>
             Quay lại trang trước
@@ -464,29 +465,29 @@
         <a href="${pageContext.request.contextPath}/accommodation">Khách sạn</a>
         <span>/</span>
 
-        <span>${accommodation.name}</span>
-    </div>
+        <span><c:out value="${accommodation.name}"/></span>
+    </nav>
 
     <div class="detail-layout">
         <div>
-            <div class="main-card">
+            <article class="main-card">
                 <img class="hero-img"
-                     src="${accommodation.image}"
-                     alt="${accommodation.name}"
+                     src="${fn:escapeXml(accommodation.image)}"
+                     alt="${fn:escapeXml(accommodation.name)}"
                      onerror="this.src='https://placehold.co/1200x700?text=WonderVN+Accommodation';">
 
                 <div class="main-content">
                     <div class="type-badge">
                         <i class="fa-solid fa-hotel"></i>
-                        ${accommodation.displayType}
+                        <c:out value="${accommodation.displayType}"/>
                     </div>
 
-                    <h1 class="title">${accommodation.name}</h1>
+                    <h1 class="title"><c:out value="${accommodation.name}"/></h1>
 
                     <div class="location">
                         <i class="fa-solid fa-location-dot text-info me-1"></i>
-                        <strong>${accommodation.province}</strong><br>
-                        ${accommodation.fullAddress}
+                            <strong><c:out value="${accommodation.province}"/></strong><br>
+                            <c:out value="${accommodation.fullAddress}"/>
                     </div>
 
                     <div class="info-grid">
@@ -511,7 +512,7 @@
                         <div class="info-card">
                             <i class="fa-solid fa-phone"></i>
                             <div class="info-label">Liên hệ</div>
-                            <div class="info-value">${accommodation.phone}</div>
+                            <div class="info-value"><c:out value="${accommodation.phone}"/></div>
                         </div>
                     </div>
 
@@ -554,7 +555,7 @@
                     </h2>
 
                     <div class="text-box">
-                        ${accommodation.description}
+                            <c:out value="${accommodation.description}"/>
                     </div>
 
                     <h2 class="section-title">
@@ -576,22 +577,22 @@
                                                 <i class="fa-solid fa-circle-check"></i>
                                             </c:when>
                                             <c:when test="${f.icon.contains('fa-solid') || f.icon.contains('fa-regular') || f.icon.contains('fa-brands')}">
-                                                <i class="${f.icon}"></i>
+                                            <i class="${fn:escapeXml(f.icon)}"></i>
                                             </c:when>
                                             <c:otherwise>
-                                                <i class="fa-solid ${f.icon}"></i>
+                                            <i class="fa-solid ${fn:escapeXml(f.icon)}"></i>
                                             </c:otherwise>
                                         </c:choose>
-                                        ${f.facilityName}
+                                    <c:out value="${f.facilityName}"/>
                                     </span>
                                 </c:forEach>
                             </c:otherwise>
                         </c:choose>
                     </div>
                 </div>
-            </div>
+            </article>
 
-            <div class="section-card" id="roomSection">
+            <section class="section-card" id="roomSection">
                 <h2 class="section-title mt-0">
                     <i class="fa-solid fa-bed text-primary"></i>
                     Phòng còn phù hợp với ngày đã chọn
@@ -608,17 +609,17 @@
                         <c:otherwise>
                             <c:forEach var="r" items="${roomList}">
                                 <div class="col-lg-6">
-                                    <div class="room-card">
+                                    <article class="room-card">
                                         <img class="room-img"
-                                             src="${r.image}"
-                                             alt="${r.roomType}"
+                                             src="${fn:escapeXml(r.image)}"
+                                             alt="${fn:escapeXml(r.roomType)}"
                                              onerror="this.src='https://placehold.co/800x500?text=WonderVN+Room';">
 
                                         <div class="room-body">
-                                            <div class="room-title">${r.roomType}</div>
+                                            <div class="room-title"><c:out value="${r.roomType}"/></div>
 
                                             <div class="room-description">
-                                                    ${r.description}
+                                                    <c:out value="${r.description}"/>
                                             </div>
 
                                             <div class="room-specs">
@@ -684,13 +685,13 @@
                                                 </a>
                                             </div>
                                         </div>
-                                    </div>
+                                    </article>
                                 </div>
                             </c:forEach>
                         </c:otherwise>
                     </c:choose>
                 </div>
-            </div>
+            </section>
         </div>
 
         <aside class="booking-card">
@@ -846,7 +847,7 @@
             </a>
         </aside>
     </div>
-</div>
+</main>
 
 <jsp:include page="/views/common/client-footer.jsp"/>
 

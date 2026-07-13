@@ -14,19 +14,17 @@ public class BlogDAO {
     private static final String AUTHOR_NAME_SQL =
             "COALESCE(NULLIF(LTRIM(RTRIM(CONCAT(u.firstName, N' ', u.lastName))), N''), N'WonderVN Team') AS authorName";
 
-    // Lấy danh sách bài viết đã publish cho trang khách với bộ lọc tìm kiếm và category.
+    // Lấy danh sách bài viết đã publish cho trang khách.
     public List<BlogPost> getPublishedPosts(String searchKeyword, String category) {
         List<BlogPost> posts = new ArrayList<>();
         String search = trimValue(searchKeyword);
-        String selectedCategory = trimValue(category);
 
         String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
                 "FROM Blog p " +
-                "LEFT JOIN [User] u ON p.authorID = u.userID " +
+                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
                 "WHERE p.[status] = N'Published' " +
-                "AND (? = N'' OR p.title LIKE ? OR p.summary LIKE ? OR p.category LIKE ?) " +
-                "AND (? = N'' OR p.category = ?) " +
-                "ORDER BY p.publishedAt DESC, p.createAt DESC";
+                "AND (? = N'' OR p.title LIKE ? OR p.summary LIKE ? OR p.content LIKE ?) " +
+                "ORDER BY p.createdAt DESC, p.blogID DESC";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -35,8 +33,6 @@ public class BlogDAO {
             ps.setNString(2, keywordPattern);
             ps.setNString(3, keywordPattern);
             ps.setNString(4, keywordPattern);
-            ps.setNString(5, selectedCategory);
-            ps.setNString(6, selectedCategory);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -52,12 +48,10 @@ public class BlogDAO {
     // Đếm số bài viết đã publish theo bộ lọc trang khách.
     public int countPublishedPosts(String searchKeyword, String category) {
         String search = trimValue(searchKeyword);
-        String selectedCategory = trimValue(category);
         String sql = "SELECT COUNT(*) " +
                 "FROM Blog " +
                 "WHERE [status] = N'Published' " +
-                "AND (? = N'' OR title LIKE ? OR summary LIKE ? OR category LIKE ?) " +
-                "AND (? = N'' OR category = ?)";
+                "AND (? = N'' OR title LIKE ? OR summary LIKE ? OR content LIKE ?)";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -66,8 +60,6 @@ public class BlogDAO {
             ps.setNString(2, keywordPattern);
             ps.setNString(3, keywordPattern);
             ps.setNString(4, keywordPattern);
-            ps.setNString(5, selectedCategory);
-            ps.setNString(6, selectedCategory);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -84,7 +76,7 @@ public class BlogDAO {
     public BlogPost getPublishedPostById(int blogID) {
         String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
                 "FROM Blog p " +
-                "LEFT JOIN [User] u ON p.authorID = u.userID " +
+                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
                 "WHERE p.blogID = ? AND p.[status] = N'Published'";
         return getSinglePost(sql, blogID);
     }
@@ -93,7 +85,7 @@ public class BlogDAO {
     public BlogPost getPublishedPostBySlug(String slug) {
         String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
                 "FROM Blog p " +
-                "LEFT JOIN [User] u ON p.authorID = u.userID " +
+                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
                 "WHERE p.slug = ? AND p.[status] = N'Published'";
 
         try (Connection conn = new DBConnection().getConnection();
@@ -110,24 +102,20 @@ public class BlogDAO {
         return null;
     }
 
-    // Lấy các bài viết liên quan cùng category và loại trừ bài hiện tại.
+    // Lấy các bài viết liên quan và loại trừ bài hiện tại.
     public List<BlogPost> getRelatedPublishedPosts(String category, int excludeBlogID, int limit) {
         List<BlogPost> posts = new ArrayList<>();
-        String selectedCategory = trimValue(category);
         String sql = "SELECT TOP (?) p.*, " + AUTHOR_NAME_SQL + " " +
                 "FROM Blog p " +
-                "LEFT JOIN [User] u ON p.authorID = u.userID " +
+                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
                 "WHERE p.[status] = N'Published' " +
                 "AND p.blogID <> ? " +
-                "AND (? = N'' OR p.category = ?) " +
-                "ORDER BY p.publishedAt DESC, p.createAt DESC";
+                "ORDER BY p.createdAt DESC, p.blogID DESC";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, Math.max(limit, 1));
             ps.setInt(2, excludeBlogID);
-            ps.setNString(3, selectedCategory);
-            ps.setNString(4, selectedCategory);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -140,23 +128,9 @@ public class BlogDAO {
         return posts;
     }
 
-    // Lấy danh sách category đang có trên các bài viết đã publish.
+    // SQL 3.0 chưa có cột category trong Blog.
     public List<String> getPublishedCategories() {
-        List<String> categories = new ArrayList<>();
-        String sql = "SELECT DISTINCT category FROM Blog " +
-                "WHERE [status] = N'Published' AND category IS NOT NULL AND LTRIM(RTRIM(category)) <> N'' " +
-                "ORDER BY category";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                categories.add(rs.getNString("category"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return categories;
+        return new ArrayList<>();
     }
 
     // Lấy toàn bộ bài viết cho staff không áp bộ lọc.
@@ -169,27 +143,25 @@ public class BlogDAO {
         return getPostsForStaff(searchKeyword, category, "");
     }
 
-    // Lấy danh sách bài viết cho staff theo từ khóa, category và trạng thái.
+    // Lấy danh sách bài viết cho staff theo từ khóa và trạng thái.
     public List<BlogPost> getPostsForStaff(String searchKeyword, String category, String status) {
         List<BlogPost> posts = new ArrayList<>();
         String search = trimValue(searchKeyword);
-        String selectedCategory = trimValue(category);
         String selectedStatus = trimValue(status);
         String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
                 "FROM Blog p " +
-                "LEFT JOIN [User] u ON p.authorID = u.userID " +
-                "WHERE (? = N'' OR p.title LIKE ?) " +
-                "AND (? = N'' OR p.category = ?) " +
+                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
+                "WHERE (? = N'' OR p.title LIKE ? OR p.summary LIKE ? OR p.content LIKE ?) " +
                 "AND (? = N'' OR p.[status] = ?) " +
-                "ORDER BY p.createAt DESC, p.blogID DESC";
+                "ORDER BY CASE WHEN p.[status] = N'Pending' THEN 0 ELSE 1 END, p.createdAt DESC, p.blogID DESC";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             String keywordPattern = "%" + search + "%";
             ps.setNString(1, search);
             ps.setNString(2, keywordPattern);
-            ps.setNString(3, selectedCategory);
-            ps.setNString(4, selectedCategory);
+            ps.setNString(3, keywordPattern);
+            ps.setNString(4, keywordPattern);
             ps.setNString(5, selectedStatus);
             ps.setNString(6, selectedStatus);
 
@@ -204,44 +176,74 @@ public class BlogDAO {
         return posts;
     }
 
-    // Lấy toàn bộ category để staff dùng khi lọc hoặc nhập bài viết.
+    // SQL 3.0 chưa có cột category trong Blog.
     public List<String> getStaffCategories() {
-        List<String> categories = new ArrayList<>();
-        String sql = "SELECT DISTINCT category FROM Blog " +
-                "WHERE category IS NOT NULL AND LTRIM(RTRIM(category)) <> N'' " +
-                "ORDER BY category";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                categories.add(rs.getNString("category"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return categories;
+        return new ArrayList<>();
     }
 
     // Lấy chi tiết bài viết bất kể trạng thái theo blogID.
     public BlogPost getPostById(int blogID) {
         String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
                 "FROM Blog p " +
-                "LEFT JOIN [User] u ON p.authorID = u.userID " +
+                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
                 "WHERE p.blogID = ?";
         return getSinglePost(sql, blogID);
+    }
+
+    public List<BlogPost> getPostsByAuthorID(int authorID) {
+        List<BlogPost> posts = new ArrayList<>();
+        String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
+                "FROM Blog p " +
+                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
+                "WHERE p.authorUserID = ? " +
+                "ORDER BY CASE WHEN p.[status] = N'Pending' THEN 0 ELSE 1 END, p.createdAt DESC, p.blogID DESC";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, authorID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    posts.add(mapBlogPost(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return posts;
+    }
+
+    public BlogPost getPostByIdAndAuthorID(int blogID, int authorID) {
+        String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
+                "FROM Blog p " +
+                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
+                "WHERE p.blogID = ? AND p.authorUserID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, blogID);
+            ps.setInt(2, authorID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapBlogPost(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // Thêm mới một bài viết blog.
     public boolean insertPost(BlogPost post) {
         String sql = "INSERT INTO Blog " +
-                "(title, slug, summary, content, image, category, [status], authorID, publishedAt) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, CASE WHEN ? = N'Published' THEN GETDATE() ELSE NULL END)";
+                "(title, slug, summary, content, image, authorUserID, [status], createdAt) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE())";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             fillPostStatement(ps, post);
-            ps.setNString(9, post.getStatus());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -252,21 +254,14 @@ public class BlogDAO {
     // Cập nhật nội dung và trạng thái của một bài viết.
     public boolean updatePost(BlogPost post) {
         String sql = "UPDATE Blog SET " +
-                "title = ?, slug = ?, summary = ?, content = ?, image = ?, category = ?, [status] = ?, " +
-                "authorID = COALESCE(?, authorID), " +
-                "publishedAt = CASE " +
-                "WHEN ? = N'Published' AND publishedAt IS NULL THEN GETDATE() " +
-                "WHEN ? = N'Published' THEN publishedAt " +
-                "ELSE NULL END, " +
-                "updateAt = GETDATE() " +
+                "title = ?, slug = ?, summary = ?, content = ?, image = ?, " +
+                "authorUserID = COALESCE(?, authorUserID), [status] = ?, updatedAt = GETDATE() " +
                 "WHERE blogID = ?";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             fillPostStatement(ps, post);
-            ps.setNString(9, post.getStatus());
-            ps.setNString(10, post.getStatus());
-            ps.setInt(11, post.getBlogID());
+            ps.setInt(8, post.getBlogID());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -278,19 +273,13 @@ public class BlogDAO {
     public boolean updatePostStatus(int blogID, String status) {
         String sql = "UPDATE Blog SET " +
                 "[status] = ?, " +
-                "publishedAt = CASE " +
-                "WHEN ? = N'Published' AND publishedAt IS NULL THEN GETDATE() " +
-                "WHEN ? = N'Published' THEN publishedAt " +
-                "ELSE NULL END, " +
-                "updateAt = GETDATE() " +
+                "updatedAt = GETDATE() " +
                 "WHERE blogID = ?";
 
         try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setNString(1, status);
-            ps.setNString(2, status);
-            ps.setNString(3, status);
-            ps.setInt(4, blogID);
+            ps.setInt(2, blogID);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -370,13 +359,12 @@ public class BlogDAO {
         setNullableNString(ps, 3, post.getSummary());
         ps.setNString(4, post.getContent());
         setNullableNString(ps, 5, post.getImage());
-        setNullableNString(ps, 6, post.getCategory());
-        ps.setNString(7, post.getStatus());
         if (post.getAuthorID() == null) {
-            ps.setNull(8, Types.INTEGER);
+            ps.setNull(6, Types.INTEGER);
         } else {
-            ps.setInt(8, post.getAuthorID());
+            ps.setInt(6, post.getAuthorID());
         }
+        ps.setNString(7, post.getStatus());
     }
 
     // Gán chuỗi NVARCHAR, nếu rỗng thì set NULL.
@@ -397,15 +385,15 @@ public class BlogDAO {
         post.setSummary(rs.getNString("summary"));
         post.setContent(rs.getNString("content"));
         post.setImage(rs.getNString("image"));
-        post.setCategory(rs.getNString("category"));
+        post.setCategory(null);
         post.setStatus(rs.getNString("status"));
 
-        int authorID = rs.getInt("authorID");
+        int authorID = rs.getInt("authorUserID");
         post.setAuthorID(rs.wasNull() ? null : authorID);
         post.setAuthorName(rs.getNString("authorName"));
-        post.setPublishedAt(rs.getTimestamp("publishedAt"));
-        post.setCreateAt(rs.getTimestamp("createAt"));
-        post.setUpdateAt(rs.getTimestamp("updateAt"));
+        post.setPublishedAt("Published".equalsIgnoreCase(post.getStatus()) ? rs.getTimestamp("createdAt") : null);
+        post.setCreateAt(rs.getTimestamp("createdAt"));
+        post.setUpdateAt(rs.getTimestamp("updatedAt"));
         return post;
     }
 

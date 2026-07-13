@@ -205,10 +205,10 @@
                         <span class="summary-value">
                             <span class="status-badge">
                                 <c:choose>
-                                    <c:when test="${bookingSummary.status == 'Pending'}">Chờ xử lý</c:when>
-                                    <c:when test="${bookingSummary.status == 'Confirmed'}">Đã xác nhận</c:when>
-                                    <c:when test="${bookingSummary.status == 'Cancelled'}">Đã hủy</c:when>
-                                    <c:when test="${bookingSummary.status == 'Completed'}">Hoàn thành</c:when>
+                                    <c:when test="${bookingSummary.status == 'Đang xử lý' || bookingSummary.status == 'Pending'}">Đang xử lý</c:when>
+                                    <c:when test="${bookingSummary.status == 'Đã duyệt' || bookingSummary.status == 'Confirmed'}">Đã duyệt</c:when>
+                                    <c:when test="${bookingSummary.status == 'Đã hủy' || bookingSummary.status == 'Cancelled'}">Đã hủy</c:when>
+                                    <c:when test="${bookingSummary.status == 'Hoàn thành' || bookingSummary.status == 'Completed'}">Hoàn thành</c:when>
                                     <c:otherwise>${bookingSummary.status}</c:otherwise>
                                 </c:choose>
                             </span>

@@ -18,7 +18,7 @@ public class AdministrativeUnitDAO {
                 "SELECT administrativeUnitID, provinceCode, provinceName, wardType, wardName " +
                 "FROM [dbo].[Administrative_Unit] " +
                 "WHERE isActive = 1 " +
-                "ORDER BY CAST(provinceCode AS INT), " +
+                "ORDER BY COALESCE(TRY_CONVERT(INT, provinceCode), 999), provinceName, " +
                 "CASE wardType WHEN N'Phường' THEN 1 WHEN N'Xã' THEN 2 ELSE 3 END, " +
                 "wardName";
 
@@ -67,15 +67,11 @@ public class AdministrativeUnitDAO {
                 "WHERE isActive = 1 " +
                 "  AND provinceName IS NOT NULL " +
                 "  AND LTRIM(RTRIM(provinceName)) <> N'' " +
-                "  AND ( " +
-                "        wardType IN (N'Tỉnh/Thành', N'Tỉnh', N'Thành phố') " +
-                "        OR wardName = N'Trung tâm' " +
-                "      ) " +
                 "GROUP BY provinceName " +
                 "ORDER BY " +
                 "    CASE " +
-                "        WHEN MIN(CASE WHEN ISNUMERIC(provinceCode) = 1 THEN CAST(provinceCode AS INT) END) IS NULL THEN 999 " +
-                "        ELSE MIN(CASE WHEN ISNUMERIC(provinceCode) = 1 THEN CAST(provinceCode AS INT) END) " +
+                "        WHEN MIN(TRY_CONVERT(INT, provinceCode)) IS NULL THEN 999 " +
+                "        ELSE MIN(TRY_CONVERT(INT, provinceCode)) " +
                 "    END, " +
                 "    provinceName";
 
@@ -103,6 +99,19 @@ public class AdministrativeUnitDAO {
         return provinces;
     }
 
+    public List<String> getActiveProvinceNames() {
+        List<String> names = new ArrayList<>();
+
+        for (AdministrativeUnit province : getActiveProvinces()) {
+            String provinceName = province.getProvinceName();
+            if (!isBlank(provinceName)) {
+                names.add(provinceName.trim());
+            }
+        }
+
+        return names;
+    }
+
     public boolean isValidProvinceName(String provinceName) {
         if (isBlank(provinceName)) {
             return false;
@@ -112,11 +121,7 @@ public class AdministrativeUnitDAO {
                 "SELECT 1 " +
                 "FROM [dbo].[Administrative_Unit] " +
                 "WHERE isActive = 1 " +
-                "  AND provinceName = ? " +
-                "  AND ( " +
-                "        wardType IN (N'Tỉnh/Thành', N'Tỉnh', N'Thành phố') " +
-                "        OR wardName = N'Trung tâm' " +
-                "      )";
+                "  AND provinceName = ?";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -159,6 +164,75 @@ public class AdministrativeUnitDAO {
         }
 
         return false;
+    }
+
+    public AdministrativeUnit getActiveUnitByID(int administrativeUnitID) {
+        String sql =
+                "SELECT administrativeUnitID, provinceCode, provinceName, wardType, wardName " +
+                "FROM [dbo].[Administrative_Unit] " +
+                "WHERE isActive = 1 AND administrativeUnitID = ?";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, administrativeUnitID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    AdministrativeUnit unit = new AdministrativeUnit();
+
+                    unit.setAdministrativeUnitID(rs.getInt("administrativeUnitID"));
+                    unit.setProvinceCode(rs.getString("provinceCode"));
+                    unit.setProvinceName(rs.getString("provinceName"));
+                    unit.setWardType(rs.getString("wardType"));
+                    unit.setWardName(rs.getString("wardName"));
+                    unit.setRegionGroup(resolveRegionGroup(unit.getProvinceName()));
+
+                    return unit;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public AdministrativeUnit findActiveUnitInAddress(String address) {
+        if (isBlank(address)) {
+            return null;
+        }
+
+        String sql = """
+                SELECT TOP (1) administrativeUnitID, provinceCode, provinceName, wardType, wardName
+                FROM [dbo].[Administrative_Unit]
+                WHERE isActive = 1
+                  AND (? = CONCAT(wardName, N', ', provinceName)
+                       OR ? LIKE CONCAT(N'%, ', wardName, N', ', provinceName))
+                ORDER BY LEN(wardName) DESC
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setNString(1, address.trim());
+            ps.setNString(2, address.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    AdministrativeUnit unit = new AdministrativeUnit();
+                    unit.setAdministrativeUnitID(rs.getInt("administrativeUnitID"));
+                    unit.setProvinceCode(rs.getString("provinceCode"));
+                    unit.setProvinceName(rs.getString("provinceName"));
+                    unit.setWardType(rs.getString("wardType"));
+                    unit.setWardName(rs.getString("wardName"));
+                    unit.setRegionGroup(resolveRegionGroup(unit.getProvinceName()));
+                    return unit;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private String resolveRegionGroup(String provinceName) {

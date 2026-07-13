@@ -1,12 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | ${room.roomType}</title>
+<title>WonderVN | ${fn:escapeXml(room.roomType)}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -226,6 +227,20 @@
             font-weight: 700;
         }
 
+        .capacity-help {
+            display: block;
+            min-height: 18px;
+            margin-top: 5px;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .capacity-help.is-invalid {
+            color: #dc2626;
+        }
+
         .booking-form-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -375,9 +390,9 @@
 
 <jsp:include page="/views/common/client-header.jsp"/>
 
-<div class="container room-detail-page">
+<main class="container room-detail-page">
 
-    <div class="breadcrumb-line">
+    <nav class="breadcrumb-line" aria-label="Điều hướng trang">
         <button type="button" class="btn-back-page" onclick="history.back()">
             <i class="fa-solid fa-arrow-left"></i>
             Quay lại trang lưu trú
@@ -392,12 +407,12 @@
         <span>/</span>
 
         <a href="${pageContext.request.contextPath}/accommodation/detail?id=${accommodation.accommodationID}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&children=${children}&rooms=${rooms}&guests=${guests}">
-            ${accommodation.name}
+            <c:out value="${accommodation.name}"/>
         </a>
         <span>/</span>
 
-        <span>${room.roomType}</span>
-    </div>
+        <span><c:out value="${room.roomType}"/></span>
+    </nav>
 
     <c:if test="${not empty param.status}">
         <c:choose>
@@ -419,6 +434,12 @@
                     Thông tin đặt phòng chưa hợp lệ. Vui lòng kiểm tra lại ngày và số phòng.
                 </div>
             </c:when>
+            <c:when test="${param.status == 'invalidCapacity'}">
+                <div class="alert alert-danger rounded-4 border-0 shadow-sm">
+                    <i class="fa-solid fa-user-xmark me-2"></i>
+                    Số người vượt quá sức chứa của loại phòng đã chọn. Vui lòng giảm số khách hoặc tăng số phòng.
+                </div>
+            </c:when>
             <c:otherwise>
                 <div class="alert alert-danger rounded-4 border-0 shadow-sm">
                     <i class="fa-solid fa-circle-xmark me-2"></i>
@@ -430,10 +451,10 @@
 
     <div class="room-layout">
         <div>
-            <div class="main-card">
+            <article class="main-card">
                 <img class="room-img"
-                     src="${room.image}"
-                     alt="${room.roomType}"
+                     src="${fn:escapeXml(room.image)}"
+                     alt="${fn:escapeXml(room.roomType)}"
                      onerror="this.src='https://placehold.co/1200x700?text=WonderVN+Room';">
 
                 <div class="main-content">
@@ -442,10 +463,10 @@
                         Chi tiết phòng
                     </div>
 
-                    <h1 class="title">${room.roomType}</h1>
+                    <h1 class="title"><c:out value="${room.roomType}"/></h1>
 
                     <div class="sub-text">
-                        ${room.description}
+                        <c:out value="${room.description}"/>
                     </div>
 
                     <div class="info-grid">
@@ -493,13 +514,13 @@
                                                 <i class="fa-solid fa-circle-check"></i>
                                             </c:when>
                                             <c:when test="${rf.icon.contains('fa-solid') || rf.icon.contains('fa-regular') || rf.icon.contains('fa-brands')}">
-                                                <i class="${rf.icon}"></i>
+                                                <i class="${fn:escapeXml(rf.icon)}"></i>
                                             </c:when>
                                             <c:otherwise>
-                                                <i class="fa-solid ${rf.icon}"></i>
+                                                <i class="fa-solid ${fn:escapeXml(rf.icon)}"></i>
                                             </c:otherwise>
                                         </c:choose>
-                                        ${rf.facilityName}
+                                        <c:out value="${rf.facilityName}"/>
                                     </span>
                                 </c:forEach>
                             </c:otherwise>
@@ -512,11 +533,11 @@
                     </h2>
 
                     <div class="sub-text mb-0">
-                        <strong>${accommodation.name}</strong><br>
-                        ${accommodation.fullAddress}
+                        <strong><c:out value="${accommodation.name}"/></strong><br>
+                        <c:out value="${accommodation.fullAddress}"/>
                     </div>
                 </div>
-            </div>
+            </article>
         </div>
 
         <aside class="booking-card">
@@ -565,8 +586,15 @@
                                    id="roomAdults"
                                    name="adults"
                                    min="1"
+                                   max="${maxAllowedAdults}"
+                                   data-capacity-per-room="${room.maxAdults}"
+                                   aria-describedby="roomAdultsHelp"
                                    value="${empty adults ? 2 : adults}"
                                    required>
+                            <small id="roomAdultsHelp"
+                                   class="capacity-help${adultCapacityExceeded ? ' is-invalid' : ''}">
+                                Tối đa ${maxAllowedAdults} người lớn cho ${rooms} phòng.
+                            </small>
                         </div>
 
                         <div>
@@ -576,8 +604,15 @@
                                    id="roomChildren"
                                    name="children"
                                    min="0"
+                                   max="${maxAllowedChildren}"
+                                   data-capacity-per-room="${room.maxChildren}"
+                                   aria-describedby="roomChildrenHelp"
                                    value="${empty children ? 0 : children}"
                                    required>
+                            <small id="roomChildrenHelp"
+                                   class="capacity-help${childCapacityExceeded ? ' is-invalid' : ''}">
+                                Tối đa ${maxAllowedChildren} trẻ em cho ${rooms} phòng.
+                            </small>
                         </div>
 
                         <div>
@@ -600,6 +635,8 @@
                                    name="guests"
                                    min="1"
                                    value="${empty guests ? 2 : guests}"
+                                   readonly
+                                   aria-readonly="true"
                                    required>
                         </div>
                     </div>
@@ -609,6 +646,13 @@
                         Cập nhật lịch lưu trú
                     </button>
                 </form>
+
+                <c:if test="${capacityExceeded}">
+                    <div class="alert alert-danger py-2 px-3 mb-3" role="alert">
+                        Số khách hiện tại vượt sức chứa của ${rooms} phòng. Mỗi phòng tối đa
+                        ${room.maxAdults} người lớn và ${room.maxChildren} trẻ em.
+                    </div>
+                </c:if>
 
                 <c:choose>
                     <c:when test="${not empty checkIn && not empty checkOut}">
@@ -670,7 +714,7 @@
                 </c:choose>
             </div>
 
-            <c:if test="${not empty checkIn && not empty checkOut}">
+            <c:if test="${not empty checkIn && not empty checkOut && !capacityExceeded}">
                 <div class="total-box">
                     <div class="total-label">Tổng tiền tạm tính</div>
                     <div class="total-value">
@@ -705,7 +749,7 @@
             </a>
         </aside>
     </div>
-</div>
+</main>
 
 <jsp:include page="/views/common/client-footer.jsp"/>
 
@@ -718,7 +762,10 @@
         const checkOutInput = document.getElementById("roomCheckOut");
         const adultsInput = document.getElementById("roomAdults");
         const childrenInput = document.getElementById("roomChildren");
+        const roomQuantityInput = document.getElementById("roomQuantity");
         const guestsInput = document.getElementById("roomGuests");
+        const adultsHelp = document.getElementById("roomAdultsHelp");
+        const childrenHelp = document.getElementById("roomChildrenHelp");
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -735,10 +782,33 @@
             checkOutInput.min = todayText;
         }
 
-        function syncGuests() {
+        function validateGuestCapacity() {
             const adults = parseInt(adultsInput.value || "0", 10);
             const children = parseInt(childrenInput.value || "0", 10);
+            const rooms = Math.max(1, parseInt(roomQuantityInput.value || "1", 10));
+            const maxAdults = parseInt(adultsInput.dataset.capacityPerRoom || "0", 10) * rooms;
+            const maxChildren = parseInt(childrenInput.dataset.capacityPerRoom || "0", 10) * rooms;
+
+            adultsInput.max = String(maxAdults);
+            childrenInput.max = String(maxChildren);
             guestsInput.value = Math.max(1, adults + children);
+
+            const adultsInvalid = adults > maxAdults;
+            const childrenInvalid = children > maxChildren;
+
+            adultsInput.setCustomValidity(adultsInvalid
+                ? `Tối đa ${maxAdults} người lớn cho ${rooms} phòng.`
+                : "");
+            childrenInput.setCustomValidity(childrenInvalid
+                ? `Tối đa ${maxChildren} trẻ em cho ${rooms} phòng.`
+                : "");
+
+            adultsHelp.textContent = `Tối đa ${maxAdults} người lớn cho ${rooms} phòng.`;
+            childrenHelp.textContent = `Tối đa ${maxChildren} trẻ em cho ${rooms} phòng.`;
+            adultsHelp.classList.toggle("is-invalid", adultsInvalid);
+            childrenHelp.classList.toggle("is-invalid", childrenInvalid);
+
+            return !adultsInvalid && !childrenInvalid;
         }
 
         if (checkInInput && checkOutInput) {
@@ -751,9 +821,11 @@
             });
         }
 
-        if (adultsInput && childrenInput && guestsInput) {
-            adultsInput.addEventListener("input", syncGuests);
-            childrenInput.addEventListener("input", syncGuests);
+        if (adultsInput && childrenInput && roomQuantityInput && guestsInput) {
+            adultsInput.addEventListener("input", validateGuestCapacity);
+            childrenInput.addEventListener("input", validateGuestCapacity);
+            roomQuantityInput.addEventListener("input", validateGuestCapacity);
+            validateGuestCapacity();
         }
 
         if (form) {
@@ -767,6 +839,12 @@
                 if (checkOutInput.value <= checkInInput.value) {
                     event.preventDefault();
                     alert("Ngày trả phòng phải sau ngày nhận phòng.");
+                    return;
+                }
+
+                if (!validateGuestCapacity()) {
+                    event.preventDefault();
+                    form.reportValidity();
                 }
             });
         }

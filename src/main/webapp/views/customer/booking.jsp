@@ -286,12 +286,12 @@
                             Giá trẻ em: <span><fmt:formatNumber value="${selectedSchedule.childPrice}" pattern="#,#00" />đ</span>
                         </div>
 
-                        <form action="${pageContext.request.contextPath}/views/customer/checkout.jsp"
+                        <form action="${pageContext.request.contextPath}/booking"
                               method="get"
                               class="booking-actions">
 
                             <input type="hidden" name="tourScheduleID" value="${selectedSchedule.tourScheduleID}">
-                            <input type="hidden" name="tourName" value="${selectedTour.tourName}">
+                            <input type="hidden" name="checkout" value="1">
 
                             <button type="submit">
                                 Tiếp tục đến Checkout

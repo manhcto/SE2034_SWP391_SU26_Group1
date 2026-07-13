@@ -220,16 +220,16 @@
                         <span class="detail-label">Trạng thái</span>
                         <span class="detail-value">
                             <c:choose>
-                                <c:when test="${bookingDetail.status == 'Pending'}">
+                                <c:when test="${bookingDetail.status == 'Đang xử lý' || bookingDetail.status == 'Pending'}">
                                     <span class="status-pill status-pending">Đang xử lý</span>
                                 </c:when>
-                                <c:when test="${bookingDetail.status == 'Confirmed'}">
+                                <c:when test="${bookingDetail.status == 'Đã duyệt' || bookingDetail.status == 'Confirmed'}">
                                     <span class="status-pill status-confirmed">Đã duyệt</span>
                                 </c:when>
-                                <c:when test="${bookingDetail.status == 'Completed'}">
+                                <c:when test="${bookingDetail.status == 'Hoàn thành' || bookingDetail.status == 'Completed'}">
                                     <span class="status-pill status-completed">Hoàn thành</span>
                                 </c:when>
-                                <c:when test="${bookingDetail.status == 'Cancelled'}">
+                                <c:when test="${bookingDetail.status == 'Đã hủy' || bookingDetail.status == 'Cancelled'}">
                                     <span class="status-pill status-cancelled">Đã hủy</span>
                                 </c:when>
                                 <c:otherwise>${bookingDetail.status}</c:otherwise>

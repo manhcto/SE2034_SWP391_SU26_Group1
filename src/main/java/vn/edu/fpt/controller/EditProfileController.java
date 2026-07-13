@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.UserDAO;
+import vn.edu.fpt.model.AdministrativeUnit;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
@@ -56,7 +57,23 @@ public class EditProfileController
         String phone = request.getParameter("phone");
         String gender = request.getParameter("gender");
         String dob = request.getParameter("dob");
-        String address = request.getParameter("address");
+        String streetAddress = trimToEmpty(request.getParameter("streetAddress"));
+        int administrativeUnitID = parsePositiveInt(request.getParameter("administrativeUnitID"));
+        AdministrativeUnit administrativeUnit = administrativeUnitID > 0
+                ? administrativeUnitDAO.getActiveUnitByID(administrativeUnitID)
+                : null;
+
+        if (administrativeUnit == null) {
+            applyEditProfileContext(request);
+            request.setAttribute("error", "Vui lòng chọn tỉnh/thành phố và phường/xã hợp lệ.");
+            request.getRequestDispatcher("/views/edit-profile.jsp").forward(request, response);
+            return;
+        }
+
+        String address = streetAddress.isEmpty()
+                ? administrativeUnit.getWardName() + ", " + administrativeUnit.getProvinceName()
+                : streetAddress + ", " + administrativeUnit.getWardName()
+                + ", " + administrativeUnit.getProvinceName();
 
         boolean success = userDAO.updateProfile(
                 user.getUserID(),
@@ -139,5 +156,18 @@ public class EditProfileController
         }
 
         return "customer";
+    }
+
+    private int parsePositiveInt(String value) {
+        try {
+            int number = Integer.parseInt(trimToEmpty(value));
+            return number > 0 ? number : 0;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private String trimToEmpty(String value) {
+        return value == null ? "" : value.trim();
     }
 }

@@ -101,8 +101,9 @@ public class BookingDAO {
     // Insert booking, detail and update schedule in one transaction
     public int insertBookingTransactionReturnID(Booking booking, int tourScheduleID, double unitPrice) {
         String sqlBooking = "INSERT INTO Booking (bookingCode, bookingType, firstName, lastName, email, "
-                + "phone, address, note, numberAdult, numberChildren, totalPrice, isBookedForOther, userID) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "phone, address, note, numberAdult, numberChildren, totalPrice, isBookedForOther, userID, "
+                + "[status], bookDate) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, N'Đang xử lý', GETDATE())";
 
         String sqlDetail = "INSERT INTO Booking_Detail (bookingID, tourScheduleID, quantity, unitPrice, subTotal) "
                 + "VALUES (?, ?, ?, ?, ?)";
@@ -621,24 +622,131 @@ public class BookingDAO {
     }
 
     public boolean updateBookingStatus(int bookingID, String status) {
-        String sql = "UPDATE Booking "
-                + "SET [status] = ? "
-                + "WHERE bookingID = ?";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, status);
-            ps.setInt(2, bookingID);
-
-            return ps.executeUpdate() > 0;
-
-        } catch (Exception e) {
-            System.out.println("Loi cap nhat trang thai booking: " + e.getMessage());
-            e.printStackTrace();
+        String normalizedStatus = normalizeBookingStatus(status);
+        if (normalizedStatus == null) {
+            return false;
         }
 
-        return false;
+        String sqlGetBooking = """
+                SELECT b.[status], bd.tourScheduleID, bd.roomID, bd.quantity
+                FROM Booking b WITH (UPDLOCK, ROWLOCK)
+                LEFT JOIN Booking_Detail bd ON b.bookingID = bd.bookingID
+                WHERE b.bookingID = ?
+                """;
+        String sqlReleaseTour = """
+                UPDATE Tour_Scheduler
+                SET quantity = CASE WHEN quantity - ? < 0 THEN 0 ELSE quantity - ? END
+                WHERE tourScheduleID = ?
+                """;
+        String sqlReserveTour = """
+                UPDATE Tour_Scheduler
+                SET quantity = quantity + ?
+                WHERE quantity + ? <= maxParticipants AND tourScheduleID = ?
+                """;
+        String sqlReleaseRoom = """
+                UPDATE Room
+                SET roomAvailability = CASE
+                    WHEN roomAvailability + ? > numberOfRooms THEN numberOfRooms
+                    ELSE roomAvailability + ? END,
+                    updatedAt = GETDATE()
+                WHERE roomID = ?
+                """;
+        String sqlReserveRoom = """
+                UPDATE Room
+                SET roomAvailability = roomAvailability - ?, updatedAt = GETDATE()
+                WHERE roomAvailability >= ? AND roomID = ?
+                """;
+        String sqlUpdateBooking = """
+                UPDATE Booking SET [status] = ?, updatedAt = GETDATE() WHERE bookingID = ?
+                """;
+
+        try (Connection conn = new DBConnection().getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                String currentStatus;
+                int tourScheduleID = 0;
+                int roomID = 0;
+                int quantity = 0;
+
+                try (PreparedStatement ps = conn.prepareStatement(sqlGetBooking)) {
+                    ps.setInt(1, bookingID);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return false;
+                        }
+                        currentStatus = rs.getString("status");
+                        tourScheduleID = rs.getInt("tourScheduleID");
+                        roomID = rs.getInt("roomID");
+                        quantity = rs.getInt("quantity");
+                    }
+                }
+
+                boolean wasCancelled = Booking.isCancelledStatus(currentStatus);
+                boolean willCancel = Booking.isCancelledStatus(normalizedStatus);
+
+                if (!wasCancelled && willCancel && quantity > 0) {
+                    if (tourScheduleID > 0) {
+                        executeQuantityUpdate(conn, sqlReleaseTour, quantity, tourScheduleID);
+                    }
+                    if (roomID > 0) {
+                        executeQuantityUpdate(conn, sqlReleaseRoom, quantity, roomID);
+                    }
+                } else if (wasCancelled && !willCancel && quantity > 0) {
+                    if (tourScheduleID > 0
+                            && !executeQuantityUpdate(conn, sqlReserveTour, quantity, tourScheduleID)) {
+                        conn.rollback();
+                        return false;
+                    }
+                    if (roomID > 0
+                            && !executeQuantityUpdate(conn, sqlReserveRoom, quantity, roomID)) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(sqlUpdateBooking)) {
+                    ps.setNString(1, normalizedStatus);
+                    ps.setInt(2, bookingID);
+                    if (ps.executeUpdate() == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+
+                conn.commit();
+                return true;
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi cập nhật trạng thái booking: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean executeQuantityUpdate(Connection conn,
+                                          String sql,
+                                          int quantity,
+                                          int resourceID) throws Exception {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, quantity);
+            ps.setInt(3, resourceID);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    private String normalizeBookingStatus(String status) {
+        if (Booking.isProcessingStatus(status)) return Booking.STATUS_PROCESSING;
+        if (Booking.isApprovedStatus(status)) return Booking.STATUS_APPROVED;
+        if (Booking.isCancelledStatus(status)) return Booking.STATUS_CANCELLED;
+        if (Booking.isCompletedStatus(status)) return Booking.STATUS_COMPLETED;
+        return null;
     }
 
     // Update customer booking, quantity and total price
@@ -675,7 +783,7 @@ public class BookingDAO {
                 + "isBookedForOther = ?, "
                 + "totalPrice = ? "
                 + "WHERE bookingID = ? "
-                + "AND status = 'Pending'";
+                + "AND status IN (N'Đang xử lý', N'Pending')";
 
         String sqlUpdateDetail = "UPDATE Booking_Detail "
                 + "SET quantity = ?, "
@@ -861,93 +969,6 @@ public class BookingDAO {
     }
 
     public boolean cancelPendingBookingAndRelease(int bookingID) {
-        String sqlGetBooking = """
-                SELECT
-                    b.[status],
-                    bd.tourScheduleID,
-                    bd.quantity
-                FROM Booking b
-                LEFT JOIN Booking_Detail bd
-                    ON b.bookingID = bd.bookingID
-                WHERE b.bookingID = ?
-                """;
-
-        String sqlReleaseTour = """
-                UPDATE Tour_Scheduler
-                SET quantity = CASE
-                    WHEN quantity - ? < 0 THEN 0
-                    ELSE quantity - ?
-                END
-                WHERE tourScheduleID = ?
-                """;
-
-        String sqlCancelBooking = """
-                UPDATE Booking
-                SET [status] = N'Cancelled',
-                    updatedAt = GETDATE()
-                WHERE bookingID = ?
-                  AND [status] = N'Pending'
-                """;
-
-        try (Connection conn = new DBConnection().getConnection()) {
-            conn.setAutoCommit(false);
-
-            try {
-                String currentStatus;
-                int tourScheduleID = 0;
-                int quantity = 0;
-
-                try (PreparedStatement ps = conn.prepareStatement(sqlGetBooking)) {
-                    ps.setInt(1, bookingID);
-
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (!rs.next()) {
-                            conn.rollback();
-                            return false;
-                        }
-
-                        currentStatus = rs.getString("status");
-                        tourScheduleID = rs.getInt("tourScheduleID");
-                        quantity = rs.getInt("quantity");
-                    }
-                }
-
-                if (!"Pending".equalsIgnoreCase(currentStatus)) {
-                    conn.commit();
-                    return true;
-                }
-
-                if (tourScheduleID > 0 && quantity > 0) {
-                    try (PreparedStatement ps = conn.prepareStatement(sqlReleaseTour)) {
-                        ps.setInt(1, quantity);
-                        ps.setInt(2, quantity);
-                        ps.setInt(3, tourScheduleID);
-                        ps.executeUpdate();
-                    }
-                }
-
-                try (PreparedStatement ps = conn.prepareStatement(sqlCancelBooking)) {
-                    ps.setInt(1, bookingID);
-
-                    if (ps.executeUpdate() == 0) {
-                        conn.rollback();
-                        return false;
-                    }
-                }
-
-                conn.commit();
-                return true;
-            } catch (Exception e) {
-                conn.rollback();
-                throw e;
-            } finally {
-                conn.setAutoCommit(true);
-            }
-        } catch (Exception e) {
-            System.out.println("Loi huy booking cho thanh toan: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return false;
+        return updateBookingStatus(bookingID, Booking.STATUS_CANCELLED);
     }
 }

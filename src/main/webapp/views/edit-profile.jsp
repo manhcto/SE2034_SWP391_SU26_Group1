@@ -298,6 +298,8 @@
             <label for="addressDetail">Địa chỉ chi tiết</label>
             <input type="text"
                    id="addressDetail"
+                   name="streetAddress"
+                   value="${param.streetAddress}"
                    placeholder="Số nhà, tên đường (không bắt buộc)">
           </div>
 
@@ -319,6 +321,10 @@
                  id="address"
                  name="address"
                  value="${empty param.address ? sessionScope.user.address : param.address}">
+          <input type="hidden"
+                 id="administrativeUnitID"
+                 name="administrativeUnitID"
+                 value="${param.administrativeUnitID}">
         </div>
       </form>
 
@@ -356,6 +362,7 @@
   const administrativeUnits = [
     <c:forEach var="unit" items="${administrativeUnitList}" varStatus="loop">
     {
+      id: "${unit.administrativeUnitID}",
       province: "${unit.provinceName}",
       ward: "${unit.wardName}",
       wardType: "${unit.wardType}"
@@ -367,6 +374,7 @@
   const wardSelect = document.getElementById("wardSelect");
   const addressDetailInput = document.getElementById("addressDetail");
   const addressInput = document.getElementById("address");
+  const administrativeUnitIDInput = document.getElementById("administrativeUnitID");
   const savedAddress = addressInput.value || "";
 
   function uniqueProvinces() {
@@ -389,7 +397,7 @@
   }
 
   function formatWard(unit) {
-    return (unit.wardType ? unit.wardType + " " : "") + unit.ward;
+    return unit.ward;
   }
 
   function fillSelect(select, options, placeholder, selectedValue) {
@@ -420,6 +428,11 @@
     const detail = addressDetailInput.value.trim();
     const ward = wardSelect.value.trim();
     const province = provinceSelect.value.trim();
+    const selectedUnit = administrativeUnits.find(function (unit) {
+      return unit.province === province && formatWard(unit) === ward;
+    });
+
+    administrativeUnitIDInput.value = selectedUnit ? selectedUnit.id : "";
 
     if (detail) {
       parts.push(detail);
@@ -454,6 +467,7 @@
 
     provinceSelect.value = matchedUnit.province;
     fillWardSelect(matchedUnit.province, formatWard(matchedUnit));
+    administrativeUnitIDInput.value = matchedUnit.id;
 
     const suffix = formatWard(matchedUnit) + ", " + matchedUnit.province;
     if (addressText !== suffix) {
