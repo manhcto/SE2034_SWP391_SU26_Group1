@@ -447,7 +447,6 @@
 
         <nav class="wv-nav" id="wvMainNav">
             <a href="${pageContext.request.contextPath}/tour">Tour trọn gói</a>
-            <a href="${pageContext.request.contextPath}/tour">Đặt tour</a>
             <a href="${pageContext.request.contextPath}/accommodation">Lưu trú</a>
             <a href="${pageContext.request.contextPath}/blog">Blog</a>
         </nav>
@@ -469,7 +468,7 @@
                         <div class="wv-dropdown">
                             <div class="wv-dropdown-head">
                                 <div class="wv-dropdown-name">
-                                    ${sessionScope.user.firstName} ${sessionScope.user.lastName}
+                                        ${sessionScope.user.firstName} ${sessionScope.user.lastName}
                                 </div>
                                 <div class="wv-dropdown-role">
                                     <c:choose>
