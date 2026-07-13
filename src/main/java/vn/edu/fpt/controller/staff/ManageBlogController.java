@@ -81,10 +81,7 @@ public class ManageBlogController extends HttpServlet {
                     response.sendRedirect(resolveManagementPath(request) + "?message=deleted");
                     break;
                 case "status":
-                    int blogID = parseId(request.getParameter("id"));
-                    String status = normalizeStatus(request.getParameter("status"));
-                    blogDAO.updatePostStatus(blogID, status);
-                    response.sendRedirect(resolveManagementPath(request) + "?message=status_updated");
+                    response.sendRedirect(resolveManagementPath(request));
                     break;
                 case "list":
                 default:
@@ -102,6 +99,16 @@ public class ManageBlogController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         try {
+            String action = normalize(request.getParameter("action"));
+            if ("status".equalsIgnoreCase(action)) {
+                int blogID = parseId(request.getParameter("id"));
+                String status = normalizeReviewStatus(request.getParameter("status"));
+                boolean updated = blogID > 0 && blogDAO.updatePostStatus(blogID, status);
+                response.sendRedirect(resolveManagementPath(request)
+                        + "?message=" + (updated ? "status_updated" : "error"));
+                return;
+            }
+
             BlogPost post = buildPostFromRequest(request);
             if (post.getTitle().isEmpty() || post.getContent().isEmpty()) {
                 request.setAttribute("editingPost", post);
@@ -274,7 +281,15 @@ public class ManageBlogController extends HttpServlet {
         if ("Pending".equalsIgnoreCase(value)) {
             return "Pending";
         }
+        if ("Rejected".equalsIgnoreCase(value)) {
+            return "Rejected";
+        }
         return "Draft";
+    }
+
+    private String normalizeReviewStatus(String status) {
+        String value = normalize(status);
+        return "Published".equalsIgnoreCase(value) ? "Published" : "Rejected";
     }
 
     private String normalizeStatusFilter(String status) {
@@ -287,6 +302,9 @@ public class ManageBlogController extends HttpServlet {
         }
         if ("Pending".equalsIgnoreCase(value)) {
             return "Pending";
+        }
+        if ("Rejected".equalsIgnoreCase(value)) {
+            return "Rejected";
         }
         return "";
     }

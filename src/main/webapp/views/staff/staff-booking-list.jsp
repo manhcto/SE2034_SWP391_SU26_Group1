@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Quản lý Booking</title>
+    <title>WonderVN | Quản lý booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -315,7 +315,7 @@
     <main class="admin-main">
         <div class="staff-page-topbar">
             <div>
-                <h1>Quản lý Booking</h1>
+                <h1>Quản lý booking</h1>
                 <p>Theo dõi và duyệt trạng thái booking tour, booking lưu trú.</p>
             </div>
         </div>

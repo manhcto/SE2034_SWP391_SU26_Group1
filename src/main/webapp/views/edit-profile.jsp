@@ -5,7 +5,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Edit Profile | WonderVN</title>
+  <title>Chỉnh sửa hồ sơ | WonderVN</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,6 +53,17 @@
       --theme-soft:rgba(220,38,38,.12);
       --theme-surface:#fff1f2;
       background:linear-gradient(180deg,#fff7f7 0%,#ffeded 100%);
+    }
+
+    .staff-edit-layout{
+      min-height:100vh;
+      display:flex;
+      background:#f5f7fb;
+    }
+
+    .staff-edit-main{
+      min-width:0;
+      flex:1;
     }
 
     .profile-container{
@@ -191,6 +202,7 @@
     }
 
     @media(max-width:768px){
+      .staff-edit-layout{display:block;}
       .form-grid{
         grid-template-columns:1fr;
       }
@@ -209,6 +221,12 @@
 
 </head>
 <body class="${empty editProfileTheme ? 'customer-theme' : editProfileTheme.concat('-theme')}">
+
+<c:if test="${sessionScope.user.roleID == 2}">
+  <div class="staff-edit-layout">
+    <jsp:include page="/views/common/staff-sidebar.jsp"/>
+    <div class="staff-edit-main">
+</c:if>
 
 <c:if test="${sessionScope.user.roleID == 4}">
   <jsp:include page="/views/common/client-header.jsp"/>
@@ -232,7 +250,7 @@
            src="${pageContext.request.contextPath}/assets/images/default-avatar.jpg"
            alt="Avatar">
 
-      <h2>Edit Profile</h2>
+      <h2>Chỉnh sửa hồ sơ</h2>
       <p>Cập nhật thông tin cá nhân của bạn</p>
     </div>
 
@@ -247,7 +265,7 @@
 
         <div class="form-grid">
           <div class="form-group">
-            <label>Họ</label>
+            <label>Tên</label>
             <input type="text"
                    name="firstName"
                    value="${empty param.firstName ? sessionScope.user.firstName : param.firstName}"
@@ -255,7 +273,7 @@
           </div>
 
           <div class="form-group">
-            <label>Tên</label>
+            <label>Họ</label>
             <input type="text"
                    name="lastName"
                    value="${empty param.lastName ? sessionScope.user.lastName : param.lastName}"
@@ -357,6 +375,11 @@
     </div>
   </div>
 </div>
+
+<c:if test="${sessionScope.user.roleID == 2}">
+    </div>
+  </div>
+</c:if>
 
 <script>
   const administrativeUnits = [

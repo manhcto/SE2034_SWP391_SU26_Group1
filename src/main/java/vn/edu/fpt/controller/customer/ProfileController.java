@@ -42,19 +42,19 @@ public class ProfileController extends HttpServlet {
         request.setAttribute("profileHomePath", request.getContextPath() + "/home");
         request.setAttribute("profileLogoutPath", request.getContextPath() + "/logout");
         request.setAttribute("profileEditPath", request.getContextPath() + "/edit-profile");
-        request.setAttribute("profileRoleLabel", "Khach hang");
-        request.setAttribute("profileKicker", "Tai khoan");
-        request.setAttribute("profileTitle", "Thong tin ca nhan");
-        request.setAttribute("profileSubtitle", "Thong tin nay duoc dung de tu dien nhanh khi ban dat tour hoac dat phong.");
+        request.setAttribute("profileRoleLabel", "Khách hàng");
+        request.setAttribute("profileKicker", "Tài khoản");
+        request.setAttribute("profileTitle", "Thông tin cá nhân");
+        request.setAttribute("profileSubtitle", "Thông tin này được dùng để tự điền nhanh khi bạn đặt tour hoặc đặt phòng.");
         request.setAttribute("profileTheme", "customer");
 
         if ("/staff/profile".equals(servletPath)) {
             request.setAttribute("profileHomePath", request.getContextPath() + "/staff/home");
             request.setAttribute("profileEditPath", request.getContextPath() + "/staff/edit-profile");
-            request.setAttribute("profileRoleLabel", "Nhan vien");
-            request.setAttribute("profileKicker", "Staff Workspace");
-            request.setAttribute("profileTitle", "Ho so nhan vien");
-            request.setAttribute("profileSubtitle", "Theo doi thong tin tai khoan nhan vien va quay lai khu vuc van hanh WonderVN.");
+            request.setAttribute("profileRoleLabel", "Nhân viên");
+            request.setAttribute("profileKicker", "Khu vực nhân viên");
+            request.setAttribute("profileTitle", "Hồ sơ nhân viên");
+            request.setAttribute("profileSubtitle", "Theo dõi và cập nhật thông tin tài khoản nhân viên WonderVN.");
             request.setAttribute("profileTheme", "staff");
             return;
         }
@@ -62,10 +62,10 @@ public class ProfileController extends HttpServlet {
         if ("/guide/profile".equals(servletPath)) {
             request.setAttribute("profileHomePath", request.getContextPath() + "/guide/home");
             request.setAttribute("profileEditPath", request.getContextPath() + "/guide/edit-profile");
-            request.setAttribute("profileRoleLabel", "Huong dan vien");
-            request.setAttribute("profileKicker", "Guide Workspace");
-            request.setAttribute("profileTitle", "Ho so huong dan vien");
-            request.setAttribute("profileSubtitle", "Xem nhanh thong tin tai khoan va quay lai cac tour dang duoc phan cong.");
+            request.setAttribute("profileRoleLabel", "Hướng dẫn viên");
+            request.setAttribute("profileKicker", "Khu vực hướng dẫn viên");
+            request.setAttribute("profileTitle", "Hồ sơ hướng dẫn viên");
+            request.setAttribute("profileSubtitle", "Xem thông tin tài khoản và các tour đang được phân công.");
             request.setAttribute("profileTheme", "guide");
             return;
         }
@@ -73,10 +73,10 @@ public class ProfileController extends HttpServlet {
         if ("/admin/profile".equals(servletPath)) {
             request.setAttribute("profileHomePath", request.getContextPath() + "/admin/home");
             request.setAttribute("profileEditPath", request.getContextPath() + "/admin/edit-profile");
-            request.setAttribute("profileRoleLabel", "Quan tri vien");
-            request.setAttribute("profileKicker", "Admin Control Center");
-            request.setAttribute("profileTitle", "Ho so quan tri");
-            request.setAttribute("profileSubtitle", "Thong tin tai khoan dung de quan tri he thong va theo doi van hanh WonderVN.");
+            request.setAttribute("profileRoleLabel", "Quản trị viên");
+            request.setAttribute("profileKicker", "Khu vực quản trị");
+            request.setAttribute("profileTitle", "Hồ sơ quản trị viên");
+            request.setAttribute("profileSubtitle", "Thông tin tài khoản dùng để quản trị và theo dõi hoạt động của WonderVN.");
             request.setAttribute("profileTheme", "admin");
         }
     }

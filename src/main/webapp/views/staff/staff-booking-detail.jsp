@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Chi tiết Booking</title>
+    <title>WonderVN | Chi tiết booking</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -191,7 +191,7 @@
     <main class="admin-main">
         <div class="staff-page-topbar">
             <div>
-                <h1>Chi tiết Booking</h1>
+                <h1>Chi tiết booking</h1>
                 <p>Xem thông tin booking, khách hàng và giấy tờ lưu trú.</p>
             </div>
             <a class="btn-main" href="${pageContext.request.contextPath}/staff/booking">

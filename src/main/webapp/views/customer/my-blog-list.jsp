@@ -115,6 +115,7 @@
         }
         .status-badge.published { background: #dcfce7; color: #166534; }
         .status-badge.draft { background: #f1f5f9; color: #475569; }
+        .status-badge.rejected { background: #fee2e2; color: #b91c1c; }
         .row-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
         .icon-btn {
             width: 36px;
@@ -287,6 +288,9 @@
                                                         </c:when>
                                                         <c:when test="${post.status == 'Pending'}">
                                                             <span class="status-badge">Chờ duyệt</span>
+                                                        </c:when>
+                                                        <c:when test="${post.status == 'Rejected'}">
+                                                            <span class="status-badge rejected">Từ chối</span>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <span class="status-badge draft">Bản nháp</span>

@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ho so | WonderVN</title>
+    <title>Hồ sơ | WonderVN</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -159,6 +159,17 @@
             min-width: 0;
         }
 
+        .staff-profile-layout {
+            min-height: 100vh;
+            display: flex;
+            background: #f5f7fb;
+        }
+
+        .staff-profile-main {
+            min-width: 0;
+            flex: 1;
+        }
+
         .account-panel {
             background: #ffffff;
             border: 1px solid #e5eaf3;
@@ -218,6 +229,7 @@
             .account-page,
             .workspace-page { padding: 22px 14px 36px; }
             .account-shell { grid-template-columns: 1fr; }
+            .staff-profile-layout { display: block; }
         }
 
         @media (max-width: 720px) {
@@ -240,6 +252,11 @@
 </head>
 
 <body class="${empty profileTheme ? 'customer' : profileTheme}-theme">
+<c:if test="${profileTheme == 'staff'}">
+    <div class="staff-profile-layout">
+        <jsp:include page="/views/common/staff-sidebar.jsp"/>
+        <div class="staff-profile-main">
+</c:if>
 <c:if test="${empty profileTheme || profileTheme == 'customer'}">
     <jsp:include page="/views/common/client-header.jsp"/>
 </c:if>
@@ -278,51 +295,54 @@
                         </div>
 
                         <div class="info-box">
-                            <div class="info-label">So dien thoai</div>
+                            <div class="info-label">Số điện thoại</div>
                             <div class="info-value">
                                 <c:choose>
                                     <c:when test="${not empty sessionScope.user.phone}">${sessionScope.user.phone}</c:when>
-                                    <c:otherwise>Chua cap nhat</c:otherwise>
+                                    <c:otherwise>Chưa cập nhật</c:otherwise>
                                 </c:choose>
                             </div>
                         </div>
 
                         <div class="info-box">
-                            <div class="info-label">Ho</div>
+                            <div class="info-label">Họ</div>
                             <div class="info-value">${sessionScope.user.lastName}</div>
                         </div>
 
                         <div class="info-box">
-                            <div class="info-label">Ten</div>
+                            <div class="info-label">Tên</div>
                             <div class="info-value">${sessionScope.user.firstName}</div>
                         </div>
 
                         <div class="info-box">
-                            <div class="info-label">Gioi tinh</div>
+                            <div class="info-label">Giới tính</div>
                             <div class="info-value">
                                 <c:choose>
+                                    <c:when test="${sessionScope.user.gender == 'Male'}">Nam</c:when>
+                                    <c:when test="${sessionScope.user.gender == 'Female'}">Nữ</c:when>
+                                    <c:when test="${sessionScope.user.gender == 'Other'}">Khác</c:when>
                                     <c:when test="${not empty sessionScope.user.gender}">${sessionScope.user.gender}</c:when>
-                                    <c:otherwise>Chua cap nhat</c:otherwise>
+                                    <c:otherwise>Chưa cập nhật</c:otherwise>
                                 </c:choose>
                             </div>
                         </div>
 
                         <div class="info-box">
-                            <div class="info-label">Ngay sinh</div>
+                            <div class="info-label">Ngày sinh</div>
                             <div class="info-value">
                                 <c:choose>
                                     <c:when test="${not empty sessionScope.user.dob}">${sessionScope.user.dob}</c:when>
-                                    <c:otherwise>Chua cap nhat</c:otherwise>
+                                    <c:otherwise>Chưa cập nhật</c:otherwise>
                                 </c:choose>
                             </div>
                         </div>
 
                         <div class="info-box full">
-                            <div class="info-label">Dia chi</div>
+                            <div class="info-label">Địa chỉ</div>
                             <div class="info-value">
                                 <c:choose>
                                     <c:when test="${not empty sessionScope.user.address}">${sessionScope.user.address}</c:when>
-                                    <c:otherwise>Chua cap nhat</c:otherwise>
+                                    <c:otherwise>Chưa cập nhật</c:otherwise>
                                 </c:choose>
                             </div>
                         </div>
@@ -333,14 +353,14 @@
                     <div class="profile-actions-left">
                         <a class="profile-edit secondary" href="${profileHomePath}">
                             <i class="fa-solid fa-house"></i>
-                            Quay ve trang chu
+                            Quay về trang chủ
                         </a>
                     </div>
 
                     <div class="profile-actions-right">
                         <a class="profile-edit" href="${profileEditPath}">
                             <i class="fa-solid fa-pen-to-square"></i>
-                            Chinh sua
+                            Chỉnh sửa
                         </a>
                     </div>
                 </div>
@@ -348,5 +368,9 @@
         </section>
     </div>
 </main>
+<c:if test="${profileTheme == 'staff'}">
+        </div>
+    </div>
+</c:if>
 </body>
 </html>

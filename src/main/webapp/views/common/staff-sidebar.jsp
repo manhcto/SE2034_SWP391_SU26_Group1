@@ -141,7 +141,7 @@
     <div class="staff-brand-box">
         <div class="staff-brand-logo">ST</div>
         <h2>WonderVN</h2>
-        <p>Staff Workspace</p>
+        <p>Khu vực nhân viên</p>
     </div>
 
     <a class="staff-sidebar-link${currentPath eq '/staff/home' || currentPath eq '/staff' ? ' active' : ''}"
@@ -155,13 +155,13 @@
     <a class="staff-sidebar-link${currentPath eq '/staff/tour' || fn:contains(requestUri, '/staff/tour') ? ' active' : ''}"
        href="${pageContext.request.contextPath}/staff/tour">
         <i class="fa-solid fa-map-location-dot"></i>
-        <span>Quản lí tour</span>
+        <span>Quản lý tour</span>
     </a>
 
     <a class="staff-sidebar-link${currentPath eq '/staff/accommodation' || fn:contains(requestUri, '/staff/accommodation') ? ' active' : ''}"
        href="${pageContext.request.contextPath}/staff/accommodation?action=list">
         <i class="fa-solid fa-hotel"></i>
-        <span>Quản lí lưu trú</span>
+        <span>Quản lý lưu trú</span>
     </a>
 
     <div class="staff-nav-section-title">Vận hành</div>
@@ -169,19 +169,19 @@
     <a class="staff-sidebar-link${currentPath eq '/staff/booking' || fn:contains(requestUri, '/staff/booking') ? ' active' : ''}"
        href="${pageContext.request.contextPath}/staff/booking">
         <i class="fa-solid fa-calendar-check"></i>
-        <span>Quản lí đặt chỗ</span>
+        <span>Quản lý booking</span>
     </a>
 
     <a class="staff-sidebar-link${currentPath eq '/staff/payment' || fn:contains(requestUri, '/staff/payment') ? ' active' : ''}"
        href="${pageContext.request.contextPath}/staff/payment">
         <i class="fa-solid fa-credit-card"></i>
-        <span>Quản lí thanh toán</span>
+        <span>Quản lý thanh toán</span>
     </a>
 
     <a class="staff-sidebar-link${currentPath eq '/staff/voucher' || fn:contains(requestUri, '/staff/voucher') ? ' active' : ''}"
        href="${pageContext.request.contextPath}/staff/voucher">
         <i class="fa-solid fa-gift"></i>
-        <span>Quản lí voucher</span>
+        <span>Quản lý voucher</span>
     </a>
 
     <a class="staff-sidebar-link${currentPath eq '/staff/assignment' || fn:contains(requestUri, '/staff/assignment') ? ' active' : ''}"
@@ -195,7 +195,7 @@
     <a class="staff-sidebar-link${currentPath eq '/staff/blog' || fn:contains(requestUri, '/staff/blog') ? ' active' : ''}"
        href="${pageContext.request.contextPath}/staff/blog">
         <i class="fa-solid fa-newspaper"></i>
-        <span>Quản lí blog</span>
+        <span>Quản lý blog</span>
     </a>
 
     <a class="staff-sidebar-link${currentPath eq '/staff/feedback' || fn:contains(requestUri, '/staff/feedback') ? ' active' : ''}"
