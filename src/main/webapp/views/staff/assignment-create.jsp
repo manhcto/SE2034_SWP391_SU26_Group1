@@ -16,42 +16,7 @@
 
 <body>
 <div class="workspace-layout">
-    <aside class="workspace-sidebar">
-        <div class="brand-box">
-            <div class="brand-logo staff">WV</div>
-            <h2>WonderVN</h2>
-            <p>Travel ERP System</p>
-        </div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ nhân viên</span>
-        </a>
-
-        <div class="nav-section-title">Vận hành</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Quản lý đặt chỗ</span>
-        </a>
-
-        <a class="sidebar-link active staff" href="${pageContext.request.contextPath}/staff/assignment">
-            <i class="fa-solid fa-user-tie"></i>
-            <span>Điều phối hướng dẫn viên</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>Quản lý Tour</span>
-        </a>
-
-        <div class="nav-section-title">Tài khoản</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Đăng xuất</span>
-        </a>
-    </aside>
+    <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
     <main class="main-content">
         <div class="topbar">
@@ -75,11 +40,18 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'paymentRequired'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                Chỉ những booking đã thanh toán mới được phân công tour.
+            </div>
+        </c:if>
+
         <section class="panel">
             <div class="panel-header">
                 <div>
                     <h2>Thông tin phân công</h2>
-                    <p>Các trường này được lưu trực tiếp vào bảng Tour_Assignments.</p>
+                    <p>Chỉ hiển thị booking tour đã thanh toán và lưu trực tiếp vào bảng Tour_Assignments.</p>
                 </div>
             </div>
 

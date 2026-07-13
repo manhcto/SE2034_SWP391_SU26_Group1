@@ -286,6 +286,10 @@
 <body>
 <div class="admin-layout">
 
+  <jsp:include page="/views/common/admin-sidebar.jsp">
+    <jsp:param name="activeAdminMenu" value="booking"/>
+  </jsp:include>
+  <%--
   <aside class="admin-sidebar">
     <div class="brand-box">
       <div class="brand-logo">AD</div>
@@ -340,6 +344,7 @@
       </div>
     </div>
   </aside>
+  --%>
 
   <main class="main-content">
     <div class="topbar">
@@ -383,10 +388,10 @@
             <span class="detail-label">Trạng thái</span>
             <span class="status-badge">
               <c:choose>
-                <c:when test="${bookingDetail.status == 'Pending'}">Chờ xử lý</c:when>
-                <c:when test="${bookingDetail.status == 'Confirmed'}">Đã xác nhận</c:when>
-                <c:when test="${bookingDetail.status == 'Cancelled'}">Đã hủy</c:when>
-                <c:when test="${bookingDetail.status == 'Completed'}">Hoàn thành</c:when>
+                <c:when test="${bookingDetail.status == 'Đang xử lý' || bookingDetail.status == 'Pending'}">Đang xử lý</c:when>
+                <c:when test="${bookingDetail.status == 'Đã duyệt' || bookingDetail.status == 'Confirmed'}">Đã duyệt</c:when>
+                <c:when test="${bookingDetail.status == 'Đã hủy' || bookingDetail.status == 'Cancelled'}">Đã hủy</c:when>
+                <c:when test="${bookingDetail.status == 'Hoàn thành' || bookingDetail.status == 'Completed'}">Hoàn thành</c:when>
                 <c:otherwise>${bookingDetail.status}</c:otherwise>
               </c:choose>
             </span>

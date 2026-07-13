@@ -387,72 +387,7 @@
 <body>
 <div class="staff-layout">
 
-  <aside class="sidebar">
-    <div class="brand-box">
-      <div class="brand-logo">WV</div>
-      <h2>WonderVN</h2>
-      <p>Travel ERP System</p>
-    </div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
-      <i class="fa-solid fa-house"></i>
-      <span>Trang chủ nhân viên</span>
-    </a>
-
-    <div class="nav-section-title">Dịch vụ du lịch</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
-      <i class="fa-solid fa-map-location-dot"></i>
-      <span>Quản lý Tour</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
-      <i class="fa-solid fa-hotel"></i>
-      <span>Quản lý lưu trú</span>
-    </a>
-
-    <div class="nav-section-title">Vận hành</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-      <i class="fa-solid fa-calendar-check"></i>
-      <span>Quản lý đặt chỗ</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
-      <i class="fa-solid fa-credit-card"></i>
-      <span>Quản lý thanh toán</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/voucher">
-      <i class="fa-solid fa-gift"></i>
-      <span>Quản lý Voucher</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/assignment">
-      <i class="fa-solid fa-user-tie"></i>
-      <span>Điều phối hướng dẫn viên</span>
-    </a>
-
-    <div class="nav-section-title">Nội dung & CSKH</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/blog">
-      <i class="fa-solid fa-newspaper"></i>
-      <span>Quản lý Blog</span>
-    </a>
-
-    <a class="sidebar-link active" href="${pageContext.request.contextPath}/staff/feedback">
-      <i class="fa-solid fa-comments"></i>
-      <span>Đánh giá khách hàng</span>
-    </a>
-
-    <div class="admin-user">
-      <div class="avatar">AD</div>
-      <div>
-        <div class="fw-bold">Quản trị viên</div>
-        <small>Staff</small>
-      </div>
-    </div>
-  </aside>
+  <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
   <main class="main-content">
     <div class="topbar">

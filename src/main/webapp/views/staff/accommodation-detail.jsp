@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -394,7 +395,7 @@
 <body>
 
 <div class="admin-layout">
-    <jsp:include page="/views/common/admin-sidebar.jsp"/>
+    <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
     <main class="admin-main">
         <jsp:include page="/views/common/admin-header.jsp"/>
@@ -405,36 +406,70 @@
         </a>
 
         <c:if test="${not empty sessionScope.errors}">
-            <div class="alert alert-danger rounded-4 border-0 mb-4">
+            <div class="alert alert-danger rounded-4 border-0 mb-4" role="alert">
                 <strong>Dữ liệu nhập vào chưa hợp lệ</strong>
                 <ul class="mb-0 mt-2">
                     <c:forEach var="err" items="${sessionScope.errors}">
-                        <li>${err}</li>
+                        <li><c:out value="${err}"/></li>
                     </c:forEach>
                 </ul>
             </div>
             <c:remove var="errors" scope="session"/>
         </c:if>
 
-        <div class="hero-card">
-            <img class="hero-img" src="${accommodation.image}" alt="${accommodation.name}"
+        <c:if test="${not empty sessionScope.fieldErrors}">
+            <div id="serverValidation" hidden
+                 data-action="<c:out value='${sessionScope.formValues.action}'/>"
+                 data-owner-id="<c:out value='${sessionScope.formValues.roomID}'/>">
+                <c:forEach var="entry" items="${sessionScope.fieldErrors}">
+                    <span data-field="<c:out value='${entry.key}'/>"
+                          data-message="<c:out value='${entry.value}'/>"></span>
+                </c:forEach>
+                <c:forEach var="entry" items="${sessionScope.formValues}">
+                    <span data-form-field="<c:out value='${entry.key}'/>"
+                          data-value="<c:out value='${entry.value}'/>"></span>
+                </c:forEach>
+            </div>
+            <c:remove var="fieldErrors" scope="session"/>
+            <c:remove var="formValues" scope="session"/>
+        </c:if>
+
+        <c:choose>
+            <c:when test="${param.status == 'addRoomSuccess' || param.status == 'updateRoomSuccess' || param.status == 'deleteRoomSuccess' || param.status == 'deactivateRoomSuccess' || param.status == 'facilitySuccess' || param.status == 'roomFacilitySuccess'}">
+                <div class="alert alert-success rounded-4 border-0 mb-4" role="status">
+                    <c:choose>
+                        <c:when test="${param.status == 'addRoomSuccess'}">Đã thêm phòng và tiện ích.</c:when>
+                        <c:when test="${param.status == 'updateRoomSuccess'}">Đã cập nhật phòng và tiện ích.</c:when>
+                        <c:when test="${param.status == 'deleteRoomSuccess'}">Đã xóa phòng.</c:when>
+                        <c:when test="${param.status == 'deactivateRoomSuccess'}">Phòng đã có booking nên hệ thống đã chuyển sang ngừng hoạt động.</c:when>
+                        <c:otherwise>Đã cập nhật tiện ích.</c:otherwise>
+                    </c:choose>
+                </div>
+            </c:when>
+            <c:when test="${param.status == 'addRoomFail' || param.status == 'updateRoomFail' || param.status == 'deleteRoomFail' || param.status == 'facilityFail' || param.status == 'roomFacilityFail'}">
+                <div class="alert alert-danger rounded-4 border-0 mb-4" role="alert">Không thể hoàn tất thao tác. Vui lòng kiểm tra dữ liệu và thử lại.</div>
+            </c:when>
+        </c:choose>
+
+        <article class="hero-card">
+            <img class="hero-img" src="${fn:escapeXml(accommodation.image)}" alt="${fn:escapeXml(accommodation.name)}"
                  onerror="this.src='https://placehold.co/1200x600?text=WonderVN+Accommodation';">
 
             <div class="hero-body">
-                <h1 class="hero-title">${accommodation.name}</h1>
+                <h1 class="hero-title"><c:out value="${accommodation.name}"/></h1>
 
                 <div class="muted">
                     <i class="fa-solid fa-location-dot text-info me-1"></i>
-                    ${accommodation.fullAddress}
+                    <c:out value="${accommodation.fullAddress}"/>
                 </div>
 
-                <p class="mt-3 mb-0">${accommodation.description}</p>
+                <p class="mt-3 mb-0"><c:out value="${accommodation.description}"/></p>
 
                 <div class="info-grid">
                     <div class="info-card">
                         <i class="fa-solid fa-hotel"></i>
                         <div class="info-label">Loại lưu trú</div>
-                        <div class="info-value">${accommodation.displayType}</div>
+<div class="info-value"><c:out value="${accommodation.displayType}"/></div>
                     </div>
 
                     <div class="info-card">
@@ -452,17 +487,17 @@
                     <div class="info-card">
                         <i class="fa-solid fa-phone"></i>
                         <div class="info-label">Liên hệ</div>
-                        <div class="info-value">${accommodation.phone}</div>
+<div class="info-value"><c:out value="${accommodation.phone}"/></div>
                     </div>
                 </div>
             </div>
-        </div>
+        </article>
 
         <div class="section-card">
             <div class="section-head">
                 <h2>Tiện ích nơi lưu trú</h2>
 
-                <button class="btn-main" data-bs-toggle="modal" data-bs-target="#accommodationFacilityModal">
+                <button class="btn-main" type="button" data-bs-toggle="modal" data-bs-target="#accommodationFacilityModal">
                     <i class="fa-solid fa-pen"></i>
                     Cập nhật tiện ích
                 </button>
@@ -477,8 +512,8 @@
                     <c:otherwise>
                         <c:forEach var="f" items="${accommodation.facilityList}">
     <span class="facility-pill">
-        <i class="fa-solid ${f.icon}"></i>
-        ${f.facilityName}
+<i class="fa-solid ${fn:escapeXml(f.icon)}"></i>
+<c:out value="${f.facilityName}"/>
     </span>
                         </c:forEach>
                     </c:otherwise>
@@ -490,7 +525,8 @@
             <div class="section-head">
                 <h2>Danh sách phòng</h2>
 
-                <button class="btn-main" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <button class="btn-main" type="button"
+                        data-bs-toggle="modal" data-bs-target="#addRoomModal">
                     <i class="fa-solid fa-plus"></i>
                     Thêm phòng
                 </button>
@@ -508,13 +544,13 @@
                         <c:forEach var="r" items="${roomList}">
                             <div class="col-xl-4 col-lg-6">
                                 <div class="room-card">
-                                    <img class="room-img" src="${r.image}" alt="${r.roomType}"
+<img class="room-img" src="${fn:escapeXml(r.image)}" alt="${fn:escapeXml(r.roomType)}"
                                          onerror="this.src='https://placehold.co/800x500?text=WonderVN+Room';">
 
                                     <div class="room-body">
-                                        <div class="room-title">${r.roomType}</div>
+<div class="room-title"><c:out value="${r.roomType}"/></div>
 
-                                        <div class="text-muted small">${r.description}</div>
+<div class="text-muted small"><c:out value="${r.description}"/></div>
 
                                         <div class="room-specs">
                                             <span class="pill">
@@ -550,17 +586,24 @@
                                             </div>
 
                                             <div class="d-flex gap-2">
-                                                <button class="btn btn-sm btn-outline-primary"
+                                                <button class="btn btn-sm btn-outline-primary" type="button"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#editRoomModal${r.roomID}">
                                                     Sửa
                                                 </button>
 
-                                                <a class="btn btn-sm btn-outline-danger"
-                                                   onclick="return confirm('Bạn có chắc muốn xóa phòng này?')"
-                                                   href="${pageContext.request.contextPath}/staff/accommodation?action=deleteRoom&roomID=${r.roomID}&accommodationID=${accommodation.accommodationID}">
-                                                    Xóa
-                                                </a>
+                                                <form class="m-0 js-confirm-delete"
+                                                      action="${pageContext.request.contextPath}/staff/accommodation"
+                                                      method="post"
+                                                      data-confirm-message="Bạn có chắc muốn xóa phòng này?">
+                                                    <input type="hidden" name="action" value="deleteRoom">
+                                                    <input type="hidden" name="roomID" value="${r.roomID}">
+                                                    <input type="hidden" name="accommodationID"
+                                                           value="${accommodation.accommodationID}">
+                                                    <button class="btn btn-sm btn-outline-danger" type="submit">
+                                                        Xóa
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -588,7 +631,7 @@
                                                 <div class="row g-3">
                                                     <div class="col-md-4">
                                                         <label class="form-label fw-bold">Loại phòng</label>
-                                                        <input class="form-control" name="roomType" value="${r.roomType}" required>
+                                                        <input class="form-control" name="roomType" value="${fn:escapeXml(r.roomType)}" required>
                                                     </div>
 
                                                     <div class="col-md-4">
@@ -607,7 +650,7 @@
 
                                                     <div class="col-md-3">
                                                         <label class="form-label fw-bold">Tổng số phòng</label>
-                                                        <input class="form-control" type="number" min="1" name="numberOfRooms" value="${r.numberOfRooms}" required>
+                                                        <input class="form-control" type="number" min="0" name="numberOfRooms" value="${r.numberOfRooms}" required>
                                                     </div>
 
                                                     <div class="col-md-3">
@@ -642,18 +685,41 @@
 
                                                     <div class="col-md-4">
                                                         <label class="form-label fw-bold">Diện tích m²</label>
-                                                        <input class="form-control" type="number" min="1" max="1000" step="0.1" name="roomSize" value="${r.roomSize}" required>
+                                                        <input class="form-control" type="number" min="0.1" max="1000" step="0.1" name="roomSize" value="${r.roomSize}">
                                                     </div>
 
                                                     <div class="col-12">
                                                         <label class="form-label fw-bold">Link ảnh phòng</label>
-                                                        <input class="form-control" name="image" value="${r.image}" required>
+                                                        <input class="form-control" name="image" value="${fn:escapeXml(r.image)}">
                                                     </div>
 
                                                     <div class="col-12">
                                                         <label class="form-label fw-bold">Mô tả phòng</label>
-                                                        <textarea class="form-control" name="description" required>${r.description}</textarea>
+                                                        <textarea class="form-control" name="description"><c:out value="${r.description}"/></textarea>
                                                     </div>
+
+                                                    <fieldset class="col-12 border-0 p-0 m-0">
+                                                        <legend class="field-title">Tiện ích phòng</legend>
+                                                        <div class="facility-list">
+                                                            <c:forEach var="f" items="${roomFacilityEditOptions}">
+                                                                <c:set var="checked" value="false"/>
+                                                                <c:forEach var="rf" items="${r.facilityList}">
+                                                                    <c:if test="${rf.facilityID == f.facilityID}">
+                                                                        <c:set var="checked" value="true"/>
+                                                                    </c:if>
+                                                                </c:forEach>
+                                                                <c:if test="${f.status == 'Active' || checked}">
+                                                                    <label class="facility-item">
+                                                                        <input type="checkbox" name="facilityIDs"
+                                                                               value="${f.facilityID}" ${checked ? 'checked' : ''}>
+                                                                        <i class="fa-solid ${fn:escapeXml(f.icon)}"></i>
+                                                                        <span><c:out value="${f.facilityName}"/></span>
+                                                                        <c:if test="${f.status != 'Active'}"><small>(đã ngừng)</small></c:if>
+                                                                    </label>
+                                                                </c:if>
+                                                            </c:forEach>
+                                                        </div>
+                                                    </fieldset>
                                                 </div>
                                             </div>
 
@@ -715,7 +781,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Tổng số phòng</label>
-                            <input class="form-control" type="number" min="1" name="numberOfRooms" value="1" required>
+                            <input class="form-control" type="number" min="0" name="numberOfRooms" value="1" required>
                         </div>
 
                         <div class="col-md-3">
@@ -750,18 +816,31 @@
 
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Diện tích m²</label>
-                            <input class="form-control" type="number" min="1" max="1000" step="0.1" name="roomSize" value="25" required>
+                            <input class="form-control" type="number" min="0.1" max="1000" step="0.1" name="roomSize" value="25">
                         </div>
 
                         <div class="col-12">
                             <label class="form-label fw-bold">Link ảnh phòng</label>
-                            <input class="form-control" name="image" placeholder="https://..." required>
+                            <input class="form-control" name="image" placeholder="https://...">
                         </div>
 
                         <div class="col-12">
                             <label class="form-label fw-bold">Mô tả phòng</label>
-                            <textarea class="form-control" name="description" placeholder="Mô tả tiện nghi, view, phong cách phòng..." required></textarea>
+                            <textarea class="form-control" name="description" placeholder="Mô tả tiện nghi, view, phong cách phòng..."></textarea>
                         </div>
+
+                        <fieldset class="col-12 border-0 p-0 m-0">
+                            <legend class="field-title">Tiện ích phòng</legend>
+                            <div class="facility-list">
+                                <c:forEach var="f" items="${roomFacilityOptions}">
+                                    <label class="facility-item">
+                                        <input type="checkbox" name="facilityIDs" value="${f.facilityID}">
+                                        <i class="fa-solid ${fn:escapeXml(f.icon)}"></i>
+                                        <span><c:out value="${f.facilityName}"/></span>
+                                    </label>
+                                </c:forEach>
+                            </div>
+                        </fieldset>
                     </div>
                 </div>
 
@@ -791,7 +870,7 @@
 
                 <div class="modal-body">
                     <div class="facility-list">
-                        <c:forEach var="f" items="${accommodationFacilityOptions}">
+                        <c:forEach var="f" items="${accommodationFacilityEditOptions}">
                             <c:set var="checked" value="false"/>
 
                             <c:forEach var="af" items="${accommodation.facilityList}">
@@ -800,11 +879,14 @@
                                 </c:if>
                             </c:forEach>
 
-                            <label class="facility-item">
-                                <input type="checkbox" name="facilityIDs" value="${f.facilityID}" ${checked ? 'checked' : ''}>
-                                <i class="fa-solid ${f.icon}"></i>
-                                <span>${f.facilityName}</span>
-                            </label>
+                            <c:if test="${f.status == 'Active' || checked}">
+                                <label class="facility-item">
+                                    <input type="checkbox" name="facilityIDs" value="${f.facilityID}" ${checked ? 'checked' : ''}>
+                                    <i class="fa-solid ${fn:escapeXml(f.icon)}"></i>
+                                    <span><c:out value="${f.facilityName}"/></span>
+                                    <c:if test="${f.status != 'Active'}"><small>(đã ngừng)</small></c:if>
+                                </label>
+                            </c:if>
                         </c:forEach>
                     </div>
                 </div>
@@ -887,8 +969,9 @@
         const value = input.value.trim();
 
         if (value.length === 0) {
-            showFieldError(input, label + " không được để trống.");
-            return false;
+            clearFieldError(input);
+            input.classList.remove("input-success");
+            return true;
         }
 
         if (!isValidUrl(value)) {
@@ -962,37 +1045,6 @@
         return true;
     }
 
-    function validateRoomCapacityByBed(form) {
-        const bedCount = getInput(form, "bedCount");
-        const maxAdults = getInput(form, "maxAdults");
-        const maxChildren = getInput(form, "maxChildren");
-
-        if (!bedCount || !maxAdults || !maxChildren) return true;
-
-        const beds = getNumberValue(bedCount);
-        const adults = getNumberValue(maxAdults);
-        const children = getNumberValue(maxChildren);
-
-        if (beds === null || adults === null || children === null) {
-            return false;
-        }
-
-        const totalGuests = adults + children;
-
-        if (beds === 1 && totalGuests > 4) {
-            showFieldError(maxChildren, "1 giường không nên vượt quá 4 khách. Hãy tăng số giường hoặc giảm sức chứa.");
-            return false;
-        }
-
-        if (beds === 2 && totalGuests > 6) {
-            showFieldError(maxChildren, "2 giường không nên vượt quá 6 khách. Hãy kiểm tra lại sức chứa.");
-            return false;
-        }
-
-        showFieldSuccess(maxChildren);
-        return true;
-    }
-
     function validateRoomForm(form) {
         let valid = true;
 
@@ -1010,22 +1062,24 @@
 
         if (!validateText(roomType, "Loại phòng", 2, 100)) valid = false;
         if (!validateNumberRange(priceOfRoom, "Giá phòng", 1, 1000000000, true)) valid = false;
-        if (!validateNumberRange(numberOfRooms, "Tổng số phòng", 1, 1000, false)) valid = false;
+        if (!validateNumberRange(numberOfRooms, "Tổng số phòng", 0, 1000, false)) valid = false;
         if (!validateNumberRange(roomAvailability, "Phòng còn trống", 0, 1000, false)) valid = false;
         if (!validateRoomAvailability(form)) valid = false;
         if (!validateNumberRange(bedCount, "Số giường", 1, 20, false)) valid = false;
         if (!validateText(bedType, "Loại giường", 2, 50)) valid = false;
         if (!validateNumberRange(maxAdults, "Người lớn tối đa", 1, 50, false)) valid = false;
         if (!validateNumberRange(maxChildren, "Trẻ em tối đa", 0, 50, false)) valid = false;
-        if (!validateRoomCapacityByBed(form)) valid = false;
-        if (!validateNumberRange(roomSize, "Diện tích phòng", 1, 1000, true)) valid = false;
+        if (roomSize && roomSize.value.trim()
+                && !validateNumberRange(roomSize, "Diện tích phòng", 0.1, 1000, true)) valid = false;
         if (!validateUrlInput(image, "Link ảnh phòng")) valid = false;
-        if (!validateText(description, "Mô tả phòng", 10, 2000)) valid = false;
+        if (description && description.value.trim()
+                && !validateText(description, "Mô tả phòng", 0, 2000)) valid = false;
 
         return valid;
     }
 
     function bindLiveValidation(form, validator) {
+        connectFormLabels(form);
         form.setAttribute("novalidate", "novalidate");
 
         form.querySelectorAll("input, textarea, select").forEach(function (input) {
@@ -1061,9 +1115,55 @@
         });
     }
 
+    function connectFormLabels(form) {
+        const prefix = (form.closest(".modal")?.id || "roomForm").replace(/[^a-zA-Z0-9_-]/g, "");
+        form.querySelectorAll("input:not([type='hidden']):not([type='checkbox']), select, textarea")
+                .forEach(function (input, index) {
+                    if (!input.id) input.id = prefix + "-" + input.name + "-" + index;
+                    const container = input.parentElement;
+                    const label = container ? container.querySelector("label.form-label:not([for])") : null;
+                    if (label) label.htmlFor = input.id;
+                });
+    }
+
+    function restoreServerValidation() {
+        const state = document.getElementById("serverValidation");
+        if (!state) return;
+
+        const selector = state.dataset.action === "updateRoom"
+                ? "#editRoomModal" + state.dataset.ownerId + " .room-form"
+                : "#addRoomModal .room-form";
+        const form = document.querySelector(selector);
+        if (!form) return;
+
+        state.querySelectorAll("[data-form-field]").forEach(function (item) {
+            const input = getInput(form, item.dataset.formField);
+            if (input && input.type !== "checkbox" && input.type !== "hidden") {
+                input.value = item.dataset.value || "";
+            }
+        });
+        state.querySelectorAll("[data-field]").forEach(function (item) {
+            const input = getInput(form, item.dataset.field);
+            if (input) showFieldError(input, item.dataset.message);
+        });
+
+        const modal = form.closest(".modal");
+        if (modal && window.bootstrap) bootstrap.Modal.getOrCreateInstance(modal).show();
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".room-form").forEach(function (form) {
             bindLiveValidation(form, validateRoomForm);
+        });
+
+        restoreServerValidation();
+
+        document.querySelectorAll(".js-confirm-delete").forEach(function (form) {
+            form.addEventListener("submit", function (event) {
+                if (!window.confirm(form.dataset.confirmMessage)) {
+                    event.preventDefault();
+                }
+            });
         });
     });
 </script>

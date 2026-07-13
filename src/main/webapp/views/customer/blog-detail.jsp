@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -134,14 +135,28 @@
 </head>
 <body>
 
-<jsp:include page="/views/common/client-header.jsp" />
+<c:if test="${empty backToBlogManagementPath}">
+    <jsp:include page="/views/common/client-header.jsp" />
+</c:if>
 
 <main class="container py-5">
     <div class="article-shell">
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
-                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/blog">Blog</a></li>
+                <c:choose>
+                    <c:when test="${not empty backToBlogManagementPath}">
+                        <li class="breadcrumb-item"><a href="${backToBlogManagementPath}">Quản lí blog</a></li>
+                        <li class="breadcrumb-item">Chi tiết bài viết</li>
+                    </c:when>
+                    <c:when test="${not empty backToMyBlogPath}">
+                        <li class="breadcrumb-item"><a href="${backToMyBlogPath}">Blog của tôi</a></li>
+                        <li class="breadcrumb-item">Chi tiết bài viết</li>
+                    </c:when>
+                    <c:otherwise>
+                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/blog">Blog</a></li>
+                    </c:otherwise>
+                </c:choose>
                 <li class="breadcrumb-item active" aria-current="page">
                     <c:out value="${post.title}"/>
                 </li>
@@ -149,16 +164,7 @@
         </nav>
 
         <article class="article-hero mb-4">
-            <c:choose>
-                <c:when test="${empty post.thumbnailUrl}">
-                    <img class="hero-image"
-                         src="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"
-                         alt="WonderVN Blog">
-                </c:when>
-                <c:otherwise>
-                    <img class="hero-image" src="${post.thumbnailUrl}" alt="${post.title}">
-                </c:otherwise>
-            </c:choose>
+
 
             <div class="p-4 p-lg-5">
                 <span class="category-pill">
@@ -184,6 +190,20 @@
                     </c:if>
                 </div>
             </div>
+                <c:choose>
+                    <c:when test="${empty post.image}">
+                        <img class="hero-image"
+                             src="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"
+                             alt="WonderVN Blog">
+                    </c:when>
+                    <c:otherwise>
+                        <c:set var="heroImageUrl" value="${post.image}"/>
+                        <c:if test="${not fn:startsWith(post.image, 'http')}">
+                            <c:set var="heroImageUrl" value="${pageContext.request.contextPath}/${post.image}"/>
+                        </c:if>
+                        <img class="hero-image" src="${heroImageUrl}" alt="${post.title}">
+                    </c:otherwise>
+                </c:choose>
         </article>
 
         <div class="row g-4">
@@ -218,16 +238,35 @@
                         </c:otherwise>
                     </c:choose>
 
-                    <a href="${pageContext.request.contextPath}/blog" class="btn btn-outline-primary w-100 fw-bold mt-3">
-                        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại Blog
-                    </a>
+                    <c:choose>
+                        <c:when test="${not empty backToBlogManagementPath}">
+                            <a href="${backToBlogManagementPath}" class="btn btn-outline-primary w-100 fw-bold mt-3">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại quản lí blog
+                            </a>
+                        </c:when>
+                        <c:when test="${not empty backToMyBlogPath}">
+                            <a href="${pageContext.request.contextPath}/my-blogs?action=edit&id=${post.blogID}" class="btn btn-primary w-100 fw-bold mt-3">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> Sửa bài viết
+                            </a>
+                            <a href="${backToMyBlogPath}" class="btn btn-outline-primary w-100 fw-bold mt-3">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại Blog của tôi
+                            </a>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/blog" class="btn btn-outline-primary w-100 fw-bold mt-3">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại Blog
+                            </a>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </aside>
         </div>
     </div>
 </main>
 
-<jsp:include page="/views/common/client-footer.jsp" />
+<c:if test="${empty backToBlogManagementPath}">
+    <jsp:include page="/views/common/client-footer.jsp" />
+</c:if>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

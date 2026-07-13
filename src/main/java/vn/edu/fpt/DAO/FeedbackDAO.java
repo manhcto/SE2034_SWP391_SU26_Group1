@@ -49,6 +49,83 @@ public class FeedbackDAO {
         return feedbackList;
     }
 
+    // Get feedbacks by tourID (Feedback -> Booking -> Booking_Detail -> Tour_Scheduler -> Tour)
+    public List<Feedback> getFeedbacksByTourID(int tourID) {
+        List<Feedback> feedbackList = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT f.feedbackID, f.rate, f.content, f.createDate, f.status, f.image, f.userID, f.bookingID "
+                + "FROM Feedback f "
+                + "JOIN Booking b ON f.bookingID = b.bookingID "
+                + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
+                + "JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID "
+                + "WHERE ts.tourID = ? "
+                + "ORDER BY f.createDate DESC";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, tourID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    feedbackList.add(mapFeedback(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi lấy feedback theo tour: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return feedbackList;
+    }
+
+    // Get feedbacks by accommodationID (Feedback -> Booking -> Booking_Detail)
+    public List<Feedback> getFeedbacksByAccommodationID(int accommodationID) {
+        List<Feedback> feedbackList = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT f.feedbackID, f.rate, f.content, f.createDate, f.status, f.image, f.userID, f.bookingID "
+                + "FROM Feedback f "
+                + "JOIN Booking b ON f.bookingID = b.bookingID "
+                + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
+                + "WHERE bd.accommodationID = ? "
+                + "ORDER BY f.createDate DESC";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, accommodationID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    feedbackList.add(mapFeedback(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi lấy feedback theo lưu trú: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return feedbackList;
+    }
+
+    // Map a ResultSet row to a Feedback object
+    private Feedback mapFeedback(ResultSet rs) throws Exception {
+        Feedback feedback = new Feedback();
+
+        feedback.setFeedbackID(rs.getInt("feedbackID"));
+        feedback.setRate(rs.getDouble("rate"));
+        feedback.setContent(rs.getString("content"));
+        feedback.setCreateDate(rs.getTimestamp("createDate"));
+        feedback.setStatus(rs.getString("status"));
+        feedback.setImage(rs.getString("image"));
+        feedback.setUserID(rs.getInt("userID"));
+        feedback.setBookingID(rs.getInt("bookingID"));
+
+        return feedback;
+    }
+
     // Get feedback by ID
     public Feedback getFeedbackByID(int feedbackID) {
         String sql = "SELECT feedbackID, rate, content, createDate, status, image, userID, bookingID "

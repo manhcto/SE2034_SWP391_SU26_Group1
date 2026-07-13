@@ -447,9 +447,11 @@
 
         <nav class="wv-nav" id="wvMainNav">
             <a href="${pageContext.request.contextPath}/tour">Tour trọn gói</a>
-            <a href="${pageContext.request.contextPath}/booking">Đặt tour</a>
             <a href="${pageContext.request.contextPath}/accommodation">Lưu trú</a>
             <a href="${pageContext.request.contextPath}/vouchers">Khuyến mãi</a>
+
+            <a href="${pageContext.request.contextPath}/blog">Blog</a>
+
         </nav>
 
         <div class="wv-actions">
@@ -469,7 +471,7 @@
                         <div class="wv-dropdown">
                             <div class="wv-dropdown-head">
                                 <div class="wv-dropdown-name">
-                                    ${sessionScope.user.firstName} ${sessionScope.user.lastName}
+                                        ${sessionScope.user.firstName} ${sessionScope.user.lastName}
                                 </div>
                                 <div class="wv-dropdown-role">
                                     <c:choose>
@@ -481,40 +483,20 @@
                                 </div>
                             </div>
 
-                            <c:choose>
-                                <c:when test="${sessionScope.user.roleName == 'Tour Guide' || sessionScope.user.roleID == 3}">
-                                    <a href="${pageContext.request.contextPath}/guide/home">
-                                        <i class="fa-solid fa-map-location-dot"></i>
-                                        Trang hướng dẫn viên
-                                    </a>
-                                </c:when>
-                                <c:when test="${sessionScope.user.roleID == 1}">
-                                    <a href="${pageContext.request.contextPath}/admin/home">
-                                        <i class="fa-solid fa-gauge-high"></i>
-                                        Trang admin
-                                    </a>
-                                </c:when>
-                                <c:when test="${sessionScope.user.roleID == 2}">
-                                    <a href="${pageContext.request.contextPath}/staff/home">
-                                        <i class="fa-solid fa-briefcase"></i>
-                                        Trang staff
-                                    </a>
-                                </c:when>
-                                <c:otherwise>
-                                    <a href="${pageContext.request.contextPath}/profile">
-                                        <i class="fa-solid fa-user"></i>
-                                        Hồ sơ
-                                    </a>
-                                    <a href="${pageContext.request.contextPath}/booking-list">
-                                        <i class="fa-solid fa-receipt"></i>
-                                        Đơn booking
-                                    </a>
-                                    <a href="${pageContext.request.contextPath}/my-vouchers">
-                                        <i class="fa-solid fa-ticket"></i>
-                                        Voucher của tôi
-                                    </a>
-                                </c:otherwise>
-                            </c:choose>
+                            <c:if test="${sessionScope.user.roleID == 4}">
+                                <a href="${pageContext.request.contextPath}/profile">
+                                    <i class="fa-solid fa-user"></i>
+                                    Hồ sơ
+                                </a>
+                                <a href="${pageContext.request.contextPath}/booking-list">
+                                    <i class="fa-solid fa-receipt"></i>
+                                    Đơn booking
+                                </a>
+                                <a href="${pageContext.request.contextPath}/my-vouchers">
+                                    <i class="fa-solid fa-ticket"></i>
+                                    Voucher của tôi
+                                </a>
+                            </c:if>
 
                             <div class="wv-dropdown-divider"></div>
 

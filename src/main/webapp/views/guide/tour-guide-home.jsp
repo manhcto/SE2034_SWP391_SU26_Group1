@@ -36,6 +36,8 @@
             width: 292px;
             background: #0f172a;
             color: #ffffff;
+            display: flex;
+            flex-direction: column;
             position: fixed;
             inset: 0 auto 0 0;
             overflow-y: auto;
@@ -140,6 +142,10 @@
 
         .guide-user small {
             color: #94a3b8;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
         }
 
         /* MAIN */
@@ -577,20 +583,26 @@
             <span>Cập nhật tour</span>
         </a>
 
-        <div class="nav-section-title">Tài khoản</div>
+        <div class="sidebar-bottom">
+            <div class="nav-section-title">Tài khoản</div>
 
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Đăng xuất</span>
-        </a>
-
-        <div class="guide-user">
-            <div class="avatar">TG</div>
-            <div>
-                <div class="fw-bold">Hướng dẫn viên</div>
-                <small>Tour Guide</small>
+            <div class="guide-user">
+                <div class="avatar">TG</div>
+                <div>
+                    <div class="fw-bold">${sessionScope.user.firstName} ${sessionScope.user.lastName}</div>
+                    <small>Hướng dẫn viên</small>
+                </div>
             </div>
+
+            <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/profile">
+                <i class="fa-solid fa-user"></i>
+                <span>Hồ sơ</span>
+            </a>
+
+            <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Đăng xuất</span>
+            </a>
         </div>
     </aside>
 
@@ -603,17 +615,6 @@
                 <p>Quản lý tour được phân công, xác nhận tour và cập nhật tình trạng tour theo thời gian thực.</p>
             </div>
 
-            <div class="top-actions">
-                <a class="top-action-btn btn-client" href="${pageContext.request.contextPath}/home">
-                    <i class="fa-solid fa-globe"></i>
-                    Trang khách hàng
-                </a>
-
-                <a class="top-action-btn btn-logout" href="${pageContext.request.contextPath}/logout">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    Đăng xuất
-                </a>
-            </div>
         </div>
 
         <section class="hero">

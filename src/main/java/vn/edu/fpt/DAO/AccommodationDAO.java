@@ -6,296 +6,346 @@ import vn.edu.fpt.model.Accommodation;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Time;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AccommodationDAO {
 
+    private static final Logger LOGGER = Logger.getLogger(AccommodationDAO.class.getName());
     private static final String BASE_SELECT =
-            "SELECT " +
-                    "a.accommodationID, a.[name], a.[image], a.[address], a.phone, a.[description], " +
+            "SELECT a.accommodationID, a.[name], a.[image], a.[address], a.phone, a.[description], " +
                     "a.rate, a.[type], a.[status], a.checkInTime, a.checkOutTime, " +
-                    "a.province, a.district, a.ward " +
+                    "a.province, a.district, a.ward, a.createdByUserID, a.createdAt, a.updatedAt " +
                     "FROM [dbo].[Accommodation] a ";
+    private static final String INSERT_SQL =
+            "INSERT INTO [dbo].[Accommodation] " +
+                    "([name], [image], [address], phone, [description], rate, [type], [status], " +
+                    "checkInTime, checkOutTime, province, district, ward, createdByUserID) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     public List<Accommodation> getAllAccommodations() {
-        List<Accommodation> list = new ArrayList<>();
-
-        String sql = BASE_SELECT +
-                "ORDER BY a.accommodationID DESC";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                list.add(mapAccommodation(rs));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+        return findMany(BASE_SELECT + "ORDER BY a.accommodationID DESC");
     }
 
     public List<Accommodation> getAvailableAccommodationsForCustomer() {
-        List<Accommodation> list = new ArrayList<>();
-
         String sql = BASE_SELECT +
                 "WHERE a.[status] IN (N'Available', N'Active') " +
                 "ORDER BY a.rate DESC, a.accommodationID DESC";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                list.add(mapAccommodation(rs));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+        return findMany(sql);
     }
 
     public Accommodation getAccommodationById(int accommodationID) {
-        String sql = BASE_SELECT +
-                "WHERE a.accommodationID = ?";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, accommodationID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapAccommodation(rs);
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return findById(accommodationID, false);
     }
 
     public Accommodation getAccommodationByIdForCustomer(int accommodationID) {
-        String sql = BASE_SELECT +
-                "WHERE a.accommodationID = ? " +
-                "AND a.[status] IN (N'Available', N'Active')";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, accommodationID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapAccommodation(rs);
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return findById(accommodationID, true);
     }
 
     public boolean addAccommodation(Accommodation accommodation) {
-        String sqlAccommodation =
-                "INSERT INTO [dbo].[Accommodation] " +
-                        "([name], [image], [address], phone, [description], rate, [type], [status], " +
-                        "checkInTime, checkOutTime, province, district, ward) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        return addAccommodationAndReturnId(accommodation) > 0;
+    }
 
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement psAccommodation = conn.prepareStatement(sqlAccommodation)) {
-            psAccommodation.setString(1, accommodation.getName());
-            psAccommodation.setString(2, accommodation.getImage());
-            psAccommodation.setString(3, accommodation.getAddress());
-            psAccommodation.setString(4, accommodation.getPhone());
-            psAccommodation.setString(5, accommodation.getDescription());
-            psAccommodation.setDouble(6, accommodation.getRate());
-            psAccommodation.setString(7, accommodation.getType());
-            psAccommodation.setString(8, accommodation.getStatus());
-            psAccommodation.setTime(9, accommodation.getCheckInTime());
-            psAccommodation.setTime(10, accommodation.getCheckOutTime());
-            psAccommodation.setString(11, accommodation.getProvince());
-            psAccommodation.setString(12, accommodation.getDistrict());
-            psAccommodation.setString(13, accommodation.getWard());
+    public int addAccommodationAndReturnId(Accommodation accommodation) {
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            bindAccommodationFields(statement, accommodation);
+            setNullableInteger(statement, 14, accommodation.getCreatedByUserID());
 
-            return psAccommodation.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
+            if (statement.executeUpdate() == 0) {
+                return 0;
+            }
+
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                return keys.next() ? keys.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            logFailure("add accommodation", e);
+            return 0;
         }
+    }
 
-        return false;
+    public int addAccommodationWithFacilities(
+            Accommodation accommodation, int[] facilityIDs) {
+        try (Connection connection = new DBConnection().getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                int accommodationID = insertAccommodation(connection, accommodation);
+                if (accommodationID == 0) {
+                    connection.rollback();
+                    return 0;
+                }
+
+                new FacilityDAO().replaceAccommodationFacilities(
+                        connection, accommodationID, facilityIDs);
+                connection.commit();
+                return accommodationID;
+            } catch (SQLException e) {
+                rollback(connection, e);
+                logFailure("add accommodation with facilities", e);
+                return 0;
+            } finally {
+                restoreAutoCommit(connection);
+            }
+        } catch (SQLException e) {
+            logFailure("open accommodation insert transaction", e);
+            return 0;
+        }
     }
 
     public boolean updateAccommodation(Accommodation accommodation) {
-        String sqlAccommodation =
+        String sql =
                 "UPDATE [dbo].[Accommodation] " +
                         "SET [name] = ?, [image] = ?, [address] = ?, phone = ?, [description] = ?, " +
                         "rate = ?, [type] = ?, [status] = ?, checkInTime = ?, checkOutTime = ?, " +
                         "province = ?, district = ?, ward = ?, updatedAt = GETDATE() " +
                         "WHERE accommodationID = ?";
 
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement psAccommodation = conn.prepareStatement(sqlAccommodation)) {
-            psAccommodation.setString(1, accommodation.getName());
-            psAccommodation.setString(2, accommodation.getImage());
-            psAccommodation.setString(3, accommodation.getAddress());
-            psAccommodation.setString(4, accommodation.getPhone());
-            psAccommodation.setString(5, accommodation.getDescription());
-            psAccommodation.setDouble(6, accommodation.getRate());
-            psAccommodation.setString(7, accommodation.getType());
-            psAccommodation.setString(8, accommodation.getStatus());
-            psAccommodation.setTime(9, accommodation.getCheckInTime());
-            psAccommodation.setTime(10, accommodation.getCheckOutTime());
-            psAccommodation.setString(11, accommodation.getProvince());
-            psAccommodation.setString(12, accommodation.getDistrict());
-            psAccommodation.setString(13, accommodation.getWard());
-            psAccommodation.setInt(14, accommodation.getAccommodationID());
-
-            return psAccommodation.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            bindAccommodationFields(statement, accommodation);
+            statement.setInt(14, accommodation.getAccommodationID());
+            return statement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            logFailure("update accommodation", e);
+            return false;
         }
+    }
 
-        return false;
+    public boolean updateAccommodationWithFacilities(
+            Accommodation accommodation, int[] facilityIDs) {
+        String sql =
+                "UPDATE [dbo].[Accommodation] " +
+                        "SET [name] = ?, [image] = ?, [address] = ?, phone = ?, [description] = ?, " +
+                        "rate = ?, [type] = ?, [status] = ?, checkInTime = ?, checkOutTime = ?, " +
+                        "province = ?, district = ?, ward = ?, updatedAt = GETDATE() " +
+                        "WHERE accommodationID = ?";
+
+        try (Connection connection = new DBConnection().getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                bindAccommodationFields(statement, accommodation);
+                statement.setInt(14, accommodation.getAccommodationID());
+                if (statement.executeUpdate() != 1) {
+                    connection.rollback();
+                    return false;
+                }
+
+                new FacilityDAO().replaceAccommodationFacilities(
+                        connection, accommodation.getAccommodationID(), facilityIDs);
+                connection.commit();
+                return true;
+            } catch (SQLException e) {
+                rollback(connection, e);
+                logFailure("update accommodation with facilities", e);
+                return false;
+            } finally {
+                restoreAutoCommit(connection);
+            }
+        } catch (SQLException e) {
+            logFailure("open accommodation update transaction", e);
+            return false;
+        }
     }
 
     public boolean deleteAccommodation(int accommodationID) {
-        String sqlDeleteRoomFacilities =
-                        "DELETE rf " +
-                        "FROM [dbo].[Room_Facility] rf " +
-                        "JOIN [dbo].[Room] r ON rf.roomID = r.roomID " +
-                        "WHERE r.accommodationID = ?";
-
-        String sqlDeleteRooms =
-                "DELETE FROM [dbo].[Room] WHERE accommodationID = ?";
-
-        String sqlDeleteAccommodationFacilities =
-                "DELETE FROM [dbo].[Accommodation_Facility] WHERE accommodationID = ?";
-
-        String sqlDeleteAccommodation =
+        String deleteAccommodation =
                 "DELETE FROM [dbo].[Accommodation] WHERE accommodationID = ?";
 
-        Connection conn = null;
+        try (Connection connection = new DBConnection().getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                int deleted = executeDelete(connection, deleteAccommodation, accommodationID);
 
-        try {
-            conn = new DBConnection().getConnection();
-            conn.setAutoCommit(false);
+                if (deleted != 1) {
+                    connection.rollback();
+                    return false;
+                }
 
-            executeDeleteByAccommodationID(conn, sqlDeleteRoomFacilities, accommodationID);
-            executeDeleteByAccommodationID(conn, sqlDeleteRooms, accommodationID);
-            executeDeleteByAccommodationID(conn, sqlDeleteAccommodationFacilities, accommodationID);
-            executeDeleteByAccommodationID(conn, sqlDeleteAccommodation, accommodationID);
-
-            conn.commit();
-            return true;
-
-        } catch (Exception e) {
-            rollbackQuietly(conn);
-            e.printStackTrace();
-
-        } finally {
-            closeQuietly(conn);
-        }
-
-        return false;
-    }
-
-    private void executeDeleteByAccommodationID(Connection conn, String sql, int accommodationID) throws Exception {
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, accommodationID);
-            ps.executeUpdate();
+                connection.commit();
+                return true;
+            } catch (SQLException e) {
+                rollback(connection, e);
+                logFailure("delete accommodation", e);
+                return false;
+            } finally {
+                restoreAutoCommit(connection);
+            }
+        } catch (SQLException e) {
+            logFailure("open connection to delete accommodation", e);
+            return false;
         }
     }
 
-    private Accommodation mapAccommodation(ResultSet rs) throws Exception {
+    public boolean hasBookingReferences(int accommodationID) {
+        String sql =
+                "SELECT TOP 1 1 FROM [dbo].[Booking_Detail] bd " +
+                        "WHERE bd.accommodationID = ? OR bd.roomID IN (" +
+                        "SELECT r.roomID FROM [dbo].[Room] r WHERE r.accommodationID = ?)";
+        return exists(sql, accommodationID);
+    }
+
+    public boolean deactivateAccommodation(int accommodationID) {
+        String sql =
+                "UPDATE [dbo].[Accommodation] SET [status] = N'Unavailable', " +
+                        "updatedAt = GETDATE() WHERE accommodationID = ?";
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, accommodationID);
+            return statement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            logFailure("deactivate accommodation", e);
+            return false;
+        }
+    }
+
+    private List<Accommodation> findMany(String sql) {
+        List<Accommodation> accommodations = new ArrayList<>();
+
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                accommodations.add(mapAccommodation(resultSet));
+            }
+        } catch (SQLException e) {
+            logFailure("load accommodations", e);
+        }
+
+        return accommodations;
+    }
+
+    private Accommodation findById(int accommodationID, boolean customerOnly) {
+        String sql = BASE_SELECT +
+                "WHERE a.accommodationID = ?" +
+                (customerOnly ? " AND a.[status] IN (N'Available', N'Active')" : "");
+
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, accommodationID);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? mapAccommodation(resultSet) : null;
+            }
+        } catch (SQLException e) {
+            logFailure("find accommodation by id", e);
+            return null;
+        }
+    }
+
+    private int insertAccommodation(Connection connection, Accommodation accommodation)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
+            bindAccommodationFields(statement, accommodation);
+            setNullableInteger(statement, 14, accommodation.getCreatedByUserID());
+            if (statement.executeUpdate() != 1) {
+                return 0;
+            }
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                return keys.next() ? keys.getInt(1) : 0;
+            }
+        }
+    }
+
+    private void bindAccommodationFields(
+            PreparedStatement statement, Accommodation accommodation)
+            throws SQLException {
+        statement.setString(1, accommodation.getName());
+        statement.setString(2, accommodation.getImage());
+        statement.setString(3, accommodation.getAddress());
+        statement.setString(4, accommodation.getPhone());
+        statement.setString(5, accommodation.getDescription());
+        statement.setBigDecimal(6, accommodation.getRate());
+        statement.setString(7, accommodation.getType());
+        statement.setString(8, accommodation.getStatus());
+        statement.setTime(9, accommodation.getCheckInTime());
+        statement.setTime(10, accommodation.getCheckOutTime());
+        statement.setString(11, accommodation.getProvince());
+        statement.setString(12, accommodation.getDistrict());
+        statement.setString(13, accommodation.getWard());
+    }
+
+    private void setNullableInteger(PreparedStatement statement, int index, Integer value)
+            throws SQLException {
+        if (value == null) {
+            statement.setNull(index, Types.INTEGER);
+        } else {
+            statement.setInt(index, value);
+        }
+    }
+
+    private int executeDelete(Connection connection, String sql, int accommodationID)
+            throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, accommodationID);
+            return statement.executeUpdate();
+        }
+    }
+
+    private Accommodation mapAccommodation(ResultSet resultSet) throws SQLException {
         Accommodation accommodation = new Accommodation();
-
-        accommodation.setAccommodationID(rs.getInt("accommodationID"));
-        accommodation.setName(rs.getString("name"));
-        accommodation.setImage(rs.getString("image"));
-        accommodation.setAddress(rs.getString("address"));
-        accommodation.setPhone(rs.getString("phone"));
-        accommodation.setDescription(rs.getString("description"));
-        accommodation.setRate(rs.getDouble("rate"));
-        accommodation.setType(rs.getString("type"));
-        accommodation.setStatus(rs.getString("status"));
-        accommodation.setCheckInTime(rs.getTime("checkInTime"));
-        accommodation.setCheckOutTime(rs.getTime("checkOutTime"));
-        accommodation.setProvince(rs.getString("province"));
-        accommodation.setDistrict(rs.getString("district"));
-        accommodation.setWard(rs.getString("ward"));
-
+        accommodation.setAccommodationID(resultSet.getInt("accommodationID"));
+        accommodation.setName(resultSet.getString("name"));
+        accommodation.setImage(resultSet.getString("image"));
+        accommodation.setAddress(resultSet.getString("address"));
+        accommodation.setPhone(resultSet.getString("phone"));
+        accommodation.setDescription(resultSet.getString("description"));
+        accommodation.setRate(resultSet.getBigDecimal("rate"));
+        accommodation.setType(resultSet.getString("type"));
+        accommodation.setStatus(resultSet.getString("status"));
+        accommodation.setCheckInTime(resultSet.getTime("checkInTime"));
+        accommodation.setCheckOutTime(resultSet.getTime("checkOutTime"));
+        accommodation.setProvince(resultSet.getString("province"));
+        accommodation.setDistrict(resultSet.getString("district"));
+        accommodation.setWard(resultSet.getString("ward"));
+        int createdByUserID = resultSet.getInt("createdByUserID");
+        accommodation.setCreatedByUserID(resultSet.wasNull() ? null : createdByUserID);
+        if (resultSet.getTimestamp("createdAt") != null) {
+            accommodation.setCreatedAt(resultSet.getTimestamp("createdAt").toLocalDateTime());
+        }
+        if (resultSet.getTimestamp("updatedAt") != null) {
+            accommodation.setUpdatedAt(resultSet.getTimestamp("updatedAt").toLocalDateTime());
+        }
         return accommodation;
     }
 
-    private void rollbackQuietly(Connection conn) {
-        if (conn != null) {
-            try {
-                conn.rollback();
-            } catch (Exception e) {
-                e.printStackTrace();
+    private boolean exists(String sql, int id) {
+        try (Connection connection = new DBConnection().getConnection();
+            PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            statement.setInt(2, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
             }
+        } catch (SQLException e) {
+            logFailure("check accommodation reference", e);
+            return true;
         }
     }
 
-    private void closeQuietly(Connection conn) {
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    private void rollback(Connection connection, SQLException cause) {
+        try {
+            connection.rollback();
+        } catch (SQLException rollbackError) {
+            cause.addSuppressed(rollbackError);
         }
     }
 
-    public int addAccommodationAndReturnId(Accommodation accommodation) {
-        String sqlAccommodation =
-                "INSERT INTO [dbo].[Accommodation] " +
-                        "([name], [image], [address], phone, [description], rate, [type], [status], " +
-                        "checkInTime, checkOutTime, province, district, ward) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement psAccommodation = conn.prepareStatement(sqlAccommodation, Statement.RETURN_GENERATED_KEYS)) {
-            psAccommodation.setString(1, accommodation.getName());
-            psAccommodation.setString(2, accommodation.getImage());
-            psAccommodation.setString(3, accommodation.getAddress());
-            psAccommodation.setString(4, accommodation.getPhone());
-            psAccommodation.setString(5, accommodation.getDescription());
-            psAccommodation.setDouble(6, accommodation.getRate());
-            psAccommodation.setString(7, accommodation.getType());
-            psAccommodation.setString(8, accommodation.getStatus());
-            psAccommodation.setTime(9, accommodation.getCheckInTime());
-            psAccommodation.setTime(10, accommodation.getCheckOutTime());
-            psAccommodation.setString(11, accommodation.getProvince());
-            psAccommodation.setString(12, accommodation.getDistrict());
-            psAccommodation.setString(13, accommodation.getWard());
-
-            if (psAccommodation.executeUpdate() == 0) {
-                return 0;
-            }
-
-            try (ResultSet keys = psAccommodation.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : 0;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+    private void restoreAutoCommit(Connection connection) {
+        try {
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            logFailure("restore auto-commit", e);
         }
+    }
 
-        return 0;
+    private void logFailure(String operation, SQLException error) {
+        LOGGER.log(Level.SEVERE, "Failed to " + operation, error);
     }
 }

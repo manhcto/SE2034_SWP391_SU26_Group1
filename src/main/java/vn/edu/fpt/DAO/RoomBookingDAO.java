@@ -8,11 +8,17 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RoomBookingDAO {
+
+    private static final Logger LOGGER = Logger.getLogger(RoomBookingDAO.class.getName());
 
     public List<RoomBooking> getRoomBookingsByAccommodation(int accommodationID) {
         List<RoomBooking> list = new ArrayList<>();
@@ -42,8 +48,8 @@ public class RoomBookingDAO {
                 }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Failed to load accommodation bookings", e);
         }
 
         return list;
@@ -69,22 +75,20 @@ public class RoomBookingDAO {
             String identityImageUrl,
             String note) {
 
-        String sqlAvailability =
-                "SELECT r.roomAvailability - ISNULL(booked.bookedQuantity, 0) AS availableQuantity " +
-                        "FROM [dbo].[Room] r " +
-                        "LEFT JOIN ( " +
-                        "    SELECT bd.roomID, SUM(bd.quantity) AS bookedQuantity " +
-                        "    FROM [dbo].[Booking_Detail] bd " +
-                        "    INNER JOIN [dbo].[Booking] b ON bd.bookingID = b.bookingID " +
-                        "    WHERE bd.roomID = ? " +
-                        "    AND bd.accommodationID = ? " +
-                        "    AND b.bookingType = N'Accommodation' " +
-                        "    AND b.[status] IN (N'Pending', N'Confirmed') " +
-                        "    AND bd.startDate < ? " +
-                        "    AND bd.endDate > ? " +
-                        "    GROUP BY bd.roomID " +
-                        ") booked ON booked.roomID = r.roomID " +
-                        "WHERE r.roomID = ? AND r.accommodationID = ? AND r.[status] = N'Available'";
+        if (userID <= 0 || accommodationID <= 0 || roomID <= 0 || roomQuantity <= 0
+                || adults <= 0 || children < 0 || checkInDate == null || checkOutDate == null
+                || !checkOutDate.after(checkInDate) || unitPrice == null || totalPrice == null
+                || unitPrice.compareTo(BigDecimal.ZERO) < 0
+                || totalPrice.compareTo(BigDecimal.ZERO) < 0) {
+            return -1;
+        }
+
+        String sqlReserveRoom =
+                "UPDATE [dbo].[Room] " +
+                        "SET roomAvailability = roomAvailability - ?, updatedAt = GETDATE() " +
+                        "WHERE roomID = ? AND accommodationID = ? " +
+                        "AND [status] IN (N'Available', N'Active') AND roomAvailability >= ? " +
+                        "AND maxAdults * ? >= ? AND maxChildren * ? >= ?";
 
         String sqlBooking =
                 "INSERT INTO [dbo].[Booking] " +
@@ -92,7 +96,7 @@ public class RoomBookingDAO {
                         "identityNumber, identityImageUrl, [address], firstName, lastName, userID, " +
                         "[status], bookDate, isBookedForOther, totalPrice) " +
                         "VALUES (?, N'Accommodation', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-                        "N'Pending', GETDATE(), 0, ?)";
+                        "N'Đang xử lý', GETDATE(), 0, ?)";
 
         String sqlDetail =
                 "INSERT INTO [dbo].[Booking_Detail] " +
@@ -103,24 +107,25 @@ public class RoomBookingDAO {
             conn.setAutoCommit(false);
 
             try {
-                try (PreparedStatement psAvailability = conn.prepareStatement(sqlAvailability)) {
-                    psAvailability.setInt(1, roomID);
-                    psAvailability.setInt(2, accommodationID);
-                    psAvailability.setDate(3, checkOutDate);
-                    psAvailability.setDate(4, checkInDate);
-                    psAvailability.setInt(5, roomID);
-                    psAvailability.setInt(6, accommodationID);
+                try (PreparedStatement psReserve = conn.prepareStatement(sqlReserveRoom)) {
+                    psReserve.setInt(1, roomQuantity);
+                    psReserve.setInt(2, roomID);
+                    psReserve.setInt(3, accommodationID);
+                    psReserve.setInt(4, roomQuantity);
+                    psReserve.setInt(5, roomQuantity);
+                    psReserve.setInt(6, adults);
+                    psReserve.setInt(7, roomQuantity);
+                    psReserve.setInt(8, children);
 
-                    try (ResultSet rs = psAvailability.executeQuery()) {
-                        if (!rs.next() || rs.getInt("availableQuantity") < roomQuantity) {
-                            conn.rollback();
-                            return -1;
-                        }
+                    if (psReserve.executeUpdate() == 0) {
+                        conn.rollback();
+                        return -1;
                     }
                 }
 
                 int bookingID;
-                String bookingCode = "AC-" + System.currentTimeMillis() % 1000000;
+                String bookingCode = "AC-" + UUID.randomUUID()
+                        .toString().substring(0, 8).toUpperCase();
 
                 try (PreparedStatement psBooking = conn.prepareStatement(sqlBooking, Statement.RETURN_GENERATED_KEYS)) {
                     psBooking.setString(1, bookingCode);
@@ -172,21 +177,21 @@ public class RoomBookingDAO {
                 conn.commit();
                 return bookingID;
 
-            } catch (Exception e) {
-                conn.rollback();
-                e.printStackTrace();
+            } catch (SQLException e) {
+                rollback(conn, e);
+                LOGGER.log(Level.SEVERE, "Failed to create accommodation booking", e);
             } finally {
-                conn.setAutoCommit(true);
+                restoreAutoCommit(conn);
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Failed to open accommodation booking transaction", e);
         }
 
         return -1;
     }
 
-    private RoomBooking mapRoomBooking(ResultSet rs) throws Exception {
+    private RoomBooking mapRoomBooking(ResultSet rs) throws SQLException {
         RoomBooking booking = new RoomBooking();
 
         booking.setRoomBookingID(rs.getInt("roomBookingID"));
@@ -209,5 +214,21 @@ public class RoomBookingDAO {
         booking.setTotalPrice(totalPrice == null ? BigDecimal.ZERO : totalPrice);
 
         return booking;
+    }
+
+    private void rollback(Connection connection, SQLException cause) {
+        try {
+            connection.rollback();
+        } catch (SQLException rollbackError) {
+            cause.addSuppressed(rollbackError);
+        }
+    }
+
+    private void restoreAutoCommit(Connection connection) {
+        try {
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Failed to restore booking auto-commit", e);
+        }
     }
 }

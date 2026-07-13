@@ -1,371 +1,322 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WonderVN | Trang chủ</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=1000">
+    <title>WonderVN | Khám phá Việt Nam</title>
+    <meta name="description" content="Đặt tour và phòng lưu trú trên WonderVN với lịch khởi hành, giá và phòng trống rõ ràng.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=20260713">
 </head>
 <body>
-
 <jsp:include page="/views/common/client-header.jsp" />
 
+<c:set var="heroImage" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png" />
+<c:if test="${not empty featuredTours and not empty featuredTours[0].image}">
+    <c:choose>
+        <c:when test="${fn:startsWith(featuredTours[0].image, 'http')}">
+            <c:set var="heroImage" value="${featuredTours[0].image}" />
+        </c:when>
+        <c:when test="${fn:startsWith(featuredTours[0].image, '/')}">
+            <c:set var="heroImage" value="${pageContext.request.contextPath}${featuredTours[0].image}" />
+        </c:when>
+        <c:otherwise>
+            <c:set var="heroImage" value="${pageContext.request.contextPath}/${featuredTours[0].image}" />
+        </c:otherwise>
+    </c:choose>
+</c:if>
+
 <main class="home-page">
-
-    <section class="hero-v2">
-        <div class="hero-bg-shape hero-shape-one"></div>
-        <div class="hero-bg-shape hero-shape-two"></div>
-
-        <div class="home-container hero-layout">
-            <div class="hero-left">
-                <div class="hero-pill">
-                    <span>🇻🇳</span>
-                    <strong>Khám phá Việt Nam cùng WonderVN</strong>
-                </div>
-
-                <h1>
-                    Đặt tour, khách sạn,
-                    thuê xe và dịch vụ cộng thêm
-                    <span>dễ dàng hơn bao giờ hết</span>
-                </h1>
-
-                <p class="hero-desc">
-                    Tìm chuyến đi phù hợp, chọn nơi lưu trú đẹp, thuê xe linh hoạt và quản lý hành trình
-                    trong một hệ thống hiện đại, rõ giá, rõ lịch trình và thân thiện với khách hàng.
-                </p>
-
-                <div class="hero-actions">
-                    <a class="hero-primary" href="${pageContext.request.contextPath}/tour">
-                        Khám phá tour ngay
-                    </a>
-                    <a class="hero-secondary" href="${pageContext.request.contextPath}/accommodation">
-                        Tìm khách sạn
-                    </a>
-                </div>
-
-                <div class="hero-stats">
-                    <div>
-                        <strong>30+</strong>
-                        <span>Tỉnh thành</span>
-                    </div>
-                    <div>
-                        <strong>500+</strong>
-                        <span>Dịch vụ du lịch</span>
-                    </div>
-                    <div>
-                        <strong>24/7</strong>
-                        <span>Hỗ trợ khách hàng</span>
-                    </div>
-                </div>
-
-                <div class="search-panel">
-                    <div class="search-tabs">
-                        <button class="tab-btn active" type="button" data-tab="tour">Tour trọn gói</button>
-                        <button class="tab-btn" type="button" data-tab="hotel">Khách sạn</button>
-                    </div>
-                    <form class="search-form" id="homeSearchForm" action="${pageContext.request.contextPath}/tour" method="get">
-                        <input type="hidden" id="searchType" name="type" value="tour">
-
-                        <label>
-                            <span id="fieldOneLabel">Điểm khởi hành</span>
-                            <select id="fieldOneInput" name="from">
-                                <option>Hà Nội</option>
-                                <option>TP. Hồ Chí Minh</option>
-                                <option>Đà Nẵng</option>
-                                <option>Hải Phòng</option>
-                                <option>Cần Thơ</option>
-                            </select>
-                        </label>
-
-                        <label>
-                            <span id="fieldTwoLabel">Điểm đến</span>
-                            <select id="fieldTwoInput" name="destination">
-                                <option value="">Chọn điểm đến</option>
-                                <option>Đà Nẵng</option>
-                                <option>Hạ Long</option>
-                                <option>Sa Pa</option>
-                                <option>Ninh Bình</option>
-                                <option>Phú Quốc</option>
-                            </select>
-                        </label>
-
-                        <label>
-                            <span id="fieldThreeLabel">Ngày đi</span>
-                            <input id="fieldThreeInput" type="date" name="startDate">
-                        </label>
-
-                        <button class="primary-btn" id="searchSubmitBtn" type="submit">
-                            Tìm tour
-                        </button>
-                    </form>
-                </div>
+    <section class="home-hero" aria-labelledby="homeHeroTitle">
+        <img class="home-hero-media" src="${heroImage}" alt="Điểm đến nổi bật của WonderVN">
+        <div class="home-hero-overlay"></div>
+        <div class="home-shell home-hero-content">
+            <p class="eyebrow"><i class="fa-solid fa-location-dot"></i> Hành trình Việt Nam của bạn</p>
+            <h1 id="homeHeroTitle">WonderVN</h1>
+            <p class="hero-lead">Tour có lịch rõ ràng, nơi lưu trú còn phòng và mọi thông tin cần thiết cho một chuyến đi nhẹ đầu hơn.</p>
+            <div class="hero-actions">
+                <a class="button button-primary" href="${pageContext.request.contextPath}/tour">
+                    Khám phá tour <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <a class="button button-light" href="${pageContext.request.contextPath}/accommodation">
+                    Tìm nơi lưu trú
+                </a>
             </div>
 
-            <div class="hero-right">
-                <div class="hero-photo-card">
-                    <img src="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"
-                         alt="Cầu Vàng Bà Nà Hills"
-                         onerror="this.src='https://images.unsplash.com/photo-1566139397190-1ca967d5e58d?auto=format&fit=crop&w=1200&q=80';">
-
-                    <div class="photo-gradient"></div>
-
-                    <div class="floating-badge top">
-                        <span>⭐</span>
-                        <div>
-                            <strong>4.9/5</strong>
-                            <small>Trải nghiệm nổi bật</small>
-                        </div>
-                    </div>
-
-                    <div class="floating-badge bottom">
-                        <span>📍</span>
-                        <div>
-                            <strong>Bà Nà Hills, Đà Nẵng</strong>
-                            <small>Check-in Cầu Vàng cực hot</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="mini-card mini-card-one">
-                    <span>🏨</span>
-                    <strong>Khách sạn đẹp</strong>
-                    <small>Tìm nhanh theo tiện ích</small>
-                </div>
-
-            </div>
+            <dl class="hero-metrics">
+                <div><dt>${activeTourCount}</dt><dd>tour đang mở bán</dd></div>
+                <div><dt>${accommodationCount}</dt><dd>nơi lưu trú</dd></div>
+                <div><dt>${publishedBlogCount}</dt><dd>bài viết hữu ích</dd></div>
+            </dl>
         </div>
     </section>
 
-    <section class="section quick-service-section">
-        <div class="home-container">
-            <div class="section-head">
-                <div>
-                    <p class="section-kicker">Dịch vụ WonderVN</p>
-                    <h2>Chọn nhanh dịch vụ bạn cần</h2>
-                    <p>Tập trung vào đặt tour và lưu trú với lịch trình, phòng trống và giá rõ ràng.</p>
-                </div>
+    <section class="search-band" aria-label="Tìm kiếm dịch vụ">
+        <div class="home-shell">
+            <div class="search-tabs" role="tablist" aria-label="Loại dịch vụ">
+                <button class="search-tab active" type="button" role="tab" aria-selected="true" data-search-target="tourSearch">
+                    <i class="fa-solid fa-route"></i> Tour
+                </button>
+                <button class="search-tab" type="button" role="tab" aria-selected="false" data-search-target="staySearch">
+                    <i class="fa-solid fa-hotel"></i> Lưu trú
+                </button>
             </div>
 
+            <form class="home-search-form active" id="tourSearch" action="${pageContext.request.contextPath}/tour" method="get">
+                <label>
+                    <span>Khởi hành từ</span>
+                    <select name="from">
+                        <option value="">Tất cả điểm khởi hành</option>
+                        <c:forEach var="place" items="${startPlaces}">
+                            <option value="${place}"><c:out value="${place}" /></option>
+                        </c:forEach>
+                    </select>
+                </label>
+                <label>
+                    <span>Điểm đến</span>
+                    <select name="destination">
+                        <option value="">Chọn điểm đến</option>
+                        <c:forEach var="place" items="${destinations}">
+                            <option value="${place}"><c:out value="${place}" /></option>
+                        </c:forEach>
+                    </select>
+                </label>
+                <label>
+                    <span>Ngày khởi hành</span>
+                    <input type="date" name="startDate">
+                </label>
+                <button class="button button-primary" type="submit">
+                    <i class="fa-solid fa-magnifying-glass"></i> Tìm tour
+                </button>
+            </form>
+
+            <form class="home-search-form" id="staySearch" action="${pageContext.request.contextPath}/accommodation" method="get" hidden>
+                <label class="search-grow">
+                    <span>Tỉnh/thành phố</span>
+                    <select name="province">
+                        <option value="">Tất cả tỉnh/thành phố</option>
+                        <c:forEach var="province" items="${provinceList}">
+                            <option value="${province}"><c:out value="${province}" /></option>
+                        </c:forEach>
+                    </select>
+                </label>
+                <label>
+                    <span>Nhận phòng</span>
+                    <input type="date" name="checkIn" data-min-today>
+                </label>
+                <label>
+                    <span>Trả phòng</span>
+                    <input type="date" name="checkOut" data-min-today>
+                </label>
+                <input type="hidden" name="adults" value="2">
+                <input type="hidden" name="children" value="0">
+                <input type="hidden" name="rooms" value="1">
+                <button class="button button-primary" type="submit">
+                    <i class="fa-solid fa-magnifying-glass"></i> Tìm phòng
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <section class="home-section service-section">
+        <div class="home-shell">
+            <div class="section-heading">
+                <div>
+                    <p class="section-label">Bắt đầu nhanh</p>
+                    <h2>Chọn đúng thứ bạn đang cần</h2>
+                </div>
+                <p>Đi thẳng đến dịch vụ, lịch đặt và nội dung hướng dẫn mà không phải tìm qua nhiều màn hình.</p>
+            </div>
             <div class="service-grid">
                 <a class="service-card" href="${pageContext.request.contextPath}/tour">
-                    <span class="service-icon">🧳</span>
-                    <h3>Tour trọn gói</h3>
-                    <p>Lịch trình rõ ràng, giá minh bạch, phù hợp nhóm bạn và gia đình.</p>
+                    <span class="service-icon tour"><i class="fa-solid fa-route"></i></span>
+                    <span><strong>Tour trọn gói</strong><small>Xem hành trình và chọn lịch khởi hành.</small></span>
+                    <i class="fa-solid fa-arrow-right"></i>
                 </a>
-
                 <a class="service-card" href="${pageContext.request.contextPath}/accommodation">
-                    <span class="service-icon">🏨</span>
-                    <h3>Khách sạn & Homestay</h3>
-                    <p>Lọc theo địa điểm, tiện ích, số khách, giá phòng và đánh giá.</p>
+                    <span class="service-icon stay"><i class="fa-solid fa-hotel"></i></span>
+                    <span><strong>Khách sạn & homestay</strong><small>Tìm phòng theo ngày và số khách thực tế.</small></span>
+                    <i class="fa-solid fa-arrow-right"></i>
                 </a>
-
+                <a class="service-card" href="${pageContext.request.contextPath}/blog">
+                    <span class="service-icon blog"><i class="fa-solid fa-newspaper"></i></span>
+                    <span><strong>Cẩm nang du lịch</strong><small>Đọc kinh nghiệm đã được WonderVN duyệt.</small></span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
             </div>
         </div>
     </section>
 
-    <section class="section">
-        <div class="home-container">
-            <div class="section-head">
+    <section class="home-section tours-section">
+        <div class="home-shell">
+            <div class="section-heading compact">
                 <div>
-                    <p class="section-kicker">Tour nổi bật</p>
-                    <h2>Hành trình được nhiều khách quan tâm</h2>
-                    <p>Các tour nổi bật do WonderVN trực tiếp thiết kế và quản lý.</p>
+                    <p class="section-label">Tour nổi bật</p>
+                    <h2>Lịch khởi hành gần nhất</h2>
                 </div>
-                <a class="outline-btn" href="${pageContext.request.contextPath}/tour">Xem thêm</a>
+                <a class="text-link" href="${pageContext.request.contextPath}/tour">Xem tất cả <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
-            <div class="tour-grid">
-                <article class="tour-card">
-                    <div class="tour-image image-ha-long">
-                        <span>Hot</span>
+            <c:choose>
+                <c:when test="${empty featuredTours}">
+                    <div class="empty-state">Chưa có tour đang mở bán. Staff có thể thêm lịch khởi hành để tour xuất hiện tại đây.</div>
+                </c:when>
+                <c:otherwise>
+                    <div class="product-grid tour-grid">
+                        <c:forEach var="tour" items="${featuredTours}">
+                            <c:set var="schedule" value="${tour.scheduleList[0]}" />
+                            <c:set var="imageUrl" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png" />
+                            <c:if test="${not empty tour.image}">
+                                <c:choose>
+                                    <c:when test="${fn:startsWith(tour.image, 'http')}"><c:set var="imageUrl" value="${tour.image}" /></c:when>
+                                    <c:when test="${fn:startsWith(tour.image, '/')}"><c:set var="imageUrl" value="${pageContext.request.contextPath}${tour.image}" /></c:when>
+                                    <c:otherwise><c:set var="imageUrl" value="${pageContext.request.contextPath}/${tour.image}" /></c:otherwise>
+                                </c:choose>
+                            </c:if>
+                            <article class="product-card tour-card" data-region="${tour.regionName}">
+                                <a class="product-image" href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">
+                                    <img src="${imageUrl}" alt="${fn:escapeXml(tour.tourName)}" loading="lazy">
+                                    <span class="image-badge">${empty tour.regionName ? 'WonderVN' : tour.regionName}</span>
+                                </a>
+                                <div class="product-body">
+                                    <p class="product-meta"><i class="fa-solid fa-location-dot"></i> ${tour.startPlace} → ${tour.endPlace}</p>
+                                    <h3><a href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}"><c:out value="${tour.tourName}" /></a></h3>
+                                    <div class="tour-facts">
+                                        <span><i class="fa-regular fa-clock"></i> ${tour.numberOfDay} ngày ${tour.numberOfNights} đêm</span>
+                                        <span><i class="fa-regular fa-calendar"></i> <fmt:formatDate value="${schedule.startDate}" pattern="dd/MM/yyyy" /></span>
+                                    </div>
+                                    <div class="product-footer">
+                                        <div><small>Giá từ</small><strong><fmt:formatNumber value="${not empty schedule.adultPrice ? schedule.adultPrice : tour.adultPrice}" pattern="#,#00" /> đ</strong></div>
+                                        <a class="icon-button" href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}" title="Xem tour" aria-label="Xem tour ${fn:escapeXml(tour.tourName)}"><i class="fa-solid fa-arrow-right"></i></a>
+                                    </div>
+                                </div>
+                            </article>
+                        </c:forEach>
                     </div>
-                    <div class="tour-body">
-                        <h3>Hà Nội, Ninh Bình, Hạ Long 4N3Đ</h3>
-                        <p>Khởi hành: TP. Hồ Chí Minh</p>
-                        <p>Thời lượng: 4 ngày 3 đêm</p>
-                        <p>Lịch gần nhất: 15/06/2026</p>
-                        <div class="tour-price-row">
-                            <div>
-                                <span>Giá từ</span>
-                                <strong>5.990.000đ</strong>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=1">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card">
-                    <div class="tour-image image-da-nang">
-                        <span>Best choice</span>
-                    </div>
-                    <div class="tour-body">
-                        <h3>Đà Nẵng, Hội An, Bà Nà Hills 3N2Đ</h3>
-                        <p>Khởi hành: Hà Nội</p>
-                        <p>Thời lượng: 3 ngày 2 đêm</p>
-                        <p>Lịch gần nhất: 20/06/2026</p>
-                        <div class="tour-price-row">
-                            <div>
-                                <span>Giá từ</span>
-                                <strong>4.590.000đ</strong>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=2">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card">
-                    <div class="tour-image image-phu-quoc">
-                        <span>New</span>
-                    </div>
-                    <div class="tour-body">
-                        <h3>Phú Quốc, VinWonders, Grand World 3N2Đ</h3>
-                        <p>Khởi hành: TP. Hồ Chí Minh</p>
-                        <p>Thời lượng: 3 ngày 2 đêm</p>
-                        <p>Lịch gần nhất: 25/06/2026</p>
-                        <div class="tour-price-row">
-                            <div>
-                                <span>Giá từ</span>
-                                <strong>6.490.000đ</strong>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=3">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card">
-                    <div class="tour-image image-sapa">
-                        <span>Popular</span>
-                    </div>
-                    <div class="tour-body">
-                        <h3>Sa Pa, Fansipan, Bản Cát Cát 3N2Đ</h3>
-                        <p>Khởi hành: Hà Nội</p>
-                        <p>Thời lượng: 3 ngày 2 đêm</p>
-                        <p>Lịch gần nhất: 28/06/2026</p>
-                        <div class="tour-price-row">
-                            <div>
-                                <span>Giá từ</span>
-                                <strong>3.990.000đ</strong>
-                            </div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=4">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-            </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </section>
 
-    <section class="section package-section">
-        <div class="home-container">
-            <div class="section-head">
+    <section class="home-section stay-section">
+        <div class="home-shell">
+            <div class="section-heading compact">
                 <div>
-                    <p class="section-kicker">Tour trọn gói WonderVN</p>
-                    <h2>Tour do công ty trực tiếp tạo và quản lý</h2>
-                    <p>Mỗi tour có lịch khởi hành, số chỗ, giá bán và chương trình rõ ràng.</p>
+                    <p class="section-label">Lưu trú được quan tâm</p>
+                    <h2>Chọn nơi ở phù hợp hành trình</h2>
                 </div>
-                <a class="outline-btn" href="${pageContext.request.contextPath}/tours">Xem thêm</a>
+                <a class="text-link" href="${pageContext.request.contextPath}/accommodation">Xem tất cả <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
-            <div class="filter-list">
-                <button class="filter-btn active" type="button" data-region="all">Tất cả</button>
-                <button class="filter-btn" type="button" data-region="north">Miền Bắc</button>
-                <button class="filter-btn" type="button" data-region="central">Miền Trung</button>
-                <button class="filter-btn" type="button" data-region="south">Miền Nam</button>
-                <button class="filter-btn" type="button" data-region="international">Nước ngoài</button>
+            <c:choose>
+                <c:when test="${empty featuredAccommodations}">
+                    <div class="empty-state">Chưa có nơi lưu trú đang hoạt động.</div>
+                </c:when>
+                <c:otherwise>
+                    <div class="product-grid stay-grid">
+                        <c:forEach var="stay" items="${featuredAccommodations}">
+                            <c:set var="stayImage" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png" />
+                            <c:if test="${not empty stay.image}">
+                                <c:choose>
+                                    <c:when test="${fn:startsWith(stay.image, 'http')}"><c:set var="stayImage" value="${stay.image}" /></c:when>
+                                    <c:when test="${fn:startsWith(stay.image, '/')}"><c:set var="stayImage" value="${pageContext.request.contextPath}${stay.image}" /></c:when>
+                                    <c:otherwise><c:set var="stayImage" value="${pageContext.request.contextPath}/${stay.image}" /></c:otherwise>
+                                </c:choose>
+                            </c:if>
+                            <article class="product-card stay-card">
+                                <a class="product-image" href="${pageContext.request.contextPath}/accommodation/detail?id=${stay.accommodationID}">
+                                    <img src="${stayImage}" alt="${fn:escapeXml(stay.name)}" loading="lazy">
+                                    <span class="image-badge rating"><i class="fa-solid fa-star"></i> ${stay.rate}</span>
+                                </a>
+                                <div class="product-body">
+                                    <p class="product-meta"><i class="fa-solid fa-location-dot"></i> ${stay.province}</p>
+                                    <h3><a href="${pageContext.request.contextPath}/accommodation/detail?id=${stay.accommodationID}"><c:out value="${stay.name}" /></a></h3>
+                                    <p class="stay-address"><c:out value="${stay.fullAddress}" /></p>
+                                    <div class="product-footer">
+                                        <div>
+                                            <small>${stay.totalAvailableRooms} phòng còn trống</small>
+                                            <strong><fmt:formatNumber value="${stay.minRoomPrice}" pattern="#,#00" /> đ<em>/đêm</em></strong>
+                                        </div>
+                                        <a class="icon-button" href="${pageContext.request.contextPath}/accommodation/detail?id=${stay.accommodationID}" title="Xem nơi lưu trú" aria-label="Xem ${fn:escapeXml(stay.name)}"><i class="fa-solid fa-arrow-right"></i></a>
+                                    </div>
+                                </div>
+                            </article>
+                        </c:forEach>
+                    </div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </section>
+
+    <section class="home-section blog-section">
+        <div class="home-shell">
+            <div class="section-heading compact">
+                <div>
+                    <p class="section-label">Cẩm nang WonderVN</p>
+                    <h2>Chuẩn bị tốt trước khi lên đường</h2>
+                </div>
+                <a class="text-link" href="${pageContext.request.contextPath}/blog">Đọc tất cả <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
-            <div class="tour-grid">
-                <article class="tour-card package-card" data-region="north">
-                    <div class="tour-image image-moc-chau"><span>Miền Bắc</span></div>
-                    <div class="tour-body">
-                        <h3>Mộc Châu, Nông Trường Chè, Rừng Thông Bản Áng</h3>
-                        <p>Mã chương trình: <strong>NDHAN120</strong></p>
-                        <p>Khởi hành: Hà Nội</p>
-                        <p>Thời lượng: 2 ngày 1 đêm</p>
-                        <div class="date-list"><span>13/06</span><span>20/06</span><span>27/06</span></div>
-                        <div class="tour-price-row">
-                            <div><span>Giá từ</span><strong>2.190.000đ</strong></div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=5">Xem chi tiết</a>
-                        </div>
+            <c:choose>
+                <c:when test="${empty latestBlogs}">
+                    <div class="empty-state">Chưa có bài viết đã duyệt.</div>
+                </c:when>
+                <c:otherwise>
+                    <div class="blog-grid">
+                        <c:forEach var="post" items="${latestBlogs}">
+                            <c:set var="blogImage" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png" />
+                            <c:if test="${not empty post.image}">
+                                <c:choose>
+                                    <c:when test="${fn:startsWith(post.image, 'http')}"><c:set var="blogImage" value="${post.image}" /></c:when>
+                                    <c:when test="${fn:startsWith(post.image, '/')}"><c:set var="blogImage" value="${pageContext.request.contextPath}${post.image}" /></c:when>
+                                    <c:otherwise><c:set var="blogImage" value="${pageContext.request.contextPath}/${post.image}" /></c:otherwise>
+                                </c:choose>
+                            </c:if>
+                            <article class="blog-card">
+                                <a class="blog-image" href="${pageContext.request.contextPath}/blog-detail?slug=${post.slug}">
+                                    <img src="${blogImage}" alt="${fn:escapeXml(post.title)}" loading="lazy">
+                                </a>
+                                <div class="blog-body">
+                                    <p class="product-meta"><i class="fa-regular fa-calendar"></i> <fmt:formatDate value="${post.createAt}" pattern="dd/MM/yyyy" /></p>
+                                    <h3><a href="${pageContext.request.contextPath}/blog-detail?slug=${post.slug}"><c:out value="${post.title}" /></a></h3>
+                                    <p><c:out value="${post.summary}" /></p>
+                                    <a class="text-link" href="${pageContext.request.contextPath}/blog-detail?slug=${post.slug}">Đọc bài viết <i class="fa-solid fa-arrow-right"></i></a>
+                                </div>
+                            </article>
+                        </c:forEach>
                     </div>
-                </article>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </section>
 
-                <article class="tour-card package-card" data-region="north">
-                    <div class="tour-image image-cao-bang"><span>Miền Bắc</span></div>
-                    <div class="tour-body">
-                        <h3>Tinh Hoa Cực Bắc, Lạng Sơn, Cao Bằng</h3>
-                        <p>Mã chương trình: <strong>NDSGN150</strong></p>
-                        <p>Khởi hành: TP. Hồ Chí Minh</p>
-                        <p>Thời lượng: 6 ngày 5 đêm</p>
-                        <div class="date-list"><span>02/06</span><span>09/06</span><span>16/06</span></div>
-                        <div class="tour-price-row">
-                            <div><span>Giá từ</span><strong>13.190.000đ</strong></div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=6">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card package-card" data-region="central">
-                    <div class="tour-image image-da-nang"><span>Miền Trung</span></div>
-                    <div class="tour-body">
-                        <h3>Đà Nẵng, Hội An, Huế 4N3Đ</h3>
-                        <p>Mã chương trình: <strong>WVNMT221</strong></p>
-                        <p>Khởi hành: Hà Nội</p>
-                        <p>Thời lượng: 4 ngày 3 đêm</p>
-                        <div class="date-list"><span>18/06</span><span>09/07</span><span>23/07</span></div>
-                        <div class="tour-price-row">
-                            <div><span>Giá từ</span><strong>7.990.000đ</strong></div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=7">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="tour-card package-card" data-region="south">
-                    <div class="tour-image image-phu-quoc"><span>Miền Nam</span></div>
-                    <div class="tour-body">
-                        <h3>Phú Quốc, Hòn Thơm, Sunset Town 3N2Đ</h3>
-                        <p>Mã chương trình: <strong>WVNPQ330</strong></p>
-                        <p>Khởi hành: TP. Hồ Chí Minh</p>
-                        <p>Thời lượng: 3 ngày 2 đêm</p>
-                        <div class="date-list"><span>21/06</span><span>05/07</span><span>19/07</span></div>
-                        <div class="tour-price-row">
-                            <div><span>Giá từ</span><strong>6.290.000đ</strong></div>
-                            <a href="${pageContext.request.contextPath}/tour-detail?id=8">Xem chi tiết</a>
-                        </div>
-                    </div>
-                </article>
+    <section class="home-cta">
+        <div class="home-shell cta-inner">
+            <div>
+                <p class="section-label">Sẵn sàng khởi hành?</p>
+                <h2>Chọn lịch, chọn phòng và quản lý booking trong một tài khoản.</h2>
             </div>
-
-            <div class="popular-searches">
-                <span>Tìm kiếm nổi bật:</span>
-                <a href="#">Hà Giang</a>
-                <a href="#">Quảng Ninh</a>
-                <a href="#">Lào Cai</a>
-                <a href="#">Ninh Bình</a>
-                <a href="#">Cao Bằng</a>
-            </div>
+            <a class="button button-light" href="${pageContext.request.contextPath}/tour">Bắt đầu khám phá <i class="fa-solid fa-arrow-right"></i></a>
         </div>
     </section>
 </main>
 
 <jsp:include page="/views/common/client-footer.jsp" />
+<button class="scroll-top" id="scrollTop" type="button" title="Lên đầu trang" aria-label="Lên đầu trang"><i class="fa-solid fa-arrow-up"></i></button>
+<script src="${pageContext.request.contextPath}/assets/js/home.js?v=20260713"></script>
 
-<button class="scroll-top" id="scrollTop" type="button">↑</button>
-<script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
 <c:if test="${not empty sessionScope.successMessage}">
-    <div id="successToast" class="success-toast">
-        <div class="toast-body">
-            <div class="toast-icon">✓</div>
-            <div class="toast-content">
-                <span class="toast-title">Đặt Tour Thành Công!</span>
-                <p class="toast-desc">${sessionScope.successMessage}</p>
-            </div>
-            <button type="button" class="toast-close-btn" onclick="dismissToast()">×</button>
-        </div>
-        <div class="toast-progress"></div>
+    <div class="success-toast" id="successToast">
+        <i class="fa-solid fa-circle-check"></i>
+        <div><strong>Booking thành công</strong><span><c:out value="${sessionScope.successMessage}" /></span></div>
+        <button type="button" data-dismiss-toast aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <c:remove var="successMessage" scope="session" />
 </c:if>
-
 </body>
 </html>

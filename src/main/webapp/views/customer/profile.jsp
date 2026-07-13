@@ -5,17 +5,24 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hồ sơ | WonderVN</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
             background: #f5f7fb;
             color: #0f172a;
+            font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
         }
+
+        .customer-theme { --theme-main: #1d4ed8; --theme-dark: #0f172a; }
+        .staff-theme { --theme-main: #0f766e; --theme-dark: #134e4a; }
+        .guide-theme { --theme-main: #7c3aed; --theme-dark: #4c1d95; }
+        .admin-theme { --theme-main: #dc2626; --theme-dark: #7f1d1d; }
 
         .profile-hero {
             padding: 28px;
@@ -23,7 +30,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 18px;
-            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            background: linear-gradient(135deg, var(--theme-dark), var(--theme-main));
             color: #ffffff;
         }
 
@@ -49,7 +56,6 @@
             font-size: 26px;
             font-weight: 900;
             line-height: 1.2;
-            letter-spacing: 0;
         }
 
         .profile-email {
@@ -67,13 +73,20 @@
             align-items: center;
             gap: 9px;
             background: #ffffff;
-            color: #1d4ed8;
+            color: var(--theme-main);
             text-decoration: none;
             font-size: 12px;
             font-weight: 900;
             letter-spacing: 0.45px;
             text-transform: uppercase;
             white-space: nowrap;
+            border: 1px solid var(--theme-main);
+        }
+
+        .profile-edit.secondary {
+            background: #ffffff;
+            color: var(--theme-main);
+            border: 1px solid var(--theme-main);
         }
 
         .profile-body {
@@ -115,25 +128,144 @@
             grid-column: 1 / -1;
         }
 
-        @media (max-width: 720px) {
-            .profile-hero {
-                align-items: flex-start;
-                flex-direction: column;
-            }
+        .account-page,
+        .workspace-page {
+            min-height: 100vh;
+            background: #f5f7fb;
+            padding: 28px 24px 40px;
+        }
 
-            .profile-grid {
-                grid-template-columns: 1fr;
+        .account-shell {
+            max-width: 1240px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 238px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .account-shell.single {
+            max-width: 1140px;
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .workspace-shell {
+            max-width: 1140px;
+            margin: 0 auto;
+        }
+
+        .account-content,
+        .workspace-content {
+            min-width: 0;
+        }
+
+        .staff-profile-layout {
+            min-height: 100vh;
+            display: flex;
+            background: #f5f7fb;
+        }
+
+        .staff-profile-main {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .account-panel {
+            background: #ffffff;
+            border: 1px solid #e5eaf3;
+            border-radius: 18px;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.07);
+            overflow: hidden;
+        }
+
+        .account-panel-head {
+            padding: 24px 28px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .account-kicker {
+            margin: 0 0 8px;
+            color: var(--theme-main);
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.9px;
+            text-transform: uppercase;
+        }
+
+        .account-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 26px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .account-subtitle {
+            margin: 8px 0 0;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .profile-actions {
+            padding: 0 28px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .profile-actions-left,
+        .profile-actions-right {
+            display: flex;
+        }
+
+        .profile-actions-right {
+            margin-left: auto;
+        }
+
+        @media (max-width: 900px) {
+            .account-page,
+            .workspace-page { padding: 22px 14px 36px; }
+            .account-shell { grid-template-columns: 1fr; }
+            .staff-profile-layout { display: block; }
+        }
+
+        @media (max-width: 720px) {
+            .profile-hero { align-items: flex-start; flex-direction: column; }
+            .profile-grid { grid-template-columns: 1fr; }
+            .profile-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .profile-actions-left,
+            .profile-actions-right {
+                width: 100%;
+            }
+            .profile-actions .profile-edit {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
 </head>
 
-<body>
-<jsp:include page="/views/common/client-header.jsp"/>
+<body class="${empty profileTheme ? 'customer' : profileTheme}-theme">
+<c:if test="${profileTheme == 'staff'}">
+    <div class="staff-profile-layout">
+        <jsp:include page="/views/common/staff-sidebar.jsp"/>
+        <div class="staff-profile-main">
+</c:if>
+<c:if test="${empty profileTheme || profileTheme == 'customer'}">
+    <jsp:include page="/views/common/client-header.jsp"/>
+</c:if>
 
 <main class="account-page">
-    <div class="account-shell">
-        <jsp:include page="/views/common/account-sidebar.jsp"/>
+    <div class="account-shell ${empty profileTheme || profileTheme == 'customer' ? '' : 'single'}">
+        <c:if test="${empty profileTheme || profileTheme == 'customer'}">
+            <jsp:include page="/views/common/account-sidebar.jsp"/>
+        </c:if>
 
         <section class="account-content">
             <article class="account-panel">
@@ -143,23 +275,16 @@
                              src="${pageContext.request.contextPath}/assets/images/default-avatar.jpg"
                              alt="Avatar">
                         <div>
-                            <h1 class="profile-name">
-                                ${sessionScope.user.firstName} ${sessionScope.user.lastName}
-                            </h1>
+                            <h1 class="profile-name">${sessionScope.user.firstName} ${sessionScope.user.lastName}</h1>
                             <div class="profile-email">${sessionScope.user.email}</div>
                         </div>
                     </div>
-
-                    <a class="profile-edit" href="${pageContext.request.contextPath}/edit-profile">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                        Chỉnh sửa
-                    </a>
                 </div>
 
                 <div class="account-panel-head">
-                    <p class="account-kicker">Tài khoản</p>
-                    <h2 class="account-title">Thông tin cá nhân</h2>
-                    <p class="account-subtitle">Thông tin này được dùng để tự điền nhanh khi bạn đặt tour hoặc đặt phòng.</p>
+                    <p class="account-kicker">${profileKicker}</p>
+                    <h2 class="account-title">${profileTitle}</h2>
+                    <p class="account-subtitle">${profileSubtitle}</p>
                 </div>
 
                 <div class="profile-body">
@@ -193,6 +318,9 @@
                             <div class="info-label">Giới tính</div>
                             <div class="info-value">
                                 <c:choose>
+                                    <c:when test="${sessionScope.user.gender == 'Male'}">Nam</c:when>
+                                    <c:when test="${sessionScope.user.gender == 'Female'}">Nữ</c:when>
+                                    <c:when test="${sessionScope.user.gender == 'Other'}">Khác</c:when>
                                     <c:when test="${not empty sessionScope.user.gender}">${sessionScope.user.gender}</c:when>
                                     <c:otherwise>Chưa cập nhật</c:otherwise>
                                 </c:choose>
@@ -220,9 +348,29 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="profile-actions">
+                    <div class="profile-actions-left">
+                        <a class="profile-edit secondary" href="${profileHomePath}">
+                            <i class="fa-solid fa-house"></i>
+                            Quay về trang chủ
+                        </a>
+                    </div>
+
+                    <div class="profile-actions-right">
+                        <a class="profile-edit" href="${profileEditPath}">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            Chỉnh sửa
+                        </a>
+                    </div>
+                </div>
             </article>
         </section>
     </div>
 </main>
+<c:if test="${profileTheme == 'staff'}">
+        </div>
+    </div>
+</c:if>
 </body>
 </html>

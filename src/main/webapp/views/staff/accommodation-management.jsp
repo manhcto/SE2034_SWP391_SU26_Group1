@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -45,23 +46,6 @@
             padding: 28px;
         }
 
-        .manage-hero {
-            background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
-            border-radius: 28px;
-            padding: 34px 36px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 24px;
-            margin-bottom: 28px;
-            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
-        }
-
-        .manage-hero {
-            display: none;
-        }
-
         .staff-page-topbar {
             background: white;
             border: 1px solid var(--border);
@@ -87,59 +71,6 @@
             margin: 6px 0 0;
             color: var(--muted);
             font-weight: 600;
-        }
-
-        .manage-hero-title {
-            display: flex;
-            align-items: center;
-            gap: 22px;
-        }
-
-        .manage-hero-title > i {
-            font-size: 38px;
-            color: white;
-        }
-
-        .manage-hero-title h1 {
-            color: white;
-            font-size: 34px;
-            font-weight: 900;
-            margin: 0 0 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .manage-hero-title p {
-            color: #cbd5e1;
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .manage-hero-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-
-        .hero-action-btn {
-            border: none;
-            border-radius: 10px;
-            background: white;
-            color: #2563eb;
-            padding: 13px 22px;
-            font-weight: 900;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            cursor: pointer;
-            min-height: 52px;
-        }
-
-        .hero-action-btn:hover {
-            background: #eff6ff;
-            color: #1d4ed8;
         }
 
         .btn-main {
@@ -460,42 +391,11 @@
                 flex-direction: column;
             }
 
-            .manage-hero {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .manage-hero-actions {
-                width: 100%;
-                flex-wrap: wrap;
-            }
-
-            .hero-action-btn {
-                flex: 1;
-                justify-content: center;
-            }
         }
 
         @media (max-width: 768px) {
             .admin-main {
                 padding: 18px;
-            }
-
-            .manage-hero {
-                padding: 26px 22px;
-                border-radius: 22px;
-            }
-
-            .manage-hero-title {
-                align-items: flex-start;
-            }
-
-            .manage-hero-title h1 {
-                font-size: 26px;
-            }
-
-            .manage-hero-title p {
-                font-size: 14px;
             }
 
             .stat-grid {
@@ -512,58 +412,68 @@
 <body>
 
 <div class="admin-layout">
-    <jsp:include page="/views/common/admin-sidebar.jsp"/>
+    <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
     <main class="admin-main">
         <jsp:include page="/views/common/admin-header.jsp"/>
 
-        <div class="manage-hero">
-            <div class="manage-hero-left">
-                <div class="manage-hero-title">
-                    <i class="fa-solid fa-hotel"></i>
-                    <div>
-                        <h1>Quản lý Chỗ ở & Homestay</h1>
-                        <p>Quản lý khách sạn, homestay, resort, căn hộ, phòng, tiện ích và thông tin lưu trú.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="manage-hero-actions">
-                <a class="hero-action-btn" href="${pageContext.request.contextPath}/staff/home">
-                    <i class="fa-solid fa-house"></i>
-                    Admin Home
-                </a>
-
-                <button class="hero-action-btn" data-bs-toggle="modal" data-bs-target="#addAccommodationModal">
-                    <i class="fa-solid fa-plus"></i>
-                    Thêm nơi lưu trú
-                </button>
-            </div>
-        </div>
-
-        <div class="staff-page-topbar">
+        <header class="staff-page-topbar">
             <div>
                 <h1>Quản lý lưu trú</h1>
                 <p>Quản lý khách sạn, homestay, resort, căn hộ, phòng và tiện ích.</p>
             </div>
 
-            <button class="btn-main" data-bs-toggle="modal" data-bs-target="#addAccommodationModal">
+            <button class="btn-main" type="button" data-bs-toggle="modal" data-bs-target="#addAccommodationModal">
                 <i class="fa-solid fa-plus"></i>
                 Thêm nơi lưu trú
             </button>
-        </div>
+        </header>
 
         <c:if test="${not empty sessionScope.errors}">
-            <div class="alert alert-danger">
+            <div class="alert alert-danger" role="alert">
                 <strong>Dữ liệu nhập vào chưa hợp lệ</strong>
                 <ul class="mb-0 mt-2">
                     <c:forEach var="err" items="${sessionScope.errors}">
-                        <li>${err}</li>
+                        <li><c:out value="${err}"/></li>
                     </c:forEach>
                 </ul>
             </div>
             <c:remove var="errors" scope="session"/>
         </c:if>
+
+        <c:if test="${not empty sessionScope.fieldErrors}">
+            <div id="serverValidation" hidden
+                 data-action="<c:out value='${sessionScope.formValues.action}'/>"
+                 data-owner-id="<c:out value='${sessionScope.formValues.accommodationID}'/>">
+                <c:forEach var="entry" items="${sessionScope.fieldErrors}">
+                    <span data-field="<c:out value='${entry.key}'/>"
+                          data-message="<c:out value='${entry.value}'/>"
+                          data-value="<c:out value='${sessionScope.formValues[entry.key]}'/>"></span>
+                </c:forEach>
+                <c:forEach var="entry" items="${sessionScope.formValues}">
+                    <span data-form-field="<c:out value='${entry.key}'/>"
+                          data-value="<c:out value='${entry.value}'/>"></span>
+                </c:forEach>
+            </div>
+            <c:remove var="fieldErrors" scope="session"/>
+            <c:remove var="formValues" scope="session"/>
+        </c:if>
+
+        <c:choose>
+            <c:when test="${param.status == 'addSuccess' || param.status == 'updateSuccess' || param.status == 'deleteSuccess' || param.status == 'deactivateSuccess'}">
+                <div class="alert alert-success" role="status">
+                    <c:choose>
+                        <c:when test="${param.status == 'addSuccess'}">Đã thêm nơi lưu trú.</c:when>
+                        <c:when test="${param.status == 'updateSuccess'}">Đã cập nhật nơi lưu trú và tiện ích.</c:when>
+                        <c:when test="${param.status == 'deleteSuccess'}">Đã xóa nơi lưu trú.</c:when>
+                        <c:otherwise>Nơi lưu trú đã có booking nên hệ thống đã chuyển sang ngừng hoạt động.</c:otherwise>
+                    </c:choose>
+                </div>
+            </c:when>
+            <c:when test="${param.status == 'addFail' || param.status == 'updateFail' || param.status == 'deleteFail'}">
+                <div class="alert alert-danger" role="alert">Không thể hoàn tất thao tác. Vui lòng kiểm tra dữ liệu và thử lại.</div>
+            </c:when>
+        </c:choose>
 
         <div class="stat-grid">
             <div class="stat-card">
@@ -677,19 +587,19 @@
 
                         <c:otherwise>
                             <c:forEach var="a" items="${accommodationList}">
-                                <tr data-name="${a.name} ${a.address} ${a.province} ${a.district}"
-                                    data-type="${a.type}"
-                                    data-status="${a.status}">
+<tr data-name="${fn:escapeXml(a.name)} ${fn:escapeXml(a.address)} ${fn:escapeXml(a.province)} ${fn:escapeXml(a.district)}"
+data-type="${fn:escapeXml(a.type)}"
+data-status="${fn:escapeXml(a.status)}">
                                     <td>
                                         <div class="acc-info">
-                                            <img class="acc-img" src="${a.image}" alt="${a.name}"
+<img class="acc-img" src="${fn:escapeXml(a.image)}" alt="${fn:escapeXml(a.name)}"
                                                  onerror="this.src='https://placehold.co/400x260?text=WonderVN';">
                                             <div>
-                                                <div class="acc-name">${a.name}</div>
+<div class="acc-name"><c:out value="${a.name}"/></div>
                                                 <div class="acc-address">
-                                                        ${a.fullAddress}
+<c:out value="${a.fullAddress}"/>
                                                     <br>
-                                                    <i class="fa-solid fa-phone me-1"></i>${a.phone}
+<i class="fa-solid fa-phone me-1"></i><c:out value="${a.phone}"/>
                                                 </div>
                                             </div>
                                         </div>
@@ -697,7 +607,7 @@
 
                                     <td>
                                         <span class="badge-soft badge-type">
-                                            <i class="fa-solid fa-hotel"></i>${a.displayType}
+<i class="fa-solid fa-hotel"></i><c:out value="${a.displayType}"/>
                                         </span>
                                     </td>
 
@@ -744,23 +654,30 @@
                                         <div class="action-group justify-content-end">
                                             <a class="btn-icon"
                                                href="${pageContext.request.contextPath}/staff/accommodation?action=detail&id=${a.accommodationID}"
-                                               title="Xem chi tiết">
+                                               title="Xem chi tiết"
+                                               aria-label="Xem chi tiết nơi lưu trú">
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
 
-                                            <button class="btn-icon"
+                                            <button class="btn-icon" type="button"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#editAccommodationModal${a.accommodationID}"
+                                                    aria-label="Sửa nơi lưu trú"
                                                     title="Sửa">
                                                 <i class="fa-solid fa-pen"></i>
                                             </button>
 
-                                            <a class="btn-icon danger"
-                                               onclick="return confirm('Bạn có chắc muốn xóa nơi lưu trú này?')"
-                                               href="${pageContext.request.contextPath}/staff/accommodation?action=delete&id=${a.accommodationID}"
-                                               title="Xóa">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </a>
+                                            <form class="m-0 js-confirm-delete"
+                                                  action="${pageContext.request.contextPath}/staff/accommodation"
+                                                  method="post"
+                                                  data-confirm-message="Bạn có chắc muốn xóa nơi lưu trú này?">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="${a.accommodationID}">
+                                                <button class="btn-icon danger" type="submit"
+                                                        title="Xóa" aria-label="Xóa nơi lưu trú">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -785,7 +702,7 @@
                                                     <div class="row g-3">
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-bold">Tên nơi lưu trú</label>
-                                                            <input class="form-control" name="name" value="${a.name}" required>
+<input class="form-control" name="name" value="${fn:escapeXml(a.name)}" required>
                                                         </div>
 
                                                         <div class="col-md-3">
@@ -810,17 +727,17 @@
 
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-bold">Link ảnh</label>
-                                                            <input class="form-control" name="image" value="${a.image}" required>
+                                                            <input class="form-control" name="image" value="${fn:escapeXml(a.image)}">
                                                         </div>
 
                                                         <div class="col-md-3">
                                                             <label class="form-label fw-bold">Số điện thoại</label>
-                                                            <input class="form-control" name="phone" value="${a.phone}" required>
+                                                            <input class="form-control" name="phone" value="${fn:escapeXml(a.phone)}">
                                                         </div>
 
                                                         <div class="col-md-3">
                                                             <label class="form-label fw-bold">Đánh giá</label>
-                                                            <input class="form-control" type="number" step="0.1" min="0" max="5" name="rate" value="${a.rate}" required>
+                                                            <input class="form-control" type="number" step="0.1" min="0" max="5" name="rate" value="${a.rate}">
                                                         </div>
 
                                                         <div class="col-md-4">
@@ -846,29 +763,29 @@
 
                                                         <div class="col-md-4">
                                                             <label class="form-label fw-bold">Địa chỉ cụ thể</label>
-                                                            <input class="form-control" name="address" value="${a.address}" required>
+                                                            <input class="form-control" name="address" value="${fn:escapeXml(a.address)}" required>
                                                         </div>
 
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-bold">Giờ nhận phòng</label>
-                                                            <input class="form-control" type="time" name="checkInTime" value="${a.checkInText}" required>
+                                                            <input class="form-control" type="time" name="checkInTime" value="${a.checkInText}">
                                                         </div>
 
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-bold">Giờ trả phòng</label>
-                                                            <input class="form-control" type="time" name="checkOutTime" value="${a.checkOutText}" required>
+                                                            <input class="form-control" type="time" name="checkOutTime" value="${a.checkOutText}">
                                                         </div>
 
                                                         <div class="col-12">
                                                             <label class="form-label fw-bold">Mô tả</label>
-                                                            <textarea class="form-control" name="description" required>${a.description}</textarea>
+                                                            <textarea class="form-control" name="description"><c:out value="${a.description}"/></textarea>
                                                         </div>
                                                     </div>
 
                                                     <div class="field-title">Tiện ích nơi lưu trú</div>
 
                                                     <div class="facility-list">
-                                                        <c:forEach var="f" items="${accommodationFacilityOptions}">
+                                                        <c:forEach var="f" items="${accommodationFacilityEditOptions}">
                                                             <c:set var="checked" value="false"/>
                                                             <c:forEach var="af" items="${a.facilityList}">
                                                                 <c:if test="${af.facilityID == f.facilityID}">
@@ -876,11 +793,15 @@
                                                                 </c:if>
                                                             </c:forEach>
 
-                                                            <label class="facility-item">
-                                                                <input type="checkbox" name="facilityIDs" value="${f.facilityID}" ${checked ? 'checked' : ''}>
-                                                                <i class="fa-solid ${f.icon}"></i>
-                                                                <span>${f.facilityName}</span>
-                                                            </label>
+                                                            <c:if test="${f.status == 'Active' || checked}">
+                                                                <label class="facility-item">
+                                                                    <input type="checkbox" name="facilityIDs" value="${f.facilityID}"
+                                                                           ${checked ? 'checked' : ''}>
+                                                                    <i class="fa-solid ${fn:escapeXml(f.icon)}"></i>
+                                                                    <span><c:out value="${f.facilityName}"/></span>
+                                                                    <c:if test="${f.status != 'Active'}"><small>(đã ngừng)</small></c:if>
+                                                                </label>
+                                                            </c:if>
                                                         </c:forEach>
                                                     </div>
                                                 </div>
@@ -949,17 +870,17 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Link ảnh</label>
-                            <input class="form-control" name="image" placeholder="https://..." required>
+                            <input class="form-control" name="image" placeholder="https://...">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Số điện thoại</label>
-                            <input class="form-control" name="phone" placeholder="0900000000" required>
+                            <input class="form-control" name="phone" placeholder="0900000000">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Đánh giá</label>
-                            <input class="form-control" type="number" step="0.1" min="0" max="5" name="rate" value="4.5" required>
+                            <input class="form-control" type="number" step="0.1" min="0" max="5" name="rate" value="4.5">
                         </div>
 
                         <div class="col-md-4">
@@ -988,17 +909,17 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Giờ nhận phòng</label>
-                            <input class="form-control" type="time" name="checkInTime" value="14:00" required>
+                            <input class="form-control" type="time" name="checkInTime" value="14:00">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Giờ trả phòng</label>
-                            <input class="form-control" type="time" name="checkOutTime" value="12:00" required>
+                            <input class="form-control" type="time" name="checkOutTime" value="12:00">
                         </div>
 
                         <div class="col-12">
                             <label class="form-label fw-bold">Mô tả</label>
-                            <textarea class="form-control" name="description" placeholder="Mô tả điểm nổi bật, vị trí, phong cách lưu trú..." required></textarea>
+                            <textarea class="form-control" name="description" placeholder="Mô tả điểm nổi bật, vị trí, phong cách lưu trú..."></textarea>
                         </div>
                     </div>
 
@@ -1008,8 +929,8 @@
                         <c:forEach var="f" items="${accommodationFacilityOptions}">
                             <label class="facility-item">
                                 <input type="checkbox" name="facilityIDs" value="${f.facilityID}">
-                                <i class="fa-solid ${f.icon}"></i>
-                                <span>${f.facilityName}</span>
+                                <i class="fa-solid ${fn:escapeXml(f.icon)}"></i>
+                                <span><c:out value="${f.facilityName}"/></span>
                             </label>
                         </c:forEach>
                     </div>
@@ -1099,7 +1020,7 @@
     }
 
     function isValidPhone(value) {
-        return /^[0-9]{8,15}$/.test((value || "").trim());
+        return /^[0-9]{10,11}$/.test((value || "").trim());
     }
 
     function normalizeDecimal(value) {
@@ -1145,8 +1066,9 @@
         const value = input.value.trim();
 
         if (value.length === 0) {
-            showFieldError(input, label + " không được để trống.");
-            return false;
+            clearFieldError(input);
+            input.classList.remove("input-success");
+            return true;
         }
 
         if (!isValidUrl(value)) {
@@ -1164,12 +1086,13 @@
         const value = input.value.trim();
 
         if (value.length === 0) {
-            showFieldError(input, "Số điện thoại không được để trống.");
-            return false;
+            clearFieldError(input);
+            input.classList.remove("input-success");
+            return true;
         }
 
         if (!isValidPhone(value)) {
-            showFieldError(input, "Số điện thoại chỉ gồm 8 đến 15 chữ số.");
+            showFieldError(input, "Số điện thoại chỉ gồm 10 đến 11 chữ số.");
             return false;
         }
 
@@ -1207,8 +1130,9 @@
         if (!input) return true;
 
         if (!input.value) {
-            showFieldError(input, label + " không được để trống.");
-            return false;
+            clearFieldError(input);
+            input.classList.remove("input-success");
+            return true;
         }
 
         showFieldSuccess(input);
@@ -1221,18 +1145,20 @@
         if (!validateText(getInput(form, "name"), "Tên nơi lưu trú", 2, 255)) valid = false;
         if (!validateUrlInput(getInput(form, "image"), "Link ảnh")) valid = false;
         if (!validatePhoneInput(getInput(form, "phone"))) valid = false;
-        if (!validateNumberRange(getInput(form, "rate"), "Đánh giá", 0, 5, true)) valid = false;
+        const rate = getInput(form, "rate");
+        if (rate && rate.value.trim() && !validateNumberRange(rate, "Đánh giá", 0, 5, true)) valid = false;
         if (!validateText(getInput(form, "province"), "Tỉnh/thành", 2, 100)) valid = false;
         if (!validateText(getInput(form, "ward"), "Phường/xã", 2, 150)) valid = false;
         if (!validateText(getInput(form, "address"), "Địa chỉ cụ thể", 3, 255)) valid = false;
         if (!validateTimeInput(getInput(form, "checkInTime"), "Giờ nhận phòng")) valid = false;
         if (!validateTimeInput(getInput(form, "checkOutTime"), "Giờ trả phòng")) valid = false;
-        if (!validateText(getInput(form, "description"), "Mô tả", 10, 2000)) valid = false;
+        if (!validateOptionalText(getInput(form, "description"), "Mô tả", 0, 1000)) valid = false;
 
         return valid;
     }
 
     function bindLiveValidation(form, validator) {
+        connectFormLabels(form);
         form.setAttribute("novalidate", "novalidate");
 
         form.querySelectorAll("input, textarea, select").forEach(function (input) {
@@ -1266,6 +1192,50 @@
                 }
             }
         });
+    }
+
+    function connectFormLabels(form) {
+        const prefix = (form.closest(".modal")?.id || "accommodationForm").replace(/[^a-zA-Z0-9_-]/g, "");
+        form.querySelectorAll("input:not([type='hidden']):not([type='checkbox']), select, textarea")
+                .forEach(function (input, index) {
+                    if (!input.id) input.id = prefix + "-" + input.name + "-" + index;
+                    const container = input.parentElement;
+                    const label = container ? container.querySelector("label.form-label:not([for])") : null;
+                    if (label) label.htmlFor = input.id;
+                });
+    }
+
+    function restoreServerValidation() {
+        const state = document.getElementById("serverValidation");
+        if (!state) return;
+
+        const selector = state.dataset.action === "update"
+                ? "#editAccommodationModal" + state.dataset.ownerId + " .accommodation-form"
+                : "#addAccommodationModal .accommodation-form";
+        const form = document.querySelector(selector);
+        if (!form) return;
+
+        const savedFields = Array.from(state.querySelectorAll("[data-form-field]"));
+        savedFields.filter(item => item.dataset.formField !== "ward").forEach(function (item) {
+            const input = getInput(form, item.dataset.formField);
+            if (input && input.type !== "checkbox" && input.type !== "hidden") {
+                input.value = item.dataset.value || "";
+            }
+        });
+
+        const province = getInput(form, "province");
+        if (province) province.dispatchEvent(new Event("change"));
+        const wardState = savedFields.find(item => item.dataset.formField === "ward");
+        const ward = getInput(form, "ward");
+        if (ward && wardState) ward.value = wardState.dataset.value || "";
+
+        state.querySelectorAll("[data-field]").forEach(function (item) {
+            const input = getInput(form, item.dataset.field);
+            if (input) showFieldError(input, item.dataset.message);
+        });
+
+        const modal = form.closest(".modal");
+        if (modal && window.bootstrap) bootstrap.Modal.getOrCreateInstance(modal).show();
     }
 
     const administrativeUnits = [
@@ -1370,6 +1340,16 @@
         document.querySelectorAll(".accommodation-form").forEach(function (form) {
             setupAdministrativeSelectors(form);
             bindLiveValidation(form, validateAccommodationForm);
+        });
+
+        restoreServerValidation();
+
+        document.querySelectorAll(".js-confirm-delete").forEach(function (form) {
+            form.addEventListener("submit", function (event) {
+                if (!window.confirm(form.dataset.confirmMessage)) {
+                    event.preventDefault();
+                }
+            });
         });
     });
 </script>

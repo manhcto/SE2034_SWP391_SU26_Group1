@@ -38,7 +38,9 @@
 
                 <div class="auth-field">
                     <label for="email">Email</label>
-                    <input class="auth-input" id="email" type="email" name="email" placeholder="you@example.com" required>
+                    <input class="auth-input" id="email" type="email" name="email"
+                           value="${not empty email ? email : rememberedEmail}"
+                           placeholder="you@example.com" required>
                 </div>
 
                 <div class="auth-field">
@@ -51,6 +53,10 @@
                     </div>
                 </div>
 
+                <label class="auth-remember">
+                    <input type="checkbox" name="remember" ${remember ? 'checked' : ''}>
+                    <span>Ghi nhớ email đăng nhập</span>
+                </label>
                 <button class="auth-button" type="submit">Đăng nhập</button>
             </form>
 

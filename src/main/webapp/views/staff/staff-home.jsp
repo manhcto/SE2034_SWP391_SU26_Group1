@@ -41,6 +41,7 @@
             overflow-y: auto;
             padding: 26px 18px;
             box-shadow: 8px 0 26px rgba(15, 23, 42, 0.18);
+            flex-direction: column;
         }
 
         .sidebar::-webkit-scrollbar {
@@ -132,6 +133,10 @@
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
         }
 
         .avatar {
@@ -433,73 +438,7 @@
 <body>
 <div class="admin-layout">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="brand-box">
-            <div class="brand-logo">WV</div>
-            <h2>WonderVN</h2>
-            <p>Travel ERP System</p>
-        </div>
-
-        <a class="sidebar-link active" href="${pageContext.request.contextPath}/staff/home">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ nhân viên</span>
-        </a>
-
-        <div class="nav-section-title">Dịch vụ du lịch</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>Quản lý Tour</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
-            <i class="fa-solid fa-hotel"></i>
-            <span>Quản lý lưu trú</span>
-        </a>
-
-        <div class="nav-section-title">Vận hành</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Quản lý đặt chỗ</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
-            <i class="fa-solid fa-credit-card"></i>
-            <span>Quản lý thanh toán</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/voucher">
-            <i class="fa-solid fa-gift"></i>
-            <span>Quản lý Voucher</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/assignment">
-            <i class="fa-solid fa-user-tie"></i>
-            <span>Điều phối hướng dẫn viên</span>
-        </a>
-
-        <div class="nav-section-title">Nội dung & CSKH</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/blog">
-            <i class="fa-solid fa-newspaper"></i>
-            <span>Quản lý Blog</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
-            <i class="fa-solid fa-comments"></i>
-            <span>Đánh giá khách hàng</span>
-        </a>
-
-        <div class="admin-user">
-            <div class="avatar">AD</div>
-            <div>
-                <div class="fw-bold">Nhân viên</div>
-                <small>Staff</small>
-            </div>
-        </div>
-    </aside>
+    <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
     <!-- MAIN -->
     <main class="main-content">
@@ -510,17 +449,6 @@
                 <p>Chào mừng bạn quay lại hệ thống quản trị du lịch.</p>
             </div>
 
-            <div class="top-actions">
-                <a class="top-action-btn btn-home" href="${pageContext.request.contextPath}/home">
-                    <i class="fa-solid fa-globe"></i>
-                    Trang khách hàng
-                </a>
-
-                <a class="top-action-btn btn-logout" href="${pageContext.request.contextPath}/logout">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    Đăng xuất
-                </a>
-            </div>
         </div>
 
         <section class="hero">
@@ -618,7 +546,7 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-calendar-check"></i>
                     </div>
-                    <h5>Quản lý Booking</h5>
+                    <h5>Quản lý booking</h5>
                     <p>Theo dõi đơn đặt chỗ, trạng thái xử lý và lịch sử đặt dịch vụ.</p>
                     <span class="module-open">Mở chức năng</span>
                 </a>
@@ -646,7 +574,26 @@
                 </a>
             </div>
 
-                    <p>Quản lý vé tham quan, vé vui chơi và dịch vụ bên ngoài.</p>
+            <div class="col-md-3">
+                <a class="module-card"
+                   href="${pageContext.request.contextPath}/staff/voucher">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-gift"></i>
+                    </div>
+                    <h5>Quản lý Voucher</h5>
+                    <p>Tạo mã giảm giá, chiến dịch ưu đãi và điều kiện áp dụng.</p>
+                    <span class="module-open">Mở chức năng</span>
+                </a>
+            </div>
+
+            <div class="col-md-3">
+                <a class="module-card"
+                   href="${pageContext.request.contextPath}/staff/blog">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-newspaper"></i>
+                    </div>
+                    <h5>Quản lý Blog</h5>
+                    <p>Đăng bài viết, tin tức du lịch và nội dung truyền thông.</p>
                     <span class="module-open">Mở chức năng</span>
                 </a>
             </div>

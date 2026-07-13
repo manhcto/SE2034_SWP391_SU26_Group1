@@ -440,10 +440,72 @@
 
 <div class="admin-layout">
 
+    <jsp:include page="/views/common/admin-sidebar.jsp">
+        <jsp:param name="activeAdminMenu" value="user"/>
+    </jsp:include>
+    <%--
     <aside class="admin-sidebar">
-        <div class="brand-logo">AD</div>
-        <h3 class="mt-3">WonderVN</h3>
+        <div class="brand-box">
+            <div class="brand-logo">AD</div>
+            <h2>WonderVN</h2>
+            <p>Admin Control Center</p>
+        </div>
 
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
+            <i class="fa-solid fa-house"></i>
+            <span>Admin Home</span>
+        </a>
+
+        <div class="nav-section-title">Quản trị hệ thống</div>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/user">
+            <i class="fa-solid fa-users-gear"></i>
+            <span>Quản lý người dùng</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour-approval">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Phê duyệt tour</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Đơn đặt</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
+            <i class="fa-solid fa-comments"></i>
+            <span>Đánh giá khách hàng</span>
+        </a>
+
+        <div class="sidebar-bottom">
+            <div class="nav-section-title">Tài khoản</div>
+
+            <div class="admin-user">
+                <div class="avatar">AD</div>
+                <div>
+                    <div class="fw-bold">${sessionScope.user.firstName} ${sessionScope.user.lastName}</div>
+                    <small>Quản trị viên</small>
+                </div>
+            </div>
+
+            <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/profile">
+                <i class="fa-solid fa-user"></i>
+                <span>Hồ sơ</span>
+            </a>
+
+            <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Đăng xuất</span>
+            </a>
+        </div>
+
+        <!--
         <c:choose>
 
             <c:when test="${sessionScope.user.roleID == 1}">
@@ -456,6 +518,11 @@
                    href="${pageContext.request.contextPath}/admin/user">
                     Quản lí người dùng
                 </a>
+
+                <a class="sidebar-link"
+                   href="${pageContext.request.contextPath}/staff/blog">
+                    Quản lý Blog
+                </a>
             </c:when>
 
             <c:when test="${sessionScope.user.roleID == 2}">
@@ -463,11 +530,18 @@
                    href="${pageContext.request.contextPath}/admin/user">
                     Xem người dùng
                 </a>
+
+                <a class="sidebar-link"
+                   href="${pageContext.request.contextPath}/staff/blog">
+                    Quản lý Blog
+                </a>
             </c:when>
 
         </c:choose>
+        -->
 
     </aside>
+    --%>
 
     <main class="main-content">
 
@@ -477,7 +551,7 @@
         </div>
 
         <div class="row g-3 mb-4">
-            <div class="col-md-3"><div class="stat-card"><h3>${totalUsers}</h3><p>Tổng người dùng</p></div></div>
+            <div class="col-md-3"><div class="stat-card"><h3>${activeUserCount}</h3><p>Tổng người dùng hoạt động</p></div></div>
             <div class="col-md-3"><div class="stat-card"><h3>${staffCount}</h3><p>Nhân viên</p></div></div>
             <div class="col-md-3"><div class="stat-card"><h3>${tourGuideCount}</h3><p>Hướng dẫn viên</p></div></div>
             <div class="col-md-3"><div class="stat-card"><h3>${customerCount}</h3><p>Khách hàng</p></div></div>
@@ -502,8 +576,7 @@
                     <select class="form-select" name="status">
                         <option value="">Tất cả trạng thái</option>
                         <option value="Active">Hoạt động</option>
-                        <option value="Inactive">Xóa bởi người dùng</option>
-                        <option value="Blocked">Xóa bởi Admin</option>
+                        <option value="Inactive">Đã xóa</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -549,9 +622,8 @@
                         <td>
                             <c:choose>
                                 <c:when test="${u.status == 'Active'}">Hoạt động</c:when>
-                                <c:when test="${u.status == 'Inactive'}">Xóa bởi người dùng</c:when>
-                                <c:when test="${u.status == 'Blocked'}">Đã bị admin xóa</c:when>
-                                <c:otherwise>${u.status}</c:otherwise>
+                                <c:when test="${u.status == 'Inactive'}">Đã xóa</c:when>
+                                <c:otherwise>Đã xóa</c:otherwise>
                             </c:choose>
                         </td>
                         <td>
@@ -570,11 +642,15 @@
                                         Sửa
                                     </button>
 
-                                    <a class="btn btn-outline-danger btn-sm"
-                                       href="${pageContext.request.contextPath}/admin/user/block?id=${u.userID}"
-                                       onclick="return confirm('Bạn có chắc muốn khóa tài khoản này?')">
-                                        Chặn
-                                    </a>
+                                    <form action="${pageContext.request.contextPath}/admin/user/delete"
+                                          method="post"
+                                          style="display:inline"
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản này? Tài khoản sẽ được đánh dấu đã xóa.');">
+                                        <input type="hidden" name="id" value="${u.userID}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            Xóa
+                                        </button>
+                                    </form>
 
                                 </c:if>
 

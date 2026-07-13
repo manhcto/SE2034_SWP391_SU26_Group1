@@ -569,10 +569,35 @@
 
         .card-actions {
             margin-top: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .feedback-btn {
+            flex: 0 0 auto;
+            height: 56px;
+            padding: 0 20px;
+            border: 2px solid #2563eb;
+            border-radius: 18px;
+            background: #fff;
+            color: #2563eb;
+            font-size: 17px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+            text-decoration: none;
+            transition: background .2s ease;
+        }
+
+        .feedback-btn:hover {
+            background: #eff6ff;
         }
 
         .detail-btn {
-            width: 100%;
+            flex: 1;
             height: 56px;
             border: none;
             border-radius: 18px;
@@ -714,7 +739,7 @@
 
 <jsp:include page="/views/common/client-header.jsp" />
 
-<div class="page-shell">
+<main class="page-shell">
     <section class="hero">
         <div class="hero-badge">
             <i class="fa-solid fa-location-dot"></i>
@@ -747,30 +772,35 @@
         </div>
     </section>
 
-    <div class="filter-panel">
+    <section class="filter-panel" aria-label="Bộ lọc nơi lưu trú">
         <form action="${pageContext.request.contextPath}/accommodation" method="get" id="accommodationSearchForm">
             <div class="filter-form">
                 <div class="form-group">
-                    <label>Từ khóa / địa điểm</label>
+                    <label for="accommodationKeyword">Từ khóa / địa điểm</label>
                     <input type="text"
                            class="form-control"
+                           id="accommodationKeyword"
                            name="keyword"
-                           value="${keyword}"
+                           value="${fn:escapeXml(keyword)}"
                            placeholder="VD: Hạ Long, Cao Bằng, homestay view biển...">
                 </div>
 
                 <div class="form-group">
-                    <label>Tỉnh/thành</label>
-                    <input type="text"
-                           class="form-control"
-                           name="province"
-                           value="${selectedProvince}"
-                           placeholder="VD: Hà Nội">
+                    <label for="accommodationProvince">Tỉnh/thành</label>
+                    <select class="form-control" id="accommodationProvince" name="province">
+                        <option value="">Tất cả tỉnh/thành</option>
+                        <c:forEach var="provinceName" items="${provinceList}">
+                            <option value="${fn:escapeXml(provinceName)}"
+                                ${selectedProvince == provinceName ? 'selected' : ''}>
+                                <c:out value="${provinceName}"/>
+                            </option>
+                        </c:forEach>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label>Loại lưu trú</label>
-                    <select class="form-control" name="type">
+                    <label for="accommodationType">Loại lưu trú</label>
+                    <select class="form-control" id="accommodationType" name="type">
                         <option value="">Tất cả</option>
                         <option value="Homestay" ${selectedType == 'Homestay' ? 'selected' : ''}>Homestay</option>
                         <option value="Khách sạn" ${selectedType == 'Khách sạn' ? 'selected' : ''}>Khách sạn</option>
@@ -783,9 +813,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Người lớn</label>
+                    <label for="accommodationAdults">Người lớn</label>
                     <input type="number"
                            class="form-control"
+                           id="accommodationAdults"
                            min="1"
                            name="adults"
                            value="${empty selectedAdults ? 2 : selectedAdults}"
@@ -793,9 +824,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Trẻ em</label>
+                    <label for="accommodationChildren">Trẻ em</label>
                     <input type="number"
                            class="form-control"
+                           id="accommodationChildren"
                            min="0"
                            name="children"
                            value="${empty selectedChildren ? 0 : selectedChildren}"
@@ -805,7 +837,7 @@
 
             <div class="filter-form-row-2">
                 <div class="form-group">
-                    <label>Ngày nhận phòng</label>
+                    <label for="checkInInput">Ngày nhận phòng</label>
                     <input type="date"
                            class="form-control"
                            name="checkIn"
@@ -815,7 +847,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Ngày trả phòng</label>
+                    <label for="checkOutInput">Ngày trả phòng</label>
                     <input type="date"
                            class="form-control"
                            name="checkOut"
@@ -825,9 +857,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Số phòng</label>
+                    <label for="accommodationRooms">Số phòng</label>
                     <input type="number"
                            class="form-control"
+                           id="accommodationRooms"
                            min="1"
                            name="rooms"
                            value="${empty selectedRooms ? 1 : selectedRooms}"
@@ -835,9 +868,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Số khách tổng</label>
+                    <label for="accommodationGuests">Số khách tổng</label>
                     <input type="number"
                            class="form-control"
+                           id="accommodationGuests"
                            min="1"
                            name="guests"
                            value="${empty selectedGuests ? 2 : selectedGuests}"
@@ -855,7 +889,7 @@
                 Vui lòng chọn ngày nhận phòng và ngày trả phòng để kiểm tra nơi lưu trú còn phòng.
             </div>
         </form>
-    </div>
+    </section>
 
     <c:if test="${not empty selectedCheckIn && not empty selectedCheckOut}">
         <div class="selected-trip-box">
@@ -898,14 +932,14 @@
                             <i class="fa-solid fa-circle-check"></i>
                         </c:when>
                         <c:when test="${fn:contains(facility.icon, 'fa-solid') || fn:contains(facility.icon, 'fa-regular') || fn:contains(facility.icon, 'fa-brands')}">
-                            <i class="${facility.icon}"></i>
+                            <i class="${fn:escapeXml(facility.icon)}"></i>
                         </c:when>
                         <c:otherwise>
-                            <i class="fa-solid ${facility.icon}"></i>
+                            <i class="fa-solid ${fn:escapeXml(facility.icon)}"></i>
                         </c:otherwise>
                     </c:choose>
 
-                    <span>${facility.facilityName}</span>
+                    <span><c:out value="${facility.facilityName}"/></span>
                 </a>
             </c:forEach>
         </div>
@@ -925,19 +959,19 @@
 
     <c:choose>
         <c:when test="${not empty accommodationList}">
-            <div class="accommodation-grid">
+            <section class="accommodation-grid" aria-label="Danh sách nơi lưu trú">
                 <c:forEach var="acc" items="${accommodationList}">
-                    <div class="accommodation-card">
+                    <article class="accommodation-card">
                         <div class="card-media">
-                            <img src="${empty acc.image ? 'https://placehold.co/900x600?text=WonderVN+Accommodation' : acc.image}"
-                                 alt="${acc.name}"
+                            <img src="${empty acc.image ? 'https://placehold.co/900x600?text=WonderVN+Accommodation' : fn:escapeXml(acc.image)}"
+                                 alt="${fn:escapeXml(acc.name)}"
                                  onerror="this.src='https://placehold.co/900x600?text=WonderVN+Accommodation';">
 
                             <div class="media-overlay"></div>
 
                             <div class="type-badge">
                                 <i class="fa-solid fa-hotel"></i>
-                                <span>${empty acc.displayType ? acc.type : acc.displayType}</span>
+                                <span><c:out value="${empty acc.displayType ? acc.type : acc.displayType}"/></span>
                             </div>
 
                             <div class="rating-badge">
@@ -957,15 +991,15 @@
                         </div>
 
                         <div class="card-body">
-                            <h3 class="card-title">${acc.name}</h3>
+                            <h3 class="card-title"><c:out value="${acc.name}"/></h3>
 
                             <div class="location-primary">
                                 <i class="fa-solid fa-location-dot"></i>
-                                <span>${acc.province}</span>
+                                <span><c:out value="${acc.province}"/></span>
                             </div>
 
                             <div class="location-secondary">
-                                    ${acc.fullAddress}
+                                <c:out value="${acc.fullAddress}"/>
                             </div>
 
                             <div class="meta-row">
@@ -1001,14 +1035,14 @@
                                                             <i class="fa-solid fa-circle-check"></i>
                                                         </c:when>
                                                         <c:when test="${fn:contains(facility.icon, 'fa-solid') || fn:contains(facility.icon, 'fa-regular') || fn:contains(facility.icon, 'fa-brands')}">
-                                                            <i class="${facility.icon}"></i>
+                                                            <i class="${fn:escapeXml(facility.icon)}"></i>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <i class="fa-solid ${facility.icon}"></i>
+                                                            <i class="fa-solid ${fn:escapeXml(facility.icon)}"></i>
                                                         </c:otherwise>
                                                     </c:choose>
 
-                                                    <span>${facility.facilityName}</span>
+                                                    <span><c:out value="${facility.facilityName}"/></span>
                                                 </div>
                                             </c:if>
                                         </c:forEach>
@@ -1031,6 +1065,11 @@
                             </div>
 
                             <div class="card-actions">
+                                <a class="feedback-btn"
+                                   href="${pageContext.request.contextPath}/feedback-list?accommodationID=${acc.accommodationID}">
+                                    <i class="fa-regular fa-comment-dots"></i>
+                                    Feedback
+                                </a>
                                 <a class="detail-btn"
                                    href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.accommodationID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">
                                     Xem chi tiết
@@ -1038,9 +1077,9 @@
                                 </a>
                             </div>
                         </div>
-                    </div>
+                    </article>
                 </c:forEach>
-            </div>
+            </section>
         </c:when>
 
         <c:otherwise>
@@ -1051,7 +1090,7 @@
             </div>
         </c:otherwise>
     </c:choose>
-</div>
+</main>
 
 <jsp:include page="/views/common/client-footer.jsp" />
 

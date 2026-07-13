@@ -32,6 +32,8 @@
             width: 292px;
             background: #0f172a;
             color: #ffffff;
+            display: flex;
+            flex-direction: column;
             position: fixed;
             inset: 0 auto 0 0;
             overflow-y: auto;
@@ -136,6 +138,10 @@
 
         .admin-user small {
             color: #94a3b8;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
         }
 
         .main-content {
@@ -416,6 +422,10 @@
 <body>
 <div class="admin-layout">
 
+    <jsp:include page="/views/common/admin-sidebar.jsp">
+        <jsp:param name="activeAdminMenu" value="home"/>
+    </jsp:include>
+    <%--
     <aside class="admin-sidebar">
         <div class="brand-box">
             <div class="brand-logo">AD</div>
@@ -455,31 +465,29 @@
             <span>Xem Feedback</span>
         </a>
 
-        <div class="nav-section-title">Xem khu vực Staff</div>
+        <div class="sidebar-bottom">
+            <div class="nav-section-title">Tai khoan</div>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
-            <i class="fa-solid fa-user-tie"></i>
-            <span>Trang Staff</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
-            <i class="fa-solid fa-hotel"></i>
-            <span>Xem lưu trú</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>Xem Tour</span>
-        </a>
-
-        <div class="admin-user">
-            <div class="avatar">AD</div>
-            <div>
-                <div class="fw-bold">Quản trị viên</div>
-                <small>Admin</small>
+            <div class="admin-user">
+                <div class="avatar">AD</div>
+                <div>
+                    <div class="fw-bold">${sessionScope.user.firstName} ${sessionScope.user.lastName}</div>
+                    <small>Quản trị viên</small>
+                </div>
             </div>
+
+            <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/profile">
+                <i class="fa-solid fa-user"></i>
+                <span>Hồ Sơ</span>
+            </a>
+
+            <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Đăng xuất</span>
+            </a>
         </div>
     </aside>
+    --%>
 
     <main class="main-content">
 
@@ -489,13 +497,6 @@
                 <p>Quản lý hệ thống, người dùng, dashboard và theo dõi toàn bộ hoạt động vận hành của staff.</p>
             </div>
 
-            <div class="top-actions">
-                <a class="top-action-btn btn-client" href="${pageContext.request.contextPath}/home">
-                    <i class="fa-solid fa-globe"></i>
-                    Trang khách hàng
-                </a>
-
-            </div>
         </div>
 
         <section class="hero">

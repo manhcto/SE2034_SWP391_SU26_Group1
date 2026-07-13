@@ -1,6 +1,8 @@
 package vn.edu.fpt.controller.customer;
 
 import vn.edu.fpt.DAO.BookingDAO;
+import vn.edu.fpt.DAO.AdministrativeUnitDAO;
+import vn.edu.fpt.model.AdministrativeUnit;
 import vn.edu.fpt.model.Booking;
 import vn.edu.fpt.model.User;
 
@@ -19,6 +21,7 @@ import java.util.List;
 public class BookingEditController extends HttpServlet {
 
     private static final String EDIT_PAGE = "/views/customer/booking-edit.jsp";
+    private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -58,7 +61,8 @@ public class BookingEditController extends HttpServlet {
                 return;
             }
 
-            setAddressPartsToRequest(request, booking.getAddress());
+            setAdministrativeAddressToRequest(request, booking.getAddress());
+            request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
 
             request.setAttribute("booking", booking);
             request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
@@ -90,9 +94,13 @@ public class BookingEditController extends HttpServlet {
         String phone = getTrimValue(request, "phone");
 
         String streetAddress = getTrimValue(request, "streetAddress");
-        String district = getTrimValue(request, "district");
-        String city = getTrimValue(request, "city");
-        String address = buildFullAddress(streetAddress, district, city);
+        int administrativeUnitID = parsePositiveInt(request.getParameter("administrativeUnitID"));
+        AdministrativeUnit administrativeUnit = administrativeUnitID > 0
+                ? administrativeUnitDAO.getActiveUnitByID(administrativeUnitID)
+                : null;
+        String address = administrativeUnit == null ? ""
+                : streetAddress + ", " + administrativeUnit.getWardName()
+                + ", " + administrativeUnit.getProvinceName();
 
         String note = getTrimValue(request, "note");
         String numberAdultRaw = getTrimValue(request, "numberAdult");
@@ -103,7 +111,8 @@ public class BookingEditController extends HttpServlet {
         int numberAdult = parseNaturalNumber(numberAdultRaw, "Số người lớn", 1, errors);
         int numberChildren = parseNaturalNumber(numberChildrenRaw, "Số trẻ em", 0, errors);
 
-        validateBookingForm(firstName, lastName, email, phone, streetAddress, district, city, address, note, errors);
+        validateBookingForm(firstName, lastName, email, phone, streetAddress,
+                administrativeUnit, address, note, errors);
 
         BookingDAO bookingDAO = new BookingDAO();
         Booking oldBooking = null;
@@ -115,8 +124,8 @@ public class BookingEditController extends HttpServlet {
                 errors.add("Booking không tồn tại trong hệ thống.");
             } else if (oldBooking.getUserID() == null || !oldBooking.getUserID().equals(user.getUserID())) {
                 errors.add("Bạn không có quyền sửa booking này.");
-            } else if (!"Pending".equals(oldBooking.getStatus())) {
-                errors.add("Chỉ có thể sửa booking khi trạng thái đang là Pending.");
+        } else if (!Booking.isProcessingStatus(oldBooking.getStatus())) {
+            errors.add("Chỉ có thể sửa booking khi trạng thái đang xử lý.");
             }
         }
 
@@ -149,8 +158,8 @@ public class BookingEditController extends HttpServlet {
             request.setAttribute("errors", errors);
             request.setAttribute("booking", booking);
             request.setAttribute("streetAddress", streetAddress);
-            request.setAttribute("district", district);
-            request.setAttribute("city", city);
+            request.setAttribute("selectedAdministrativeUnitID", administrativeUnitID);
+            request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
             request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
             return;
         }
@@ -165,8 +174,8 @@ public class BookingEditController extends HttpServlet {
             request.setAttribute("errors", errors);
             request.setAttribute("booking", booking);
             request.setAttribute("streetAddress", streetAddress);
-            request.setAttribute("district", district);
-            request.setAttribute("city", city);
+            request.setAttribute("selectedAdministrativeUnitID", administrativeUnitID);
+            request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
             request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
         }
     }
@@ -239,8 +248,9 @@ public class BookingEditController extends HttpServlet {
     }
 
     private void validateBookingForm(String firstName, String lastName, String email,
-                                     String phone, String streetAddress, String district,
-                                     String city, String address, String note,
+                                     String phone, String streetAddress,
+                                     AdministrativeUnit administrativeUnit,
+                                     String address, String note,
                                      List<String> errors) {
 
         if (firstName.isEmpty()) {
@@ -281,16 +291,8 @@ public class BookingEditController extends HttpServlet {
             errors.add("Số nhà, đường chỉ được chứa chữ cái, số, khoảng trắng và các ký tự , . / -");
         }
 
-        if (district.isEmpty()) {
-            errors.add("Vui lòng chọn quận / huyện.");
-        } else if (!isValidDistrict(district)) {
-            errors.add("Quận / huyện không hợp lệ.");
-        }
-
-        if (city.isEmpty()) {
-            errors.add("Vui lòng chọn tỉnh / thành phố.");
-        } else if (!isValidCity(city)) {
-            errors.add("Tỉnh / thành phố không hợp lệ.");
+        if (administrativeUnit == null) {
+            errors.add("Vui lòng chọn tỉnh/thành phố và phường/xã hợp lệ.");
         }
 
         if (address.length() > 255) {
@@ -302,12 +304,29 @@ public class BookingEditController extends HttpServlet {
         }
     }
 
-    private String buildFullAddress(String streetAddress, String district, String city) {
-        if (streetAddress.isEmpty() || district.isEmpty() || city.isEmpty()) {
-            return "";
+    private int parsePositiveInt(String value) {
+        try {
+            int number = Integer.parseInt(value == null ? "" : value.trim());
+            return number > 0 ? number : 0;
+        } catch (NumberFormatException e) {
+            return 0;
         }
+    }
 
-        return streetAddress + ", " + district + ", " + city;
+    private void setAdministrativeAddressToRequest(HttpServletRequest request, String address) {
+        AdministrativeUnit unit = administrativeUnitDAO.findActiveUnitInAddress(address);
+        String streetAddress = address == null ? "" : address.trim();
+        if (unit != null) {
+            String suffix = unit.getWardName() + ", " + unit.getProvinceName();
+            if (streetAddress.endsWith(", " + suffix)) {
+                streetAddress = streetAddress.substring(0,
+                        streetAddress.length() - suffix.length() - 2).trim();
+            } else if (streetAddress.equals(suffix)) {
+                streetAddress = "";
+            }
+            request.setAttribute("selectedAdministrativeUnitID", unit.getAdministrativeUnitID());
+        }
+        request.setAttribute("streetAddress", streetAddress);
     }
 
     private void setAddressPartsToRequest(HttpServletRequest request, String address) {

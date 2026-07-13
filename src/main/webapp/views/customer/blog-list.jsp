@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -140,20 +141,6 @@
             color: #64748b;
         }
 
-        .custom-pagination .page-link {
-            border: none;
-            border-radius: 10px;
-            margin: 0 4px;
-            color: #334155;
-            font-weight: 700;
-            padding: 10px 16px;
-        }
-
-        .custom-pagination .page-item.active .page-link {
-            background: #2563eb;
-            color: #ffffff;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
-        }
     </style>
 </head>
 <body>
@@ -171,7 +158,7 @@
 
     <section class="search-panel mb-4">
         <form action="${pageContext.request.contextPath}/blog" method="get" class="row g-3 align-items-center">
-            <div class="col-lg-7">
+            <div class="col-lg-10">
                 <div class="input-group input-group-lg">
                     <span class="input-group-text bg-white border-end-0">
                         <i class="fa-solid fa-magnifying-glass text-primary"></i>
@@ -184,25 +171,9 @@
                 </div>
             </div>
 
-            <div class="col-lg-3">
-                <select class="form-select form-select-lg" name="category">
-                    <option value="">Tất cả danh mục</option>
-                    <c:forEach items="${CATEGORY_LIST}" var="cat">
-                        <c:choose>
-                            <c:when test="${cat == selectedCategory}">
-                                <option value="${cat}" selected><c:out value="${cat}"/></option>
-                            </c:when>
-                            <c:otherwise>
-                                <option value="${cat}"><c:out value="${cat}"/></option>
-                            </c:otherwise>
-                        </c:choose>
-                    </c:forEach>
-                </select>
-            </div>
-
             <div class="col-lg-2 d-grid">
                 <button class="btn btn-primary btn-lg fw-bold" type="submit">
-                    <i class="fa-solid fa-filter me-1"></i> Lọc
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Tìm
                 </button>
             </div>
         </form>
@@ -231,21 +202,25 @@
                     <div class="col-md-6 col-xl-4">
                         <article class="blog-card">
                             <c:choose>
-                                <c:when test="${empty post.thumbnailUrl}">
+                                <c:when test="${empty post.image}">
                                     <img class="blog-thumb"
                                          src="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"
                                          alt="WonderVN Blog">
                                 </c:when>
                                 <c:otherwise>
-                                    <img class="blog-thumb" src="${post.thumbnailUrl}" alt="${post.title}">
+                                    <c:set var="postImageUrl" value="${post.image}"/>
+                                    <c:if test="${not fn:startsWith(post.image, 'http')}">
+                                        <c:set var="postImageUrl" value="${pageContext.request.contextPath}/${post.image}"/>
+                                    </c:if>
+                                    <img class="blog-thumb" src="${postImageUrl}" alt="${post.title}">
                                 </c:otherwise>
                             </c:choose>
 
                             <div class="p-4 d-flex flex-column flex-grow-1">
                                 <div class="mb-2">
                                     <span class="category-pill">
-                                        <i class="fa-solid fa-tag"></i>
-                                        <c:out value="${empty post.category ? 'Du lịch' : post.category}"/>
+                                        <i class="fa-solid fa-newspaper"></i>
+                                        Blog WonderVN
                                     </span>
                                 </div>
 
@@ -281,44 +256,6 @@
         </c:otherwise>
     </c:choose>
 
-    <c:if test="${maxPage > 1}">
-        <nav class="mt-5" aria-label="Blog pagination">
-            <ul class="pagination custom-pagination justify-content-center">
-                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                    <c:url var="prevUrl" value="/blog">
-                        <c:param name="keyword" value="${keyword}"/>
-                        <c:param name="category" value="${selectedCategory}"/>
-                        <c:param name="page" value="${currentPage - 1}"/>
-                    </c:url>
-                    <a class="page-link" href="${prevUrl}">
-                        <i class="fa-solid fa-chevron-left"></i> Trước
-                    </a>
-                </li>
-
-                <c:forEach begin="1" end="${maxPage}" var="i">
-                    <li class="page-item ${currentPage == i ? 'active' : ''}">
-                        <c:url var="pageUrl" value="/blog">
-                            <c:param name="keyword" value="${keyword}"/>
-                            <c:param name="category" value="${selectedCategory}"/>
-                            <c:param name="page" value="${i}"/>
-                        </c:url>
-                        <a class="page-link" href="${pageUrl}">${i}</a>
-                    </li>
-                </c:forEach>
-
-                <li class="page-item ${currentPage == maxPage ? 'disabled' : ''}">
-                    <c:url var="nextUrl" value="/blog">
-                        <c:param name="keyword" value="${keyword}"/>
-                        <c:param name="category" value="${selectedCategory}"/>
-                        <c:param name="page" value="${currentPage + 1}"/>
-                    </c:url>
-                    <a class="page-link" href="${nextUrl}">
-                        Sau <i class="fa-solid fa-chevron-right"></i>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </c:if>
 </main>
 
 <jsp:include page="/views/common/client-footer.jsp" />

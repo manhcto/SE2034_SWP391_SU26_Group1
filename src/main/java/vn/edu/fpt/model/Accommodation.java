@@ -1,6 +1,8 @@
 package vn.edu.fpt.model;
 
+import java.math.BigDecimal;
 import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +14,7 @@ public class Accommodation {
     private String address;
     private String phone;
     private String description;
-    private double rate;
+    private BigDecimal rate;
     private String type;
     private String status;
     private Time checkInTime;
@@ -20,6 +22,9 @@ public class Accommodation {
     private String province;
     private String district;
     private String ward;
+    private Integer createdByUserID;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     private List<Room> roomList;
     private List<Facility> facilityList;
@@ -77,11 +82,11 @@ public class Accommodation {
         this.description = safeTrim(description);
     }
 
-    public double getRate() {
+    public BigDecimal getRate() {
         return rate;
     }
 
-    public void setRate(double rate) {
+    public void setRate(BigDecimal rate) {
         this.rate = rate;
     }
 
@@ -139,6 +144,30 @@ public class Accommodation {
 
     public void setWard(String ward) {
         this.ward = safeTrim(ward);
+    }
+
+    public Integer getCreatedByUserID() {
+        return createdByUserID;
+    }
+
+    public void setCreatedByUserID(Integer createdByUserID) {
+        this.createdByUserID = createdByUserID;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public List<Room> getRoomList() {
@@ -230,24 +259,22 @@ public class Accommodation {
         return sb.toString();
     }
 
-    public double getMinRoomPrice() {
+    public BigDecimal getMinRoomPrice() {
         if (roomList == null || roomList.isEmpty()) {
-            return 0;
+            return BigDecimal.ZERO;
         }
 
-        double min = Double.MAX_VALUE;
+        BigDecimal min = null;
 
         for (Room room : roomList) {
-            if (room.getPriceOfRoom() != null) {
-                double price = room.getPriceOfRoom().doubleValue();
-
-                if (price > 0 && price < min) {
-                    min = price;
-                }
+            BigDecimal price = room.getPriceOfRoom();
+            if (price != null && price.signum() > 0
+                    && (min == null || price.compareTo(min) < 0)) {
+                min = price;
             }
         }
 
-        return min == Double.MAX_VALUE ? 0 : min;
+        return min == null ? BigDecimal.ZERO : min;
     }
 
     public int getTotalAvailableRooms() {

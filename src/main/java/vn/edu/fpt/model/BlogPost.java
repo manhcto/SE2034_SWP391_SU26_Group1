@@ -8,7 +8,7 @@ public class BlogPost {
     private String slug;
     private String summary;
     private String content;
-    private String thumbnailUrl;
+    private String image;
     private String category;
     private String status;
     private Integer authorID;
@@ -21,14 +21,14 @@ public class BlogPost {
     }
 
     public BlogPost(int blogID, String title, String slug, String summary, String content,
-                    String thumbnailUrl, String category, String status, Integer authorID,
+                    String image, String category, String status, Integer authorID,
                     Timestamp publishedAt, Timestamp createAt, Timestamp updateAt) {
         this.blogID = blogID;
         this.title = title;
         this.slug = slug;
         this.summary = summary;
         this.content = content;
-        this.thumbnailUrl = thumbnailUrl;
+        this.image = image;
         this.category = category;
         this.status = status;
         this.authorID = authorID;
@@ -77,12 +77,12 @@ public class BlogPost {
         this.content = content;
     }
 
-    public String getThumbnailUrl() {
-        return thumbnailUrl;
+    public String getImage() {
+        return image;
     }
 
-    public void setThumbnailUrl(String thumbnailUrl) {
-        this.thumbnailUrl = thumbnailUrl;
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public String getCategory() {

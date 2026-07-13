@@ -453,7 +453,7 @@ public class AssignmentDAOImpl {
             FROM [User] u
             JOIN [Role] r
                 ON u.roleID = r.roleID
-            WHERE r.roleName = N'Tour Guide'
+            WHERE r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
               AND u.[status] = N'Active'
             ORDER BY u.userID DESC
             """;

@@ -1,0 +1,110 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WonderVN | EditPassengerStatus</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+</head>
+<body>
+<div class="workspace-layout">
+    <aside class="workspace-sidebar">
+        <div class="brand-box">
+            <div class="brand-logo guide">TG</div>
+            <h2>WonderVN</h2>
+            <p>Tour Guide Workspace</p>
+        </div>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home"><i class="fa-solid fa-house"></i><span>Guide home</span></a>
+        <div class="nav-section-title">Nhiệm vụ tour</div>
+        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment"><i class="fa-solid fa-clipboard-list"></i><span>Assigned tours</span></a>
+        <div class="nav-section-title">Tài khoản</div>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span></a>
+    </aside>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div>
+                <h1>EditPassengerStatus</h1>
+                <p>Update passenger status: checked-in, absent hoặc completed.</p>
+            </div>
+            <div class="top-actions">
+                <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/guide/assignment?action=detail&id=${assignment.assignmentID}">
+                    <i class="fa-solid fa-arrow-left"></i>Quay lại tour
+                </a>
+            </div>
+        </div>
+
+        <c:if test="${param.success == 'passenger'}"><div class="alert alert-success">Đã cập nhật trạng thái khách.</div></c:if>
+        <c:if test="${param.error == 'invalidStatus'}"><div class="alert alert-danger">Trạng thái khách không hợp lệ.</div></c:if>
+        <c:if test="${param.error == 'notAllowed'}"><div class="alert alert-danger">Bạn không có quyền cập nhật khách này.</div></c:if>
+
+        <section class="panel mb-4">
+            <div class="panel-header">
+                <div>
+                    <h2>${assignment.tourName}</h2>
+                    <p><fmt:formatDate value="${assignment.departureDate}" pattern="dd/MM/yyyy HH:mm"/> · ${assignment.meetingPoint}</p>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle data-table">
+                        <thead>
+                        <tr>
+                            <th>Booking</th>
+                            <th>Khách</th>
+                            <th>Loại</th>
+                            <th>Liên hệ</th>
+                            <th>Trạng thái</th>
+                            <th>Ghi chú</th>
+                            <th>Lưu</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <c:forEach var="t" items="${travelerList}">
+                            <tr>
+                                <td>
+                                    <form id="passengerForm${t.travelerID}" method="post" action="${pageContext.request.contextPath}/guide/assignment">
+                                        <input type="hidden" name="action" value="updatePassengerStatus">
+                                        <input type="hidden" name="assignmentID" value="${assignment.assignmentID}">
+                                        <input type="hidden" name="travelerID" value="${t.travelerID}">
+                                    </form>
+                                    ${t.bookingCode}
+                                </td>
+                                <td><strong>${t.fullName}</strong><div class="text-muted small">${t.gender}</div></td>
+                                <td>${t.travelerType}</td>
+                                <td>${empty t.phone ? 'Không có' : t.phone}</td>
+                                <td>
+                                    <select class="form-select" name="travelerStatus" form="passengerForm${t.travelerID}">
+                                        <option value="Pending" ${t.travelerStatus == 'Pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="Checked-in" ${t.travelerStatus == 'Checked-in' ? 'selected' : ''}>Checked-in</option>
+                                        <option value="Absent" ${t.travelerStatus == 'Absent' ? 'selected' : ''}>Absent</option>
+                                        <option value="Completed" ${t.travelerStatus == 'Completed' ? 'selected' : ''}>Completed</option>
+                                    </select>
+                                </td>
+                                <td><input class="form-control" name="note" value="${t.note}" placeholder="Ghi chú" form="passengerForm${t.travelerID}"></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-success" type="submit" form="passengerForm${t.travelerID}">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                        <c:if test="${empty travelerList}">
+                            <tr><td colspan="7" class="text-center text-muted py-5">Chưa có passenger list để cập nhật.</td></tr>
+                        </c:if>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

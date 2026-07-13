@@ -57,6 +57,13 @@ public class ManageUserController extends HttpServlet {
                         ? ""
                         : request.getParameter("status");
 
+        if (!status.isEmpty()
+                && !"Active".equals(status)
+                && !"Inactive".equals(status)) {
+
+            status = "";
+        }
+
         if (request.getParameter("page") != null) {
             page = Integer.parseInt(
                     request.getParameter("page"));
@@ -97,6 +104,10 @@ public class ManageUserController extends HttpServlet {
                 page);
 
         request.setAttribute(
+                "activeUserCount",
+                userDAO.countActiveUsers());
+
+        request.setAttribute(
                 "staffCount",
                 userDAO.countByRole(2));
 
@@ -107,10 +118,6 @@ public class ManageUserController extends HttpServlet {
         request.setAttribute(
                 "customerCount",
                 userDAO.countByRole(4));
-
-        request.setAttribute(
-                "blockedCount",
-                userDAO.countBlockedUsers());
 
         request.getRequestDispatcher(
                         "/views/admin/user-management.jsp")

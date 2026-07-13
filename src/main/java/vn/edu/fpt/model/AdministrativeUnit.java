@@ -7,6 +7,7 @@ public class AdministrativeUnit {
     private String provinceName;
     private String wardType;
     private String wardName;
+    private String regionGroup;
 
     public int getAdministrativeUnitID() {
         return administrativeUnitID;
@@ -46,6 +47,25 @@ public class AdministrativeUnit {
 
     public void setWardName(String wardName) {
         this.wardName = safeTrim(wardName);
+    }
+
+    public String getRegionGroup() {
+        return regionGroup;
+    }
+
+    public void setRegionGroup(String regionGroup) {
+        this.regionGroup = safeTrim(regionGroup);
+    }
+
+    public String getDisplayName() {
+        String wardPart = (wardType + " " + wardName).trim();
+        if (wardPart.isEmpty()) {
+            return provinceName;
+        }
+        if (wardPart.equals(wardName)) {
+            wardPart = wardName;
+        }
+        return wardPart + ", " + provinceName;
     }
 
     private String safeTrim(String value) {

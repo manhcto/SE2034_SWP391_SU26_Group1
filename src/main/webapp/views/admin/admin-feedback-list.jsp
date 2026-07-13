@@ -331,6 +331,11 @@
 <body>
 <div class="admin-layout">
 
+    <jsp:include page="/views/common/admin-sidebar.jsp">
+        <jsp:param name="activeAdminMenu" value="feedback"/>
+        <jsp:param name="sidebarClass" value="sidebar"/>
+    </jsp:include>
+    <%--
     <aside class="sidebar">
         <div class="brand-box">
             <div class="brand-logo">WV</div>
@@ -409,6 +414,7 @@
             </div>
         </div>
     </aside>
+    --%>
 
     <main class="main-content">
         <div class="topbar">

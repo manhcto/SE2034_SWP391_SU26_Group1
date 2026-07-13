@@ -66,9 +66,6 @@
                         <label for="confirmPassword">Nhập lại mật khẩu</label>
                         <div class="password-wrap">
                             <input class="auth-input" id="confirmPassword" type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
-                            <button class="password-toggle" type="button" data-password-toggle="confirmPassword" aria-label="Hiện mật khẩu">
-                                <i class="fa-regular fa-eye"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -90,75 +87,27 @@
                 </div>
 
                 <div class="auth-field">
-                    <label for="address">Tỉnh / thành</label>
-                    <select class="auth-select" id="address" name="address" required>
-                        <option value="">-- Chọn tỉnh/thành --</option>
-                        <option>Hà Nội</option>
-                        <option>TP Hồ Chí Minh</option>
-                        <option>Đà Nẵng</option>
-                        <option>Cần Thơ</option>
-                        <option>Hải Phòng</option>
-                        <option>An Giang</option>
-                        <option>Bà Rịa - Vũng Tàu</option>
-                        <option>Bắc Giang</option>
-                        <option>Bắc Kạn</option>
-                        <option>Bạc Liêu</option>
-                        <option>Bắc Ninh</option>
-                        <option>Bến Tre</option>
-                        <option>Bình Định</option>
-                        <option>Bình Dương</option>
-                        <option>Bình Phước</option>
-                        <option>Bình Thuận</option>
-                        <option>Cà Mau</option>
-                        <option>Cao Bằng</option>
-                        <option>Đắk Lắk</option>
-                        <option>Đắk Nông</option>
-                        <option>Điện Biên</option>
-                        <option>Đồng Nai</option>
-                        <option>Đồng Tháp</option>
-                        <option>Gia Lai</option>
-                        <option>Hà Giang</option>
-                        <option>Hà Nam</option>
-                        <option>Hà Tĩnh</option>
-                        <option>Hải Dương</option>
-                        <option>Hậu Giang</option>
-                        <option>Hòa Bình</option>
-                        <option>Hưng Yên</option>
-                        <option>Khánh Hòa</option>
-                        <option>Kiên Giang</option>
-                        <option>Kon Tum</option>
-                        <option>Lai Châu</option>
-                        <option>Lâm Đồng</option>
-                        <option>Lạng Sơn</option>
-                        <option>Lào Cai</option>
-                        <option>Long An</option>
-                        <option>Nam Định</option>
-                        <option>Nghệ An</option>
-                        <option>Ninh Bình</option>
-                        <option>Ninh Thuận</option>
-                        <option>Phú Thọ</option>
-                        <option>Phú Yên</option>
-                        <option>Quảng Bình</option>
-                        <option>Quảng Nam</option>
-                        <option>Quảng Ngãi</option>
-                        <option>Quảng Ninh</option>
-                        <option>Quảng Trị</option>
-                        <option>Sóc Trăng</option>
-                        <option>Sơn La</option>
-                        <option>Tây Ninh</option>
-                        <option>Thái Bình</option>
-                        <option>Thái Nguyên</option>
-                        <option>Thanh Hóa</option>
-                        <option>Thừa Thiên Huế</option>
-                        <option>Tiền Giang</option>
-                        <option>Trà Vinh</option>
-                        <option>Tuyên Quang</option>
-                        <option>Vĩnh Long</option>
-                        <option>Vĩnh Phúc</option>
-                        <option>Yên Bái</option>
-                    </select>
+                    <label for="addressDetail">Địa chỉ chi tiết</label>
+                    <input class="auth-input" id="addressDetail" name="streetAddress" type="text" value="${param.streetAddress}" placeholder="Số nhà, tên đường (không bắt buộc)">
                 </div>
 
+                <div class="auth-grid">
+                    <div class="auth-field">
+                        <label for="provinceSelect">Tỉnh / thành</label>
+                        <select class="auth-select" id="provinceSelect" required>
+                            <option value="">-- Chọn tỉnh/thành --</option>
+                        </select>
+                    </div>
+                    <div class="auth-field">
+                        <label for="wardSelect">Phường / xã</label>
+                        <select class="auth-select" id="wardSelect" required disabled>
+                            <option value="">-- Chọn phường/xã --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <input type="hidden" id="address" name="address" value="${param.address}">
+                <input type="hidden" id="administrativeUnitID" name="administrativeUnitID" value="${param.administrativeUnitID}">
                 <input type="hidden" name="roleID" value="4">
                 <button class="auth-button" type="submit">Tạo tài khoản</button>
             </form>
@@ -171,12 +120,133 @@
 </main>
 
 <script>
-    const selectedAddress = "${param.address}";
-    if (selectedAddress) {
-        document.querySelectorAll("#address option").forEach(function (option) {
-            option.selected = option.value === selectedAddress || option.textContent === selectedAddress;
+    const administrativeUnits = [
+        <c:forEach var="unit" items="${administrativeUnitList}" varStatus="loop">
+        {
+            id: "${unit.administrativeUnitID}",
+            province: "${unit.provinceName}",
+            ward: "${unit.wardName}",
+            wardType: "${unit.wardType}"
+        }${loop.last ? '' : ','}
+        </c:forEach>
+    ];
+
+    const provinceSelect = document.getElementById("provinceSelect");
+    const wardSelect = document.getElementById("wardSelect");
+    const addressDetailInput = document.getElementById("addressDetail");
+    const addressInput = document.getElementById("address");
+    const administrativeUnitIDInput = document.getElementById("administrativeUnitID");
+    const savedAddress = addressInput.value || "";
+
+    function uniqueProvinces() {
+        const seen = new Set();
+        return administrativeUnits.filter(function (unit) {
+            if (seen.has(unit.province)) {
+                return false;
+            }
+            seen.add(unit.province);
+            return true;
+        }).map(function (unit) {
+            return unit.province;
         });
     }
+
+    function wardsByProvince(province) {
+        return administrativeUnits.filter(function (unit) {
+            return unit.province === province;
+        });
+    }
+
+    function formatWard(unit) {
+        return unit.ward;
+    }
+
+    function fillSelect(select, options, placeholder, selectedValue) {
+        select.innerHTML = "";
+
+        const placeholderOption = document.createElement("option");
+        placeholderOption.value = "";
+        placeholderOption.textContent = placeholder;
+        select.appendChild(placeholderOption);
+
+        options.forEach(function (optionValue) {
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.textContent = optionValue;
+            option.selected = optionValue === selectedValue;
+            select.appendChild(option);
+        });
+    }
+
+    function fillWardSelect(province, selectedWard) {
+        const wards = wardsByProvince(province).map(formatWard);
+        fillSelect(wardSelect, wards, "-- Chọn phường/xã --", selectedWard);
+        wardSelect.disabled = !province;
+    }
+
+    function buildAddressText() {
+        const parts = [];
+        const detail = addressDetailInput.value.trim();
+        const ward = wardSelect.value.trim();
+        const province = provinceSelect.value.trim();
+        const selectedUnit = administrativeUnits.find(function (unit) {
+            return unit.province === province && formatWard(unit) === ward;
+        });
+
+        administrativeUnitIDInput.value = selectedUnit ? selectedUnit.id : "";
+
+        if (detail) {
+            parts.push(detail);
+        }
+        if (ward) {
+            parts.push(ward);
+        }
+        if (province) {
+            parts.push(province);
+        }
+
+        addressInput.value = parts.join(", ");
+    }
+
+    function parseSavedAddress(addressText) {
+        if (!addressText) {
+            return;
+        }
+
+        const matchedUnit = administrativeUnits.find(function (unit) {
+            const suffix = formatWard(unit) + ", " + unit.province;
+            return addressText === suffix || addressText.endsWith(", " + suffix);
+        });
+
+        if (!matchedUnit) {
+            if (uniqueProvinces().includes(addressText)) {
+                provinceSelect.value = addressText;
+                fillWardSelect(addressText, "");
+            }
+            return;
+        }
+
+        provinceSelect.value = matchedUnit.province;
+        fillWardSelect(matchedUnit.province, formatWard(matchedUnit));
+        administrativeUnitIDInput.value = matchedUnit.id;
+
+        const suffix = formatWard(matchedUnit) + ", " + matchedUnit.province;
+        if (addressText !== suffix) {
+            addressDetailInput.value = addressText.slice(0, addressText.length - suffix.length - 2);
+        }
+    }
+
+    fillSelect(provinceSelect, uniqueProvinces(), "-- Chọn tỉnh/thành --", "");
+    fillWardSelect("", "");
+    parseSavedAddress(savedAddress);
+
+    provinceSelect.addEventListener("change", function () {
+        fillWardSelect(provinceSelect.value, "");
+        buildAddressText();
+    });
+
+    wardSelect.addEventListener("change", buildAddressText);
+    addressDetailInput.addEventListener("input", buildAddressText);
 
     document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
         button.addEventListener("click", function () {
@@ -194,6 +264,13 @@
         const phone = document.getElementById("phone").value;
         const password = document.getElementById("password").value;
         const confirmPassword = document.getElementById("confirmPassword").value;
+
+        buildAddressText();
+
+        if (!provinceSelect.value || !wardSelect.value || !addressInput.value.trim()) {
+            alert("Vui lòng chọn đủ tỉnh/thành và phường/xã.");
+            return false;
+        }
 
         if (!/^[0-9]{10}$/.test(phone)) {
             alert("Số điện thoại phải đúng 10 chữ số.");

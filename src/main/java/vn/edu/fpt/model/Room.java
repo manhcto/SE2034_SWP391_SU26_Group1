@@ -1,6 +1,7 @@
 package vn.edu.fpt.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,12 +21,13 @@ public class Room {
     private int maxAdults;
     private int maxChildren;
     private BigDecimal roomSize;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     private List<Facility> facilityList;
 
     public Room() {
         this.priceOfRoom = BigDecimal.ZERO;
-        this.roomSize = BigDecimal.ZERO;
         this.facilityList = new ArrayList<>();
     }
 
@@ -59,15 +61,6 @@ public class Room {
 
     public void setPriceOfRoom(BigDecimal priceOfRoom) {
         this.priceOfRoom = priceOfRoom == null ? BigDecimal.ZERO : priceOfRoom;
-    }
-
-    // Dùng để tương thích controller cũ nếu đang truyền double
-    public void setPriceOfRoom(double priceOfRoom) {
-        this.priceOfRoom = BigDecimal.valueOf(priceOfRoom);
-    }
-
-    public double getPriceOfRoomDouble() {
-        return priceOfRoom == null ? 0 : priceOfRoom.doubleValue();
     }
 
     public String getStatus() {
@@ -147,21 +140,23 @@ public class Room {
     }
 
     public void setRoomSize(BigDecimal roomSize) {
-        this.roomSize = roomSize == null ? BigDecimal.ZERO : roomSize;
+        this.roomSize = roomSize;
     }
 
-    // Dùng để tương thích controller cũ nếu đang truyền double
-    public void setRoomSize(double roomSize) {
-        this.roomSize = BigDecimal.valueOf(roomSize);
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    // Dùng để tương thích controller cũ nếu đang truyền int
-    public void setRoomSize(int roomSize) {
-        this.roomSize = BigDecimal.valueOf(roomSize);
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public double getRoomSizeDouble() {
-        return roomSize == null ? 0 : roomSize.doubleValue();
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public List<Facility> getFacilityList() {
@@ -220,6 +215,15 @@ public class Room {
 
     public boolean isAvailable() {
         return "Available".equalsIgnoreCase(status) && roomAvailability > 0;
+    }
+
+    public boolean canAccommodate(int adults, int children, int requestedRooms) {
+        if (adults < 1 || children < 0 || requestedRooms < 1) {
+            return false;
+        }
+
+        return (long) adults <= (long) maxAdults * requestedRooms
+                && (long) children <= (long) maxChildren * requestedRooms;
     }
 
     private String safeTrim(String value) {

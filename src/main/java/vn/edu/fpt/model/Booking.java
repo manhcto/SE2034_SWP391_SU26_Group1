@@ -3,6 +3,11 @@ package vn.edu.fpt.model;
 import java.util.Date;
 
 public class Booking {
+    public static final String STATUS_PROCESSING = "Đang xử lý";
+    public static final String STATUS_APPROVED = "Đã duyệt";
+    public static final String STATUS_CANCELLED = "Đã hủy";
+    public static final String STATUS_COMPLETED = "Hoàn thành";
+
     private int bookingID;
     private String bookingCode;
     private String bookingType;
@@ -158,23 +163,39 @@ public class Booking {
     }
 
     public String getDisplayStatus() {
-        if ("Pending".equalsIgnoreCase(status)) {
-            return "Chờ xử lý";
+        if (isProcessingStatus(status)) {
+            return STATUS_PROCESSING;
         }
 
-        if ("Confirmed".equalsIgnoreCase(status)) {
-            return "Đã xác nhận";
+        if (isApprovedStatus(status)) {
+            return STATUS_APPROVED;
         }
 
-        if ("Cancelled".equalsIgnoreCase(status)) {
-            return "Đã hủy";
+        if (isCancelledStatus(status)) {
+            return STATUS_CANCELLED;
         }
 
-        if ("Completed".equalsIgnoreCase(status)) {
-            return "Hoàn thành";
+        if (isCompletedStatus(status)) {
+            return STATUS_COMPLETED;
         }
 
         return status;
+    }
+
+    public static boolean isProcessingStatus(String value) {
+        return STATUS_PROCESSING.equalsIgnoreCase(value) || "Pending".equalsIgnoreCase(value);
+    }
+
+    public static boolean isApprovedStatus(String value) {
+        return STATUS_APPROVED.equalsIgnoreCase(value) || "Confirmed".equalsIgnoreCase(value);
+    }
+
+    public static boolean isCancelledStatus(String value) {
+        return STATUS_CANCELLED.equalsIgnoreCase(value) || "Cancelled".equalsIgnoreCase(value);
+    }
+
+    public static boolean isCompletedStatus(String value) {
+        return STATUS_COMPLETED.equalsIgnoreCase(value) || "Completed".equalsIgnoreCase(value);
     }
 
     @Override
