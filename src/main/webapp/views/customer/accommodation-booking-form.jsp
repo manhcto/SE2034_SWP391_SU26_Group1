@@ -298,6 +298,69 @@
             color: #16a34a;
         }
 
+        .voucher-picker {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .voucher-picker-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .voucher-picker-title i {
+            color: #15803d;
+        }
+
+        .voucher-option {
+            display: grid;
+            grid-template-columns: 18px minmax(0, 1fr);
+            gap: 10px;
+            align-items: start;
+            padding: 10px 4px;
+            border-bottom: 1px solid #edf2f7;
+            cursor: pointer;
+        }
+
+        .voucher-option input {
+            margin-top: 3px;
+            accent-color: #16a34a;
+        }
+
+        .voucher-option strong,
+        .voucher-option small {
+            display: block;
+        }
+
+        .voucher-option strong {
+            color: #166534;
+            font-size: 13px;
+        }
+
+        .voucher-option small,
+        .voucher-empty {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .voucher-discount {
+            display: none;
+        }
+
+        .voucher-discount span,
+        .voucher-discount strong,
+        .voucher-discount i {
+            color: #15803d;
+        }
+
         .form-control.is-invalid,
         .form-select.is-invalid {
             border-color: #ef4444;
@@ -384,7 +447,8 @@
     <c:if test="${param.status == 'invalidCustomerInfo'
             || param.status == 'invalidIdentityNumber'
             || param.status == 'invalidIdentityImage'
-            || param.status == 'invalidAddress'}">
+            || param.status == 'invalidAddress'
+            || param.status == 'invalidVoucher'}">
         <div class="alert booking-alert shadow-sm" role="alert">
             <i class="fa-solid fa-circle-exclamation me-2"></i>
             <c:choose>
@@ -393,6 +457,9 @@
                 </c:when>
                 <c:when test="${param.status == 'invalidIdentityImage'}">
                     Ảnh CCCD/CMND chưa hợp lệ. Vui lòng chọn ảnh JPG, JPEG, PNG hoặc WEBP và dung lượng tối đa 5MB.
+                </c:when>
+                <c:when test="${param.status == 'invalidVoucher'}">
+                    Voucher không còn hợp lệ hoặc đã được sử dụng. Vui lòng chọn lại voucher.
                 </c:when>
                 <c:when test="${param.status == 'invalidAddress'}">
                     Địa chỉ chưa hợp lệ. Vui lòng chọn tỉnh/thành phố, phường/xã và nhập số nhà, đường.
@@ -414,7 +481,7 @@
                 Thông tin được lấy từ tài khoản của bạn, có thể chỉnh lại nếu người nhận phòng dùng thông tin khác.
             </p>
 
-            <form action="${pageContext.request.contextPath}/booking/accommodation" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
+            <form id="accommodationBookingForm" action="${pageContext.request.contextPath}/booking/accommodation" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
                 <input type="hidden" name="accommodationID" value="${accommodation.accommodationID}">
                 <input type="hidden" name="roomID" value="${room.roomID}">
                 <input type="hidden" name="checkIn" value="${checkIn}">
@@ -559,9 +626,67 @@
                     <strong>${adults} người lớn, ${children} trẻ em</strong>
                 </div>
 
+                <div class="voucher-picker" aria-labelledby="voucherPickerTitle">
+                    <div class="voucher-picker-title" id="voucherPickerTitle">
+                        <i class="fa-solid fa-ticket"></i>
+                        Chọn voucher
+                    </div>
+
+                    <label class="voucher-option">
+                        <input type="radio"
+                               name="userVoucherID"
+                               value=""
+                               form="accommodationBookingForm"
+                               checked>
+                        <span>
+                            <strong>Không sử dụng voucher</strong>
+                            <small>Thanh toán theo giá gốc.</small>
+                        </span>
+                    </label>
+
+                    <c:forEach var="voucher" items="${applicableVouchers}">
+                        <label class="voucher-option">
+                            <input type="radio"
+                                   name="userVoucherID"
+                                   value="${voucher.userVoucherID}"
+                                   form="accommodationBookingForm"
+                                   data-code="${fn:escapeXml(voucher.code)}"
+                                   data-percent="${voucher.percentDiscount}"
+                                   data-amount="${voucher.amountDiscount}">
+                            <span>
+                                <strong><c:out value="${voucher.code}"/></strong>
+                                <small>
+                                    <c:choose>
+                                        <c:when test="${not empty voucher.percentDiscount}">
+                                            Giảm <fmt:formatNumber value="${voucher.percentDiscount}" maxFractionDigits="0"/>%
+                                        </c:when>
+                                        <c:otherwise>
+                                            Giảm <fmt:formatNumber value="${voucher.amountDiscount}" type="number" maxFractionDigits="0"/> đ
+                                        </c:otherwise>
+                                    </c:choose>
+                                </small>
+                            </span>
+                        </label>
+                    </c:forEach>
+
+                    <c:if test="${empty applicableVouchers}">
+                        <div class="voucher-empty">Bạn chưa có voucher phù hợp với đơn đặt phòng này.</div>
+                    </c:if>
+                </div>
+
+                <div class="summary-line">
+                    <span><i class="fa-solid fa-money-bill-wave"></i> Giá gốc</span>
+                    <strong><fmt:formatNumber value="${totalPrice}" type="number" maxFractionDigits="0"/> đ</strong>
+                </div>
+
+                <div class="summary-line voucher-discount" id="voucherDiscountLine">
+                    <span><i class="fa-solid fa-ticket"></i> <span id="voucherDiscountLabel">Voucher</span></span>
+                    <strong id="voucherDiscountValue">-0 đ</strong>
+                </div>
+
                 <div class="summary-total">
-                    <div class="summary-total-label">Tổng tiền tạm tính</div>
-                    <div class="summary-total-value">
+                    <div class="summary-total-label">Tổng thanh toán</div>
+                    <div class="summary-total-value" id="bookingTotalValue" data-total="${totalPrice}">
                         <fmt:formatNumber value="${totalPrice}" type="number" maxFractionDigits="0"/> đ
                     </div>
                 </div>
@@ -588,9 +713,36 @@
         const identityPreviewImage = document.getElementById("identityPreviewImage");
         const streetAddressInput = document.getElementById("streetAddress");
         const streetAddressMessage = document.getElementById("streetAddressMessage");
+        const voucherInputs = Array.from(document.querySelectorAll("input[name='userVoucherID']"));
+        const voucherDiscountLine = document.getElementById("voucherDiscountLine");
+        const voucherDiscountLabel = document.getElementById("voucherDiscountLabel");
+        const voucherDiscountValue = document.getElementById("voucherDiscountValue");
+        const bookingTotalValue = document.getElementById("bookingTotalValue");
 
         const administrativeUnits = ${administrativeUnitsJson};
         let previewObjectUrl = null;
+
+        function updateVoucherTotal() {
+            if (!bookingTotalValue) {
+                return;
+            }
+
+            const baseTotal = Number(bookingTotalValue.dataset.total || 0);
+            const selectedVoucher = voucherInputs.find(function (input) {
+                return input.checked;
+            });
+            const percent = Number(selectedVoucher ? selectedVoucher.dataset.percent : 0) || 0;
+            const amount = Number(selectedVoucher ? selectedVoucher.dataset.amount : 0) || 0;
+            const voucherCode = selectedVoucher ? selectedVoucher.dataset.code : "";
+            const discount = Math.min(baseTotal, amount > 0 ? amount : baseTotal * percent / 100);
+            const finalTotal = Math.max(0, baseTotal - discount);
+            const currency = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 });
+
+            bookingTotalValue.textContent = currency.format(finalTotal) + " đ";
+            voucherDiscountLabel.textContent = voucherCode ? "Voucher " + voucherCode : "Voucher";
+            voucherDiscountValue.textContent = "-" + currency.format(discount) + " đ";
+            voucherDiscountLine.style.display = discount > 0 ? "flex" : "none";
+        }
 
         function normalizeIdentityNumber(value) {
             return (value || "").replace(/\D/g, "");
@@ -849,6 +1001,10 @@
 
         populateProvinceOptions();
         resetWardOptions(true);
+        voucherInputs.forEach(function (input) {
+            input.addEventListener("change", updateVoucherTotal);
+        });
+        updateVoucherTotal();
 
         form.addEventListener("submit", function (event) {
             const isIdentityValid = validateIdentityNumber(true);

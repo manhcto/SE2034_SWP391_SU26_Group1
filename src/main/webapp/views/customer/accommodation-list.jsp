@@ -33,75 +33,50 @@
         }
 
         .page-shell {
-            width: min(1500px, calc(100% - 32px));
+            width: 100%;
             margin: 0 auto;
         }
 
         .hero {
             position: relative;
-            margin: 18px auto 0;
-            min-height: 420px;
-            border-radius: 34px;
-            padding: 48px 52px 92px;
-            color: #ffffff;
+            margin: 0;
+            min-height: auto;
+            border-radius: 0;
+            padding: 0;
+            color: #101828;
             overflow: hidden;
-            background:
-                    linear-gradient(
-                            90deg,
-                            rgba(2, 6, 23, 0.90) 0%,
-                            rgba(2, 6, 23, 0.74) 38%,
-                            rgba(2, 6, 23, 0.46) 68%,
-                            rgba(2, 6, 23, 0.20) 100%
-                    ),
-                    url("${pageContext.request.contextPath}/assets/images/accommodation/hotel.png");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            box-shadow: 0 28px 76px rgba(15, 23, 42, 0.22);
+            background: #eef4fb;
+            border-bottom: 1px solid #dce5f0;
         }
 
         .hero::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.16), transparent 28%),
-                    linear-gradient(to bottom, rgba(15, 23, 42, 0.04), rgba(15, 23, 42, 0.30));
-            pointer-events: none;
+            display: none;
         }
 
         .hero::after {
-            content: "";
-            position: absolute;
-            left: -90px;
-            bottom: -120px;
-            width: 360px;
-            height: 360px;
-            border-radius: 999px;
-            background: rgba(37, 99, 235, 0.28);
-            filter: blur(18px);
-            pointer-events: none;
+            display: none;
         }
 
-        .hero > * {
+        .hero-content {
             position: relative;
             z-index: 2;
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 34px 0 30px;
         }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 11px 18px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.30);
-            color: #ffffff;
+            padding: 7px 10px;
+            border-radius: 6px;
+            background: #fff7e6;
+            border: 1px solid #f4cf83;
+            color: #8a5a00;
             font-weight: 900;
-            font-size: 14px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(14px);
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22);
+            font-size: 11px;
+            margin-bottom: 10px;
         }
 
         .hero-badge i {
@@ -109,60 +84,31 @@
         }
 
         .hero h1 {
-            margin: 0 0 18px;
+            margin: 0 0 8px;
             max-width: 880px;
-            font-size: clamp(34px, 4.2vw, 58px);
-            line-height: 1.08;
+            font-size: 32px;
+            line-height: 1.2;
             font-weight: 950;
-            letter-spacing: -2px;
-            color: #ffffff;
-            text-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
-        }
-
-        .hero h1 span {
-            color: #fde68a;
+            letter-spacing: 0;
+            color: #101828;
+            text-shadow: none;
         }
 
         .hero p {
             margin: 0;
             max-width: 760px;
-            font-size: 18px;
-            line-height: 1.65;
+            font-size: 14px;
+            line-height: 1.6;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.94);
-            text-shadow: 0 5px 20px rgba(0, 0, 0, 0.34);
-        }
-
-        .hero-quick-info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 26px;
-        }
-
-        .hero-info-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 11px 15px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.16);
-            border: 1px solid rgba(255, 255, 255, 0.26);
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 800;
-            backdrop-filter: blur(12px);
-        }
-
-        .hero-info-pill i {
-            color: #fde68a;
+            color: #667085;
+            text-shadow: none;
         }
 
         .filter-panel {
-            width: calc(100% - 96px);
-            margin: -58px auto 30px;
+            width: min(1180px, calc(100% - 40px));
+            margin: 24px auto 30px;
             background: rgba(255, 255, 255, 0.97);
-            border-radius: 32px;
+            border-radius: 8px;
             padding: 24px;
             position: relative;
             z-index: 10;
@@ -201,7 +147,7 @@
         .form-control {
             width: 100%;
             height: 58px;
-            border-radius: 18px;
+            border-radius: 6px;
             border: 1px solid #dbe3f0;
             background: #ffffff;
             padding: 0 18px;
@@ -232,8 +178,8 @@
             height: 58px;
             min-width: 176px;
             border: none;
-            border-radius: 18px;
-            background: linear-gradient(135deg, #0f172a, #0b1f5f);
+            border-radius: 6px;
+            background: #175cd3;
             color: #fff;
             font-weight: 900;
             font-size: 17px;
@@ -255,8 +201,9 @@
             display: flex;
             gap: 12px;
             overflow-x: auto;
+            width: min(1180px, calc(100% - 40px));
             padding: 4px 0 8px;
-            margin-bottom: 22px;
+            margin: 0 auto 22px;
             scrollbar-width: thin;
         }
 
@@ -304,15 +251,16 @@
             justify-content: space-between;
             align-items: end;
             gap: 16px;
-            margin: 8px 0 22px;
+            width: min(1180px, calc(100% - 40px));
+            margin: 8px auto 22px;
         }
 
         .section-head h2 {
             margin: 0 0 6px;
-            font-size: clamp(30px, 3vw, 44px);
+            font-size: 40px;
             font-weight: 900;
             color: #0f172a;
-            letter-spacing: -0.8px;
+            letter-spacing: 0;
         }
 
         .section-head p {
@@ -326,7 +274,7 @@
             background: #fff;
             border: 1px solid #e2e8f0;
             padding: 13px 17px;
-            border-radius: 18px;
+            border-radius: 8px;
             font-weight: 800;
             color: #334155;
             white-space: nowrap;
@@ -341,9 +289,10 @@
             background: #eff6ff;
             border: 1px solid #bfdbfe;
             color: #1e3a8a;
-            border-radius: 20px;
+            border-radius: 8px;
             padding: 16px 18px;
-            margin-bottom: 24px;
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto 24px;
             display: flex;
             flex-wrap: wrap;
             gap: 14px;
@@ -363,14 +312,15 @@
 
         .accommodation-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 28px;
-            margin-bottom: 44px;
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto 44px;
         }
 
         .accommodation-card {
             background: #fff;
-            border-radius: 28px;
+            border-radius: 8px;
             overflow: hidden;
             border: 1px solid #e6edf5;
             box-shadow: 0 14px 36px rgba(15, 23, 42, 0.07);
@@ -622,12 +572,13 @@
         .empty-box {
             background: #fff;
             border: 1px dashed #cbd5e1;
-            border-radius: 24px;
+            border-radius: 8px;
             padding: 50px 22px;
             text-align: center;
             color: #64748b;
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
-            margin-bottom: 40px;
+            width: min(1180px, calc(100% - 40px));
+            margin: 0 auto 40px;
         }
 
         .empty-box i {
@@ -659,6 +610,10 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
+            .accommodation-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .search-btn {
                 width: 100%;
             }
@@ -670,40 +625,34 @@
 
         @media (max-width: 768px) {
             .page-shell {
-                width: calc(100% - 20px);
+                width: 100%;
             }
 
             .hero {
-                min-height: 360px;
-                padding: 30px 22px 82px;
-                border-radius: 24px;
-                background-position: center;
+                min-height: auto;
+                padding: 0;
+                border-radius: 0;
+            }
+
+            .hero-content {
+                width: calc(100% - 32px);
+                padding: 28px 0 24px;
             }
 
             .hero h1 {
                 font-size: 36px;
-                letter-spacing: -1px;
+                letter-spacing: 0;
             }
 
             .hero p {
                 font-size: 16px;
             }
 
-            .hero-quick-info {
-                gap: 10px;
-                margin-top: 24px;
-            }
-
-            .hero-info-pill {
-                padding: 11px 14px;
-                font-size: 13px;
-            }
-
             .filter-panel {
-                width: calc(100% - 12px);
-                margin: -48px auto 22px;
+                width: calc(100% - 32px);
+                margin: 18px auto 22px;
                 padding: 16px;
-                border-radius: 22px;
+                border-radius: 8px;
             }
 
             .filter-form,
@@ -741,34 +690,20 @@
 
 <main class="page-shell">
     <section class="hero">
-        <div class="hero-badge">
-            <i class="fa-solid fa-location-dot"></i>
-            <span>Khám phá Việt Nam cùng WonderVN</span>
-        </div>
-
-        <h1>
-            Tìm homestay, khách sạn và resort phù hợp cho chuyến đi của bạn
-        </h1>
-
-        <p>
-            Chọn ngày nhận phòng, ngày trả phòng, số khách và số phòng để hệ thống hiển thị các nơi lưu trú phù hợp.
-        </p>
-
-        <div class="hero-quick-info">
-            <div class="hero-info-pill">
-                <i class="fa-solid fa-calendar-days"></i>
-                <span>Tìm theo ngày lưu trú</span>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>Khám phá Việt Nam cùng WonderVN</span>
             </div>
 
-            <div class="hero-info-pill">
-                <i class="fa-solid fa-bed"></i>
-                <span>Kiểm tra phòng còn trống</span>
-            </div>
+            <h1>
+                Tìm homestay, khách sạn và resort phù hợp cho chuyến đi của bạn
+            </h1>
 
-            <div class="hero-info-pill">
-                <i class="fa-solid fa-star"></i>
-                <span>Đánh giá rõ ràng</span>
-            </div>
+            <p>
+                Chọn ngày nhận phòng, ngày trả phòng, số khách và số phòng để hệ thống hiển thị các nơi lưu trú phù hợp.
+            </p>
+
         </div>
     </section>
 
@@ -875,7 +810,8 @@
                            min="1"
                            name="guests"
                            value="${empty selectedGuests ? 2 : selectedGuests}"
-                           placeholder="VD: 2">
+                           readonly
+                           aria-readonly="true">
                 </div>
 
                 <button type="submit" class="search-btn">

@@ -218,12 +218,21 @@ public class Room {
     }
 
     public boolean canAccommodate(int adults, int children, int requestedRooms) {
+        return canAccommodate(adults, children, requestedRooms, adults + children);
+    }
+
+    public boolean canAccommodate(int adults, int children, int requestedRooms, int totalGuests) {
         if (adults < 1 || children < 0 || requestedRooms < 1) {
             return false;
         }
 
+        if (totalGuests != adults + children) {
+            return false;
+        }
+
         return (long) adults <= (long) maxAdults * requestedRooms
-                && (long) children <= (long) maxChildren * requestedRooms;
+                && (long) children <= (long) maxChildren * requestedRooms
+                && (long) totalGuests <= (long) (maxAdults + maxChildren) * requestedRooms;
     }
 
     private String safeTrim(String value) {

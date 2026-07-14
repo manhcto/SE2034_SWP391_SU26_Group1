@@ -17,5 +17,8 @@ class RoomTest {
         assertFalse(room.canAccommodate(3, 1, 1));
         assertFalse(room.canAccommodate(2, 2, 1));
         assertTrue(room.canAccommodate(4, 2, 2));
+        assertFalse(room.canAccommodate(2, 0, 1, 12));
+        assertFalse(room.canAccommodate(2, 0, 1, 1));
+        assertTrue(room.canAccommodate(2, 1, 1, 3));
     }
 }

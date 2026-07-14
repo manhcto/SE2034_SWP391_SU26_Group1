@@ -771,6 +771,8 @@
                                name="guests"
                                min="1"
                                value="${empty guests ? 2 : guests}"
+                               readonly
+                               aria-readonly="true"
                                required>
                     </div>
                 </div>

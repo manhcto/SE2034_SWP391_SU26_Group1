@@ -4,6 +4,7 @@ import vn.edu.fpt.common.DBConnection;
 import vn.edu.fpt.model.RoomBooking;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -67,16 +68,19 @@ public class RoomBookingDAO {
             Date checkOutDate,
             int adults,
             int children,
+            int totalGuests,
             int roomQuantity,
             BigDecimal unitPrice,
             BigDecimal totalPrice,
             String address,
             String identityNumber,
             String identityImageUrl,
+            Integer userVoucherID,
             String note) {
 
         if (userID <= 0 || accommodationID <= 0 || roomID <= 0 || roomQuantity <= 0
                 || adults <= 0 || children < 0 || checkInDate == null || checkOutDate == null
+                || totalGuests != adults + children
                 || !checkOutDate.after(checkInDate) || unitPrice == null || totalPrice == null
                 || unitPrice.compareTo(BigDecimal.ZERO) < 0
                 || totalPrice.compareTo(BigDecimal.ZERO) < 0) {
@@ -88,7 +92,20 @@ public class RoomBookingDAO {
                         "SET roomAvailability = roomAvailability - ?, updatedAt = GETDATE() " +
                         "WHERE roomID = ? AND accommodationID = ? " +
                         "AND [status] IN (N'Available', N'Active') AND roomAvailability >= ? " +
-                        "AND maxAdults * ? >= ? AND maxChildren * ? >= ?";
+                        "AND maxAdults * ? >= ? AND maxChildren * ? >= ? " +
+                        "AND (maxAdults + maxChildren) * ? >= ?";
+
+        String sqlVoucher =
+                "SELECT uv.voucherID, v.percentDiscount, v.amountDiscount " +
+                        "FROM [dbo].[User_Voucher] uv WITH (UPDLOCK, HOLDLOCK) " +
+                        "INNER JOIN [dbo].[Voucher] v WITH (UPDLOCK, HOLDLOCK) " +
+                        "ON uv.voucherID = v.voucherID " +
+                        "WHERE uv.userVoucherID = ? AND uv.userID = ? " +
+                        "AND UPPER(uv.[status]) = N'SAVED' AND v.[status] = N'Active' " +
+                        "AND GETDATE() BETWEEN v.startDate AND v.endDate " +
+                        "AND v.usedCount < v.quantity " +
+                        "AND v.applicableType IN (N'All', N'Accommodation') " +
+                        "AND ISNULL(v.minOrderAmount, 0) <= ?";
 
         String sqlBooking =
                 "INSERT INTO [dbo].[Booking] " +
@@ -103,10 +120,42 @@ public class RoomBookingDAO {
                         "(bookingID, accommodationID, roomID, quantity, unitPrice, subTotal, startDate, endDate, note) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        String sqlUseUserVoucher =
+                "UPDATE [dbo].[User_Voucher] SET [status] = N'USED', usedAt = GETDATE(), bookingID = ? " +
+                        "WHERE userVoucherID = ? AND userID = ? AND [status] = N'SAVED'";
+
+        String sqlIncrementVoucher =
+                "UPDATE [dbo].[Voucher] SET usedCount = usedCount + 1, updatedAt = GETDATE() " +
+                        "WHERE voucherID = ? AND usedCount < quantity";
+
         try (Connection conn = new DBConnection().getConnection()) {
             conn.setAutoCommit(false);
 
             try {
+                BigDecimal finalTotal = totalPrice;
+                Integer selectedVoucherID = null;
+
+                if (userVoucherID != null) {
+                    try (PreparedStatement psVoucher = conn.prepareStatement(sqlVoucher)) {
+                        psVoucher.setInt(1, userVoucherID);
+                        psVoucher.setInt(2, userID);
+                        psVoucher.setBigDecimal(3, totalPrice);
+
+                        try (ResultSet rs = psVoucher.executeQuery()) {
+                            if (!rs.next()) {
+                                conn.rollback();
+                                return -2;
+                            }
+
+                            selectedVoucherID = rs.getInt("voucherID");
+                            finalTotal = calculateDiscountedTotal(
+                                    totalPrice,
+                                    rs.getBigDecimal("percentDiscount"),
+                                    rs.getBigDecimal("amountDiscount"));
+                        }
+                    }
+                }
+
                 try (PreparedStatement psReserve = conn.prepareStatement(sqlReserveRoom)) {
                     psReserve.setInt(1, roomQuantity);
                     psReserve.setInt(2, roomID);
@@ -116,6 +165,8 @@ public class RoomBookingDAO {
                     psReserve.setInt(6, adults);
                     psReserve.setInt(7, roomQuantity);
                     psReserve.setInt(8, children);
+                    psReserve.setInt(9, roomQuantity);
+                    psReserve.setInt(10, totalGuests);
 
                     if (psReserve.executeUpdate() == 0) {
                         conn.rollback();
@@ -140,7 +191,7 @@ public class RoomBookingDAO {
                     psBooking.setString(10, firstName);
                     psBooking.setString(11, lastName);
                     psBooking.setInt(12, userID);
-                    psBooking.setBigDecimal(13, totalPrice);
+                    psBooking.setBigDecimal(13, finalTotal);
 
                     if (psBooking.executeUpdate() == 0) {
                         conn.rollback();
@@ -163,7 +214,7 @@ public class RoomBookingDAO {
                     psDetail.setInt(3, roomID);
                     psDetail.setInt(4, roomQuantity);
                     psDetail.setBigDecimal(5, unitPrice);
-                    psDetail.setBigDecimal(6, totalPrice);
+                    psDetail.setBigDecimal(6, finalTotal);
                     psDetail.setDate(7, checkInDate);
                     psDetail.setDate(8, checkOutDate);
                     psDetail.setString(9, note);
@@ -171,6 +222,21 @@ public class RoomBookingDAO {
                     if (psDetail.executeUpdate() == 0) {
                         conn.rollback();
                         return -1;
+                    }
+                }
+
+                if (userVoucherID != null && selectedVoucherID != null) {
+                    try (PreparedStatement psUseVoucher = conn.prepareStatement(sqlUseUserVoucher);
+                         PreparedStatement psIncrementVoucher = conn.prepareStatement(sqlIncrementVoucher)) {
+                        psUseVoucher.setInt(1, bookingID);
+                        psUseVoucher.setInt(2, userVoucherID);
+                        psUseVoucher.setInt(3, userID);
+                        psIncrementVoucher.setInt(1, selectedVoucherID);
+
+                        if (psUseVoucher.executeUpdate() == 0 || psIncrementVoucher.executeUpdate() == 0) {
+                            conn.rollback();
+                            return -2;
+                        }
                     }
                 }
 
@@ -189,6 +255,20 @@ public class RoomBookingDAO {
         }
 
         return -1;
+    }
+
+    static BigDecimal calculateDiscountedTotal(
+            BigDecimal totalPrice, BigDecimal percentDiscount, BigDecimal amountDiscount) {
+        BigDecimal discount = BigDecimal.ZERO;
+
+        if (amountDiscount != null && amountDiscount.compareTo(BigDecimal.ZERO) > 0) {
+            discount = amountDiscount;
+        } else if (percentDiscount != null && percentDiscount.compareTo(BigDecimal.ZERO) > 0) {
+            discount = totalPrice.multiply(percentDiscount)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        }
+
+        return totalPrice.subtract(discount).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
     }
 
     private RoomBooking mapRoomBooking(ResultSet rs) throws SQLException {

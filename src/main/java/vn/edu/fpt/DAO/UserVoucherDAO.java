@@ -3,6 +3,7 @@ package vn.edu.fpt.DAO;
 import vn.edu.fpt.common.DBConnection;
 import vn.edu.fpt.model.MyVoucherView;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -116,6 +117,43 @@ public class UserVoucherDAO {
                 }
             }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return vouchers;
+    }
+
+    public List<MyVoucherView> getApplicableSavedVouchers(
+            int userID, String applicableType, BigDecimal orderAmount) {
+        List<MyVoucherView> vouchers = new ArrayList<>();
+        String sql =
+                "SELECT uv.userVoucherID, uv.voucherID, uv.[status] AS userVoucherStatus, " +
+                        "uv.savedAt, uv.usedAt, v.code, v.[description], " +
+                        "v.percentDiscount, v.amountDiscount, v.minOrderAmount, v.applicableType, " +
+                        "v.startDate, v.endDate, 'available' AS displayStatus, " +
+                        "CAST(NULL AS varchar(30)) AS unavailableReason " +
+                        "FROM [dbo].[User_Voucher] uv " +
+                        "INNER JOIN [dbo].[Voucher] v ON uv.voucherID = v.voucherID " +
+                        "WHERE uv.userID = ? AND UPPER(uv.[status]) = N'SAVED' " +
+                        "AND v.[status] = N'Active' " +
+                        "AND GETDATE() BETWEEN v.startDate AND v.endDate " +
+                        "AND v.usedCount < v.quantity " +
+                        "AND v.applicableType IN (N'All', ?) " +
+                        "AND ISNULL(v.minOrderAmount, 0) <= ? " +
+                        "ORDER BY v.endDate, uv.savedAt";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userID);
+            ps.setString(2, applicableType);
+            ps.setBigDecimal(3, orderAmount == null ? BigDecimal.ZERO : orderAmount);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    vouchers.add(mapMyVoucher(rs));
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

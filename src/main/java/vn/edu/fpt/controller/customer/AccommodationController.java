@@ -14,6 +14,7 @@ import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.FacilityDAO;
 import vn.edu.fpt.DAO.RoomBookingDAO;
 import vn.edu.fpt.DAO.RoomDAO;
+import vn.edu.fpt.DAO.UserVoucherDAO;
 import vn.edu.fpt.model.Accommodation;
 import vn.edu.fpt.model.AdministrativeUnit;
 import vn.edu.fpt.model.Facility;
@@ -53,6 +54,7 @@ public class AccommodationController extends HttpServlet {
     private final RoomDAO roomDAO = new RoomDAO();
     private final FacilityDAO facilityDAO = new FacilityDAO();
     private final RoomBookingDAO roomBookingDAO = new RoomBookingDAO();
+    private final UserVoucherDAO userVoucherDAO = new UserVoucherDAO();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -182,11 +184,7 @@ public class AccommodationController extends HttpServlet {
                 continue;
             }
 
-            if (!hasRoomForGuests(availableRooms, adults, children, rooms)) {
-                continue;
-            }
-
-            if (rooms != null && !hasEnoughRoomQuantity(availableRooms, rooms)) {
+            if (!hasRoomForGuests(availableRooms, adults, children, rooms, guests)) {
                 continue;
             }
 
@@ -287,7 +285,7 @@ public class AccommodationController extends HttpServlet {
         for (Room room : roomList) {
             room.setFacilityList(facilityDAO.getFacilitiesByRoom(room.getRoomID()));
 
-            boolean matchGuest = room.canAccommodate(adults, children, rooms);
+            boolean matchGuest = room.canAccommodate(adults, children, rooms, guests);
 
             boolean matchQuantity = rooms == null
                     || room.getRoomAvailability() >= rooms;
@@ -384,10 +382,10 @@ public class AccommodationController extends HttpServlet {
         selectedRoom.setFacilityList(facilityDAO.getFacilitiesByRoom(roomID));
         accommodation.setFacilityList(facilityDAO.getFacilitiesByAccommodation(accommodationID));
 
-        guests = adults + children;
         boolean adultCapacityExceeded = (long) adults > (long) selectedRoom.getMaxAdults() * rooms;
         boolean childCapacityExceeded = (long) children > (long) selectedRoom.getMaxChildren() * rooms;
-        boolean capacityExceeded = adultCapacityExceeded || childCapacityExceeded;
+        boolean totalCapacityExceeded = !selectedRoom.canAccommodate(adults, children, rooms, guests);
+        boolean capacityExceeded = adultCapacityExceeded || childCapacityExceeded || totalCapacityExceeded;
         long nights = calculateNights(checkIn, checkOut);
         BigDecimal totalPrice = calculateTotalPrice(selectedRoom.getPriceOfRoom(), rooms, nights);
 
@@ -405,6 +403,8 @@ public class AccommodationController extends HttpServlet {
         request.setAttribute("guests", guests);
         request.setAttribute("maxAllowedAdults", (long) selectedRoom.getMaxAdults() * rooms);
         request.setAttribute("maxAllowedChildren", (long) selectedRoom.getMaxChildren() * rooms);
+        request.setAttribute("maxAllowedGuests",
+                (long) (selectedRoom.getMaxAdults() + selectedRoom.getMaxChildren()) * rooms);
         request.setAttribute("adultCapacityExceeded", adultCapacityExceeded);
         request.setAttribute("childCapacityExceeded", childCapacityExceeded);
         request.setAttribute("capacityExceeded", capacityExceeded);
@@ -432,13 +432,19 @@ public class AccommodationController extends HttpServlet {
         Integer adults = parsePositiveInt(request.getParameter("adults"));
         Integer children = parseNonNegativeInt(request.getParameter("children"));
         Integer rooms = parsePositiveInt(request.getParameter("rooms"));
+        Integer guests = parsePositiveInt(request.getParameter("guests"));
         String checkIn = safeTrim(request.getParameter("checkIn"));
         String checkOut = safeTrim(request.getParameter("checkOut"));
 
-        String detailUrl = buildRoomDetailUrl(request, accommodationID, roomID, checkIn, checkOut,
-                adults, children, rooms);
+        if (guests == null && adults != null && children != null) {
+            guests = adults + children;
+        }
 
-        if (accommodationID == null || roomID == null || adults == null || children == null || rooms == null
+        String detailUrl = buildRoomDetailUrl(request, accommodationID, roomID, checkIn, checkOut,
+                adults, children, rooms, guests);
+
+        if (accommodationID == null || roomID == null || adults == null || children == null
+                || rooms == null || guests == null
                 || !hasDateRange(checkIn, checkOut)) {
             response.sendRedirect(detailUrl + "&status=invalidBooking");
             return;
@@ -452,7 +458,7 @@ public class AccommodationController extends HttpServlet {
             return;
         }
 
-        if (!selectedRoom.canAccommodate(adults, children, rooms)) {
+        if (!selectedRoom.canAccommodate(adults, children, rooms, guests)) {
             response.sendRedirect(detailUrl + "&status=invalidCapacity");
             return;
         }
@@ -468,10 +474,12 @@ public class AccommodationController extends HttpServlet {
         request.setAttribute("adults", adults);
         request.setAttribute("children", children);
         request.setAttribute("rooms", rooms);
-        request.setAttribute("guests", adults + children);
+        request.setAttribute("guests", guests);
         request.setAttribute("nights", nights);
         request.setAttribute("totalPrice", totalPrice);
         request.setAttribute("detailUrl", detailUrl);
+        request.setAttribute("applicableVouchers",
+                userVoucherDAO.getApplicableSavedVouchers(user.getUserID(), "Accommodation", totalPrice));
         request.setAttribute("administrativeUnitsJson",
                 toAdministrativeUnitsJson(administrativeUnitDAO.getActiveUnits()));
 
@@ -490,6 +498,8 @@ public class AccommodationController extends HttpServlet {
         Integer adults = parsePositiveInt(request.getParameter("adults"));
         Integer children = parseNonNegativeInt(request.getParameter("children"));
         Integer rooms = parsePositiveInt(request.getParameter("rooms"));
+        Integer guests = parsePositiveInt(request.getParameter("guests"));
+        Integer userVoucherID = parsePositiveInt(request.getParameter("userVoucherID"));
         String checkIn = safeTrim(request.getParameter("checkIn"));
         String checkOut = safeTrim(request.getParameter("checkOut"));
         String firstName = safeTrim(request.getParameter("firstName"));
@@ -503,7 +513,7 @@ public class AccommodationController extends HttpServlet {
         String note = safeTrim(request.getParameter("note"));
 
         String detailUrl = buildRoomDetailUrl(request, accommodationID, roomID, checkIn, checkOut,
-                adults, children, rooms);
+                adults, children, rooms, guests);
 
         if (user == null) {
             request.getSession().setAttribute("redirectAfterLogin", stripContextPath(detailUrl, request));
@@ -511,18 +521,19 @@ public class AccommodationController extends HttpServlet {
             return;
         }
 
-        if (accommodationID == null || roomID == null || adults == null || children == null || rooms == null
+        if (accommodationID == null || roomID == null || adults == null || children == null
+                || rooms == null || guests == null
                 || !hasDateRange(checkIn, checkOut)) {
             response.sendRedirect(detailUrl + "&status=invalidBooking");
             return;
         }
 
         String bookingFormUrl = buildBookingFormUrl(request, accommodationID, roomID, checkIn, checkOut,
-                adults, children, rooms);
+                adults, children, rooms, guests);
 
         if (isBlank(firstName) || isBlank(lastName) || isBlank(email) || isBlank(phone)) {
             response.sendRedirect(buildBookingFormUrl(request, accommodationID, roomID, checkIn, checkOut,
-                    adults, children, rooms) + "&status=invalidCustomerInfo");
+                    adults, children, rooms, guests) + "&status=invalidCustomerInfo");
             return;
         }
 
@@ -555,7 +566,7 @@ public class AccommodationController extends HttpServlet {
             return;
         }
 
-        if (!selectedRoom.canAccommodate(adults, children, rooms)) {
+        if (!selectedRoom.canAccommodate(adults, children, rooms, guests)) {
             response.sendRedirect(detailUrl + "&status=invalidCapacity");
             return;
         }
@@ -563,6 +574,14 @@ public class AccommodationController extends HttpServlet {
         long nights = calculateNights(checkIn, checkOut);
         BigDecimal unitPrice = selectedRoom.getPriceOfRoom();
         BigDecimal totalPrice = calculateTotalPrice(unitPrice, rooms, nights);
+
+        if (userVoucherID != null && userVoucherDAO
+                .getApplicableSavedVouchers(user.getUserID(), "Accommodation", totalPrice)
+                .stream().noneMatch(voucher -> voucher.getUserVoucherID() == userVoucherID)) {
+            response.sendRedirect(bookingFormUrl + "&status=invalidVoucher");
+            return;
+        }
+
         String identityImageUrl = saveIdentityImage(request, identityImagePart, user.getUserID());
 
         if (identityImageUrl == null) {
@@ -582,13 +601,20 @@ public class AccommodationController extends HttpServlet {
                 Date.valueOf(checkOut),
                 adults,
                 children,
+                guests,
                 rooms,
                 unitPrice,
                 totalPrice,
                 address,
                 identityNumber,
                 identityImageUrl,
+                userVoucherID,
                 note);
+
+        if (bookingID == -2) {
+            response.sendRedirect(bookingFormUrl + "&status=invalidVoucher");
+            return;
+        }
 
         if (bookingID <= 0) {
             response.sendRedirect(detailUrl + "&status=bookingFail");
@@ -639,27 +665,15 @@ public class AccommodationController extends HttpServlet {
         return false;
     }
 
-    private boolean hasRoomForGuests(List<Room> roomList, int adults, int children, int rooms) {
+    private boolean hasRoomForGuests(
+            List<Room> roomList, int adults, int children, int rooms, int totalGuests) {
         if (roomList == null || roomList.isEmpty()) {
             return false;
         }
 
         for (Room room : roomList) {
-            if (room.canAccommodate(adults, children, rooms)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean hasEnoughRoomQuantity(List<Room> roomList, int requestedRooms) {
-        if (roomList == null || roomList.isEmpty()) {
-            return false;
-        }
-
-        for (Room room : roomList) {
-            if (room.getRoomAvailability() >= requestedRooms) {
+            if (room.canAccommodate(adults, children, rooms, totalGuests)
+                    && room.getRoomAvailability() >= rooms) {
                 return true;
             }
         }
@@ -864,7 +878,8 @@ public class AccommodationController extends HttpServlet {
     }
 
     private String buildBookingFormUrl(HttpServletRequest request, int accommodationID, int roomID,
-                                       String checkIn, String checkOut, int adults, int children, int rooms) {
+                                       String checkIn, String checkOut, int adults, int children,
+                                       int rooms, int guests) {
         return request.getContextPath()
                 + "/booking/accommodation/form?accommodationID=" + accommodationID
                 + "&roomID=" + roomID
@@ -873,17 +888,18 @@ public class AccommodationController extends HttpServlet {
                 + "&adults=" + adults
                 + "&children=" + children
                 + "&rooms=" + rooms
-                + "&guests=" + (adults + children);
+                + "&guests=" + guests;
     }
 
     private String buildRoomDetailUrl(HttpServletRequest request, Integer accommodationID, Integer roomID,
                                       String checkIn, String checkOut,
-                                      Integer adults, Integer children, Integer rooms) {
+                                      Integer adults, Integer children, Integer rooms, Integer guests) {
         int safeAccommodationID = accommodationID == null ? 0 : accommodationID;
         int safeRoomID = roomID == null ? 0 : roomID;
         int safeAdults = adults == null ? 0 : adults;
         int safeChildren = children == null ? 0 : children;
         int safeRooms = rooms == null ? 0 : rooms;
+        int safeGuests = guests == null ? 0 : guests;
 
         return request.getContextPath()
                 + "/accommodation/room/detail?id=" + safeRoomID
@@ -893,7 +909,7 @@ public class AccommodationController extends HttpServlet {
                 + "&adults=" + safeAdults
                 + "&children=" + safeChildren
                 + "&rooms=" + safeRooms
-                + "&guests=" + (safeAdults + safeChildren);
+                + "&guests=" + safeGuests;
     }
 
     private String currentPathWithQuery(HttpServletRequest request) {
