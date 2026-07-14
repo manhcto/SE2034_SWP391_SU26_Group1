@@ -42,6 +42,11 @@
             min-width: 0;
         }
 
+        .admin-main.with-admin-sidebar {
+            margin-left: 292px;
+            width: calc(100% - 292px);
+        }
+
         .staff-voucher-page {
             padding: 28px;
         }
@@ -316,6 +321,11 @@
                 display: block;
             }
 
+            .admin-main.with-admin-sidebar {
+                margin-left: 0;
+                width: 100%;
+            }
+
             .staff-voucher-page {
                 padding: 18px;
             }
@@ -338,10 +348,18 @@
 <body>
 
 <div class="admin-layout">
-    <jsp:include page="/views/common/admin-sidebar.jsp"/>
+    <c:choose>
+        <c:when test="${voucherManagementRole == 'admin'}">
+            <jsp:include page="/views/common/admin-sidebar.jsp">
+                <jsp:param name="activeAdminMenu" value="voucher"/>
+            </jsp:include>
+        </c:when>
+        <c:otherwise>
+            <jsp:include page="/views/common/staff-sidebar.jsp"/>
+        </c:otherwise>
+    </c:choose>
 
-    <main class="admin-main">
-        <jsp:include page="/views/common/admin-header.jsp"/>
+    <main class="admin-main${voucherManagementRole == 'admin' ? ' with-admin-sidebar' : ''}">
 
         <div class="staff-voucher-page">
             <c:set var="isEditMode" value="${editMode == true}"/>
@@ -355,7 +373,6 @@
             <c:set var="addAmountDiscount" value="${shouldOpenAddModal ? param.amountDiscount : ''}"/>
             <c:set var="addMinOrderAmount" value="${shouldOpenAddModal ? param.minOrderAmount : ''}"/>
             <c:set var="addQuantity" value="${shouldOpenAddModal ? param.quantity : ''}"/>
-            <c:set var="addStatus" value="${shouldOpenAddModal ? param.status : 'Active'}"/>
             <c:set var="addApplicableType" value="${shouldOpenAddModal ? param.applicableType : 'All'}"/>
             <c:set var="addStartDate" value="${shouldOpenAddModal ? param.startDate : ''}"/>
             <c:set var="addEndDate" value="${shouldOpenAddModal ? param.endDate : ''}"/>
@@ -371,21 +388,24 @@
             <c:set var="editAmountDiscount" value="${isSubmittedForm ? param.amountDiscount : (isEditMode ? editVoucher.amountDiscount : '')}"/>
             <c:set var="editMinOrderAmount" value="${isSubmittedForm ? param.minOrderAmount : (isEditMode ? editVoucher.minOrderAmount : '')}"/>
             <c:set var="editQuantity" value="${isSubmittedForm ? param.quantity : (isEditMode ? editVoucher.quantity : '')}"/>
-            <c:set var="editStatus" value="${isSubmittedForm ? param.status : (isEditMode ? editVoucher.status : 'Active')}"/>
             <c:set var="editApplicableType" value="${isSubmittedForm ? param.applicableType : (isEditMode ? editVoucher.applicableType : 'All')}"/>
             <c:set var="editStartDate" value="${isSubmittedForm ? param.startDate : (isEditMode ? editStartDateValue : '')}"/>
             <c:set var="editEndDate" value="${isSubmittedForm ? param.endDate : (isEditMode ? editEndDateValue : '')}"/>
 
             <div class="staff-page-topbar">
                 <div>
-                    <h1>Quản lý Voucher</h1>
-                    <p>Quản lý danh sách và tạo mã giảm giá mới.</p>
+                    <h1>${voucherManagementRole == 'admin' ? 'Duyệt Voucher' : 'Quản lý Voucher'}</h1>
+                    <p>${voucherManagementRole == 'admin'
+                            ? 'Xem danh sách và duyệt voucher do nhân viên tạo.'
+                            : 'Tạo và cập nhật voucher trước khi gửi quản trị viên duyệt.'}</p>
                 </div>
 
-                <button class="btn-main" type="button" data-bs-toggle="modal" data-bs-target="#addVoucherModal">
-                    <i class="fa-solid fa-plus"></i>
-                    Thêm Voucher
-                </button>
+                <c:if test="${not voucherManagementReadOnly}">
+                    <button class="btn-main" type="button" data-bs-toggle="modal" data-bs-target="#addVoucherModal">
+                        <i class="fa-solid fa-plus"></i>
+                        Thêm Voucher
+                    </button>
+                </c:if>
             </div>
 
             <c:if test="${not empty errors && !shouldOpenAddModal && !shouldOpenEditModal}">
@@ -408,6 +428,18 @@
             <c:if test="${param.success == 'update'}">
                 <div class="alert alert-success fw-semibold">
                     Cập nhật Voucher thành công.
+                </div>
+            </c:if>
+
+            <c:if test="${param.success == 'approve'}">
+                <div class="alert alert-success fw-semibold">
+                    Duyệt Voucher thành công.
+                </div>
+            </c:if>
+
+            <c:if test="${param.success == 'approve_error'}">
+                <div class="alert alert-danger fw-semibold">
+                    Không thể duyệt Voucher. Voucher có thể đã được duyệt hoặc không còn tồn tại.
                 </div>
             </c:if>
 
@@ -453,7 +485,7 @@
                         <i class="fa-solid fa-circle-xmark"></i>
                     </div>
                     <div>
-                        <div class="label">Ngừng hoạt động</div>
+                        <div class="label">Chờ duyệt</div>
                         <div class="value">${inactiveCount}</div>
                     </div>
                 </div>
@@ -470,7 +502,7 @@
                         <select class="form-select" id="voucherStatusFilter">
                             <option value="">Tất cả trạng thái</option>
                             <option value="active">Hoạt động</option>
-                            <option value="inactive">Ngừng</option>
+                            <option value="inactive">Chờ duyệt</option>
                         </select>
                     </div>
 
@@ -600,7 +632,7 @@
                                                         <i class="fa-solid fa-circle-check"></i>Hoạt động
                                                     </c:when>
                                                     <c:when test="${voucher.status == 'Inactive'}">
-                                                        <i class="fa-solid fa-circle-xmark"></i>Ngừng
+                                                        <i class="fa-solid fa-clock"></i>Chờ duyệt
                                                     </c:when>
                                                     <c:otherwise>
                                                         <i class="fa-solid fa-circle-xmark"></i><c:out value="${voucher.status}"/>
@@ -617,10 +649,26 @@
                                             </c:choose>
                                         </td>
                                         <td class="text-end">
-                                            <a class="btn btn-sm btn-outline-primary action-btn"
-                                               href="${pageContext.request.contextPath}/staff/voucher?action=edit&voucherID=${voucher.voucherID}">
-                                                <i class="fa-solid fa-pen-to-square"></i>Chỉnh sửa
-                                            </a>
+                                            <c:choose>
+                                                <c:when test="${voucherManagementRole == 'admin' && voucher.status == 'Inactive'}">
+                                                    <form action="${voucherManagementPath}" method="post" class="d-inline">
+                                                        <input type="hidden" name="action" value="approve">
+                                                        <input type="hidden" name="voucherID" value="${voucher.voucherID}">
+                                                        <button class="btn btn-sm btn-success action-btn" type="submit">
+                                                            <i class="fa-solid fa-check"></i>Duyệt
+                                                        </button>
+                                                    </form>
+                                                </c:when>
+                                                <c:when test="${voucherManagementRole == 'staff'}">
+                                                    <a class="btn btn-sm btn-outline-primary action-btn"
+                                                       href="${voucherManagementPath}?action=edit&amp;voucherID=${voucher.voucherID}">
+                                                        <i class="fa-solid fa-pen-to-square"></i>Chỉnh sửa
+                                                    </a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="text-success fw-bold">Đã duyệt</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </td>
                                     </tr>
                                 </c:forEach>
@@ -634,10 +682,12 @@
     </main>
 </div>
 
+<c:if test="${not voucherManagementReadOnly}">
 <div class="modal fade" id="addVoucherModal" tabindex="-1" aria-labelledby="addVoucherModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <form class="modal-content" action="${pageContext.request.contextPath}/staff/voucher?action=insert" method="post">
+        <form class="modal-content" action="${voucherManagementPath}" method="post">
             <input type="hidden" name="action" value="insert">
+            <input type="hidden" name="status" value="Inactive">
 
             <div class="modal-header">
                 <h5 class="modal-title" id="addVoucherModalLabel">
@@ -666,11 +716,8 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Trạng thái <span class="text-danger">*</span></label>
-                        <select class="form-select" name="status" required>
-                            <option value="Active" ${empty addStatus || addStatus == 'Active' ? 'selected' : ''}>Đang hoạt động</option>
-                            <option value="Inactive" ${addStatus == 'Inactive' ? 'selected' : ''}>Ngừng hoạt động</option>
-                        </select>
+                        <label class="form-label fw-bold">Trạng thái</label>
+                        <input class="form-control" type="text" value="Chờ quản trị viên duyệt" disabled>
                     </div>
 
                     <div class="col-md-6">
@@ -737,9 +784,10 @@
 
 <div class="modal fade" id="editVoucherModal" tabindex="-1" aria-labelledby="editVoucherModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <form class="modal-content" action="${pageContext.request.contextPath}/staff/voucher?action=update" method="post">
+        <form class="modal-content" action="${voucherManagementPath}" method="post">
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="voucherID" value="${fn:escapeXml(editVoucherID)}">
+            <input type="hidden" name="status" value="Inactive">
 
             <div class="modal-header">
                 <h5 class="modal-title" id="editVoucherModalLabel">
@@ -768,11 +816,8 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Trạng thái <span class="text-danger">*</span></label>
-                        <select class="form-select" name="status" required>
-                            <option value="Active" ${empty editStatus || editStatus == 'Active' ? 'selected' : ''}>Đang hoạt động</option>
-                            <option value="Inactive" ${editStatus == 'Inactive' ? 'selected' : ''}>Ngừng hoạt động</option>
-                        </select>
+                        <label class="form-label fw-bold">Trạng thái</label>
+                        <input class="form-control" type="text" value="Sau khi lưu sẽ chờ duyệt lại" disabled>
                     </div>
 
                     <div class="col-md-6">
@@ -838,7 +883,7 @@
             </div>
 
             <div class="modal-footer">
-                <a class="btn btn-light fw-bold" href="${pageContext.request.contextPath}/staff/voucher">Hủy</a>
+                <a class="btn btn-light fw-bold" href="${voucherManagementPath}">Hủy</a>
                 <button class="btn-main" type="submit">
                     <i class="fa-solid fa-floppy-disk"></i>Lưu thay đổi
                 </button>
@@ -846,6 +891,7 @@
         </form>
     </div>
 </div>
+</c:if>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>

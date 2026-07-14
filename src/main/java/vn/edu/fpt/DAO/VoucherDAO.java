@@ -235,6 +235,23 @@ public class VoucherDAO {
         return false;
     }
 
+    public boolean approveVoucher(int voucherID) {
+        String sql =
+                "UPDATE [dbo].[Voucher] " +
+                        "SET [status] = N'Active', updatedAt = GETDATE() " +
+                        "WHERE voucherID = ? AND [status] = N'Inactive'";
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, voucherID);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public boolean isCodeExists(String code) {
         String sql = "SELECT COUNT(1) FROM [dbo].[Voucher] WHERE UPPER([code]) = UPPER(?)";
 

@@ -651,13 +651,13 @@
             </div>
 
             <div class="col-md-3">
-                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/staff/voucher">
+                <a class="module-card staff-view-card" href="${pageContext.request.contextPath}/admin/voucher">
                     <div class="module-icon">
                         <i class="fa-solid fa-gift"></i>
                     </div>
-                    <h5>View Voucher</h5>
-                    <p>Xem voucher, ưu đãi và chiến dịch giảm giá đang hoạt động.</p>
-                    <span class="module-open">Xem module</span>
+                    <h5>Duyệt Voucher</h5>
+                    <p>Xem và duyệt voucher do nhân viên tạo trước khi áp dụng cho khách hàng.</p>
+                    <span class="module-open">Mở quản lý Voucher</span>
                 </a>
             </div>
 

@@ -155,6 +155,12 @@
         <span>Quản lí đặt chỗ</span>
     </a>
 
+    <a class="sidebar-link${param.activeAdminMenu eq 'voucher' ? ' active' : ''}"
+       href="${pageContext.request.contextPath}/admin/voucher">
+        <i class="fa-solid fa-ticket"></i>
+        <span>Duyệt Voucher</span>
+    </a>
+
     <a class="sidebar-link${param.activeAdminMenu eq 'feedback' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/feedback">
         <i class="fa-solid fa-comments"></i>

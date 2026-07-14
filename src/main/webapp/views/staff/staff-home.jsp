@@ -157,8 +157,10 @@
 
         /* MAIN */
         .main-content {
-            margin-left: 292px;
-            width: calc(100% - 292px);
+            margin-left: 0;
+            width: auto;
+            min-width: 0;
+            flex: 1;
             padding: 34px 42px;
         }
 
