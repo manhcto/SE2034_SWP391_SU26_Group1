@@ -1,629 +1,1261 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WonderVN | Thanh toán & Đặt Tour</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css?v=1000">
+    <title>WonderVN | Xác nhận đặt tour</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
     <style>
-        .checkout-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --dark: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --soft: #f8fafc;
+            --bg: #eef3f8;
+            --shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
         }
 
-        .error-box {
-            background-color: #fee2e2;
-            color: #b91c1c;
-            padding: 15px 20px;
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        .booking-page {
+            padding: 28px 0 56px;
+        }
+
+        .page-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .page-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: #e8f0ff;
+            color: #1d4ed8;
+            font-weight: 900;
+            margin-bottom: 12px;
+        }
+
+        .page-title {
+            margin: 0;
+            color: var(--dark);
+            font-size: 32px;
+            line-height: 1.18;
+            font-weight: 950;
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            margin: 10px 0 0;
+            font-weight: 650;
+            line-height: 1.6;
+        }
+
+        .booking-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 380px;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .form-card,
+        .summary-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            margin-bottom: 30px;
-            border: 1px solid #f87171;
-        }
-
-        .error-box ul {
-            margin: 10px 0 0 0;
-            padding-left: 20px;
+            box-shadow: var(--shadow);
         }
 
         .form-card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 26px;
+            border-top: 4px solid var(--primary);
         }
 
-        .form-card h3 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 18px;
-            color: #111827;
-            border-bottom: 1px solid #f3f4f6;
-            padding-bottom: 12px;
+        .summary-card {
+            position: sticky;
+            top: 96px;
+            overflow: hidden;
         }
 
-        .form-row {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
+        .summary-image {
+            height: 190px;
+            background: #e2e8f0;
         }
 
-        .form-group {
-            flex: 1;
-            min-width: 250px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #374151;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 15px;
-            outline: none;
-            transition: 0.2s;
-            background-color: #ffffff;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .form-group input.input-error {
-            border-color: #ef4444;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
-        }
-
-        .form-group input.input-error:focus {
-            border-color: #ef4444;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
-        }
-
-        .form-group input.input-valid:focus {
-            border-color: #22c55e;
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
-        }
-
-        .field-error-message {
-            display: none;
-            color: #dc2626;
-            font-size: 12px;
-            font-weight: 500;
-            margin-top: 5px;
-            line-height: 1.35;
-        }
-
-        .field-error-message.show {
+        .summary-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
         }
 
-        .checkout-btn {
-            width: 100%;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: bold;
+        .summary-body {
+            padding: 22px 22px 24px;
+        }
+
+        .form-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 18px;
+            color: var(--dark);
+            font-size: 21px;
+            font-weight: 950;
+        }
+
+        .form-section-note {
+            margin: -8px 0 20px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 650;
+        }
+
+        .booking-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 7px;
+            color: #27364f;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .form-control,
+        .form-select {
+            height: 50px;
             border-radius: 8px;
+            border: 1px solid #dbe3ef;
+            background: #ffffff;
+            color: var(--dark);
+            font-weight: 700;
+        }
+
+        input[type="file"].form-control {
+            padding: 11px 14px;
+        }
+
+        input[type="number"].form-control::-webkit-inner-spin-button,
+        input[type="number"].form-control::-webkit-outer-spin-button {
+            opacity: 1;
+            height: 34px;
+        }
+
+        textarea.form-control {
+            min-height: 112px;
+            padding-top: 14px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #7aa2ff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .summary-title {
+            color: var(--dark);
+            font-size: 22px;
+            font-weight: 950;
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+
+        .summary-place {
+            color: #16a34a;
+            font-weight: 850;
+            margin-bottom: 16px;
+        }
+
+        .summary-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 11px 0;
+            border-bottom: 1px solid #e2e8f0;
+            color: #526079;
+            font-weight: 750;
+        }
+
+        .summary-line span:first-child {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-line i {
+            width: 18px;
+            color: var(--primary);
+        }
+
+        .summary-line strong {
+            color: var(--dark);
+            text-align: right;
+        }
+
+        .summary-total {
+            margin-top: 18px;
+            padding: 16px;
+            border-radius: 8px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+
+        .summary-total-label {
+            color: #1e3a8a;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        .summary-total-value {
+            color: #1d4ed8;
+            font-size: 28px;
+            font-weight: 950;
+        }
+
+        .form-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-submit-booking,
+        .btn-soft-back {
+            min-height: 52px;
+            border-radius: 8px;
+            padding: 13px 20px;
+            font-weight: 900;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+        }
+
+        .btn-submit-booking {
+            border: none;
+            background: var(--primary);
+            color: #ffffff;
+            min-width: 180px;
+        }
+
+        .btn-submit-booking:hover {
+            background: var(--primary-dark);
+            color: #ffffff;
+        }
+
+        .btn-soft-back {
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: var(--dark);
+        }
+
+        .field-hint {
+            display: block;
+            margin-top: 7px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .field-message {
+            display: block;
+            min-height: 18px;
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .field-message.error {
+            color: #dc2626;
+        }
+
+        .field-message.success {
+            color: #16a34a;
+        }
+
+        .voucher-picker {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .voucher-picker-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .voucher-picker-title i {
+            color: #15803d;
+        }
+
+        .voucher-option {
+            display: grid;
+            grid-template-columns: 18px minmax(0, 1fr);
+            gap: 10px;
+            align-items: start;
+            padding: 10px 4px;
+            border-bottom: 1px solid #edf2f7;
             cursor: pointer;
         }
 
-        .tour-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #111827;
-            margin-bottom: 10px;
+        .voucher-option.disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
         }
 
-        .price-info {
+        .voucher-option input {
+            margin-top: 3px;
+            accent-color: #16a34a;
+        }
+
+        .voucher-option strong,
+        .voucher-option small {
+            display: block;
+        }
+
+        .voucher-option strong {
+            color: #166534;
+            font-size: 13px;
+        }
+
+        .voucher-option small,
+        .voucher-empty {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .voucher-discount {
+            display: none;
+        }
+
+        .voucher-discount span,
+        .voucher-discount strong,
+        .voucher-discount i {
+            color: #15803d;
+        }
+
+        .form-control.is-invalid,
+        .form-select.is-invalid {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-control.is-valid,
+        .form-select.is-valid {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+        }
+
+        .identity-preview {
+            display: none;
+            margin-top: 10px;
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            overflow: hidden;
             background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 14px;
-            color: #374151;
-            font-weight: 700;
-            margin-top: 12px;
+            max-width: 260px;
         }
 
-        .price-info span {
-            color: #2563eb;
-            font-weight: 800;
+        .identity-preview img {
+            width: 100%;
+            max-height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .booking-alert {
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+            background: #fee2e2;
+            color: #7f1d1d;
+            font-weight: 750;
+        }
+
+        .booking-alert ul {
+            margin: 8px 0 0;
+            padding-left: 22px;
+        }
+
+        @media (max-width: 992px) {
+            .booking-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-card {
+                position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page-head,
+            .form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .booking-form-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 
 <body>
+<jsp:include page="/views/common/client-header.jsp"/>
 
-<jsp:include page="/views/common/client-header.jsp" />
-
-<main>
-    <section class="section checkout-container">
-        <div class="section-head" style="justify-content: center; text-align: center; margin-bottom: 40px;">
-            <div>
-                <p class="section-kicker">Hoàn tất thủ tục</p>
-                <h2>Thông tin Đặt Tour</h2>
-                <p>Vui lòng điền đầy đủ thông tin để hệ thống ghi nhận đơn hàng của bạn.</p>
+<main class="container booking-page">
+    <header class="page-head">
+        <div>
+            <div class="page-kicker">
+                <i class="fa-solid fa-clipboard-check"></i>
+                Xác nhận thông tin
             </div>
+            <h1 class="page-title">Hoàn tất thông tin đặt tour</h1>
+            <p class="page-subtitle">
+                Thông tin được tự động lấy từ tài khoản của bạn. Bạn có thể chỉnh lại trước khi gửi yêu cầu đặt tour.
+            </p>
         </div>
 
-        <c:if test="${not empty errorList or not empty error}">
-            <div class="error-box">
-                <strong>⚠️ Vui lòng kiểm tra lại các thông tin sau:</strong>
-                <ul>
-                    <c:if test="${not empty error}">
-                        <li>${error}</li>
-                    </c:if>
+        <a class="btn-soft-back" href="${pageContext.request.contextPath}/tour-detail?id=${selectedTour.tourID}">
+            <i class="fa-solid fa-arrow-left"></i>
+            Quay lại tour
+        </a>
+    </header>
 
-                    <c:forEach items="${errorList}" var="err">
-                        <li>${err}</li>
-                    </c:forEach>
-                </ul>
-            </div>
-        </c:if>
+    <c:if test="${not empty errorList or not empty error}">
+        <div class="alert booking-alert shadow-sm" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2"></i>
+            <strong>Vui lòng kiểm tra lại các thông tin sau:</strong>
+            <ul>
+                <c:if test="${not empty error}">
+                    <li>${error}</li>
+                </c:if>
+                <c:forEach items="${errorList}" var="err">
+                    <li>${err}</li>
+                </c:forEach>
+            </ul>
+        </div>
+    </c:if>
 
-        <form action="${pageContext.request.contextPath}/booking" method="POST" novalidate>
+    <div class="booking-layout">
+        <section class="form-card">
+            <h2 class="form-section-title">
+                <i class="fa-solid fa-user-shield"></i>
+                Thông tin khách đặt tour
+            </h2>
+            <p class="form-section-note">
+                Thông tin được lấy từ tài khoản của bạn, có thể chỉnh lại nếu người đi tour dùng thông tin khác.
+            </p>
 
-            <input type="hidden" name="tourScheduleID" value="${param.tourScheduleID}">
-            <input type="hidden" name="tourName" value="${param.tourName}">
+            <form id="tourCheckoutForm"
+                  action="${pageContext.request.contextPath}/booking"
+                  method="post"
+                  enctype="multipart/form-data"
+                  accept-charset="UTF-8">
 
-            <div class="form-card">
-                <h3>Tour đang đặt</h3>
+                <input type="hidden" name="tourScheduleID" value="${selectedSchedule.tourScheduleID}">
 
-                <c:choose>
-                    <c:when test="${not empty param.tourName}">
-                        <div class="tour-name">${param.tourName}</div>
-                    </c:when>
-                    <c:otherwise>
-                        <div class="tour-name">Tour đã chọn</div>
-                    </c:otherwise>
-                </c:choose>
-
-                <p>
-                    <strong>Tour Schedule ID:</strong>
-                    ${param.tourScheduleID}
-                </p>
-
-                <div class="price-info">
-                    <span>Giá tour và tổng tiền sẽ được hệ thống tính theo lịch trình và số lượng khách.</span>
-                </div>
-            </div>
-
-            <div class="form-card">
-                <h3>1. Thông tin liên hệ</h3>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="firstName">Họ và tên đệm *</label>
-                        <input type="text"
-                               id="firstName"
-                               name="firstName"
-                               value="${firstName}"
-                               placeholder="VD: Nguyễn Văn">
-                        <span class="field-error-message" id="firstNameError"></span>
+                <div class="booking-form-grid">
+                    <div class="field">
+                        <label for="firstName">Họ và tên đệm</label>
+                        <input class="form-control" id="firstName" name="firstName"
+                               value="${fn:escapeXml(firstName)}"
+                               placeholder="VD: Nguyễn Văn" autocomplete="family-name" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="lastName">Tên *</label>
-                        <input type="text"
-                               id="lastName"
-                               name="lastName"
-                               value="${lastName}"
-                               placeholder="VD: A">
-                        <span class="field-error-message" id="lastNameError"></span>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="email">Email *</label>
-                        <input type="email"
-                               id="email"
-                               name="email"
-                               value="${email}"
-                               placeholder="nguyenvana@gmail.com">
-                        <span class="field-error-message" id="emailError"></span>
+                    <div class="field">
+                        <label for="lastName">Tên</label>
+                        <input class="form-control" id="lastName" name="lastName"
+                               value="${fn:escapeXml(lastName)}"
+                               placeholder="VD: A" autocomplete="given-name" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="phone">Số điện thoại *</label>
-                        <input type="text"
-                               id="phone"
-                               name="phone"
-                               value="${phone}"
-                               placeholder="0987654321">
-                        <span class="field-error-message" id="phoneError"></span>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input class="form-control" id="email" type="email" name="email"
+                               value="${fn:escapeXml(email)}"
+                               placeholder="example@gmail.com" autocomplete="email" required>
                     </div>
-                </div>
 
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="streetAddress">Số nhà, đường *</label>
-                    <input type="text"
-                           id="streetAddress"
-                           name="streetAddress"
-                           value="${streetAddress}"
-                           placeholder="VD: Số 10 Nguyễn Trãi">
-                    <span class="field-error-message" id="streetAddressError"></span>
-                </div>
+                    <div class="field">
+                        <label for="phone">Số điện thoại</label>
+                        <input class="form-control" id="phone" name="phone"
+                               value="${fn:escapeXml(phone)}"
+                               placeholder="Nhập số điện thoại" autocomplete="tel" required>
+                    </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="provinceSelect">Tỉnh / Thành phố *</label>
-                        <select id="provinceSelect" required>
-                            <option value="">-- Chọn tỉnh / thành phố --</option>
+                    <div class="field">
+                        <label for="identityNumber">CCCD / CMND</label>
+                        <input class="form-control"
+                               id="identityNumber"
+                               name="identityNumber"
+                               value="${fn:escapeXml(identityNumber)}"
+                               inputmode="numeric"
+                               maxlength="23"
+                               placeholder="Nhập 9 hoặc 12 chữ số"
+                               required>
+                        <span class="field-hint">Có thể nhập liền hoặc có khoảng trắng, hệ thống sẽ tự chuẩn hóa.</span>
+                        <span class="field-message" id="identityNumberMessage"></span>
+                    </div>
+
+                    <div class="field">
+                        <label for="identityImage">Ảnh CCCD / CMND</label>
+                        <input class="form-control"
+                               id="identityImage"
+                               name="identityImage"
+                               type="file"
+                               accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp"
+                               required>
+                        <span class="field-hint">JPG, JPEG, PNG hoặc WEBP; tối đa 5MB.</span>
+                        <span class="field-message" id="identityImageMessage"></span>
+                        <div class="identity-preview" id="identityPreview">
+                            <img id="identityPreviewImage" alt="Ảnh CCCD / CMND đã chọn">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="city">Tỉnh/Thành phố</label>
+                        <select class="form-select" id="city" name="provinceCode" required>
+                            <option value="">Chọn tỉnh/thành phố</option>
                         </select>
+                        <span class="field-message" id="cityMessage"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label for="administrativeUnitID">Phường / Xã *</label>
-                        <select id="administrativeUnitID" name="administrativeUnitID" required disabled>
-                            <option value="">-- Chọn phường / xã --</option>
+                    <div class="field">
+                        <label for="administrativeUnitID">Phường/Xã</label>
+                        <select class="form-select" id="administrativeUnitID" name="administrativeUnitID" required disabled>
+                            <option value="">Chọn phường/xã</option>
                         </select>
-                        <span class="field-error-message" id="administrativeUnitIDError"></span>
+                        <span class="field-message" id="wardMessage"></span>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 15px;">
-                        <input type="checkbox"
-                               name="isBookedForOther"
-                        ${not empty param.isBookedForOther ? 'checked' : ''}
-                               style="width: 18px; height: 18px; cursor: pointer;">
-                        Tôi đang đặt tour hộ cho người khác
-                    </label>
-                </div>
-            </div>
+                    <div class="field full">
+                        <label for="streetAddress">Số nhà, đường</label>
+                        <input class="form-control"
+                               id="streetAddress"
+                               name="streetAddress"
+                               value="${fn:escapeXml(streetAddress)}"
+                               maxlength="120"
+                               placeholder="VD: 12 Tràng Tiền"
+                               autocomplete="street-address"
+                               required>
+                        <span class="field-hint">Chỉ nhập chữ, số, khoảng trắng và các ký tự , . / -</span>
+                        <span class="field-message" id="streetAddressMessage"></span>
+                    </div>
 
-            <div class="form-card">
-                <h3>2. Chi tiết số lượng</h3>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="numberAdult">Số người lớn *</label>
-                        <input type="text"
+                    <div class="field">
+                        <label for="numberAdult">Số người lớn</label>
+                        <input class="form-control"
                                id="numberAdult"
                                name="numberAdult"
-                               value="${not empty param.numberAdult ? param.numberAdult : 1}"
-                               inputmode="numeric"
-                               pattern="[0-9]*"
-                               placeholder="VD: 1">
-                        <span class="field-error-message" id="numberAdultError"></span>
+                               type="number"
+                               min="1"
+                               max="${selectedSchedule.remainingSeats}"
+                               step="1"
+                               value="${not empty numberAdult ? numberAdult : 1}"
+                               required>
+                        <span class="field-hint">Dùng mũi tên lên/xuống để chọn số lượng.</span>
+                        <span class="field-message" id="numberAdultMessage"></span>
                     </div>
 
-                    <div class="form-group">
+                    <div class="field">
                         <label for="numberChildren">Số trẻ em</label>
-                        <input type="text"
+                        <input class="form-control"
                                id="numberChildren"
                                name="numberChildren"
-                               value="${not empty param.numberChildren ? param.numberChildren : 0}"
-                               inputmode="numeric"
-                               pattern="[0-9]*"
-                               placeholder="VD: 0">
-                        <span class="field-error-message" id="numberChildrenError"></span>
+                               type="number"
+                               min="0"
+                               max="${selectedSchedule.remainingSeats}"
+                               step="1"
+                               value="${not empty numberChildren ? numberChildren : 0}"
+                               required>
+                        <span class="field-hint">Dùng mũi tên lên/xuống để chọn số lượng.</span>
+                        <span class="field-message" id="numberChildrenMessage"></span>
+                    </div>
+
+                    <div class="field full">
+                        <label for="note">Ghi chú cho tour (nếu có)</label>
+                        <textarea class="form-control" id="note" name="note"
+                                  placeholder="Ví dụ: Ăn chay, yêu cầu xe lăn, ghép phòng...">${fn:escapeXml(note)}</textarea>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="note">Ghi chú thêm</label>
-                    <textarea id="note"
-                              name="note"
-                              rows="3"
-                              placeholder="Ví dụ: Ăn chay, yêu cầu xe lăn, ghép phòng...">${note}</textarea>
+                <div class="form-actions">
+                    <a class="btn-soft-back" href="${pageContext.request.contextPath}/tour-detail?id=${selectedTour.tourID}">
+                        Hủy
+                    </a>
+                    <button class="btn-submit-booking" type="submit">
+                        <i class="fa-solid fa-credit-card"></i>
+                        Thanh toán
+                    </button>
                 </div>
+            </form>
+        </section>
 
-                <div class="form-group">
-                    <label for="totalPrice">Tổng tiền</label>
-                    <input type="text"
-                           id="totalPrice"
-                           value="Hệ thống sẽ tự động tính sau khi xác nhận đặt tour"
-                           readonly
-                           style="background-color: #f9fafb; font-weight: bold; color: #111827;">
-                </div>
+        <aside class="summary-card">
+            <div class="summary-image">
+                <img src="${fn:escapeXml(selectedTour.image)}"
+                     alt="${fn:escapeXml(selectedTour.tourName)}"
+                     onerror="this.src='https://placehold.co/800x450?text=WonderVN+Tour';">
             </div>
 
-            <div style="text-align: center;">
-                <button type="submit" class="primary-btn checkout-btn">
-                    Xác nhận Thanh toán & Đặt Tour
-                </button>
+            <div class="summary-body">
+                <div class="summary-title"><c:out value="${selectedTour.tourName}"/></div>
+                <div class="summary-place">
+                    <i class="fa-solid fa-location-dot me-1"></i>
+                    <c:out value="${selectedTour.startPlace}"/>
+                    <c:if test="${not empty selectedTour.endPlace}">
+                        &rarr; <c:out value="${selectedTour.endPlace}"/>
+                    </c:if>
+                </div>
+
+                <div class="summary-line">
+                    <span><i class="fa-solid fa-calendar-check"></i> Khởi hành</span>
+                    <strong><fmt:formatDate value="${selectedSchedule.startDate}" pattern="dd/MM/yyyy"/></strong>
+                </div>
+
+                <div class="summary-line">
+                    <span><i class="fa-solid fa-calendar-xmark"></i> Kết thúc</span>
+                    <strong><fmt:formatDate value="${selectedSchedule.endDate}" pattern="dd/MM/yyyy"/></strong>
+                </div>
+
+                <div class="summary-line">
+                    <span><i class="fa-solid fa-chair"></i> Chỗ còn lại</span>
+                    <strong>${selectedSchedule.remainingSeats} chỗ</strong>
+                </div>
+
+                <div class="summary-line">
+                    <span><i class="fa-solid fa-user-group"></i> Số khách</span>
+                    <strong id="guestSummary">1 người lớn, 0 trẻ em</strong>
+                </div>
+
+                <div class="summary-line">
+                    <span><i class="fa-solid fa-tag"></i> Giá người lớn</span>
+                    <strong><fmt:formatNumber value="${checkoutAdultPrice}" type="number" maxFractionDigits="0"/> đ</strong>
+                </div>
+
+                <div class="summary-line">
+                    <span><i class="fa-solid fa-child"></i> Giá trẻ em</span>
+                    <strong><fmt:formatNumber value="${checkoutChildPrice}" type="number" maxFractionDigits="0"/> đ</strong>
+                </div>
+
+                <div class="voucher-picker" aria-labelledby="voucherPickerTitle">
+                    <div class="voucher-picker-title" id="voucherPickerTitle">
+                        <i class="fa-solid fa-ticket"></i>
+                        Chọn voucher
+                    </div>
+
+                    <label class="voucher-option">
+                        <input type="radio"
+                               name="userVoucherID"
+                               value=""
+                               form="tourCheckoutForm"
+                               checked>
+                        <span>
+                            <strong>Không sử dụng voucher</strong>
+                            <small>Thanh toán theo giá gốc.</small>
+                        </span>
+                    </label>
+
+                    <c:forEach var="voucher" items="${applicableVouchers}">
+                        <label class="voucher-option">
+                            <input type="radio"
+                                   name="userVoucherID"
+                                   value="${voucher.userVoucherID}"
+                                   form="tourCheckoutForm"
+                                   data-code="${fn:escapeXml(voucher.code)}"
+                                   data-percent="${voucher.percentDiscount}"
+                                   data-amount="${voucher.amountDiscount}"
+                                   data-min="${voucher.minOrderAmount}"
+                                ${not empty selectedUserVoucherID and selectedUserVoucherID == voucher.userVoucherID ? 'checked' : ''}>
+                            <span>
+                                <strong><c:out value="${voucher.code}"/></strong>
+                                <small>
+                                    <c:choose>
+                                        <c:when test="${not empty voucher.percentDiscount}">
+                                            Giảm <fmt:formatNumber value="${voucher.percentDiscount}" maxFractionDigits="0"/>%
+                                        </c:when>
+                                        <c:otherwise>
+                                            Giảm <fmt:formatNumber value="${voucher.amountDiscount}" type="number" maxFractionDigits="0"/> đ
+                                        </c:otherwise>
+                                    </c:choose>
+                                    <c:if test="${not empty voucher.minOrderAmount}">
+                                        &middot; Đơn tối thiểu <fmt:formatNumber value="${voucher.minOrderAmount}" type="number" maxFractionDigits="0"/> đ
+                                    </c:if>
+                                </small>
+                            </span>
+                        </label>
+                    </c:forEach>
+
+                    <c:if test="${empty applicableVouchers}">
+                        <div class="voucher-empty">Bạn chưa có voucher phù hợp với đơn đặt tour này.</div>
+                    </c:if>
+                </div>
+
+                <div class="summary-line">
+                    <span><i class="fa-solid fa-money-bill-wave"></i> Giá gốc</span>
+                    <strong id="baseTotalValue">0 đ</strong>
+                </div>
+
+                <div class="summary-line voucher-discount" id="voucherDiscountLine">
+                    <span><i class="fa-solid fa-ticket"></i> <span id="voucherDiscountLabel">Voucher</span></span>
+                    <strong id="voucherDiscountValue">-0 đ</strong>
+                </div>
+
+                <div class="summary-total">
+                    <div class="summary-total-label">Tổng thanh toán (tạm tính)</div>
+                    <div class="summary-total-value" id="bookingTotalValue">0 đ</div>
+                </div>
             </div>
-        </form>
-    </section>
+        </aside>
+    </div>
 </main>
 
-<jsp:include page="/views/common/client-footer.jsp" />
-
-<button class="scroll-top" id="scrollTop" type="button">↑</button>
-<script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
+<jsp:include page="/views/common/client-footer.jsp"/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const administrativeUnits = [
-        <c:forEach var="unit" items="${administrativeUnitList}" varStatus="loop">
-        { id: "${unit.administrativeUnitID}", province: "${unit.provinceName}", ward: "${unit.wardName}" }${loop.last ? '' : ','}
-        </c:forEach>
-    ];
-
     document.addEventListener("DOMContentLoaded", function () {
-        const checkoutForm = document.querySelector("form[action$='/booking']");
-        const provinceSelect = document.getElementById("provinceSelect");
+        const form = document.getElementById("tourCheckoutForm");
+        const citySelect = document.getElementById("city");
         const wardSelect = document.getElementById("administrativeUnitID");
+        const identityNumberInput = document.getElementById("identityNumber");
+        const identityImageInput = document.getElementById("identityImage");
+        const identityNumberMessage = document.getElementById("identityNumberMessage");
+        const identityImageMessage = document.getElementById("identityImageMessage");
+        const cityMessage = document.getElementById("cityMessage");
+        const wardMessage = document.getElementById("wardMessage");
+        const identityPreview = document.getElementById("identityPreview");
+        const identityPreviewImage = document.getElementById("identityPreviewImage");
+        const streetAddressInput = document.getElementById("streetAddress");
+        const streetAddressMessage = document.getElementById("streetAddressMessage");
+        const numberAdultInput = document.getElementById("numberAdult");
+        const numberChildrenInput = document.getElementById("numberChildren");
+        const numberAdultMessage = document.getElementById("numberAdultMessage");
+        const numberChildrenMessage = document.getElementById("numberChildrenMessage");
+        const guestSummary = document.getElementById("guestSummary");
+        const baseTotalValue = document.getElementById("baseTotalValue");
+        const voucherDiscountLine = document.getElementById("voucherDiscountLine");
+        const voucherDiscountLabel = document.getElementById("voucherDiscountLabel");
+        const voucherDiscountValue = document.getElementById("voucherDiscountValue");
+        const bookingTotalValue = document.getElementById("bookingTotalValue");
+
+        const administrativeUnits = ${administrativeUnitsJson};
         const selectedUnitID = "${selectedAdministrativeUnitID}";
 
-        const provinces = [...new Set(administrativeUnits.map(unit => unit.province))];
-        provinces.forEach(function (province) {
-            const option = document.createElement("option");
-            option.value = province;
-            option.textContent = province;
-            provinceSelect.appendChild(option);
-        });
+        const ADULT_PRICE = Number("${checkoutAdultPrice}") || 0;
+        const CHILD_PRICE = Number("${checkoutChildPrice}") || 0;
+        const MAX_SEATS = Number("${selectedSchedule.remainingSeats}") || 1;
 
-        function fillWards(province, selectedID) {
-            wardSelect.innerHTML = '<option value="">-- Chọn phường / xã --</option>';
-            administrativeUnits
-                .filter(unit => unit.province === province)
-                .forEach(function (unit) {
-                    const option = document.createElement("option");
-                    option.value = unit.id;
-                    option.textContent = unit.ward;
-                    option.selected = unit.id === selectedID;
-                    wardSelect.appendChild(option);
-                });
-            wardSelect.disabled = !province;
+        const currency = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 });
+        let previewObjectUrl = null;
+
+        function getVoucherInputs() {
+            return Array.from(document.querySelectorAll("input[name='userVoucherID']"));
         }
 
-        if (selectedUnitID) {
-            const selectedUnit = administrativeUnits.find(unit => unit.id === selectedUnitID);
-            if (selectedUnit) {
-                provinceSelect.value = selectedUnit.province;
-                fillWards(selectedUnit.province, selectedUnitID);
+        /* ---------- Guest count spinners (arrow keys / spinner only) ---------- */
+
+        function clampCount(input, min) {
+            let value = parseInt(input.value, 10);
+
+            if (isNaN(value)) {
+                value = min;
+            }
+
+            const otherInput = input === numberAdultInput ? numberChildrenInput : numberAdultInput;
+            const otherValue = parseInt(otherInput.value, 10) || 0;
+            const maxForThis = Math.max(min, MAX_SEATS - otherValue);
+
+            if (value < min) {
+                value = min;
+            }
+
+            if (value > maxForThis) {
+                value = maxForThis;
+            }
+
+            input.value = value;
+            input.max = maxForThis;
+        }
+
+        function blockTyping(event) {
+            const allowedKeys = ["ArrowUp", "ArrowDown", "Tab"];
+
+            if (!allowedKeys.includes(event.key)) {
+                event.preventDefault();
             }
         }
 
-        provinceSelect.addEventListener("change", function () {
-            fillWards(this.value, "");
-        });
-
-        const fields = {
-            firstName: {
-                element: document.getElementById("firstName"),
-                error: document.getElementById("firstNameError"),
-                validate: function (value) {
-                    if (value.trim() === "") {
-                        return "Vui lòng nhập họ và tên đệm.";
-                    }
-
-                    if (value.trim().length < 2) {
-                        return "Họ và tên đệm phải có ít nhất 2 ký tự.";
-                    }
-
-                    if (value.trim().length > 100) {
-                        return "Họ và tên đệm không được vượt quá 100 ký tự.";
-                    }
-
-                    if (!/^[A-Za-zÀ-ỹ\s]+$/.test(value.trim())) {
-                        return "Họ và tên đệm chỉ được chứa chữ cái và khoảng trắng.";
-                    }
-
-                    return "";
-                }
-            },
-
-            lastName: {
-                element: document.getElementById("lastName"),
-                error: document.getElementById("lastNameError"),
-                validate: function (value) {
-                    if (value.trim() === "") {
-                        return "Vui lòng nhập tên.";
-                    }
-
-                    if (value.trim().length > 100) {
-                        return "Tên không được vượt quá 100 ký tự.";
-                    }
-
-                    if (!/^[A-Za-zÀ-ỹ\s]+$/.test(value.trim())) {
-                        return "Tên chỉ được chứa chữ cái và khoảng trắng.";
-                    }
-
-                    return "";
-                }
-            },
-
-            email: {
-                element: document.getElementById("email"),
-                error: document.getElementById("emailError"),
-                validate: function (value) {
-                    if (value.trim() === "") {
-                        return "Vui lòng nhập email.";
-                    }
-
-                    if (value.trim().length > 255) {
-                        return "Email không được vượt quá 255 ký tự.";
-                    }
-
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-                        return "Email không đúng định dạng. Ví dụ: example@gmail.com.";
-                    }
-
-                    return "";
-                }
-            },
-
-            phone: {
-                element: document.getElementById("phone"),
-                error: document.getElementById("phoneError"),
-                validate: function (value) {
-                    if (value.trim() === "") {
-                        return "Vui lòng nhập số điện thoại.";
-                    }
-
-                    if (!/^0\d{9}$/.test(value.trim())) {
-                        return "Số điện thoại phải có 10 chữ số và bắt đầu bằng 0.";
-                    }
-
-                    return "";
-                }
-            },
-
-            streetAddress: {
-                element: document.getElementById("streetAddress"),
-                error: document.getElementById("streetAddressError"),
-                validate: function (value) {
-                    if (value.trim() === "") {
-                        return "Vui lòng nhập số nhà, đường.";
-                    }
-
-                    if (value.trim().length > 255) {
-                        return "Số nhà, đường không được vượt quá 255 ký tự.";
-                    }
-
-                    return "";
-                }
-            },
-
-            administrativeUnitID: {
-                element: wardSelect,
-                error: document.getElementById("administrativeUnitIDError"),
-                validate: function (value) {
-                    return value ? "" : "Vui lòng chọn tỉnh/thành phố và phường/xã.";
-                }
-            },
-
-            numberAdult: {
-                element: document.getElementById("numberAdult"),
-                error: document.getElementById("numberAdultError"),
-                validate: function (value) {
-                    if (value.trim() === "") {
-                        return "Vui lòng nhập số người lớn.";
-                    }
-
-                    if (!/^\d+$/.test(value.trim())) {
-                        return "Số người lớn chỉ được nhập số.";
-                    }
-
-                    if (parseInt(value.trim(), 10) < 1) {
-                        return "Số người lớn phải lớn hơn hoặc bằng 1.";
-                    }
-
-                    return "";
-                }
-            },
-
-            numberChildren: {
-                element: document.getElementById("numberChildren"),
-                error: document.getElementById("numberChildrenError"),
-                validate: function (value) {
-                    if (value.trim() === "") {
-                        return "Vui lòng nhập số trẻ em.";
-                    }
-
-                    if (!/^\d+$/.test(value.trim())) {
-                        return "Số trẻ em chỉ được nhập số.";
-                    }
-
-                    if (parseInt(value.trim(), 10) < 0) {
-                        return "Số trẻ em không được nhỏ hơn 0.";
-                    }
-
-                    return "";
-                }
-            }
-        };
-
-        function showError(field, message) {
-            field.element.classList.add("input-error");
-            field.element.classList.remove("input-valid");
-
-            field.error.textContent = message;
-            field.error.classList.add("show");
+        function getCounts() {
+            return {
+                adults: parseInt(numberAdultInput.value, 10) || 1,
+                children: parseInt(numberChildrenInput.value, 10) || 0
+            };
         }
 
-        function showValid(field) {
-            field.element.classList.remove("input-error");
+        function validateGuestCounts(showError) {
+            const counts = getCounts();
+            let valid = true;
 
-            if (document.activeElement === field.element) {
-                field.element.classList.add("input-valid");
+            if (counts.adults < 1) {
+                if (showError) {
+                    setFieldState(numberAdultInput, numberAdultMessage, false, "Số người lớn phải lớn hơn hoặc bằng 1.");
+                }
+                valid = false;
             } else {
-                field.element.classList.remove("input-valid");
+                clearFieldState(numberAdultInput, numberAdultMessage);
             }
 
-            field.error.textContent = "";
-            field.error.classList.remove("show");
+            if (counts.children < 0) {
+                if (showError) {
+                    setFieldState(numberChildrenInput, numberChildrenMessage, false, "Số trẻ em không được nhỏ hơn 0.");
+                }
+                valid = false;
+            } else {
+                clearFieldState(numberChildrenInput, numberChildrenMessage);
+            }
+
+            if (counts.adults + counts.children > MAX_SEATS) {
+                setFieldState(numberChildrenInput, numberChildrenMessage, false,
+                    "Tổng số khách vượt quá số chỗ còn lại (" + MAX_SEATS + " chỗ).");
+                valid = false;
+            }
+
+            return valid;
         }
 
-        function validateField(field) {
-            const message = field.validate(field.element.value);
+        /* ---------- Price + voucher summary ---------- */
 
-            if (message) {
-                showError(field, message);
+        function getBaseTotal() {
+            const counts = getCounts();
+            return counts.adults * ADULT_PRICE + counts.children * CHILD_PRICE;
+        }
+
+        function refreshVoucherAvailability(baseTotal) {
+            getVoucherInputs().forEach(function (input) {
+                if (!input.value) {
+                    return;
+                }
+
+                const minOrder = Number(input.dataset.min) || 0;
+                const usable = minOrder <= baseTotal;
+                input.disabled = !usable;
+                input.closest(".voucher-option").classList.toggle("disabled", !usable);
+
+                if (!usable && input.checked) {
+                    input.checked = false;
+                    const noVoucher = getVoucherInputs().find(function (item) {
+                        return item.value === "";
+                    });
+                    if (noVoucher) {
+                        noVoucher.checked = true;
+                    }
+                }
+            });
+        }
+
+        function updateSummary() {
+            const counts = getCounts();
+            const baseTotal = getBaseTotal();
+
+            guestSummary.textContent = counts.adults + " người lớn, " + counts.children + " trẻ em";
+            baseTotalValue.textContent = currency.format(baseTotal) + " đ";
+
+            refreshVoucherAvailability(baseTotal);
+
+            const selectedVoucher = getVoucherInputs().find(function (input) {
+                return input.checked;
+            });
+            const percent = Number(selectedVoucher ? selectedVoucher.dataset.percent : 0) || 0;
+            const amount = Number(selectedVoucher ? selectedVoucher.dataset.amount : 0) || 0;
+            const voucherCode = selectedVoucher ? selectedVoucher.dataset.code : "";
+            const discount = Math.min(baseTotal, amount > 0 ? amount : baseTotal * percent / 100);
+            const finalTotal = Math.max(0, baseTotal - discount);
+
+            bookingTotalValue.textContent = currency.format(finalTotal) + " đ";
+            voucherDiscountLabel.textContent = voucherCode ? "Voucher " + voucherCode : "Voucher";
+            voucherDiscountValue.textContent = "-" + currency.format(discount) + " đ";
+            voucherDiscountLine.style.display = discount > 0 ? "flex" : "none";
+        }
+
+        /* ---------- Field state helpers ---------- */
+
+        function setFieldState(input, messageEl, valid, message) {
+            if (!input || !messageEl) {
+                return;
+            }
+
+            input.classList.toggle("is-valid", valid);
+            input.classList.toggle("is-invalid", !valid);
+            messageEl.classList.toggle("success", valid);
+            messageEl.classList.toggle("error", !valid);
+            messageEl.textContent = message;
+        }
+
+        function clearFieldState(input, messageEl) {
+            if (!input || !messageEl) {
+                return;
+            }
+
+            input.classList.remove("is-valid", "is-invalid");
+            messageEl.classList.remove("success", "error");
+            messageEl.textContent = "";
+        }
+
+        /* ---------- Identity number ---------- */
+
+        function normalizeIdentityNumber(value) {
+            return (value || "").replace(/\D/g, "");
+        }
+
+        function validateIdentityNumber(showEmptyError) {
+            const digits = normalizeIdentityNumber(identityNumberInput.value);
+
+            if (!digits) {
+                if (showEmptyError) {
+                    setFieldState(identityNumberInput, identityNumberMessage, false, "Vui lòng nhập CCCD/CMND.");
+                } else {
+                    clearFieldState(identityNumberInput, identityNumberMessage);
+                }
                 return false;
             }
 
-            showValid(field);
+            if (digits.length !== 9 && digits.length !== 12) {
+                setFieldState(identityNumberInput, identityNumberMessage, false, "CCCD/CMND phải gồm đúng 9 hoặc 12 chữ số.");
+                return false;
+            }
+
+            setFieldState(identityNumberInput, identityNumberMessage, true, "CCCD/CMND hợp lệ.");
             return true;
         }
 
-        Object.keys(fields).forEach(function (key) {
-            const field = fields[key];
+        function normalizeIdentityInput() {
+            const digits = normalizeIdentityNumber(identityNumberInput.value);
+            if (digits) {
+                identityNumberInput.value = digits;
+            }
+            validateIdentityNumber(false);
+        }
 
-            field.element.addEventListener("input", function () {
-                validateField(field);
+        /* ---------- Identity image ---------- */
+
+        function validateIdentityImage(showEmptyError) {
+            const file = identityImageInput.files && identityImageInput.files[0];
+
+            if (!file) {
+                if (previewObjectUrl) {
+                    URL.revokeObjectURL(previewObjectUrl);
+                    previewObjectUrl = null;
+                }
+                identityPreview.style.display = "none";
+                identityPreviewImage.removeAttribute("src");
+
+                if (showEmptyError) {
+                    setFieldState(identityImageInput, identityImageMessage, false, "Vui lòng chọn ảnh CCCD/CMND.");
+                } else {
+                    clearFieldState(identityImageInput, identityImageMessage);
+                }
+                return false;
+            }
+
+            const allowedTypes = ["image/jpeg", "image/jpg", "image/pjpeg", "image/png", "image/webp"];
+            const allowedExtensions = /\.(jpe?g|png|webp)$/i;
+            const validType = allowedTypes.includes((file.type || "").toLowerCase()) || allowedExtensions.test(file.name || "");
+            const validSize = file.size <= 5 * 1024 * 1024;
+
+            if (!validType) {
+                identityPreview.style.display = "none";
+                setFieldState(identityImageInput, identityImageMessage, false, "Ảnh CCCD phải là JPG, JPEG, PNG hoặc WEBP.");
+                return false;
+            }
+
+            if (!validSize) {
+                identityPreview.style.display = "none";
+                setFieldState(identityImageInput, identityImageMessage, false, "Ảnh CCCD không được vượt quá 5MB.");
+                return false;
+            }
+
+            if (previewObjectUrl) {
+                URL.revokeObjectURL(previewObjectUrl);
+            }
+
+            previewObjectUrl = URL.createObjectURL(file);
+            identityPreviewImage.src = previewObjectUrl;
+            identityPreview.style.display = "block";
+            setFieldState(identityImageInput, identityImageMessage, true, "Ảnh CCCD hợp lệ.");
+            return true;
+        }
+
+        /* ---------- Street address ---------- */
+
+        function validateStreetAddress(showEmptyError) {
+            const value = (streetAddressInput.value || "").trim();
+            const validPattern = /^[\p{L}0-9\s,./-]+$/u;
+
+            if (!value) {
+                if (showEmptyError) {
+                    setFieldState(streetAddressInput, streetAddressMessage, false, "Vui lòng nhập số nhà, đường.");
+                } else {
+                    clearFieldState(streetAddressInput, streetAddressMessage);
+                }
+                return false;
+            }
+
+            if (value.length > 120 || !validPattern.test(value)) {
+                setFieldState(streetAddressInput, streetAddressMessage, false, "Chỉ dùng chữ, số, khoảng trắng và ký tự , . / -");
+                return false;
+            }
+
+            setFieldState(streetAddressInput, streetAddressMessage, true, "Địa chỉ cụ thể hợp lệ.");
+            return true;
+        }
+
+        /* ---------- Province / ward selects ---------- */
+
+        function groupUnitsByProvince(units) {
+            const provinceMap = new Map();
+
+            (units || []).forEach(function (unit) {
+                const provinceCode = (unit.provinceCode || "").trim();
+                const provinceName = (unit.provinceName || "").trim();
+                const wardName = (unit.wardName || "").trim();
+                const administrativeUnitID = Number(unit.administrativeUnitID);
+
+                if (!provinceCode || !provinceName || !wardName || !administrativeUnitID) {
+                    return;
+                }
+
+                if (!provinceMap.has(provinceCode)) {
+                    provinceMap.set(provinceCode, {
+                        provinceName: provinceName,
+                        wards: []
+                    });
+                }
+
+                provinceMap.get(provinceCode).wards.push({
+                    administrativeUnitID: administrativeUnitID,
+                    wardName: wardName,
+                    wardType: (unit.wardType || "").trim()
+                });
             });
 
-            field.element.addEventListener("focus", function () {
-                validateField(field);
+            return provinceMap;
+        }
+
+        const provinceMap = groupUnitsByProvince(administrativeUnits);
+
+        function populateProvinceOptions() {
+            citySelect.innerHTML = '<option value="">Chọn tỉnh/thành phố</option>';
+
+            Array.from(provinceMap.entries()).forEach(function ([provinceCode, province]) {
+                const option = document.createElement("option");
+                option.value = provinceCode;
+                option.textContent = province.provinceName;
+                citySelect.appendChild(option);
+            });
+        }
+
+        function resetWardOptions(disabled) {
+            wardSelect.innerHTML = '<option value="">Chọn phường/xã</option>';
+            wardSelect.disabled = disabled;
+        }
+
+        function populateWardOptions(provinceCode, selectedID) {
+            resetWardOptions(true);
+
+            const province = provinceMap.get(provinceCode);
+            const wards = province ? province.wards : [];
+            if (!wards.length) {
+                return;
+            }
+
+            wards.forEach(function (ward) {
+                const option = document.createElement("option");
+                option.value = ward.administrativeUnitID;
+                const normalizedWardName = ward.wardName.toLowerCase();
+                const normalizedWardType = ward.wardType.toLowerCase();
+                option.textContent = ward.wardType && !normalizedWardName.startsWith(normalizedWardType + " ")
+                    ? ward.wardType + " " + ward.wardName
+                    : ward.wardName;
+                option.selected = String(ward.administrativeUnitID) === String(selectedID);
+                wardSelect.appendChild(option);
             });
 
-            field.element.addEventListener("blur", function () {
-                validateField(field);
-                field.element.classList.remove("input-valid");
+            wardSelect.disabled = false;
+        }
+
+        function preselectUnit(unitID) {
+            if (!unitID) {
+                return;
+            }
+
+            const selectedUnit = (administrativeUnits || []).find(function (unit) {
+                return String(unit.administrativeUnitID) === String(unitID);
+            });
+
+            if (selectedUnit) {
+                citySelect.value = selectedUnit.provinceCode;
+                populateWardOptions(selectedUnit.provinceCode, unitID);
+            }
+        }
+
+        function validateAddressSelect(select, messageEl, emptyMessage, validMessage, showEmptyError) {
+            if (!select.value) {
+                if (showEmptyError) {
+                    setFieldState(select, messageEl, false, emptyMessage);
+                } else {
+                    clearFieldState(select, messageEl);
+                }
+                return false;
+            }
+
+            setFieldState(select, messageEl, true, validMessage);
+            return true;
+        }
+
+        function validateCity(showEmptyError) {
+            return validateAddressSelect(
+                citySelect,
+                cityMessage,
+                "Vui lòng chọn tỉnh/thành phố.",
+                "Tỉnh/thành phố hợp lệ.",
+                showEmptyError
+            );
+        }
+
+        function validateWard(showEmptyError) {
+            return validateAddressSelect(
+                wardSelect,
+                wardMessage,
+                "Vui lòng chọn phường/xã.",
+                "Phường/xã hợp lệ.",
+                showEmptyError
+            );
+        }
+
+        /* ---------- Event wiring ---------- */
+
+        identityNumberInput.addEventListener("input", function () {
+            validateIdentityNumber(false);
+        });
+
+        identityNumberInput.addEventListener("blur", normalizeIdentityInput);
+        identityImageInput.addEventListener("change", function () {
+            validateIdentityImage(true);
+        });
+        streetAddressInput.addEventListener("input", function () {
+            validateStreetAddress(false);
+        });
+        streetAddressInput.addEventListener("blur", function () {
+            streetAddressInput.value = (streetAddressInput.value || "").trim();
+            validateStreetAddress(true);
+        });
+
+        citySelect.addEventListener("change", function () {
+            clearFieldState(wardSelect, wardMessage);
+            validateCity(false);
+            populateWardOptions(citySelect.value, "");
+        });
+
+        wardSelect.addEventListener("change", function () {
+            validateWard(false);
+        });
+
+        [numberAdultInput, numberChildrenInput].forEach(function (input) {
+            input.addEventListener("keydown", blockTyping);
+            input.addEventListener("paste", function (event) {
+                event.preventDefault();
+            });
+            input.addEventListener("change", function () {
+                clampCount(numberAdultInput, 1);
+                clampCount(numberChildrenInput, 0);
+                validateGuestCounts(true);
+                updateSummary();
+            });
+            input.addEventListener("input", function () {
+                clampCount(numberAdultInput, 1);
+                clampCount(numberChildrenInput, 0);
+                validateGuestCounts(false);
+                updateSummary();
             });
         });
 
-        if (checkoutForm) {
-            checkoutForm.addEventListener("submit", function (event) {
-                let isValid = true;
-                let firstInvalidElement = null;
+        getVoucherInputs().forEach(function (input) {
+            input.addEventListener("change", updateSummary);
+        });
 
-                Object.keys(fields).forEach(function (key) {
-                    const field = fields[key];
-                    const valid = validateField(field);
+        populateProvinceOptions();
+        resetWardOptions(true);
+        preselectUnit(selectedUnitID);
 
-                    if (!valid && firstInvalidElement === null) {
-                        firstInvalidElement = field.element;
-                    }
-
-                    if (!valid) {
-                        isValid = false;
-                    }
-                });
-
-                if (!isValid) {
-                    event.preventDefault();
-
-                    if (firstInvalidElement) {
-                        firstInvalidElement.focus();
-                    }
-                }
-            });
+        if (identityNumberInput.value) {
+            normalizeIdentityInput();
         }
+
+        clampCount(numberAdultInput, 1);
+        clampCount(numberChildrenInput, 0);
+        updateSummary();
+
+        form.addEventListener("submit", function (event) {
+            const isIdentityValid = validateIdentityNumber(true);
+            const isImageValid = validateIdentityImage(true);
+            const isCityValid = validateCity(true);
+            const isWardValid = validateWard(true);
+            const isStreetValid = validateStreetAddress(true);
+            const areGuestsValid = validateGuestCounts(true);
+
+            if (!isIdentityValid || !isImageValid || !isCityValid || !isWardValid
+                || !isStreetValid || !areGuestsValid) {
+                event.preventDefault();
+                const firstInvalid = form.querySelector(".is-invalid");
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                }
+            } else {
+                identityNumberInput.value = normalizeIdentityNumber(identityNumberInput.value);
+            }
+        });
     });
 </script>
-
 </body>
 </html>

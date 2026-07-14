@@ -3,6 +3,7 @@ package vn.edu.fpt.DAO;
 import vn.edu.fpt.common.DBConnection;
 import vn.edu.fpt.model.Booking;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -193,6 +194,163 @@ public class BookingDAO {
 
         } catch (Exception e) {
             System.out.println("Lỗi kết nối hoặc xử lý BookingDAO: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    // Insert tour booking with identity info and optional voucher (mirrors accommodation flow).
+    // Returns bookingID on success, -1 on failure, -2 when the voucher is invalid/used.
+    public int insertTourBookingWithVoucherReturnID(Booking booking, int tourScheduleID,
+                                                    double unitPrice, Integer userVoucherID, int userID) {
+
+        String sqlVoucher =
+                "SELECT uv.voucherID, v.percentDiscount, v.amountDiscount "
+                        + "FROM [dbo].[User_Voucher] uv WITH (UPDLOCK, HOLDLOCK) "
+                        + "INNER JOIN [dbo].[Voucher] v WITH (UPDLOCK, HOLDLOCK) "
+                        + "ON uv.voucherID = v.voucherID "
+                        + "WHERE uv.userVoucherID = ? AND uv.userID = ? "
+                        + "AND UPPER(uv.[status]) = N'SAVED' AND v.[status] = N'Active' "
+                        + "AND GETDATE() BETWEEN v.startDate AND v.endDate "
+                        + "AND v.usedCount < v.quantity "
+                        + "AND v.applicableType IN (N'All', N'Tour') "
+                        + "AND ISNULL(v.minOrderAmount, 0) <= ?";
+
+        String sqlBooking = "INSERT INTO Booking (bookingCode, bookingType, firstName, lastName, email, "
+                + "phone, address, note, identityNumber, identityImageUrl, numberAdult, numberChildren, "
+                + "totalPrice, isBookedForOther, userID, [status], bookDate) "
+                + "VALUES (?, N'Tour', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, N'Đang xử lý', GETDATE())";
+
+        String sqlDetail = "INSERT INTO Booking_Detail (bookingID, tourScheduleID, quantity, unitPrice, subTotal) "
+                + "VALUES (?, ?, ?, ?, ?)";
+
+        String sqlUpdateSchedule = "UPDATE Tour_Scheduler "
+                + "SET quantity = quantity + ? "
+                + "WHERE tourScheduleID = ? "
+                + "AND quantity + ? <= maxParticipants";
+
+        String sqlUseUserVoucher =
+                "UPDATE [dbo].[User_Voucher] SET [status] = N'USED', usedAt = GETDATE(), bookingID = ? "
+                        + "WHERE userVoucherID = ? AND userID = ? AND [status] = N'SAVED'";
+
+        String sqlIncrementVoucher =
+                "UPDATE [dbo].[Voucher] SET usedCount = usedCount + 1, updatedAt = GETDATE() "
+                        + "WHERE voucherID = ? AND usedCount < quantity";
+
+        BigDecimal baseTotal = BigDecimal.valueOf(booking.getTotalPrice());
+
+        try (Connection conn = new DBConnection().getConnection()) {
+            conn.setAutoCommit(false);
+
+            try {
+                BigDecimal finalTotal = baseTotal;
+                Integer selectedVoucherID = null;
+
+                if (userVoucherID != null) {
+                    try (PreparedStatement psVoucher = conn.prepareStatement(sqlVoucher)) {
+                        psVoucher.setInt(1, userVoucherID);
+                        psVoucher.setInt(2, userID);
+                        psVoucher.setBigDecimal(3, baseTotal);
+
+                        try (ResultSet rs = psVoucher.executeQuery()) {
+                            if (!rs.next()) {
+                                conn.rollback();
+                                return -2;
+                            }
+
+                            selectedVoucherID = rs.getInt("voucherID");
+                            finalTotal = RoomBookingDAO.calculateDiscountedTotal(
+                                    baseTotal,
+                                    rs.getBigDecimal("percentDiscount"),
+                                    rs.getBigDecimal("amountDiscount"));
+                        }
+                    }
+                }
+
+                int generatedBookingID;
+
+                try (PreparedStatement psBooking = conn.prepareStatement(sqlBooking, Statement.RETURN_GENERATED_KEYS)) {
+                    psBooking.setString(1, booking.getBookingCode());
+                    psBooking.setString(2, booking.getFirstName());
+                    psBooking.setString(3, booking.getLastName());
+                    psBooking.setString(4, booking.getEmail());
+                    psBooking.setString(5, booking.getPhone());
+                    psBooking.setString(6, booking.getAddress());
+                    psBooking.setString(7, booking.getNote());
+                    psBooking.setString(8, booking.getIdentityNumber());
+                    psBooking.setString(9, booking.getIdentityImageUrl());
+                    psBooking.setInt(10, booking.getNumberAdult());
+                    psBooking.setInt(11, booking.getNumberChildren());
+                    psBooking.setBigDecimal(12, finalTotal);
+                    psBooking.setInt(13, userID);
+
+                    if (psBooking.executeUpdate() == 0) {
+                        conn.rollback();
+                        return -1;
+                    }
+
+                    try (ResultSet generatedKeys = psBooking.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            generatedBookingID = generatedKeys.getInt(1);
+                        } else {
+                            conn.rollback();
+                            return -1;
+                        }
+                    }
+                }
+
+                int totalQuantity = booking.getNumberAdult() + booking.getNumberChildren();
+
+                try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
+                    psDetail.setInt(1, generatedBookingID);
+                    psDetail.setInt(2, tourScheduleID);
+                    psDetail.setInt(3, totalQuantity);
+                    psDetail.setDouble(4, unitPrice);
+                    psDetail.setBigDecimal(5, finalTotal);
+
+                    psDetail.executeUpdate();
+                }
+
+                try (PreparedStatement psUpdateSchedule = conn.prepareStatement(sqlUpdateSchedule)) {
+                    psUpdateSchedule.setInt(1, totalQuantity);
+                    psUpdateSchedule.setInt(2, tourScheduleID);
+                    psUpdateSchedule.setInt(3, totalQuantity);
+
+                    if (psUpdateSchedule.executeUpdate() == 0) {
+                        conn.rollback();
+                        return -1;
+                    }
+                }
+
+                if (userVoucherID != null && selectedVoucherID != null) {
+                    try (PreparedStatement psUseVoucher = conn.prepareStatement(sqlUseUserVoucher);
+                         PreparedStatement psIncrementVoucher = conn.prepareStatement(sqlIncrementVoucher)) {
+                        psUseVoucher.setInt(1, generatedBookingID);
+                        psUseVoucher.setInt(2, userVoucherID);
+                        psUseVoucher.setInt(3, userID);
+                        psIncrementVoucher.setInt(1, selectedVoucherID);
+
+                        if (psUseVoucher.executeUpdate() == 0 || psIncrementVoucher.executeUpdate() == 0) {
+                            conn.rollback();
+                            return -2;
+                        }
+                    }
+                }
+
+                conn.commit();
+                return generatedBookingID;
+
+            } catch (Exception e) {
+                conn.rollback();
+                System.out.println("Lỗi Transaction đặt tour, đã rollback dữ liệu: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                conn.setAutoCommit(true);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi kết nối hoặc xử lý BookingDAO (tour + voucher): " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -602,11 +760,11 @@ public class BookingDAO {
 
             if (isTourBooking) {
                 try (PreparedStatement psUpdateDetail = conn.prepareStatement(sqlUpdateDetail)) {
-                psUpdateDetail.setInt(1, newQuantity);
-                psUpdateDetail.setDouble(2, unitPrice);
-                psUpdateDetail.setDouble(3, totalPrice);
-                psUpdateDetail.setInt(4, booking.getBookingID());
-                psUpdateDetail.executeUpdate();
+                    psUpdateDetail.setInt(1, newQuantity);
+                    psUpdateDetail.setDouble(2, unitPrice);
+                    psUpdateDetail.setDouble(3, totalPrice);
+                    psUpdateDetail.setInt(4, booking.getBookingID());
+                    psUpdateDetail.executeUpdate();
                 }
             }
 

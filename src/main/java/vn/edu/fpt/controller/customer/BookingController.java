@@ -3,6 +3,7 @@ package vn.edu.fpt.controller.customer;
 import vn.edu.fpt.DAO.BookingDAO;
 import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.TourDAO;
+import vn.edu.fpt.DAO.UserVoucherDAO;
 import vn.edu.fpt.model.AdministrativeUnit;
 import vn.edu.fpt.model.Booking;
 import vn.edu.fpt.model.Tour;
@@ -10,20 +11,32 @@ import vn.edu.fpt.model.TourSchedule;
 import vn.edu.fpt.model.User;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @WebServlet(name = "BookingController", urlPatterns = {"/booking"})
+@MultipartConfig(
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 6 * 1024 * 1024
+)
 public class BookingController extends HttpServlet {
     private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
+    private final UserVoucherDAO userVoucherDAO = new UserVoucherDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -60,8 +73,25 @@ public class BookingController extends HttpServlet {
 
         request.setAttribute("selectedTour", tour);
         request.setAttribute("selectedSchedule", schedule);
+
         if ("1".equals(request.getParameter("checkout"))) {
-            request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
+            HttpSession session = request.getSession(false);
+            User user = session == null ? null : (User) session.getAttribute("user");
+
+            if (user == null) {
+                request.getSession().setAttribute("redirectAfterLogin",
+                        request.getRequestURI() + (request.getQueryString() == null ? "" : "?" + request.getQueryString()));
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+
+            // Prefill contact info from the user's profile (still editable on the form)
+            request.setAttribute("firstName", user.getFirstName());
+            request.setAttribute("lastName", user.getLastName());
+            request.setAttribute("email", user.getEmail());
+            request.setAttribute("phone", user.getPhone());
+
+            prepareCheckoutAttributes(request, user, tour, schedule);
             request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
         } else {
             request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
@@ -75,6 +105,14 @@ public class BookingController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
+        HttpSession session = request.getSession(false);
+        User user = session == null ? null : (User) session.getAttribute("user");
+
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         List<String> errors = new ArrayList<>();
 
         try {
@@ -83,6 +121,9 @@ public class BookingController extends HttpServlet {
             String email = getTrimValue(request, "email");
             String phone = getTrimValue(request, "phone");
 
+            String identityNumber = normalizeIdentityNumber(request.getParameter("identityNumber"));
+            Part identityImagePart = request.getPart("identityImage");
+
             String streetAddress = getTrimValue(request, "streetAddress");
             int administrativeUnitID = parsePositiveInt(request.getParameter("administrativeUnitID"));
             AdministrativeUnit administrativeUnit = administrativeUnitID > 0
@@ -90,11 +131,12 @@ public class BookingController extends HttpServlet {
                     : null;
 
             String note = getTrimValue(request, "note");
-            String isBookedForOtherStr = request.getParameter("isBookedForOther");
 
             String numberAdultRaw = getTrimValue(request, "numberAdult");
             String numberChildrenRaw = getTrimValue(request, "numberChildren");
             String tourScheduleIDRaw = getTrimValue(request, "tourScheduleID");
+
+            Integer userVoucherID = parseNullablePositiveInt(request.getParameter("userVoucherID"));
 
             // Validate customer information
             if (firstName.isEmpty()) {
@@ -125,6 +167,15 @@ public class BookingController extends HttpServlet {
                 errors.add("Số điện thoại không được để trống.");
             } else if (!phone.matches("^0\\d{9}$")) {
                 errors.add("Số điện thoại phải có đúng 10 chữ số và bắt đầu bằng số 0.");
+            }
+
+            // Validate identity (CCCD/CMND) - same rules as accommodation booking
+            if (!isValidIdentityNumber(identityNumber)) {
+                errors.add("CCCD/CMND phải gồm đúng 9 hoặc 12 chữ số.");
+            }
+
+            if (!isValidIdentityImage(identityImagePart)) {
+                errors.add("Ảnh CCCD/CMND chưa hợp lệ. Vui lòng chọn ảnh JPG, JPEG, PNG hoặc WEBP, dung lượng tối đa 5MB.");
             }
 
             // Validate address parts
@@ -260,18 +311,30 @@ public class BookingController extends HttpServlet {
                 request.setAttribute("lastName", lastName);
                 request.setAttribute("email", email);
                 request.setAttribute("phone", phone);
+                request.setAttribute("identityNumber", identityNumber);
 
                 request.setAttribute("streetAddress", streetAddress);
                 request.setAttribute("selectedAdministrativeUnitID", administrativeUnitID);
-                request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveUnits());
+                request.setAttribute("selectedUserVoucherID", userVoucherID);
 
                 request.setAttribute("note", note);
+                request.setAttribute("numberAdult", numberAdultRaw);
+                request.setAttribute("numberChildren", numberChildrenRaw);
 
-                request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
+                forwardBackToCheckout(request, response, user, tourScheduleID);
                 return;
             }
 
-            boolean isBookedForOther = isBookedForOtherStr != null && isBookedForOtherStr.equals("on");
+            // Save identity image (same storage as accommodation booking)
+            String identityImageUrl = saveIdentityImage(request, identityImagePart, user.getUserID());
+
+            if (identityImageUrl == null) {
+                errors.add("Không thể lưu ảnh CCCD/CMND. Vui lòng thử lại.");
+                request.setAttribute("errorList", errors);
+                forwardBackToCheckout(request, response, user, tourScheduleID);
+                return;
+            }
+
             String bookingCode = "TR-" + UUID.randomUUID()
                     .toString().substring(0, 8).toUpperCase();
 
@@ -284,35 +347,95 @@ public class BookingController extends HttpServlet {
             booking.setPhone(phone);
             booking.setAddress(address);
             booking.setNote(note.isEmpty() ? null : note);
+            booking.setIdentityNumber(identityNumber);
+            booking.setIdentityImageUrl(identityImageUrl);
             booking.setNumberAdult(numberAdult);
             booking.setNumberChildren(numberChildren);
             booking.setTotalPrice(totalPrice);
-            booking.setBookedForOther(isBookedForOther);
+            booking.setBookedForOther(false);
+            booking.setUserID(user.getUserID());
 
-            HttpSession session = request.getSession(false);
+            // Save booking (voucher applied inside the transaction) and redirect to payment
+            int bookingID = dao.insertTourBookingWithVoucherReturnID(
+                    booking, tourScheduleID, unitPriceForDetail, userVoucherID, user.getUserID());
 
-            if (session != null && session.getAttribute("user") != null) {
-                User currentUser = (User) session.getAttribute("user");
-                booking.setUserID(currentUser.getUserID());
+            if (bookingID == -2) {
+                errors.add("Voucher không còn hợp lệ hoặc đã được sử dụng. Vui lòng chọn lại voucher.");
+                request.setAttribute("errorList", errors);
+                forwardBackToCheckout(request, response, user, tourScheduleID);
+                return;
             }
-
-            // Save booking and redirect to summary
-            int bookingID = dao.insertBookingTransactionReturnID(booking, tourScheduleID, unitPriceForDetail);
 
             if (bookingID > 0) {
                 HttpSession currentSession = request.getSession();
-                currentSession.setAttribute("successMessage", "Đặt tour thành công! Mã đơn: " + bookingCode);
-                response.sendRedirect(request.getContextPath() + "/booking-summary?bookingID=" + bookingID);
+                currentSession.setAttribute("successMessage",
+                        "Đặt tour thành công! Mã đơn: " + bookingCode + ". Vui lòng hoàn tất thanh toán.");
+                response.sendRedirect(request.getContextPath() + "/payment?bookingID=" + bookingID);
             } else {
                 request.setAttribute("error", "Không thể lưu đơn hàng. Có thể số chỗ vừa được người khác đặt hết. Vui lòng thử lại!");
-                request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
+                forwardBackToCheckout(request, response, user, tourScheduleID);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Đã xảy ra lỗi hệ thống nghiêm trọng!");
-            request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
+            forwardBackToCheckout(request, response, user,
+                    parsePositiveInt(request.getParameter("tourScheduleID")));
         }
+    }
+
+    // Reload tour/schedule/voucher/address data then forward back to checkout.jsp
+    private void forwardBackToCheckout(HttpServletRequest request, HttpServletResponse response,
+                                       User user, int tourScheduleID)
+            throws ServletException, IOException {
+
+        Tour tour = null;
+        TourSchedule schedule = null;
+
+        if (tourScheduleID > 0) {
+            TourDAO tourDAO = new TourDAO();
+            schedule = tourDAO.getScheduleById(tourScheduleID);
+
+            if (schedule != null) {
+                tour = tourDAO.getPublishedTourById(schedule.getTourID());
+            }
+        }
+
+        if (schedule == null || tour == null) {
+            response.sendRedirect(request.getContextPath() + "/tour?message=scheduleUnavailable");
+            return;
+        }
+
+        request.setAttribute("selectedTour", tour);
+        request.setAttribute("selectedSchedule", schedule);
+
+        prepareCheckoutAttributes(request, user, tour, schedule);
+        request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
+    }
+
+    // Data shared by both GET render and POST error re-render
+    private void prepareCheckoutAttributes(HttpServletRequest request, User user,
+                                           Tour tour, TourSchedule schedule) {
+
+        BigDecimal adultPrice = schedule.getAdultPrice() != null
+                ? schedule.getAdultPrice()
+                : (tour.getAdultPrice() != null ? tour.getAdultPrice() : BigDecimal.ZERO);
+
+        BigDecimal childPrice = schedule.getChildPrice() != null
+                ? schedule.getChildPrice()
+                : (tour.getChildrenPrice() != null ? tour.getChildrenPrice() : BigDecimal.ZERO);
+
+        // Load vouchers against the max possible order so the client script
+        // can enable/disable them by minOrderAmount as guest counts change.
+        BigDecimal maxPossibleTotal = adultPrice.multiply(
+                BigDecimal.valueOf(Math.max(1, schedule.getRemainingSeats())));
+
+        request.setAttribute("checkoutAdultPrice", adultPrice);
+        request.setAttribute("checkoutChildPrice", childPrice);
+        request.setAttribute("applicableVouchers",
+                userVoucherDAO.getApplicableSavedVouchers(user.getUserID(), "Tour", maxPossibleTotal));
+        request.setAttribute("administrativeUnitsJson",
+                toAdministrativeUnitsJson(administrativeUnitDAO.getActiveUnits()));
     }
 
     private String getTrimValue(HttpServletRequest request, String paramName) {
@@ -327,5 +450,176 @@ public class BookingController extends HttpServlet {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    private Integer parseNullablePositiveInt(String value) {
+        int number = parsePositiveInt(value);
+        return number > 0 ? number : null;
+    }
+
+    private String normalizeIdentityNumber(String value) {
+        return value == null ? "" : value.replaceAll("\\D", "");
+    }
+
+    private boolean isValidIdentityNumber(String identityNumber) {
+        String normalized = normalizeIdentityNumber(identityNumber);
+        return normalized.length() == 9 || normalized.length() == 12;
+    }
+
+    private boolean isValidIdentityImage(Part part) {
+        if (part == null || part.getSize() <= 0 || part.getSize() > 5 * 1024 * 1024) {
+            return false;
+        }
+
+        String contentType = part.getContentType();
+        String normalizedType = contentType == null ? "" : contentType.toLowerCase(Locale.ROOT);
+        if ("image/jpeg".equals(normalizedType)
+                || "image/jpg".equals(normalizedType)
+                || "image/pjpeg".equals(normalizedType)
+                || "image/png".equals(normalizedType)
+                || "image/webp".equals(normalizedType)) {
+            return true;
+        }
+
+        String fileName = part.getSubmittedFileName();
+        String normalizedName = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
+        return normalizedName.endsWith(".jpg")
+                || normalizedName.endsWith(".jpeg")
+                || normalizedName.endsWith(".png")
+                || normalizedName.endsWith(".webp");
+    }
+
+    private String saveIdentityImage(HttpServletRequest request, Part part, int userID) throws IOException {
+        if (!isValidIdentityImage(part)) {
+            return null;
+        }
+
+        String uploadRoot = getServletContext().getRealPath("/uploads/identity");
+        if (uploadRoot == null) {
+            return null;
+        }
+
+        Path uploadDir = Paths.get(uploadRoot);
+        Files.createDirectories(uploadDir);
+
+        String extension = getIdentityImageExtension(part);
+        String fileName = "identity_" + userID + "_" + UUID.randomUUID() + extension;
+        Path target = uploadDir.resolve(fileName).normalize();
+
+        if (!target.startsWith(uploadDir)) {
+            return null;
+        }
+
+        part.write(target.toString());
+        return "uploads/identity/" + fileName;
+    }
+
+    private String getIdentityImageExtension(Part part) {
+        String contentType = part == null ? "" : part.getContentType();
+        String normalizedType = contentType == null ? "" : contentType.toLowerCase(Locale.ROOT);
+
+        if ("image/png".equals(normalizedType)) {
+            return ".png";
+        }
+
+        if ("image/webp".equals(normalizedType)) {
+            return ".webp";
+        }
+
+        String fileName = part == null ? "" : part.getSubmittedFileName();
+        String normalizedName = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
+
+        if (normalizedName.endsWith(".png")) {
+            return ".png";
+        }
+
+        if (normalizedName.endsWith(".webp")) {
+            return ".webp";
+        }
+
+        if (normalizedName.endsWith(".jpeg")) {
+            return ".jpeg";
+        }
+
+        return ".jpg";
+    }
+
+    private String toAdministrativeUnitsJson(List<AdministrativeUnit> units) {
+        StringBuilder json = new StringBuilder("[");
+
+        if (units != null) {
+            for (int i = 0; i < units.size(); i++) {
+                AdministrativeUnit unit = units.get(i);
+
+                if (i > 0) {
+                    json.append(',');
+                }
+
+                json.append('{')
+                        .append("\"administrativeUnitID\":").append(unit.getAdministrativeUnitID()).append(',')
+                        .append("\"provinceCode\":\"").append(jsonEscape(unit.getProvinceCode())).append("\",")
+                        .append("\"provinceName\":\"").append(jsonEscape(unit.getProvinceName())).append("\",")
+                        .append("\"wardType\":\"").append(jsonEscape(unit.getWardType())).append("\",")
+                        .append("\"wardName\":\"").append(jsonEscape(unit.getWardName())).append("\"")
+                        .append('}');
+            }
+        }
+
+        json.append(']');
+        return json.toString();
+    }
+
+    private String jsonEscape(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        StringBuilder escaped = new StringBuilder(value.length() + 16);
+
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+
+            switch (c) {
+                case '"':
+                    escaped.append("\\\"");
+                    break;
+                case '\\':
+                    escaped.append("\\\\");
+                    break;
+                case '\b':
+                    escaped.append("\\b");
+                    break;
+                case '\f':
+                    escaped.append("\\f");
+                    break;
+                case '\n':
+                    escaped.append("\\n");
+                    break;
+                case '\r':
+                    escaped.append("\\r");
+                    break;
+                case '\t':
+                    escaped.append("\\t");
+                    break;
+                case '<':
+                    escaped.append("\\u003C");
+                    break;
+                case '>':
+                    escaped.append("\\u003E");
+                    break;
+                case '&':
+                    escaped.append("\\u0026");
+                    break;
+                default:
+                    if (c < 0x20) {
+                        escaped.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        escaped.append(c);
+                    }
+                    break;
+            }
+        }
+
+        return escaped.toString();
     }
 }
