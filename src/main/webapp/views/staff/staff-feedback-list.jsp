@@ -149,8 +149,9 @@
     }
 
     .main-content {
-      margin-left: 292px;
-      width: calc(100% - 292px);
+      flex: 1;
+      min-width: 0;
+      width: auto;
       padding: 34px 42px;
     }
 

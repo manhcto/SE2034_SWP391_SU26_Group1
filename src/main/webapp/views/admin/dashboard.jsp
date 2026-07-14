@@ -548,7 +548,7 @@
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
             <i class="fa-solid fa-pen-to-square"></i>
-            <span>Quản lý đặt chỗ</span>
+            <span>Quản lý booking</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">

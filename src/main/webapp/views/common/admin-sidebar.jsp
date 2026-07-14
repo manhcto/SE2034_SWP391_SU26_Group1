@@ -152,7 +152,7 @@
     <a class="sidebar-link${param.activeAdminMenu eq 'booking' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/booking">
         <i class="fa-solid fa-calendar-check"></i>
-        <span>Quản lí đặt chỗ</span>
+        <span>Quản lý booking</span>
     </a>
 
     <a class="sidebar-link${param.activeAdminMenu eq 'voucher' ? ' active' : ''}"
