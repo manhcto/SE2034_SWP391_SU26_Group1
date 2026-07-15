@@ -309,11 +309,6 @@
             </div>
 
             <div class="detail-actions">
-                <a href="${pageContext.request.contextPath}/feedback-edit?feedbackID=${feedbackDetail.feedbackID}"
-                   class="detail-btn detail-btn-warning">
-                    Sửa Feedback
-                </a>
-
                 <a href="${pageContext.request.contextPath}/feedback-list"
                    class="detail-btn detail-btn-primary">
                     Danh sách Feedback

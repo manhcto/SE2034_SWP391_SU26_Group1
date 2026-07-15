@@ -27,18 +27,7 @@ public class FeedbackDAO {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                Feedback feedback = new Feedback();
-
-                feedback.setFeedbackID(rs.getInt("feedbackID"));
-                feedback.setRate(rs.getDouble("rate"));
-                feedback.setContent(rs.getString("content"));
-                feedback.setCreateDate(rs.getTimestamp("createDate"));
-                feedback.setStatus(rs.getString("status"));
-                feedback.setImage(rs.getString("image"));
-                feedback.setUserID(rs.getInt("userID"));
-                feedback.setBookingID(rs.getInt("bookingID"));
-
-                feedbackList.add(feedback);
+                feedbackList.add(mapFeedback(rs));
             }
 
         } catch (Exception e) {
@@ -110,6 +99,124 @@ public class FeedbackDAO {
         return feedbackList;
     }
 
+    // ==========================================================
+    // CÁC METHOD MỚI CHO LUỒNG FEEDBACK CỦA CUSTOMER
+    // ==========================================================
+
+    // Lấy các feedback ĐÃ DUYỆT (Visible) của 1 tour, kèm tên người đánh giá
+    public List<Map<String, Object>> getVisibleFeedbacksByTourID(int tourID) {
+        String sql = "SELECT DISTINCT f.feedbackID, f.rate, f.content, f.createDate, f.image, "
+                + "u.firstName, u.lastName "
+                + "FROM Feedback f "
+                + "JOIN [User] u ON f.userID = u.userID "
+                + "JOIN Booking b ON f.bookingID = b.bookingID "
+                + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
+                + "JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID "
+                + "WHERE ts.tourID = ? AND f.status = 'Visible' "
+                + "ORDER BY f.createDate DESC";
+
+        return getVisibleFeedbacksWithUser(sql, tourID);
+    }
+
+    // Lấy các feedback ĐÃ DUYỆT (Visible) của 1 nơi lưu trú, kèm tên người đánh giá
+    public List<Map<String, Object>> getVisibleFeedbacksByAccommodationID(int accommodationID) {
+        String sql = "SELECT DISTINCT f.feedbackID, f.rate, f.content, f.createDate, f.image, "
+                + "u.firstName, u.lastName "
+                + "FROM Feedback f "
+                + "JOIN [User] u ON f.userID = u.userID "
+                + "JOIN Booking b ON f.bookingID = b.bookingID "
+                + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
+                + "WHERE bd.accommodationID = ? AND f.status = 'Visible' "
+                + "ORDER BY f.createDate DESC";
+
+        return getVisibleFeedbacksWithUser(sql, accommodationID);
+    }
+
+    // Dùng chung cho 2 method phía trên
+    private List<Map<String, Object>> getVisibleFeedbacksWithUser(String sql, int filterID) {
+        List<Map<String, Object>> feedbackList = new ArrayList<>();
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, filterID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> item = new HashMap<>();
+
+                    item.put("feedbackID", rs.getInt("feedbackID"));
+                    item.put("rate", rs.getDouble("rate"));
+                    item.put("content", rs.getString("content"));
+                    item.put("createDate", rs.getTimestamp("createDate"));
+                    item.put("image", rs.getString("image"));
+
+                    String firstName = rs.getString("firstName");
+                    String lastName = rs.getString("lastName");
+                    String userName = ((firstName == null ? "" : firstName) + " "
+                            + (lastName == null ? "" : lastName)).trim();
+
+                    item.put("userName", userName.isEmpty() ? "Khách hàng" : userName);
+
+                    feedbackList.add(item);
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi lấy feedback đã duyệt: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return feedbackList;
+    }
+
+    // Tìm booking 'Hoàn thành' MỚI NHẤT của user cho 1 tour (trả về -1 nếu không có)
+    public int getLatestCompletedBookingIDByTour(int userID, int tourID) {
+        String sql = "SELECT TOP 1 b.bookingID "
+                + "FROM Booking b "
+                + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
+                + "JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID "
+                + "WHERE b.userID = ? AND ts.tourID = ? AND b.status = N'Hoàn thành' "
+                + "ORDER BY b.bookDate DESC, b.bookingID DESC";
+
+        return getLatestCompletedBookingID(sql, userID, tourID);
+    }
+
+    // Tìm booking 'Hoàn thành' MỚI NHẤT của user cho 1 nơi lưu trú (trả về -1 nếu không có)
+    public int getLatestCompletedBookingIDByAccommodation(int userID, int accommodationID) {
+        String sql = "SELECT TOP 1 b.bookingID "
+                + "FROM Booking b "
+                + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
+                + "WHERE b.userID = ? AND bd.accommodationID = ? AND b.status = N'Hoàn thành' "
+                + "ORDER BY b.bookDate DESC, b.bookingID DESC";
+
+        return getLatestCompletedBookingID(sql, userID, accommodationID);
+    }
+
+    // Dùng chung cho 2 method phía trên
+    private int getLatestCompletedBookingID(String sql, int userID, int filterID) {
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userID);
+            ps.setInt(2, filterID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("bookingID");
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi tìm booking hoàn thành: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    // ==========================================================
+
     // Map a ResultSet row to a Feedback object
     private Feedback mapFeedback(ResultSet rs) throws Exception {
         Feedback feedback = new Feedback();
@@ -139,18 +246,7 @@ public class FeedbackDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Feedback feedback = new Feedback();
-
-                    feedback.setFeedbackID(rs.getInt("feedbackID"));
-                    feedback.setRate(rs.getDouble("rate"));
-                    feedback.setContent(rs.getString("content"));
-                    feedback.setCreateDate(rs.getTimestamp("createDate"));
-                    feedback.setStatus(rs.getString("status"));
-                    feedback.setImage(rs.getString("image"));
-                    feedback.setUserID(rs.getInt("userID"));
-                    feedback.setBookingID(rs.getInt("bookingID"));
-
-                    return feedback;
+                    return mapFeedback(rs);
                 }
             }
 
@@ -256,7 +352,7 @@ public class FeedbackDAO {
         return -1;
     }
 
-    // Update feedback information
+    // Update feedback information (chỉ còn dùng cho staff duyệt trạng thái)
     public boolean updateFeedback(Feedback feedback) {
         String sql = "UPDATE Feedback "
                 + "SET rate = ?, "

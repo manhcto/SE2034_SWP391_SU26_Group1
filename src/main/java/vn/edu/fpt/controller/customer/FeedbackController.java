@@ -2,30 +2,41 @@ package vn.edu.fpt.controller.customer;
 
 import vn.edu.fpt.DAO.FeedbackDAO;
 import vn.edu.fpt.model.Feedback;
+import vn.edu.fpt.model.User;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 @WebServlet(name = "FeedbackController", urlPatterns = {
         "/feedback-list",
         "/feedback-detail",
-        "/feedback-add",
-        "/feedback-edit"
+        "/feedback-add"
 })
+@MultipartConfig(
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 6 * 1024 * 1024
+)
 public class FeedbackController extends HttpServlet {
 
     private static final String LIST_PAGE = "/views/customer/feedback-list.jsp";
     private static final String DETAIL_PAGE = "/views/customer/feedback-detail.jsp";
     private static final String ADD_PAGE = "/views/customer/feedback-add.jsp";
-    private static final String EDIT_PAGE = "/views/customer/feedback-edit.jsp";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -49,10 +60,6 @@ public class FeedbackController extends HttpServlet {
                 showAddFeedbackForm(request, response);
                 break;
 
-            case "/feedback-edit":
-                showEditFeedbackForm(request, response);
-                break;
-
             default:
                 response.sendRedirect(request.getContextPath() + "/feedback-list");
                 break;
@@ -68,251 +75,240 @@ public class FeedbackController extends HttpServlet {
 
         String path = request.getServletPath();
 
-        switch (path) {
-            case "/feedback-add":
-                addFeedback(request, response);
-                break;
-
-            case "/feedback-edit":
-                editFeedback(request, response);
-                break;
-
-            default:
-                response.sendRedirect(request.getContextPath() + "/feedback-list");
-                break;
+        if ("/feedback-add".equals(path)) {
+            addFeedback(request, response);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/feedback-list");
         }
     }
 
+    // Danh sách feedback ĐÃ DUYỆT của 1 tour hoặc 1 nơi lưu trú
     private void showFeedbackList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         FeedbackDAO feedbackDAO = new FeedbackDAO();
-        List<Feedback> feedbackList;
+        List<Map<String, Object>> feedbackList = new ArrayList<>();
 
-        String tourIDRaw = request.getParameter("tourID");
-        String accommodationIDRaw = request.getParameter("accommodationID");
+        int tourID = parseIDParam(request, "tourID");
+        int accommodationID = parseIDParam(request, "accommodationID");
 
-        if (tourIDRaw != null && !tourIDRaw.trim().isEmpty()) {
-            // Lọc feedback theo tour
-            try {
-                int tourID = Integer.parseInt(tourIDRaw.trim());
-                feedbackList = feedbackDAO.getFeedbacksByTourID(tourID);
+        if (tourID > 0) {
+            feedbackList = feedbackDAO.getVisibleFeedbacksByTourID(tourID);
+            request.setAttribute("filterType", "tour");
+            request.setAttribute("filterID", tourID);
 
-                request.setAttribute("filterType", "tour");
-                request.setAttribute("filterID", tourID);
-            } catch (NumberFormatException e) {
-                feedbackList = feedbackDAO.getAllFeedbacks();
-            }
-
-        } else if (accommodationIDRaw != null && !accommodationIDRaw.trim().isEmpty()) {
-            // Lọc feedback theo nơi lưu trú
-            try {
-                int accommodationID = Integer.parseInt(accommodationIDRaw.trim());
-                feedbackList = feedbackDAO.getFeedbacksByAccommodationID(accommodationID);
-
-                request.setAttribute("filterType", "accommodation");
-                request.setAttribute("filterID", accommodationID);
-            } catch (NumberFormatException e) {
-                feedbackList = feedbackDAO.getAllFeedbacks();
-            }
-
-        } else {
-            feedbackList = feedbackDAO.getAllFeedbacks();
+        } else if (accommodationID > 0) {
+            feedbackList = feedbackDAO.getVisibleFeedbacksByAccommodationID(accommodationID);
+            request.setAttribute("filterType", "accommodation");
+            request.setAttribute("filterID", accommodationID);
         }
 
         request.setAttribute("feedbackList", feedbackList);
         request.getRequestDispatcher(LIST_PAGE).forward(request, response);
     }
 
+    // Chi tiết feedback (chỉ cho xem feedback đã được duyệt)
     private void showFeedbackDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String feedbackIDRaw = request.getParameter("feedbackID");
+        int feedbackID = parseIDParam(request, "feedbackID");
 
-        if (feedbackIDRaw == null || feedbackIDRaw.trim().isEmpty()) {
+        if (feedbackID <= 0) {
             response.sendRedirect(request.getContextPath() + "/feedback-list");
             return;
         }
 
-        try {
-            int feedbackID = Integer.parseInt(feedbackIDRaw);
+        FeedbackDAO feedbackDAO = new FeedbackDAO();
+        Map<String, Object> feedbackDetail = feedbackDAO.getFeedbackDetailByID(feedbackID);
 
-            FeedbackDAO feedbackDAO = new FeedbackDAO();
-            Map<String, Object> feedbackDetail = feedbackDAO.getFeedbackDetailByID(feedbackID);
-
-            if (feedbackDetail == null) {
-                request.setAttribute("error", "Không tìm thấy feedback.");
-                request.getRequestDispatcher(DETAIL_PAGE).forward(request, response);
-                return;
-            }
-
-            request.setAttribute("feedbackDetail", feedbackDetail);
-            request.getRequestDispatcher(DETAIL_PAGE).forward(request, response);
-
-        } catch (NumberFormatException e) {
+        if (feedbackDetail == null || !"Visible".equals(feedbackDetail.get("status"))) {
             response.sendRedirect(request.getContextPath() + "/feedback-list");
+            return;
         }
+
+        request.setAttribute("feedbackDetail", feedbackDetail);
+        request.getRequestDispatcher(DETAIL_PAGE).forward(request, response);
     }
 
+    // Hiển thị form thêm feedback (yêu cầu đăng nhập + có booking 'Hoàn thành')
     private void showAddFeedbackForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String bookingIDRaw = request.getParameter("bookingID");
-
-        if (bookingIDRaw != null && !bookingIDRaw.trim().isEmpty()) {
-            request.setAttribute("bookingID", bookingIDRaw.trim());
+        User user = getSessionUser(request);
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
         }
 
+        int tourID = parseIDParam(request, "tourID");
+        int accommodationID = parseIDParam(request, "accommodationID");
+
+        if (tourID <= 0 && accommodationID <= 0) {
+            response.sendRedirect(request.getContextPath() + "/feedback-list");
+            return;
+        }
+
+        int bookingID = findCompletedBookingID(user.getUserID(), tourID, accommodationID);
+
+        if (bookingID <= 0) {
+            redirectNotCompleted(request, response, tourID, accommodationID);
+            return;
+        }
+
+        setContextAttributes(request, tourID, accommodationID);
         request.getRequestDispatcher(ADD_PAGE).forward(request, response);
     }
 
-    private void showEditFeedbackForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        String feedbackIDRaw = request.getParameter("feedbackID");
-
-        if (feedbackIDRaw == null || feedbackIDRaw.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/feedback-list");
-            return;
-        }
-
-        try {
-            int feedbackID = Integer.parseInt(feedbackIDRaw);
-
-            FeedbackDAO feedbackDAO = new FeedbackDAO();
-            Feedback feedback = feedbackDAO.getFeedbackByID(feedbackID);
-
-            if (feedback == null) {
-                request.setAttribute("error", "Không tìm thấy feedback cần sửa.");
-                request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
-                return;
-            }
-
-            request.setAttribute("feedback", feedback);
-            request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
-
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/feedback-list");
-        }
-    }
-
+    // Xử lý gửi feedback
     private void addFeedback(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        List<String> errors = new ArrayList<>();
-
-        String rateRaw = getTrimValue(request, "rate");
-        String content = getTrimValue(request, "content");
-        String image = getTrimValue(request, "image");
-        String userIDRaw = getTrimValue(request, "userID");
-        String bookingIDRaw = getTrimValue(request, "bookingID");
-
-        double rate = parseRate(rateRaw, errors);
-        int userID = parsePositiveInt(userIDRaw, "User ID", errors);
-        int bookingID = parsePositiveInt(bookingIDRaw, "Booking ID", errors);
-
-        validateContentAndImage(content, image, errors);
-
-        FeedbackDAO feedbackDAO = new FeedbackDAO();
-
-        if (userID > 0 && !feedbackDAO.isUserExist(userID)) {
-            errors.add("User ID không tồn tại trong hệ thống.");
-        }
-
-        if (bookingID > 0 && !feedbackDAO.isBookingExist(bookingID)) {
-            errors.add("Booking ID không tồn tại trong hệ thống.");
-        }
-
-        Feedback feedback = new Feedback();
-        feedback.setRate(rate);
-        feedback.setContent(content);
-        feedback.setImage(image);
-        feedback.setUserID(userID);
-        feedback.setBookingID(bookingID);
-        feedback.setStatus("Hidden");
-
-        if (!errors.isEmpty()) {
-            request.setAttribute("errors", errors);
-            request.setAttribute("feedback", feedback);
-            request.getRequestDispatcher(ADD_PAGE).forward(request, response);
+        User user = getSessionUser(request);
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        int feedbackID = feedbackDAO.insertFeedback(feedback);
+        int tourID = parseIDParam(request, "tourID");
+        int accommodationID = parseIDParam(request, "accommodationID");
 
-        if (feedbackID > 0) {
-            response.sendRedirect(request.getContextPath() + "/feedback-detail?feedbackID=" + feedbackID);
-        } else {
-            errors.add("Thêm feedback thất bại. Vui lòng thử lại.");
-
-            request.setAttribute("errors", errors);
-            request.setAttribute("feedback", feedback);
-            request.getRequestDispatcher(ADD_PAGE).forward(request, response);
+        if (tourID <= 0 && accommodationID <= 0) {
+            response.sendRedirect(request.getContextPath() + "/feedback-list");
+            return;
         }
-    }
 
-    private void editFeedback(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+        int bookingID = findCompletedBookingID(user.getUserID(), tourID, accommodationID);
+
+        if (bookingID <= 0) {
+            redirectNotCompleted(request, response, tourID, accommodationID);
+            return;
+        }
 
         List<String> errors = new ArrayList<>();
 
-        String feedbackIDRaw = getTrimValue(request, "feedbackID");
         String rateRaw = getTrimValue(request, "rate");
         String content = getTrimValue(request, "content");
-        String image = getTrimValue(request, "image");
-        String status = getTrimValue(request, "status");
 
-        int feedbackID = parsePositiveInt(feedbackIDRaw, "Feedback ID", errors);
-        double rate = parseRate(rateRaw, errors);
+        int rate = parseRate(rateRaw, errors);
+        validateContent(content, errors);
 
-        validateContentAndImage(content, image, errors);
-
-        if (!isValidStatus(status)) {
-            errors.add("Trạng thái feedback không hợp lệ.");
+        Part imagePart = null;
+        try {
+            imagePart = request.getPart("image");
+        } catch (Exception e) {
+            imagePart = null;
         }
 
-        FeedbackDAO feedbackDAO = new FeedbackDAO();
-        Feedback oldFeedback = null;
+        boolean hasImage = imagePart != null && imagePart.getSize() > 0;
 
-        if (feedbackID > 0) {
-            oldFeedback = feedbackDAO.getFeedbackByID(feedbackID);
+        if (hasImage && !isValidFeedbackImage(imagePart)) {
+            errors.add("Ảnh minh họa chưa hợp lệ. Vui lòng chọn ảnh JPG, JPEG, PNG hoặc WEBP, dung lượng tối đa 5MB.");
+        }
 
-            if (oldFeedback == null) {
-                errors.add("Feedback không tồn tại trong hệ thống.");
+        if (!errors.isEmpty()) {
+            forwardBackToForm(request, response, tourID, accommodationID, rateRaw, content, errors);
+            return;
+        }
+
+        String imageUrl = "";
+        if (hasImage) {
+            imageUrl = saveFeedbackImage(imagePart, user.getUserID());
+
+            if (imageUrl == null) {
+                errors.add("Không thể lưu ảnh minh họa. Vui lòng thử lại.");
+                forwardBackToForm(request, response, tourID, accommodationID, rateRaw, content, errors);
+                return;
             }
         }
 
         Feedback feedback = new Feedback();
-        feedback.setFeedbackID(feedbackID);
         feedback.setRate(rate);
         feedback.setContent(content);
-        feedback.setImage(image);
-        feedback.setStatus(status);
+        feedback.setImage(imageUrl);
+        feedback.setUserID(user.getUserID());
+        feedback.setBookingID(bookingID);
+        feedback.setStatus("Hidden"); // Chờ staff duyệt
 
-        if (oldFeedback != null) {
-            feedback.setUserID(oldFeedback.getUserID());
-            feedback.setBookingID(oldFeedback.getBookingID());
-            feedback.setCreateDate(oldFeedback.getCreateDate());
-        }
+        FeedbackDAO feedbackDAO = new FeedbackDAO();
+        int feedbackID = feedbackDAO.insertFeedback(feedback);
 
-        if (!errors.isEmpty()) {
-            request.setAttribute("errors", errors);
-            request.setAttribute("feedback", feedback);
-            request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
-            return;
-        }
-
-        boolean updated = feedbackDAO.updateFeedback(feedback);
-
-        if (updated) {
-            response.sendRedirect(request.getContextPath() + "/feedback-detail?feedbackID=" + feedbackID);
+        if (feedbackID > 0) {
+            String backUrl = request.getContextPath() + "/feedback-list?"
+                    + buildContextQuery(tourID, accommodationID)
+                    + "&success=1";
+            response.sendRedirect(backUrl);
         } else {
-            errors.add("Cập nhật feedback thất bại. Vui lòng thử lại.");
-
-            request.setAttribute("errors", errors);
-            request.setAttribute("feedback", feedback);
-            request.getRequestDispatcher(EDIT_PAGE).forward(request, response);
+            errors.add("Gửi đánh giá thất bại. Vui lòng thử lại.");
+            forwardBackToForm(request, response, tourID, accommodationID, rateRaw, content, errors);
         }
+    }
+
+    // ==========================================================
+    // CÁC HÀM HỖ TRỢ
+    // ==========================================================
+
+    private User getSessionUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        return session == null ? null : (User) session.getAttribute("user");
+    }
+
+    private int parseIDParam(HttpServletRequest request, String paramName) {
+        String raw = request.getParameter(paramName);
+
+        if (raw == null || raw.trim().isEmpty() || !raw.trim().matches("\\d+")) {
+            return -1;
+        }
+
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    // Tìm booking 'Hoàn thành' mới nhất của user cho tour hoặc nơi lưu trú
+    private int findCompletedBookingID(int userID, int tourID, int accommodationID) {
+        FeedbackDAO feedbackDAO = new FeedbackDAO();
+
+        if (tourID > 0) {
+            return feedbackDAO.getLatestCompletedBookingIDByTour(userID, tourID);
+        }
+
+        return feedbackDAO.getLatestCompletedBookingIDByAccommodation(userID, accommodationID);
+    }
+
+    private String buildContextQuery(int tourID, int accommodationID) {
+        if (tourID > 0) {
+            return "tourID=" + tourID;
+        }
+        return "accommodationID=" + accommodationID;
+    }
+
+    private void setContextAttributes(HttpServletRequest request, int tourID, int accommodationID) {
+        if (tourID > 0) {
+            request.setAttribute("tourID", tourID);
+        } else {
+            request.setAttribute("accommodationID", accommodationID);
+        }
+    }
+
+    private void redirectNotCompleted(HttpServletRequest request, HttpServletResponse response,
+                                      int tourID, int accommodationID) throws IOException {
+        response.sendRedirect(request.getContextPath() + "/feedback-list?"
+                + buildContextQuery(tourID, accommodationID)
+                + "&error=notCompleted");
+    }
+
+    private void forwardBackToForm(HttpServletRequest request, HttpServletResponse response,
+                                   int tourID, int accommodationID,
+                                   String rateRaw, String content,
+                                   List<String> errors) throws ServletException, IOException {
+
+        setContextAttributes(request, tourID, accommodationID);
+        request.setAttribute("errors", errors);
+        request.setAttribute("oldRate", rateRaw);
+        request.setAttribute("oldContent", content);
+        request.getRequestDispatcher(ADD_PAGE).forward(request, response);
     }
 
     private String getTrimValue(HttpServletRequest request, String paramName) {
@@ -320,69 +316,120 @@ public class FeedbackController extends HttpServlet {
         return value == null ? "" : value.trim();
     }
 
-    private int parsePositiveInt(String rawValue, String fieldName, List<String> errors) {
-        if (rawValue == null || rawValue.trim().isEmpty()) {
-            errors.add(fieldName + " không được để trống.");
-            return -1;
-        }
-
-        String valueText = rawValue.trim();
-
-        if (!valueText.matches("\\d+")) {
-            errors.add(fieldName + " chỉ được nhập số, không được nhập chữ hoặc ký tự đặc biệt.");
-            return -1;
-        }
-
-        try {
-            int value = Integer.parseInt(valueText);
-
-            if (value <= 0) {
-                errors.add(fieldName + " phải lớn hơn 0.");
-                return -1;
-            }
-
-            return value;
-
-        } catch (NumberFormatException e) {
-            errors.add(fieldName + " không hợp lệ.");
-            return -1;
-        }
-    }
-
-    private double parseRate(String rateRaw, List<String> errors) {
+    private int parseRate(String rateRaw, List<String> errors) {
         if (rateRaw == null || rateRaw.trim().isEmpty()) {
-            errors.add("Vui lòng chọn điểm đánh giá.");
+            errors.add("Vui lòng chọn số sao đánh giá.");
             return 0;
         }
 
         try {
-            double rate = Double.parseDouble(rateRaw.trim());
+            int rate = Integer.parseInt(rateRaw.trim());
 
             if (rate < 1 || rate > 5) {
-                errors.add("Điểm đánh giá không hợp lệ.");
+                errors.add("Số sao đánh giá phải từ 1 đến 5.");
                 return 0;
             }
 
             return rate;
 
         } catch (NumberFormatException e) {
-            errors.add("Điểm đánh giá không hợp lệ.");
+            errors.add("Số sao đánh giá không hợp lệ.");
             return 0;
         }
     }
 
-    private void validateContentAndImage(String content, String image, List<String> errors) {
-        if (content.length() > 1000) {
-            errors.add("Nội dung feedback không được vượt quá 1000 ký tự.");
+    private void validateContent(String content, List<String> errors) {
+        if (content == null || content.isEmpty()) {
+            errors.add("Vui lòng nhập nội dung đánh giá.");
+            return;
         }
 
-        if (image.length() > 500) {
-            errors.add("Đường dẫn ảnh không được vượt quá 500 ký tự.");
+        if (content.length() < 10) {
+            errors.add("Nội dung đánh giá phải có ít nhất 10 ký tự.");
+        }
+
+        if (content.length() > 1000) {
+            errors.add("Nội dung đánh giá không được vượt quá 1000 ký tự.");
         }
     }
 
-    private boolean isValidStatus(String status) {
-        return "Visible".equals(status)
-                || "Hidden".equals(status);
+    // Kiểm tra file ảnh hợp lệ (giống pattern ảnh CCCD trong BookingController)
+    private boolean isValidFeedbackImage(Part part) {
+        if (part == null || part.getSize() <= 0 || part.getSize() > 5 * 1024 * 1024) {
+            return false;
+        }
+
+        String contentType = part.getContentType();
+        String normalizedType = contentType == null ? "" : contentType.toLowerCase(Locale.ROOT);
+        if ("image/jpeg".equals(normalizedType)
+                || "image/jpg".equals(normalizedType)
+                || "image/pjpeg".equals(normalizedType)
+                || "image/png".equals(normalizedType)
+                || "image/webp".equals(normalizedType)) {
+            return true;
+        }
+
+        String fileName = part.getSubmittedFileName();
+        String normalizedName = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
+        return normalizedName.endsWith(".jpg")
+                || normalizedName.endsWith(".jpeg")
+                || normalizedName.endsWith(".png")
+                || normalizedName.endsWith(".webp");
+    }
+
+    // Lưu ảnh feedback vào /uploads/feedback, trả về đường dẫn tương đối
+    private String saveFeedbackImage(Part part, int userID) throws IOException {
+        if (!isValidFeedbackImage(part)) {
+            return null;
+        }
+
+        String uploadRoot = getServletContext().getRealPath("/uploads/feedback");
+        if (uploadRoot == null) {
+            return null;
+        }
+
+        Path uploadDir = Paths.get(uploadRoot);
+        Files.createDirectories(uploadDir);
+
+        String extension = getFeedbackImageExtension(part);
+        String fileName = "feedback_" + userID + "_" + UUID.randomUUID() + extension;
+        Path target = uploadDir.resolve(fileName).normalize();
+
+        if (!target.startsWith(uploadDir)) {
+            return null;
+        }
+
+        part.write(target.toString());
+        return "uploads/feedback/" + fileName;
+    }
+
+    private String getFeedbackImageExtension(Part part) {
+        String contentType = part == null ? "" : part.getContentType();
+        String normalizedType = contentType == null ? "" : contentType.toLowerCase(Locale.ROOT);
+
+        if ("image/png".equals(normalizedType)) {
+            return ".png";
+        }
+
+        if ("image/webp".equals(normalizedType)) {
+            return ".webp";
+        }
+
+        String fileName = part == null ? "" : part.getSubmittedFileName();
+        String normalizedName = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
+
+        if (normalizedName.endsWith(".png")) {
+            return ".png";
+        }
+
+        if (normalizedName.endsWith(".webp")) {
+            return ".webp";
+        }
+
+        if (normalizedName.endsWith(".jpeg")) {
+            return ".jpeg";
+        }
+
+        return ".jpg";
     }
 }
