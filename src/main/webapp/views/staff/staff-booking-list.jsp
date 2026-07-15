@@ -75,7 +75,7 @@
 
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
             margin-bottom: 22px;
         }
@@ -290,23 +290,21 @@
 <div class="admin-layout">
     <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
+    <%-- Chỉ còn 3 trạng thái: Đang xử lý, Hoàn thành, Đã hủy.
+         Đếm theo displayStatus nên đơn cũ 'Đã duyệt' được tính vào Hoàn thành. --%>
     <c:set var="pendingCount" value="0"/>
-    <c:set var="confirmedCount" value="0"/>
     <c:set var="completedCount" value="0"/>
     <c:set var="cancelledCount" value="0"/>
 
     <c:forEach var="bk" items="${bookingList}">
         <c:choose>
-            <c:when test="${bk.status == 'Đang xử lý' || bk.status == 'Pending'}">
+            <c:when test="${bk.displayStatus == 'Đang xử lý'}">
                 <c:set var="pendingCount" value="${pendingCount + 1}"/>
             </c:when>
-            <c:when test="${bk.status == 'Đã duyệt' || bk.status == 'Confirmed'}">
-                <c:set var="confirmedCount" value="${confirmedCount + 1}"/>
-            </c:when>
-            <c:when test="${bk.status == 'Hoàn thành' || bk.status == 'Completed'}">
+            <c:when test="${bk.displayStatus == 'Hoàn thành'}">
                 <c:set var="completedCount" value="${completedCount + 1}"/>
             </c:when>
-            <c:when test="${bk.status == 'Đã hủy' || bk.status == 'Cancelled'}">
+            <c:when test="${bk.displayStatus == 'Đã hủy'}">
                 <c:set var="cancelledCount" value="${cancelledCount + 1}"/>
             </c:when>
         </c:choose>
@@ -326,10 +324,6 @@
                 <div class="value">${pendingCount}</div>
             </div>
             <div class="stat-card">
-                <div class="label">Đã duyệt</div>
-                <div class="value">${confirmedCount}</div>
-            </div>
-            <div class="stat-card">
                 <div class="label">Hoàn thành</div>
                 <div class="value">${completedCount}</div>
             </div>
@@ -342,18 +336,17 @@
         <form class="toolbar" method="get" action="${pageContext.request.contextPath}/staff/booking">
             <input class="form-control" id="bookingSearchInput" type="text" placeholder="Tìm tên, SĐT, email, mã booking...">
 
-            <select class="form-select" name="type">
+            <select class="form-select" name="type" id="typeFilter">
                 <option value="">Tất cả loại booking</option>
                 <option value="Tour" ${param.type == 'Tour' ? 'selected' : ''}>Tour</option>
                 <option value="Accommodation" ${param.type == 'Accommodation' ? 'selected' : ''}>Lưu trú</option>
             </select>
 
-            <select class="form-select" id="statusFilter">
+            <select class="form-select" name="status" id="statusFilter">
                 <option value="">Tất cả trạng thái</option>
-                <option value="Đang xử lý">Đang xử lý</option>
-                <option value="Đã duyệt">Đã duyệt</option>
-                <option value="Hoàn thành">Hoàn thành</option>
-                <option value="Đã hủy">Đã hủy</option>
+                <option value="Đang xử lý" ${param.status == 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
+                <option value="Hoàn thành" ${param.status == 'Hoàn thành' ? 'selected' : ''}>Hoàn thành</option>
+                <option value="Đã hủy" ${param.status == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
             </select>
 
             <button class="btn btn-outline-secondary fw-bold" type="submit">
@@ -383,6 +376,7 @@
                             <tbody>
                             <c:forEach items="${bookingList}" var="booking">
                                 <tr data-status="${booking.displayStatus}"
+                                    data-type="${booking.bookingType}"
                                     data-search-content="${booking.bookingCode} ${booking.firstName} ${booking.lastName} ${booking.email} ${booking.phone} ${booking.serviceName}">
                                     <td>
                                         <span class="booking-code">${booking.bookingCode}</span>
@@ -409,21 +403,19 @@
                                         <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
                                     </td>
                                     <td>
+                                            <%-- displayStatus tự quy đơn cũ 'Đã duyệt' về Hoàn thành --%>
                                         <c:choose>
-                                            <c:when test="${booking.status == 'Đang xử lý' || booking.status == 'Pending'}">
+                                            <c:when test="${booking.displayStatus == 'Đang xử lý'}">
                                                 <span class="status-pill status-pending">Đang xử lý</span>
                                             </c:when>
-                                            <c:when test="${booking.status == 'Đã duyệt' || booking.status == 'Confirmed'}">
-                                                <span class="status-pill status-confirmed">Đã duyệt</span>
-                                            </c:when>
-                                            <c:when test="${booking.status == 'Hoàn thành' || booking.status == 'Completed'}">
+                                            <c:when test="${booking.displayStatus == 'Hoàn thành'}">
                                                 <span class="status-pill status-completed">Hoàn thành</span>
                                             </c:when>
-                                            <c:when test="${booking.status == 'Đã hủy' || booking.status == 'Cancelled'}">
+                                            <c:when test="${booking.displayStatus == 'Đã hủy'}">
                                                 <span class="status-pill status-cancelled">Đã hủy</span>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="status-pill">${booking.status}</span>
+                                                <span class="status-pill">${booking.displayStatus}</span>
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
@@ -434,34 +426,38 @@
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
 
-                                            <c:if test="${booking.status != 'Đang xử lý' && booking.status != 'Pending'}">
+                                            <c:if test="${booking.displayStatus != 'Đang xử lý'}">
                                                 <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post">
                                                     <input type="hidden" name="bookingID" value="${booking.bookingID}">
                                                     <input type="hidden" name="status" value="Đang xử lý">
                                                     <input type="hidden" name="type" value="${param.type}">
+                                                    <input type="hidden" name="statusFilter" value="${param.status}">
                                                     <button class="icon-btn warning" type="submit" title="Chuyển về đang xử lý">
                                                         <i class="fa-solid fa-clock"></i>
                                                     </button>
                                                 </form>
                                             </c:if>
 
-                                            <c:if test="${booking.status != 'Đã duyệt' && booking.status != 'Confirmed'}">
+                                                <%-- Nút tích xanh: cập nhật trạng thái Hoàn thành --%>
+                                            <c:if test="${booking.displayStatus != 'Hoàn thành'}">
                                                 <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post">
                                                     <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                                                    <input type="hidden" name="status" value="Đã duyệt">
+                                                    <input type="hidden" name="status" value="Hoàn thành">
                                                     <input type="hidden" name="type" value="${param.type}">
-                                                    <button class="icon-btn success" type="submit" title="Duyệt booking">
+                                                    <input type="hidden" name="statusFilter" value="${param.status}">
+                                                    <button class="icon-btn success" type="submit" title="Hoàn thành booking">
                                                         <i class="fa-solid fa-check"></i>
                                                     </button>
                                                 </form>
                                             </c:if>
 
-                                            <c:if test="${booking.status != 'Đã hủy' && booking.status != 'Cancelled'}">
+                                            <c:if test="${booking.displayStatus != 'Đã hủy'}">
                                                 <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post"
                                                       onsubmit="return confirm('Bạn chắc chắn muốn hủy booking này?');">
                                                     <input type="hidden" name="bookingID" value="${booking.bookingID}">
                                                     <input type="hidden" name="status" value="Đã hủy">
                                                     <input type="hidden" name="type" value="${param.type}">
+                                                    <input type="hidden" name="statusFilter" value="${param.status}">
                                                     <button class="icon-btn danger" type="submit" title="Hủy booking">
                                                         <i class="fa-solid fa-xmark"></i>
                                                     </button>
@@ -484,6 +480,7 @@
     document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById("bookingSearchInput");
         const statusFilter = document.getElementById("statusFilter");
+        const typeFilter = document.getElementById("typeFilter");
         const rows = Array.from(document.querySelectorAll("#bookingTable tbody tr"));
 
         function normalize(value) {
@@ -493,11 +490,13 @@
         function filterRows() {
             const keyword = normalize(searchInput ? searchInput.value : "");
             const status = statusFilter ? statusFilter.value : "";
+            const type = typeFilter ? typeFilter.value : "";
 
             rows.forEach(function (row) {
                 const matchesKeyword = normalize(row.dataset.searchContent).includes(keyword);
-                const matchesStatus = !status || row.dataset.status === status;
-                row.style.display = matchesKeyword && matchesStatus ? "" : "none";
+                const matchesStatus = !status || normalize(row.dataset.status) === normalize(status);
+                const matchesType = !type || normalize(row.dataset.type) === normalize(type);
+                row.style.display = matchesKeyword && matchesStatus && matchesType ? "" : "none";
             });
         }
 
@@ -507,6 +506,10 @@
 
         if (statusFilter) {
             statusFilter.addEventListener("change", filterRows);
+        }
+
+        if (typeFilter) {
+            typeFilter.addEventListener("change", filterRows);
         }
     });
 </script>

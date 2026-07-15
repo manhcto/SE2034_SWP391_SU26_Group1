@@ -149,14 +149,6 @@
             color: #ffffff;
         }
 
-        .action-link.edit-link {
-            background: #f59e0b;
-        }
-
-        .action-link.edit-link:hover {
-            background: #d97706;
-        }
-
         .empty-box {
             padding: 54px 24px;
             text-align: center;
@@ -292,7 +284,7 @@
 
                                         <td>
                                             <span class="status-badge ${fn:toLowerCase(booking.status)}">
-                                                ${booking.displayStatus}
+                                                    ${booking.displayStatus}
                                             </span>
                                         </td>
 
@@ -309,14 +301,6 @@
                                                     <i class="fa-solid fa-eye"></i>
                                                     Xem
                                                 </a>
-
-                                                <c:if test="${booking.bookingType == 'Tour'}">
-                                                    <a class="action-link edit-link"
-                                                       href="${pageContext.request.contextPath}/booking-edit?bookingID=${booking.bookingID}">
-                                                        <i class="fa-solid fa-pen"></i>
-                                                        Sửa
-                                                    </a>
-                                                </c:if>
                                             </div>
                                         </td>
                                     </tr>

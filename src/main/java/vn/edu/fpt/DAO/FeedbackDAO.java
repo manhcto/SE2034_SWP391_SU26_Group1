@@ -176,7 +176,10 @@ public class FeedbackDAO {
                 + "FROM Booking b "
                 + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
                 + "JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID "
-                + "WHERE b.userID = ? AND ts.tourID = ? AND b.status = N'Hoàn thành' "
+                // Đơn 'Hoàn thành' mới được feedback; đơn cũ 'Đã duyệt'/'Confirmed'/'Completed'
+                // được quy về Hoàn thành nên cũng được chấp nhận.
+                + "WHERE b.userID = ? AND ts.tourID = ? "
+                + "AND b.status IN (N'Hoàn thành', N'Completed', N'Đã duyệt', N'Confirmed') "
                 + "ORDER BY b.bookDate DESC, b.bookingID DESC";
 
         return getLatestCompletedBookingID(sql, userID, tourID);
@@ -187,7 +190,8 @@ public class FeedbackDAO {
         String sql = "SELECT TOP 1 b.bookingID "
                 + "FROM Booking b "
                 + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
-                + "WHERE b.userID = ? AND bd.accommodationID = ? AND b.status = N'Hoàn thành' "
+                + "WHERE b.userID = ? AND bd.accommodationID = ? "
+                + "AND b.status IN (N'Hoàn thành', N'Completed', N'Đã duyệt', N'Confirmed') "
                 + "ORDER BY b.bookDate DESC, b.bookingID DESC";
 
         return getLatestCompletedBookingID(sql, userID, accommodationID);

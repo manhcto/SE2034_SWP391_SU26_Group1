@@ -156,10 +156,12 @@ public class PaymentController extends HttpServlet {
             String reference = data.getReference() == null
                     ? String.valueOf(bookingID)
                     : data.getReference();
-            boolean approved = bookingDAO.updateBookingStatus(bookingID, Booking.STATUS_APPROVED);
-            boolean paid = approved && paymentDAO.markPaidByBookingID(bookingID, reference);
+            // Khách thanh toán xong -> booking chuyển thẳng sang "Hoàn thành"
+            // (trạng thái "Đã duyệt" đã bị loại bỏ khỏi luồng nghiệp vụ).
+            boolean completed = bookingDAO.updateBookingStatus(bookingID, Booking.STATUS_COMPLETED);
+            boolean paid = completed && paymentDAO.markPaidByBookingID(bookingID, reference);
 
-            if (!paid || !approved) {
+            if (!paid || !completed) {
                 writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                         "Không thể cập nhật thanh toán");
                 return;

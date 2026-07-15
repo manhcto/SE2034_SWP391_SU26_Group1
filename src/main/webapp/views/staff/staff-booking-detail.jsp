@@ -223,8 +223,9 @@
                                 <c:when test="${bookingDetail.status == 'Đang xử lý' || bookingDetail.status == 'Pending'}">
                                     <span class="status-pill status-pending">Đang xử lý</span>
                                 </c:when>
+                                <%-- Trạng thái "Đã duyệt" đã bỏ: đơn cũ hiển thị là Hoàn thành --%>
                                 <c:when test="${bookingDetail.status == 'Đã duyệt' || bookingDetail.status == 'Confirmed'}">
-                                    <span class="status-pill status-confirmed">Đã duyệt</span>
+                                    <span class="status-pill status-completed">Hoàn thành</span>
                                 </c:when>
                                 <c:when test="${bookingDetail.status == 'Hoàn thành' || bookingDetail.status == 'Completed'}">
                                     <span class="status-pill status-completed">Hoàn thành</span>

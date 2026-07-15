@@ -54,9 +54,19 @@ public class ManageBookingController extends HttpServlet {
     private void showBookingList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         List<Booking> bookingList = bookingDAO.getAllBookings();
+
+        // Lọc theo loại booking (Tour / Accommodation)
         String type = trim(request.getParameter("type"));
         if (!type.isEmpty()) {
-            bookingList.removeIf(booking -> !type.equalsIgnoreCase(booking.getBookingType()));
+            bookingList.removeIf(booking ->
+                    !type.equalsIgnoreCase(trim(booking.getBookingType())));
+        }
+
+        // Lọc theo trạng thái hiển thị (Đang xử lý / Hoàn thành / Đã hủy)
+        String status = trim(request.getParameter("status"));
+        if (!status.isEmpty()) {
+            bookingList.removeIf(booking ->
+                    !status.equalsIgnoreCase(trim(booking.getDisplayStatus())));
         }
 
         request.setAttribute("bookingList", bookingList);
@@ -86,17 +96,25 @@ public class ManageBookingController extends HttpServlet {
                 && isValidStatus(status)
                 && bookingDAO.updateBookingStatus(bookingID, status);
 
-        String type = trim(request.getParameter("type"));
         String query = updated ? "success=updated" : "error=updateFailed";
+
+        String type = trim(request.getParameter("type"));
         if (!type.isEmpty()) {
             query += "&type=" + URLEncoder.encode(type, StandardCharsets.UTF_8);
         }
+
+        String statusFilter = trim(request.getParameter("statusFilter"));
+        if (!statusFilter.isEmpty()) {
+            query += "&status=" + URLEncoder.encode(statusFilter, StandardCharsets.UTF_8);
+        }
+
         response.sendRedirect(request.getContextPath() + "/staff/booking?" + query);
     }
 
+    // Chỉ còn 3 trạng thái hợp lệ: Đang xử lý, Hoàn thành, Đã hủy
+    // (trạng thái "Đã duyệt" đã bị loại bỏ khỏi luồng nghiệp vụ)
     private boolean isValidStatus(String status) {
         return Booking.isProcessingStatus(status)
-                || Booking.isApprovedStatus(status)
                 || Booking.isCancelledStatus(status)
                 || Booking.isCompletedStatus(status);
     }

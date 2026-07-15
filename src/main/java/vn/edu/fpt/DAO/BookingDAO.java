@@ -901,7 +901,9 @@ public class BookingDAO {
 
     private String normalizeBookingStatus(String status) {
         if (Booking.isProcessingStatus(status)) return Booking.STATUS_PROCESSING;
-        if (Booking.isApprovedStatus(status)) return Booking.STATUS_APPROVED;
+        // "Đã duyệt" đã bị loại bỏ: nếu còn nơi nào gửi lên trạng thái duyệt
+        // thì quy về "Hoàn thành" để DB chỉ còn 3 trạng thái.
+        if (Booking.isApprovedStatus(status)) return Booking.STATUS_COMPLETED;
         if (Booking.isCancelledStatus(status)) return Booking.STATUS_CANCELLED;
         if (Booking.isCompletedStatus(status)) return Booking.STATUS_COMPLETED;
         return null;

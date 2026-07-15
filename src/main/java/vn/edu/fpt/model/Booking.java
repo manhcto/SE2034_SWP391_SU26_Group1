@@ -167,8 +167,10 @@ public class Booking {
             return STATUS_PROCESSING;
         }
 
+        // Trạng thái "Đã duyệt" đã bị loại bỏ khỏi luồng nghiệp vụ.
+        // Các đơn cũ trong DB còn 'Đã duyệt'/'Confirmed' sẽ hiển thị là "Hoàn thành".
         if (isApprovedStatus(status)) {
-            return STATUS_APPROVED;
+            return STATUS_COMPLETED;
         }
 
         if (isCancelledStatus(status)) {
