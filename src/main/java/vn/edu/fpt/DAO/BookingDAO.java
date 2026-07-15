@@ -1050,4 +1050,89 @@ public class BookingDAO {
     public boolean cancelPendingBookingAndRelease(int bookingID) {
         return updateBookingStatus(bookingID, Booking.STATUS_CANCELLED);
     }
+
+    public boolean releasePendingPaymentReservation(int bookingID,
+                                                     boolean expiredOnly,
+                                                     String note) {
+        String sqlGetReservation = """
+                SELECT bd.tourScheduleID, bd.roomID, bd.quantity
+                FROM Payment p WITH (UPDLOCK, HOLDLOCK)
+                INNER JOIN Booking b ON b.bookingID = p.bookingID
+                LEFT JOIN Booking_Detail bd ON bd.bookingID = b.bookingID
+                WHERE p.bookingID = ? AND p.[status] = N'Pending'
+                  AND b.[status] IN (N'Đang xử lý', N'Pending')
+                  AND p.expiredAt IS NOT NULL
+                """ + (expiredOnly ? " AND p.expiredAt <= GETDATE()" : "");
+        String sqlReleaseTour = """
+                UPDATE Tour_Scheduler
+                SET quantity = CASE WHEN quantity - ? < 0 THEN 0 ELSE quantity - ? END
+                WHERE tourScheduleID = ?
+                """;
+        String sqlReleaseRoom = """
+                UPDATE Room
+                SET roomAvailability = CASE
+                    WHEN roomAvailability + ? > numberOfRooms THEN numberOfRooms
+                    ELSE roomAvailability + ? END,
+                    updatedAt = GETDATE()
+                WHERE roomID = ?
+                """;
+        String sqlMarkReleased = """
+                UPDATE Payment
+                SET checkoutUrl = NULL, expiredAt = NULL, note = ?
+                WHERE bookingID = ? AND [status] = N'Pending' AND expiredAt IS NOT NULL
+                """;
+
+        try (Connection conn = new DBConnection().getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                int tourScheduleID;
+                int roomID;
+                int quantity;
+                try (PreparedStatement ps = conn.prepareStatement(sqlGetReservation)) {
+                    ps.setInt(1, bookingID);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return false;
+                        }
+                        tourScheduleID = rs.getInt("tourScheduleID");
+                        roomID = rs.getInt("roomID");
+                        quantity = rs.getInt("quantity");
+                    }
+                }
+
+                if (quantity > 0 && tourScheduleID > 0
+                        && !executeQuantityUpdate(conn, sqlReleaseTour, quantity, tourScheduleID)) {
+                    conn.rollback();
+                    return false;
+                }
+                if (quantity > 0 && roomID > 0
+                        && !executeQuantityUpdate(conn, sqlReleaseRoom, quantity, roomID)) {
+                    conn.rollback();
+                    return false;
+                }
+
+                try (PreparedStatement ps = conn.prepareStatement(sqlMarkReleased)) {
+                    ps.setNString(1, "[SLOT_RELEASED] " + note);
+                    ps.setInt(2, bookingID);
+                    if (ps.executeUpdate() == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+
+                conn.commit();
+                return true;
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi hoàn chỗ giữ thanh toán: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

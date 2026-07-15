@@ -3,12 +3,19 @@ package vn.edu.fpt.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import vn.payos.PayOS;
 import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
+import vn.payos.model.v2.paymentRequests.PaymentLinkStatus;
 import vn.payos.model.webhooks.Webhook;
 import vn.payos.model.webhooks.WebhookData;
 
 import java.math.BigDecimal;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Properties;
 
 public class PayOSService {
+    private static final Properties LOCAL_CONFIG = loadLocalConfig();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public boolean isConfigured() {
@@ -35,12 +42,41 @@ public class PayOSService {
                     .description(normalizeDescription(description))
                     .cancelUrl(baseUrl + "/payment/cancel?bookingID=" + bookingID)
                     .returnUrl(baseUrl + "/payment/return?bookingID=" + bookingID)
+                    .expiredAt(Instant.now().plus(15, ChronoUnit.MINUTES).getEpochSecond())
                     .build();
 
             var response = payOS.paymentRequests().create(paymentRequest);
-            return PaymentResult.success(response.getCheckoutUrl());
+            return PaymentResult.success(
+                    response.getCheckoutUrl(),
+                    response.getQrCode(),
+                    resolveBankName(response.getBin()),
+                    response.getAccountNumber(),
+                    response.getAccountName(),
+                    response.getAmount(),
+                    response.getDescription()
+            );
         } catch (Exception e) {
             return PaymentResult.failed("Không thể tạo liên kết PayOS: " + e.getMessage());
+        } finally {
+            payOS.close();
+        }
+    }
+
+    public boolean isPaymentPaid(int bookingID, BigDecimal expectedAmount) {
+        if (!isConfigured() || expectedAmount == null || expectedAmount.signum() <= 0) {
+            return false;
+        }
+
+        PayOS payOS = createClient();
+        try {
+            var paymentLink = payOS.paymentRequests().get((long) bookingID);
+            long expected = expectedAmount.setScale(0, java.math.RoundingMode.HALF_UP)
+                    .longValueExact();
+            return PaymentLinkStatus.PAID.equals(paymentLink.getStatus())
+                    && paymentLink.getAmountPaid() != null
+                    && paymentLink.getAmountPaid() >= expected;
+        } catch (Exception ignored) {
+            return false;
         } finally {
             payOS.close();
         }
@@ -73,12 +109,35 @@ public class PayOSService {
         if (isBlank(value)) {
             value = System.getenv(key);
         }
+        if (isBlank(value)) {
+            value = LOCAL_CONFIG.getProperty(key);
+        }
         return value == null ? "" : value.trim();
+    }
+
+    private static Properties loadLocalConfig() {
+        Properties properties = new Properties();
+        try (InputStream input = PayOSService.class.getClassLoader()
+                .getResourceAsStream("payos-local.properties")) {
+            if (input != null) {
+                properties.load(input);
+            }
+        } catch (IOException ignored) {
+            // Environment variables remain the primary production configuration.
+        }
+        return properties;
     }
 
     private String normalizeDescription(String description) {
         String value = isBlank(description) ? "WonderVN booking" : description.trim();
         return value.length() > 25 ? value.substring(0, 25) : value;
+    }
+
+    private String resolveBankName(String bin) {
+        if ("970418".equals(bin)) {
+            return "Ngân hàng TMCP Đầu tư và Phát triển Việt Nam (BIDV)";
+        }
+        return isBlank(bin) ? "Ngân hàng nhận thanh toán" : "Ngân hàng (BIN " + bin + ")";
     }
 
     private String trimTrailingSlash(String value) {

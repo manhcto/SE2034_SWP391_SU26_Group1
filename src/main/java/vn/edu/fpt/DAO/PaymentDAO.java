@@ -8,17 +8,18 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PaymentDAO {
-    public static final String STATUS_PENDING = "Chờ thanh toán";
-    public static final String STATUS_PAID = "Đã thanh toán";
-    public static final String STATUS_FAILED = "Thất bại";
-    public static final String STATUS_CANCELLED = "Đã hủy";
+    public static final String STATUS_PENDING = "Pending";
+    public static final String STATUS_PAID = "Paid";
+    public static final String STATUS_FAILED = "Failed";
+    public static final String STATUS_CANCELLED = "Cancelled";
 
     public Payment findByBookingID(int bookingID) {
-        String sql = "SELECT TOP (1) * FROM [dbo].[Payments] WHERE bookingID = ? ORDER BY paymentID DESC";
-        return findOne(sql, bookingID);
+        return findOne("SELECT TOP (1) * FROM [dbo].[Payment] WHERE bookingID = ? ORDER BY paymentID DESC",
+                bookingID);
     }
 
     public Payment createPending(int bookingID, BigDecimal amount) {
@@ -28,42 +29,47 @@ public class PaymentDAO {
         }
 
         String sql = """
-                INSERT INTO [dbo].[Payments]
-                    (bookingID, payment_method, totalAmount, [status], paymentType,
-                     transactionCode, paymentDate, note, createdAt)
-                VALUES (?, N'PayOS', ?, ?, N'Thanh toán toàn bộ', ?, NULL,
+                INSERT INTO [dbo].[Payment]
+                    (bookingID, payosOrderCode, totalAmount, [status], transactionCode,
+                     checkoutUrl, paymentDate, expiredAt, note, createdAt)
+                VALUES (?, ?, ?, N'Pending', NULL, NULL, NULL, DATEADD(MINUTE, 15, GETDATE()),
                         N'Khởi tạo thanh toán PayOS', GETDATE())
                 """;
 
         try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, bookingID);
-            ps.setBigDecimal(2, amount);
-            ps.setNString(3, STATUS_PENDING);
-            ps.setString(4, String.valueOf(bookingID));
-
-            if (ps.executeUpdate() > 0) {
-                return findByBookingID(bookingID);
-            }
+            ps.setLong(2, bookingID);
+            ps.setBigDecimal(3, amount);
+            ps.executeUpdate();
         } catch (Exception e) {
+            // A concurrent request may have inserted the unique booking payment first.
+            Payment concurrent = findByBookingID(bookingID);
+            if (concurrent != null) {
+                return concurrent;
+            }
             e.printStackTrace();
+            return null;
         }
-        return null;
+        return findByBookingID(bookingID);
     }
 
-    public boolean prepareCheckout(int bookingID) {
+    public boolean prepareCheckout(int bookingID, String checkoutUrl) {
         String sql = """
-                UPDATE [dbo].[Payments]
-                SET transactionCode = ?, [status] = ?, note = N'Đã tạo liên kết PayOS'
-                WHERE bookingID = ? AND [status] NOT IN (?, N'Paid')
+                UPDATE [dbo].[Payment]
+                SET payosOrderCode = ?, transactionCode = ?, [status] = N'Pending',
+                    checkoutUrl = ?,
+                    expiredAt = DATEADD(MINUTE, 15, GETDATE()),
+                    note = N'Đã tạo mã QR PayOS'
+                WHERE bookingID = ? AND [status] <> N'Paid'
                 """;
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, String.valueOf(bookingID));
-            ps.setNString(2, STATUS_PENDING);
-            ps.setInt(3, bookingID);
-            ps.setNString(4, STATUS_PAID);
+            ps.setLong(1, bookingID);
+            ps.setString(2, String.valueOf(bookingID));
+            ps.setString(3, checkoutUrl);
+            ps.setInt(4, bookingID);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,12 +79,21 @@ public class PaymentDAO {
 
     public boolean markPaidByBookingID(int bookingID, String transactionCode) {
         String sql = """
-                UPDATE [dbo].[Payments]
-                SET [status] = ?, transactionCode = ?, paymentDate = GETDATE(),
-                    note = N'PayOS xác nhận thanh toán thành công'
-                WHERE bookingID = ?
+                UPDATE [dbo].[Payment]
+                SET [status] = N'Paid', transactionCode = ?, paymentDate = GETDATE(),
+                    checkoutUrl = NULL, expiredAt = NULL, note = N'Đã thanh toán thành công'
+                WHERE bookingID = ? AND [status] = N'Pending'
+                  AND LEFT(ISNULL(note, N''), 15) <> N'[SLOT_RELEASED]'
                 """;
-        return update(sql, STATUS_PAID, transactionCode, bookingID);
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, transactionCode);
+            ps.setInt(2, bookingID);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean markCancelledByBookingID(int bookingID, String note) {
@@ -89,30 +104,34 @@ public class PaymentDAO {
         return updatePendingStatus(bookingID, STATUS_FAILED, note);
     }
 
+    public List<Integer> findExpiredPendingBookingIDs() {
+        String sql = """
+                SELECT bookingID FROM [dbo].[Payment]
+                WHERE [status] = N'Pending' AND expiredAt IS NOT NULL AND expiredAt <= GETDATE()
+                """;
+        List<Integer> bookingIDs = new ArrayList<>();
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                bookingIDs.add(rs.getInt("bookingID"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bookingIDs;
+    }
+
     private boolean updatePendingStatus(int bookingID, String status, String note) {
         String sql = """
-                UPDATE [dbo].[Payments]
+                UPDATE [dbo].[Payment]
                 SET [status] = ?, note = ?
-                WHERE bookingID = ? AND [status] IN (?, N'Pending')
+                WHERE bookingID = ? AND [status] = N'Pending'
                 """;
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setNString(1, status);
             ps.setNString(2, note);
-            ps.setInt(3, bookingID);
-            ps.setNString(4, STATUS_PENDING);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private boolean update(String sql, String status, String transactionCode, int bookingID) {
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setNString(1, status);
-            ps.setString(2, transactionCode);
             ps.setInt(3, bookingID);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -138,12 +157,14 @@ public class PaymentDAO {
         Payment payment = new Payment();
         payment.setPaymentID(rs.getInt("paymentID"));
         payment.setBookingID(rs.getInt("bookingID"));
-        payment.setPaymentMethod(rs.getString("payment_method"));
         payment.setTotalAmount(rs.getBigDecimal("totalAmount"));
         payment.setStatus(rs.getString("status"));
-        payment.setPaymentType(rs.getString("paymentType"));
+        long orderCode = rs.getLong("payosOrderCode");
+        payment.setPayosOrderCode(rs.wasNull() ? null : orderCode);
         payment.setTransactionCode(rs.getString("transactionCode"));
+        payment.setCheckoutUrl(rs.getString("checkoutUrl"));
         payment.setPaymentDate(rs.getTimestamp("paymentDate"));
+        payment.setExpiredAt(rs.getTimestamp("expiredAt"));
         payment.setNote(rs.getString("note"));
         payment.setCreatedAt(rs.getTimestamp("createdAt"));
         return payment;

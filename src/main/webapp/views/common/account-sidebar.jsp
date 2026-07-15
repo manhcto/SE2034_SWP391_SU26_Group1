@@ -203,10 +203,5 @@
             <i class="fa-solid fa-ticket"></i>
             Voucher
         </a>
-        <a class="account-nav-link ${activeAccountTab == 'blogs' ? 'active' : ''}"
-           href="${pageContext.request.contextPath}/my-blogs">
-            <i class="fa-solid fa-newspaper"></i>
-            Blog của tôi
-        </a>
     </nav>
 </aside>

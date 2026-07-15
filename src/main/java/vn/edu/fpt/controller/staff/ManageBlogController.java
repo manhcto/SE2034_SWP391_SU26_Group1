@@ -38,7 +38,7 @@ public class ManageBlogController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         String action = normalize(request.getParameter("action"));
-        boolean readOnly = false;
+        boolean readOnly = isAdminRequest(request);
 
         try {
             switch (action) {
@@ -80,9 +80,6 @@ public class ManageBlogController extends HttpServlet {
                     blogDAO.deletePost(parseId(request.getParameter("id")));
                     response.sendRedirect(resolveManagementPath(request) + "?message=deleted");
                     break;
-                case "status":
-                    response.sendRedirect(resolveManagementPath(request));
-                    break;
                 case "list":
                 default:
                     forwardManagement(request, response);
@@ -99,13 +96,8 @@ public class ManageBlogController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         try {
-            String action = normalize(request.getParameter("action"));
-            if ("status".equalsIgnoreCase(action)) {
-                int blogID = parseId(request.getParameter("id"));
-                String status = normalizeReviewStatus(request.getParameter("status"));
-                boolean updated = blogID > 0 && blogDAO.updatePostStatus(blogID, status);
-                response.sendRedirect(resolveManagementPath(request)
-                        + "?message=" + (updated ? "status_updated" : "error"));
+            if (isAdminRequest(request)) {
+                response.sendRedirect(resolveManagementPath(request));
                 return;
             }
 
@@ -149,7 +141,7 @@ public class ManageBlogController extends HttpServlet {
         request.setAttribute("selectedCategory", category);
         request.setAttribute("selectedStatus", status);
         request.setAttribute("blogManagementPath", resolveManagementPath(request));
-        request.setAttribute("blogManagementReadOnly", false);
+        request.setAttribute("blogManagementReadOnly", adminRequest);
         request.setAttribute("blogManagementRole", adminRequest ? "admin" : "staff");
         request.setAttribute("showBlogForm",
                 Boolean.TRUE.equals(request.getAttribute("showBlogForm"))
@@ -278,18 +270,7 @@ public class ManageBlogController extends HttpServlet {
         if ("Published".equalsIgnoreCase(value)) {
             return "Published";
         }
-        if ("Pending".equalsIgnoreCase(value)) {
-            return "Pending";
-        }
-        if ("Rejected".equalsIgnoreCase(value)) {
-            return "Rejected";
-        }
         return "Draft";
-    }
-
-    private String normalizeReviewStatus(String status) {
-        String value = normalize(status);
-        return "Published".equalsIgnoreCase(value) ? "Published" : "Rejected";
     }
 
     private String normalizeStatusFilter(String status) {
@@ -299,12 +280,6 @@ public class ManageBlogController extends HttpServlet {
         }
         if ("Draft".equalsIgnoreCase(value)) {
             return "Draft";
-        }
-        if ("Pending".equalsIgnoreCase(value)) {
-            return "Pending";
-        }
-        if ("Rejected".equalsIgnoreCase(value)) {
-            return "Rejected";
         }
         return "";
     }

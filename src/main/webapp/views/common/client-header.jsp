@@ -496,10 +496,6 @@
                                     <i class="fa-solid fa-ticket"></i>
                                     Voucher của tôi
                                 </a>
-                                <a href="${pageContext.request.contextPath}/my-blogs">
-                                    <i class="fa-solid fa-newspaper"></i>
-                                    Blog của tôi
-                                </a>
                             </c:if>
 
                             <div class="wv-dropdown-divider"></div>

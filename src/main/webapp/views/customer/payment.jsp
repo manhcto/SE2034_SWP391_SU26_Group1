@@ -6,126 +6,254 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>WonderVN | Thanh toán</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
     <style>
-        .payment-container {
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 44px 20px;
+        .payment-page {
+            min-height: calc(100vh - 160px);
+            padding: 48px 20px;
+            background: #f4f7fb;
         }
 
-        .payment-card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 28px;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+        .payment-shell {
+            width: min(980px, 100%);
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #dce4ef;
+            border-radius: 8px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, .08);
+            overflow: hidden;
+        }
+
+        .payment-heading {
+            padding: 28px 32px 22px;
+            border-bottom: 1px solid #e5eaf1;
+        }
+
+        .payment-heading h1 {
+            margin: 0 0 6px;
+            color: #0f172a;
+            font-size: 28px;
+            letter-spacing: 0;
+        }
+
+        .payment-heading p {
+            margin: 0;
+            color: #64748b;
+        }
+
+        .payment-alert {
+            margin: 20px 32px 0;
+            padding: 13px 15px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
+        .payment-alert.success {
+            color: #166534;
+            background: #ecfdf3;
+            border-color: #bbf7d0;
+        }
+
+        .payment-alert.error {
+            color: #b42318;
+            background: #fff1f0;
+            border-color: #fecaca;
+        }
+
+        .payment-content {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 32px;
+            padding: 28px 32px 32px;
+        }
+
+        .payment-details {
+            min-width: 0;
         }
 
         .payment-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px 28px;
-            margin: 22px 0;
+            gap: 22px 28px;
         }
 
         .payment-label {
             display: block;
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .payment-value {
-            color: #111827;
-            font-size: 16px;
+            margin-bottom: 5px;
+            color: #64748b;
+            font-size: 13px;
             font-weight: 700;
         }
 
-        .payment-total {
-            color: #dc2626;
-            font-size: 28px;
+        .payment-value {
+            color: #0f172a;
+            font-size: 16px;
             font-weight: 800;
+            overflow-wrap: anywhere;
         }
 
         .payment-status {
             display: inline-flex;
-            padding: 6px 12px;
+            align-items: center;
+            min-height: 30px;
+            padding: 5px 11px;
             border-radius: 999px;
-            background: #fef3c7;
             color: #92400e;
+            background: #fef3c7;
+            font-size: 13px;
             font-weight: 800;
-            font-size: 14px;
         }
 
         .payment-status.paid {
-            background: #dcfce7;
             color: #166534;
+            background: #dcfce7;
+        }
+
+        .payment-total-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 28px;
+            padding-top: 22px;
+            border-top: 1px solid #e5eaf1;
+        }
+
+        .payment-total {
+            color: #dc2626;
+            font-size: 30px;
+            font-weight: 900;
+        }
+
+        .payment-qr {
+            padding-left: 30px;
+            border-left: 1px solid #e5eaf1;
+            text-align: center;
+        }
+
+        .payment-qr h2 {
+            margin: 0 0 6px;
+            color: #0f172a;
+            font-size: 19px;
+            letter-spacing: 0;
+        }
+
+        .payment-qr p {
+            margin: 0 0 18px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .payment-qr img {
+            display: block;
+            width: min(280px, 100%);
+            aspect-ratio: 1;
+            margin: 0 auto 14px;
+            border: 1px solid #dce4ef;
+            border-radius: 6px;
         }
 
         .payment-actions {
             display: flex;
-            gap: 12px;
             flex-wrap: wrap;
-            margin-top: 24px;
+            gap: 10px;
+            margin-top: 28px;
         }
 
         .payment-btn {
-            min-width: 170px;
-            height: 46px;
-            padding: 0 22px;
-            border-radius: 999px;
+            min-height: 44px;
+            padding: 0 18px;
             border: 1px solid #2563eb;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 6px;
+            background: #fff;
+            color: #1d4ed8;
+            font: inherit;
             font-weight: 800;
             text-decoration: none;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .payment-btn-primary {
+        .payment-btn.primary {
+            color: #fff;
             background: #2563eb;
-            color: #ffffff;
         }
 
-        .payment-btn-outline {
-            background: #ffffff;
-            color: #2563eb;
+        .bank-transfer {
+            margin: 16px 0;
+            padding-top: 16px;
+            border-top: 1px solid #e5eaf1;
+            text-align: left;
         }
 
-        .payment-alert {
-            padding: 14px 16px;
-            border-radius: 10px;
-            margin-bottom: 18px;
-            border: 1px solid transparent;
+        .bank-row {
+            display: grid;
+            gap: 3px;
+            margin-bottom: 12px;
         }
 
-        .payment-alert.error {
-            background: #fee2e2;
-            color: #b91c1c;
-            border-color: #fecaca;
+        .bank-row:last-child {
+            margin-bottom: 0;
         }
 
-        .payment-alert.success {
-            background: #dcfce7;
-            color: #166534;
-            border-color: #bbf7d0;
+        .bank-label {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
         }
 
-        .payment-alert.info {
-            background: #eff6ff;
-            color: #1d4ed8;
-            border-color: #bfdbfe;
+        .bank-value {
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 800;
+            overflow-wrap: anywhere;
         }
 
-        @media (max-width: 720px) {
+        .payment-note {
+            margin-top: 12px;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 780px) {
+            .payment-content {
+                grid-template-columns: 1fr;
+                padding: 24px 20px;
+            }
+
+            .payment-heading {
+                padding: 24px 20px 20px;
+            }
+
+            .payment-alert {
+                margin-inline: 20px;
+            }
+
+            .payment-qr {
+                padding: 24px 0 0;
+                border-top: 1px solid #e5eaf1;
+                border-left: 0;
+            }
+        }
+
+        @media (max-width: 540px) {
             .payment-grid {
                 grid-template-columns: 1fr;
             }
 
-            .payment-btn {
+            .payment-total-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .payment-btn,
+            .payment-actions form {
                 width: 100%;
             }
         }
@@ -134,90 +262,150 @@
 <body>
 <jsp:include page="/views/common/client-header.jsp" />
 
-<main>
-    <section class="payment-container">
-        <div class="payment-card">
-            <p class="section-kicker">Payment</p>
-            <h2>Thanh toán booking</h2>
+<main class="payment-page">
+    <section class="payment-shell">
+        <header class="payment-heading">
+            <h1>Thanh toán booking</h1>
+            <p>Quét mã PayOS hoặc mở trang thanh toán. Booking và payment được xử lý độc lập.</p>
+        </header>
 
-            <c:if test="${not empty message}">
-                <div class="payment-alert success">${message}</div>
-            </c:if>
+        <c:if test="${not empty message}">
+            <div class="payment-alert success"><c:out value="${message}" /></div>
+        </c:if>
+        <c:if test="${not empty error}">
+            <div class="payment-alert error"><c:out value="${error}" /></div>
+        </c:if>
+        <c:if test="${not payosConfigured && not payment.paid}">
+            <div class="payment-alert error">
+                PayOS chưa được cấu hình. Vui lòng kiểm tra cấu hình kết nối thanh toán.
+            </div>
+        </c:if>
 
-            <c:if test="${not empty error}">
-                <div class="payment-alert error">${error}</div>
-            </c:if>
-
-            <c:if test="${not payosConfigured}">
-                <div class="payment-alert error">
-                    PayOS chưa được cấu hình trên máy chủ. Vui lòng liên hệ nhân viên WonderVN.
+        <div class="payment-content">
+            <div class="payment-details">
+                <div class="payment-grid">
+                    <div>
+                        <span class="payment-label">Mã booking</span>
+                        <span class="payment-value"><c:out value="${bookingSummary.bookingCode}" /></span>
+                    </div>
+                    <div>
+                        <span class="payment-label">Dịch vụ</span>
+                        <span class="payment-value"><c:out value="${bookingSummary.itemName}" /></span>
+                    </div>
+                    <div>
+                        <span class="payment-label">Khách hàng</span>
+                        <span class="payment-value">
+                            <c:out value="${bookingSummary.firstName}" /> <c:out value="${bookingSummary.lastName}" />
+                        </span>
+                    </div>
+                    <div>
+                        <span class="payment-label">Trạng thái booking</span>
+                        <span class="payment-value"><c:out value="${bookingSummary.status}" /></span>
+                    </div>
+                    <div>
+                        <span class="payment-label">Trạng thái thanh toán</span>
+                        <span class="payment-status ${payment.paid ? 'paid' : ''}">
+                            <c:choose>
+                                <c:when test="${payment.status == 'Paid'}">Đã thanh toán</c:when>
+                                <c:when test="${payment.status == 'Failed'}">Thất bại</c:when>
+                                <c:when test="${payment.status == 'Cancelled'}">Đã hủy</c:when>
+                                <c:otherwise>Chờ thanh toán</c:otherwise>
+                            </c:choose>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="payment-label">Giữ chỗ đến</span>
+                        <span class="payment-value">
+                            <c:choose>
+                                <c:when test="${payment.reservationReleased}">Đã hoàn chỗ</c:when>
+                                <c:when test="${not empty payment.expiredAt}">
+                                    <fmt:formatDate value="${payment.expiredAt}" pattern="HH:mm dd/MM/yyyy" />
+                                </c:when>
+                                <c:otherwise>Không áp dụng</c:otherwise>
+                            </c:choose>
+                        </span>
+                    </div>
                 </div>
-            </c:if>
 
-            <div class="payment-grid">
-                <div>
-                    <span class="payment-label">Mã booking</span>
-                    <span class="payment-value">${bookingSummary.bookingCode}</span>
+                <div class="payment-total-row">
+                    <div>
+                        <span class="payment-label">Tổng thanh toán</span>
+                        <span class="payment-total">
+                            <fmt:formatNumber value="${bookingSummary.totalPrice}" type="number" maxFractionDigits="0" /> đ
+                        </span>
+                    </div>
                 </div>
 
-                <div>
-                    <span class="payment-label">Dịch vụ</span>
-                    <span class="payment-value">${bookingSummary.itemName}</span>
+                <div class="payment-actions">
+                    <a class="payment-btn"
+                       href="${pageContext.request.contextPath}/booking-summary?bookingID=${bookingSummary.bookingID}">
+                        Xem booking
+                    </a>
+                    <a class="payment-btn" href="${pageContext.request.contextPath}/booking-list">
+                        Danh sách booking
+                    </a>
                 </div>
-
-                <div>
-                    <span class="payment-label">Loại booking</span>
-                    <span class="payment-value">${bookingSummary.bookingType}</span>
-                </div>
-
-                <div>
-                    <span class="payment-label">Trạng thái thanh toán</span>
-                    <span class="payment-status ${payment.paid ? 'paid' : ''}">
-                        <c:choose>
-                            <c:when test="${payment.status == 'Đã thanh toán' || payment.status == 'Paid'}">Đã thanh toán</c:when>
-                            <c:when test="${payment.status == 'Thất bại' || payment.status == 'Failed'}">Thất bại</c:when>
-                            <c:when test="${payment.status == 'Đã hủy' || payment.status == 'Cancelled'}">Đã hủy</c:when>
-                            <c:otherwise>Chờ thanh toán</c:otherwise>
-                        </c:choose>
-                    </span>
-                </div>
-
-                <div>
-                    <span class="payment-label">Khách hàng</span>
-                    <span class="payment-value">${bookingSummary.firstName} ${bookingSummary.lastName}</span>
-                </div>
-
-                <div>
-                    <span class="payment-label">Tổng tiền</span>
-                    <span class="payment-total">
-                        <fmt:formatNumber value="${bookingSummary.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
-                    </span>
-                </div>
+                <p class="payment-note">
+                    Thanh toán PayOS không tự động duyệt booking. Nhân viên vẫn xử lý booking theo quy trình riêng.
+                </p>
             </div>
 
-            <div class="payment-actions">
-                <c:if test="${not payment.paid && (bookingSummary.status == 'Đang xử lý' || bookingSummary.status == 'Pending')}">
-                    <c:if test="${payosConfigured}">
-                        <form action="${pageContext.request.contextPath}/payment" method="post">
-                            <input type="hidden" name="bookingID" value="${bookingSummary.bookingID}">
-                            <button class="payment-btn payment-btn-primary" type="submit">
-                                Thanh toán qua PayOS
-                            </button>
-                        </form>
-                    </c:if>
-
-                </c:if>
-
-                <a class="payment-btn payment-btn-outline"
-                   href="${pageContext.request.contextPath}/booking-summary?bookingID=${bookingSummary.bookingID}">
-                    Xem booking
-                </a>
-
-                <a class="payment-btn payment-btn-outline"
-                   href="${pageContext.request.contextPath}/booking-list">
-                    Danh sách booking
-                </a>
-            </div>
+            <aside class="payment-qr">
+                <c:choose>
+                    <c:when test="${payment.paid}">
+                        <h2>Thanh toán thành công</h2>
+                        <p>Mã QR và liên kết PayOS đã được xóa khỏi phiên hiện tại.</p>
+                    </c:when>
+                    <c:when test="${payment.reservationReleased}">
+                        <h2>Đã hết thời gian giữ chỗ</h2>
+                        <p>Payment vẫn Chờ thanh toán, nhưng slot/phòng đã được hoàn lại.</p>
+                    </c:when>
+                    <c:when test="${paymentQrAvailable}">
+                        <h2>Quét mã QR PayOS</h2>
+                        <p>Mã có hiệu lực trong 15 phút kể từ khi được tạo.</p>
+                        <img src="${pageContext.request.contextPath}/payment/qr?bookingID=${bookingSummary.bookingID}"
+                             alt="Mã QR thanh toán PayOS">
+                        <div class="bank-transfer">
+                            <div class="bank-row">
+                                <span class="bank-label">Ngân hàng</span>
+                                <span class="bank-value"><c:out value="${paymentBankName}" /></span>
+                            </div>
+                            <div class="bank-row">
+                                <span class="bank-label">Chủ tài khoản</span>
+                                <span class="bank-value"><c:out value="${paymentAccountName}" /></span>
+                            </div>
+                            <div class="bank-row">
+                                <span class="bank-label">Số tài khoản</span>
+                                <span class="bank-value"><c:out value="${paymentAccountNumber}" /></span>
+                            </div>
+                            <div class="bank-row">
+                                <span class="bank-label">Số tiền</span>
+                                <span class="bank-value">
+                                    <fmt:formatNumber value="${paymentTransferAmount}" type="number" maxFractionDigits="0" /> đ
+                                </span>
+                            </div>
+                            <div class="bank-row">
+                                <span class="bank-label">Nội dung chuyển khoản</span>
+                                <span class="bank-value"><c:out value="${paymentTransferDescription}" /></span>
+                            </div>
+                        </div>
+                        <c:if test="${not empty paymentCheckoutUrl}">
+                            <a class="payment-btn primary" target="_blank" rel="noopener noreferrer"
+                               href="<c:out value='${paymentCheckoutUrl}' />">Mở trang PayOS</a>
+                        </c:if>
+                    </c:when>
+                    <c:when test="${not empty paymentCheckoutUrl}">
+                        <h2>Thanh toán qua PayOS</h2>
+                        <p>PayOS không trả QR, hãy tiếp tục bằng liên kết bảo mật.</p>
+                        <a class="payment-btn primary" target="_blank" rel="noopener noreferrer"
+                           href="<c:out value='${paymentCheckoutUrl}' />">Mở trang PayOS</a>
+                    </c:when>
+                    <c:otherwise>
+                        <h2>Chưa có mã thanh toán</h2>
+                        <p>Kiểm tra cấu hình PayOS hoặc tạo lại phiên thanh toán.</p>
+                    </c:otherwise>
+                </c:choose>
+            </aside>
         </div>
     </section>
 </main>
