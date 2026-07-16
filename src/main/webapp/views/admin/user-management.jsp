@@ -468,7 +468,7 @@
             <span>Quản lý người dùng</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour-approval">
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour/approval">
             <i class="fa-solid fa-circle-check"></i>
             <span>Phê duyệt tour</span>
         </a>

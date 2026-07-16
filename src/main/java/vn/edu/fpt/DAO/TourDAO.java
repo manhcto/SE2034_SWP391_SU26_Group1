@@ -1284,6 +1284,278 @@ public class TourDAO {
         return places;
     }
 
+
+    public Map<String, Integer> getTourStatusCounts() {
+        Map<String, Integer> counts = new HashMap<>();
+        String sql = """
+                SELECT [status], COUNT(*) AS total
+                FROM Tour
+                GROUP BY [status]
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                counts.put(rs.getString("status"), rs.getInt("total"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        counts.putIfAbsent("Draft", 0);
+        counts.putIfAbsent("Pending", 0);
+        counts.putIfAbsent("Active", 0);
+        counts.putIfAbsent("Rejected", 0);
+        counts.putIfAbsent("Inactive", 0);
+        return counts;
+    }
+
+    public List<String> getTourReadinessErrors(int tourID) {
+        List<String> errors = new ArrayList<>();
+        Tour tour = getTourById(tourID);
+        if (tour == null) {
+            errors.add("Tour không tồn tại.");
+            return errors;
+        }
+
+        if (isBlank(tour.getTourName())) {
+            errors.add("Thiếu tên tour.");
+        }
+        if (tour.getTourCategoryID() <= 0) {
+            errors.add("Thiếu danh mục tour.");
+        }
+        if (tour.getNumberOfDay() <= 0 || tour.getNumberOfDay() > 15) {
+            errors.add("Số ngày tour không hợp lệ.");
+        }
+        if (isBlank(tour.getStartPlace()) || isBlank(tour.getEndPlace())) {
+            errors.add("Thiếu điểm khởi hành hoặc điểm đến.");
+        }
+        if (isBlank(tour.getImage())) {
+            errors.add("Thiếu ảnh bìa tour.");
+        }
+        if (tour.getAdultPrice() == null || tour.getAdultPrice().compareTo(new java.math.BigDecimal("500000")) <= 0) {
+            errors.add("Giá người lớn phải lớn hơn 500.000 VND.");
+        }
+
+        int itineraryCount = countActiveItineraries(tourID);
+        if (itineraryCount < tour.getNumberOfDay()) {
+            errors.add("Lịch trình từng ngày chưa đủ theo số ngày tour.");
+        }
+
+        int scheduleCount = countValidSchedulesForApproval(tourID);
+        if (scheduleCount <= 0) {
+            errors.add("Tour cần có ít nhất một lịch khởi hành hợp lệ trong tương lai.");
+        }
+
+        return errors;
+    }
+
+    private int countActiveItineraries(int tourID) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM Tour_Itinerary
+                WHERE tourID = ?
+                  AND (status IS NULL OR status = N'Active')
+                """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, tourID);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private int countValidSchedulesForApproval(int tourID) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM Tour_Scheduler
+                WHERE tourID = ?
+                  AND scheduleStatus <> N'Cancelled'
+                  AND startDate >= CAST(GETDATE() AS DATE)
+                  AND maxParticipants > 0
+                  AND quantity < maxParticipants
+                """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, tourID);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public boolean submitTourForApproval(int tourID) {
+        String sql = """
+                UPDATE Tour
+                SET [status] = N'Pending', rejectionReason = NULL, updatedAt = GETDATE()
+                WHERE tourID = ?
+                  AND [status] IN (N'Draft', N'Rejected')
+                """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, tourID);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean approveTour(int tourID, int adminUserID, boolean openValidSchedules) {
+        Connection conn = null;
+        try {
+            conn = new DBConnection().getConnection();
+            conn.setAutoCommit(false);
+
+            String sql = """
+                    UPDATE Tour
+                    SET [status] = N'Active',
+                        approvedByUserID = ?,
+                        approvedAt = GETDATE(),
+                        rejectionReason = NULL,
+                        updatedAt = GETDATE()
+                    WHERE tourID = ?
+                      AND [status] = N'Pending'
+                    """;
+            int updated;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, adminUserID);
+                ps.setInt(2, tourID);
+                updated = ps.executeUpdate();
+            }
+
+            if (updated <= 0) {
+                conn.rollback();
+                return false;
+            }
+
+            if (openValidSchedules) {
+                String openSql = """
+                        UPDATE Tour_Scheduler
+                        SET scheduleStatus = N'Open', updatedAt = GETDATE()
+                        WHERE tourID = ?
+                          AND scheduleStatus = N'Planned'
+                          AND startDate >= CAST(GETDATE() AS DATE)
+                          AND quantity < maxParticipants
+                        """;
+                try (PreparedStatement ps = conn.prepareStatement(openSql)) {
+                    ps.setInt(1, tourID);
+                    ps.executeUpdate();
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            rollbackQuietly(conn);
+        } finally {
+            closeQuietly(conn);
+        }
+        return false;
+    }
+
+    public boolean rejectTour(int tourID, int adminUserID, String rejectionReason) {
+        String sql = """
+                UPDATE Tour
+                SET [status] = N'Rejected',
+                    approvedByUserID = ?,
+                    approvedAt = NULL,
+                    rejectionReason = ?,
+                    updatedAt = GETDATE()
+                WHERE tourID = ?
+                  AND [status] = N'Pending'
+                """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, adminUserID);
+            ps.setString(2, rejectionReason == null ? "" : rejectionReason.trim());
+            ps.setInt(3, tourID);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean setTourInactive(int tourID) {
+        Connection conn = null;
+        try {
+            conn = new DBConnection().getConnection();
+            conn.setAutoCommit(false);
+
+            String tourSql = """
+                    UPDATE Tour
+                    SET [status] = N'Inactive', updatedAt = GETDATE()
+                    WHERE tourID = ?
+                      AND [status] = N'Active'
+                    """;
+            int updated;
+            try (PreparedStatement ps = conn.prepareStatement(tourSql)) {
+                ps.setInt(1, tourID);
+                updated = ps.executeUpdate();
+            }
+
+            if (updated <= 0) {
+                conn.rollback();
+                return false;
+            }
+
+            String scheduleSql = """
+                    UPDATE Tour_Scheduler
+                    SET scheduleStatus = N'Closed', updatedAt = GETDATE()
+                    WHERE tourID = ?
+                      AND scheduleStatus = N'Open'
+                    """;
+            try (PreparedStatement ps = conn.prepareStatement(scheduleSql)) {
+                ps.setInt(1, tourID);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            rollbackQuietly(conn);
+        } finally {
+            closeQuietly(conn);
+        }
+        return false;
+    }
+
+    public boolean reactivateTour(int tourID, int adminUserID) {
+        String sql = """
+                UPDATE Tour
+                SET [status] = N'Active',
+                    approvedByUserID = COALESCE(approvedByUserID, ?),
+                    approvedAt = COALESCE(approvedAt, GETDATE()),
+                    updatedAt = GETDATE()
+                WHERE tourID = ?
+                  AND [status] = N'Inactive'
+                """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, adminUserID);
+            ps.setInt(2, tourID);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Tour mapTour(ResultSet rs) throws Exception {
         Tour tour = new Tour();
 

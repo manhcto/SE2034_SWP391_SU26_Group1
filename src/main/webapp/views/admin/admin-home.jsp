@@ -450,7 +450,7 @@
             <span>Quản lý người dùng</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour-approval">
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour/approval">
             <i class="fa-solid fa-circle-check"></i>
             <span>Phê duyệt Tour</span>
         </a>
@@ -581,13 +581,24 @@
             </div>
 
             <div class="col-md-4">
-                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/tour-approval">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/tour/approval">
                     <div class="module-icon">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
                     <h5>Phê duyệt Tour</h5>
                     <p>Xem và phê duyệt các tour trước khi công khai cho khách hàng đặt.</p>
                     <span class="module-open">Mở Tour Approval <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/tour">
+                    <div class="module-icon">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <h5>Quản lý Tour</h5>
+                    <p>Xem toàn bộ tour, trạng thái duyệt, số lịch khởi hành và tình trạng bán.</p>
+                    <span class="module-open">Mở Tour Management <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
 

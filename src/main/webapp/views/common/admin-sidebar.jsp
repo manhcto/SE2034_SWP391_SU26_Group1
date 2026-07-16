@@ -149,6 +149,18 @@
         <span>Quản lí người dùng</span>
     </a>
 
+    <a class="sidebar-link${param.activeAdminMenu eq 'tour' ? ' active' : ''}"
+       href="${pageContext.request.contextPath}/admin/tour">
+        <i class="fa-solid fa-map-location-dot"></i>
+        <span>Quản lý tour</span>
+    </a>
+
+    <a class="sidebar-link${param.activeAdminMenu eq 'tourApproval' ? ' active' : ''}"
+       href="${pageContext.request.contextPath}/admin/tour/approval">
+        <i class="fa-solid fa-clipboard-check"></i>
+        <span>Duyệt tour</span>
+    </a>
+
     <a class="sidebar-link${param.activeAdminMenu eq 'booking' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/booking">
         <i class="fa-solid fa-calendar-check"></i>

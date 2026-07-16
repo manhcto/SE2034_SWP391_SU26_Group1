@@ -66,6 +66,12 @@
                     <a class="btn-main" href="${pageContext.request.contextPath}/staff/tour/edit?id=${tour.tourID}"><i class="fa-solid fa-pen"></i> Sửa tour</a>
                     <a class="btn-main" href="${pageContext.request.contextPath}/staff/tour/schedule?tourID=${tour.tourID}"><i class="fa-solid fa-calendar-days"></i> Quản lý lịch</a>
                 </c:if>
+                <c:if test="${tour.status == 'Draft' || tour.status == 'Rejected'}">
+                    <form method="post" action="${pageContext.request.contextPath}/staff/tour/submit" class="d-inline">
+                        <input type="hidden" name="tourID" value="${tour.tourID}">
+                        <button class="btn-main" type="submit" ${empty readinessErrors ? '' : 'disabled'}><i class="fa-solid fa-paper-plane"></i> Gửi duyệt</button>
+                    </form>
+                </c:if>
             </div>
         </section>
 
@@ -73,6 +79,20 @@
         <c:if test="${messageCode == 'updateSuccess'}"><div class="alert alert-success fw-bold">Cập nhật tour thành công.</div></c:if>
         <c:if test="${messageCode == 'updateFail'}"><div class="alert alert-danger fw-bold">Cập nhật tour thất bại.</div></c:if>
         <c:if test="${messageCode == 'noEditPermission'}"><div class="alert alert-warning fw-bold">Tour này không được sửa ở trạng thái hiện tại. Nháp/Bị từ chối được sửa đầy đủ; Chờ duyệt/Đang bán chỉ được bổ sung nội dung, ảnh và lịch trình.</div></c:if>
+        <c:if test="${messageCode == 'submitted'}"><div class="alert alert-success fw-bold">Đã gửi tour cho Admin duyệt.</div></c:if>
+        <c:if test="${messageCode == 'submitNotReady'}"><div class="alert alert-warning fw-bold">Tour chưa đủ điều kiện gửi duyệt. Hãy bổ sung các thông tin còn thiếu bên dưới.</div></c:if>
+        <c:if test="${messageCode == 'submitInvalidStatus'}"><div class="alert alert-warning fw-bold">Chỉ tour Nháp hoặc Bị từ chối mới được gửi duyệt.</div></c:if>
+        <c:if test="${messageCode == 'submitFail'}"><div class="alert alert-danger fw-bold">Gửi duyệt thất bại. Vui lòng thử lại.</div></c:if>
+
+
+        <c:if test="${(tour.status == 'Draft' || tour.status == 'Rejected') && not empty readinessErrors}">
+            <div class="alert alert-warning">
+                <div class="fw-bold mb-2">Tour chưa đủ điều kiện gửi duyệt:</div>
+                <ul class="mb-0">
+                    <c:forEach var="err" items="${readinessErrors}"><li>${err}</li></c:forEach>
+                </ul>
+            </div>
+        </c:if>
 
         <section class="page-card">
             <c:choose>
