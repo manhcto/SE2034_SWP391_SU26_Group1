@@ -81,6 +81,25 @@
             text-decoration: none;
         }
 
+        .btn-back-list {
+            border: none;
+            border-radius: 16px;
+            background: var(--dark);
+            color: #ffffff;
+            padding: 12px 18px;
+            font-weight: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+        }
+
+        .btn-back-list:hover {
+            background: #1e293b;
+            color: #ffffff;
+        }
+
         .detail-card {
             background: white;
             border: 1px solid var(--border);
@@ -192,11 +211,10 @@
         <div class="staff-page-topbar">
             <div>
                 <h1>Chi tiết booking</h1>
-                <p>Xem thông tin booking, khách hàng và giấy tờ lưu trú.</p>
             </div>
-            <a class="btn-main" href="${pageContext.request.contextPath}/staff/booking">
+            <a class="btn-back-list" href="${pageContext.request.contextPath}/staff/booking">
                 <i class="fa-solid fa-arrow-left"></i>
-                Quay lại
+                Quay lại danh sách
             </a>
         </div>
 

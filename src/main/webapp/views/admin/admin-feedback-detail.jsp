@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>WonderVN | Admin Feedback Detail</title>
+  <title>WonderVN | Chi tiết Feedback</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -60,7 +60,7 @@
       width: 52px;
       height: 52px;
       border-radius: 18px;
-      background: linear-gradient(135deg, #06b6d4, #4e46dc);
+      background: linear-gradient(135deg, #f97316, #ea580c);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -118,9 +118,9 @@
     }
 
     .sidebar-link.active {
-      background: linear-gradient(135deg, #06b6d4, #4e46dc);
+      background: linear-gradient(135deg, #f97316, #ea580c);
       color: #ffffff;
-      box-shadow: 0 10px 22px rgba(6, 182, 212, 0.22);
+      box-shadow: 0 10px 22px rgba(234, 88, 12, 0.22);
     }
 
     .admin-user {
@@ -136,7 +136,7 @@
       width: 46px;
       height: 46px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #06b6d4, #22c55e);
+      background: linear-gradient(135deg, #f97316, #22c55e);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -357,92 +357,11 @@
     <jsp:param name="activeAdminMenu" value="feedback"/>
     <jsp:param name="sidebarClass" value="sidebar"/>
   </jsp:include>
-  <%--
-  <aside class="sidebar">
-    <div class="brand-box">
-      <div class="brand-logo">WV</div>
-      <h2>WonderVN</h2>
-      <p>Travel ERP System</p>
-    </div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
-      <i class="fa-solid fa-house"></i>
-      <span>Trang chủ quản trị</span>
-    </a>
-
-    <div class="nav-section-title">Quản trị hệ thống</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
-      <i class="fa-solid fa-chart-line"></i>
-      <span>Dashboard</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
-      <i class="fa-solid fa-users"></i>
-      <span>Quản lý người dùng</span>
-    </a>
-
-    <div class="nav-section-title">Dịch vụ du lịch</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
-      <i class="fa-solid fa-map-location-dot"></i>
-      <span>Quản lý Tour</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
-      <i class="fa-solid fa-hotel"></i>
-      <span>Quản lý lưu trú</span>
-    </a>
-
-    <div class="nav-section-title">Vận hành</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-      <i class="fa-solid fa-calendar-check"></i>
-      <span>Quản lý booking</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
-      <i class="fa-solid fa-credit-card"></i>
-      <span>Quản lý thanh toán</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/voucher">
-      <i class="fa-solid fa-gift"></i>
-      <span>Quản lý Voucher</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/assignment">
-      <i class="fa-solid fa-user-tie"></i>
-      <span>Điều phối hướng dẫn viên</span>
-    </a>
-
-    <div class="nav-section-title">Nội dung & CSKH</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/blog">
-      <i class="fa-solid fa-newspaper"></i>
-      <span>Quản lý Blog</span>
-    </a>
-
-    <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/feedback">
-      <i class="fa-solid fa-comments"></i>
-      <span>Xem Feedback</span>
-    </a>
-
-    <div class="admin-user">
-      <div class="avatar">AD</div>
-      <div>
-        <div class="fw-bold">Quản trị viên</div>
-        <small>Admin / Staff</small>
-      </div>
-    </div>
-  </aside>
-  --%>
 
   <main class="main-content">
     <div class="topbar">
       <div>
-        <h1>Feedback Detail</h1>
-        <p>Admin xem chi tiết feedback, thông tin customer và booking liên quan.</p>
+        <h1>Chi tiết Feedback</h1>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/admin/feedback">
@@ -466,12 +385,12 @@
 
         <div class="info-grid">
           <div class="info-box">
-            <span class="info-label">Feedback ID</span>
+            <span class="info-label">Mã Feedback</span>
             <span class="info-value">#${feedbackDetail.feedbackID}</span>
           </div>
 
           <div class="info-box">
-            <span class="info-label">Rate</span>
+            <span class="info-label">Số sao</span>
             <span class="rate-badge">
                             <i class="fa-solid fa-star"></i>
                             <fmt:formatNumber value="${feedbackDetail.rate}" maxFractionDigits="0"/> / 5
@@ -486,13 +405,13 @@
           </div>
 
           <div class="info-box">
-            <span class="info-label">Status</span>
+            <span class="info-label">Trạng thái</span>
             <c:choose>
               <c:when test="${feedbackDetail.status == 'Visible'}">
-                <span class="status-badge status-visible">Visible</span>
+                <span class="status-badge status-visible">Hiển thị</span>
               </c:when>
               <c:otherwise>
-                <span class="status-badge status-hidden">Hidden</span>
+                <span class="status-badge status-hidden">Đã ẩn</span>
               </c:otherwise>
             </c:choose>
           </div>
@@ -514,7 +433,7 @@
           <c:when test="${not empty feedbackDetail.image}">
             <img class="feedback-image"
                  src="${feedbackDetail.image}"
-                 alt="Feedback Image">
+                 alt="Hình ảnh feedback">
           </c:when>
           <c:otherwise>
             <div class="no-image">
@@ -527,12 +446,12 @@
 
         <div class="section-title">
           <i class="fa-solid fa-user me-2"></i>
-          Thông tin Customer
+          Thông tin khách hàng
         </div>
 
         <div class="info-grid">
           <div class="info-box">
-            <span class="info-label">User ID</span>
+            <span class="info-label">Mã người dùng</span>
             <span class="info-value">${feedbackDetail.userID}</span>
           </div>
 
@@ -556,22 +475,28 @@
 
         <div class="info-grid">
           <div class="info-box">
-            <span class="info-label">Booking ID</span>
+            <span class="info-label">Mã Booking</span>
             <span class="info-value">${feedbackDetail.bookingID}</span>
           </div>
 
           <div class="info-box">
-            <span class="info-label">Booking Code</span>
+            <span class="info-label">Mã đơn đặt</span>
             <span class="info-value">${feedbackDetail.bookingCode}</span>
           </div>
 
           <div class="info-box">
-            <span class="info-label">Booking Type</span>
-            <span class="info-value">${feedbackDetail.bookingType}</span>
+            <span class="info-label">Loại Booking</span>
+            <span class="info-value">
+                            <c:choose>
+                              <c:when test="${feedbackDetail.bookingType == 'Tour'}">Tour</c:when>
+                              <c:when test="${feedbackDetail.bookingType == 'Accommodation'}">Lưu trú</c:when>
+                              <c:otherwise>${feedbackDetail.bookingType}</c:otherwise>
+                            </c:choose>
+                        </span>
           </div>
 
           <div class="info-box">
-            <span class="info-label">Total Price</span>
+            <span class="info-label">Tổng tiền</span>
             <span class="info-value">
                             <fmt:formatNumber value="${feedbackDetail.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
                         </span>

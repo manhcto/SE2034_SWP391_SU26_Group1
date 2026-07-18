@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>WonderVN | Staff Feedback Detail</title>
+  <title>WonderVN | Chi tiết Feedback</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -329,60 +329,6 @@
       margin: 28px 0;
     }
 
-    .action-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 28px;
-    }
-
-    .btn-approve,
-    .btn-hide,
-    .btn-back {
-      border-radius: 999px;
-      padding: 12px 20px;
-      font-weight: 900;
-      border: none;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: #ffffff;
-    }
-
-    .btn-approve {
-      background: #16a34a;
-    }
-
-    .btn-approve:hover {
-      background: #15803d;
-      color: #ffffff;
-    }
-
-    .btn-hide {
-      background: #dc2626;
-    }
-
-    .btn-hide:hover {
-      background: #b91c1c;
-      color: #ffffff;
-    }
-
-    .btn-back {
-      background: #0f172a;
-    }
-
-    .btn-back:hover {
-      background: #1e293b;
-      color: #ffffff;
-    }
-
-    .inline-form {
-      display: inline;
-      margin: 0;
-    }
-
     @media (max-width: 992px) {
       .sidebar {
         position: static;
@@ -423,8 +369,7 @@
   <main class="main-content">
     <div class="topbar">
       <div>
-        <h1>Feedback Detail</h1>
-        <p>Staff xem chi tiết feedback và duyệt hoặc ẩn feedback của khách hàng.</p>
+        <h1>Chi tiết Feedback</h1>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/feedback">
@@ -461,12 +406,12 @@
 
         <div class="info-grid">
           <div class="info-box">
-            <span class="info-label">Feedback ID</span>
+            <span class="info-label">Mã Feedback</span>
             <span class="info-value">#${feedbackDetail.feedbackID}</span>
           </div>
 
           <div class="info-box">
-            <span class="info-label">Rate</span>
+            <span class="info-label">Số sao</span>
             <span class="rate-badge">
                             <i class="fa-solid fa-star"></i>
                             <fmt:formatNumber value="${feedbackDetail.rate}" maxFractionDigits="0"/> / 5
@@ -481,13 +426,13 @@
           </div>
 
           <div class="info-box">
-            <span class="info-label">Status</span>
+            <span class="info-label">Trạng thái</span>
             <c:choose>
               <c:when test="${feedbackDetail.status == 'Visible'}">
-                <span class="status-badge status-visible">Visible</span>
+                <span class="status-badge status-visible">Hiển thị</span>
               </c:when>
               <c:otherwise>
-                <span class="status-badge status-hidden">Hidden</span>
+                <span class="status-badge status-hidden">Đã ẩn</span>
               </c:otherwise>
             </c:choose>
           </div>
@@ -509,7 +454,7 @@
           <c:when test="${not empty feedbackDetail.image}">
             <img class="feedback-image"
                  src="${feedbackDetail.image}"
-                 alt="Feedback Image">
+                 alt="Hình ảnh feedback">
           </c:when>
           <c:otherwise>
             <div class="no-image">
@@ -522,12 +467,12 @@
 
         <div class="section-title">
           <i class="fa-solid fa-user me-2"></i>
-          Thông tin Customer
+          Thông tin khách hàng
         </div>
 
         <div class="info-grid">
           <div class="info-box">
-            <span class="info-label">User ID</span>
+            <span class="info-label">Mã người dùng</span>
             <span class="info-value">${feedbackDetail.userID}</span>
           </div>
 
@@ -551,66 +496,34 @@
 
         <div class="info-grid">
           <div class="info-box">
-            <span class="info-label">Booking ID</span>
+            <span class="info-label">Mã Booking</span>
             <span class="info-value">${feedbackDetail.bookingID}</span>
           </div>
 
           <div class="info-box">
-            <span class="info-label">Booking Code</span>
+            <span class="info-label">Mã đơn đặt</span>
             <span class="info-value">${feedbackDetail.bookingCode}</span>
           </div>
 
           <div class="info-box">
-            <span class="info-label">Booking Type</span>
-            <span class="info-value">${feedbackDetail.bookingType}</span>
+            <span class="info-label">Loại Booking</span>
+            <span class="info-value">
+                            <c:choose>
+                              <c:when test="${feedbackDetail.bookingType == 'Tour'}">Tour</c:when>
+                              <c:when test="${feedbackDetail.bookingType == 'Accommodation'}">Lưu trú</c:when>
+                              <c:otherwise>${feedbackDetail.bookingType}</c:otherwise>
+                            </c:choose>
+                        </span>
           </div>
 
           <div class="info-box">
-            <span class="info-label">Total Price</span>
+            <span class="info-label">Tổng tiền</span>
             <span class="info-value">
                             <fmt:formatNumber value="${feedbackDetail.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
                         </span>
           </div>
         </div>
 
-        <div class="action-row">
-          <c:choose>
-            <c:when test="${feedbackDetail.status == 'Hidden'}">
-              <form class="inline-form"
-                    action="${pageContext.request.contextPath}/staff/feedback-status"
-                    method="post">
-                <input type="hidden" name="feedbackID" value="${feedbackDetail.feedbackID}">
-                <input type="hidden" name="status" value="Visible">
-                <input type="hidden" name="redirectTo" value="detail">
-
-                <button type="submit" class="btn-approve">
-                  <i class="fa-solid fa-check"></i>
-                  Approve Feedback
-                </button>
-              </form>
-            </c:when>
-
-            <c:otherwise>
-              <form class="inline-form"
-                    action="${pageContext.request.contextPath}/staff/feedback-status"
-                    method="post">
-                <input type="hidden" name="feedbackID" value="${feedbackDetail.feedbackID}">
-                <input type="hidden" name="status" value="Hidden">
-                <input type="hidden" name="redirectTo" value="detail">
-
-                <button type="submit" class="btn-hide">
-                  <i class="fa-solid fa-eye-slash"></i>
-                  Hide Feedback
-                </button>
-              </form>
-            </c:otherwise>
-          </c:choose>
-
-          <a class="btn-back" href="${pageContext.request.contextPath}/staff/feedback">
-            <i class="fa-solid fa-arrow-left"></i>
-            Quay lại danh sách
-          </a>
-        </div>
       </div>
     </c:if>
   </main>

@@ -52,6 +52,27 @@ public class AdminBookingController extends HttpServlet {
         BookingDAO bookingDAO = new BookingDAO();
         List<Booking> bookingList = bookingDAO.getAllBookings();
 
+        String type = request.getParameter("type");
+        String selectedType = (type == null) ? "" : type.trim();
+        if (!selectedType.isEmpty()) {
+            final String filterType = selectedType;
+            bookingList.removeIf(booking -> {
+                String bookingType = booking.getBookingType();
+                return bookingType == null || !filterType.equalsIgnoreCase(bookingType.trim());
+            });
+        }
+
+        String status = request.getParameter("status");
+        String selectedStatus = (status == null) ? "" : status.trim();
+        if (!selectedStatus.isEmpty()) {
+            final String filterStatus = selectedStatus;
+            bookingList.removeIf(booking -> {
+                String displayStatus = booking.getDisplayStatus();
+                return displayStatus == null || !filterStatus.equalsIgnoreCase(displayStatus.trim());
+            });
+        }
+
+        request.setAttribute("selectedBookingType", selectedType.isEmpty() ? null : selectedType);
         request.setAttribute("bookingList", bookingList);
         request.getRequestDispatcher(BOOKING_LIST_PAGE).forward(request, response);
     }

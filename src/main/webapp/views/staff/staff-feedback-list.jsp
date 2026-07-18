@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>WonderVN | Staff Feedback Management</title>
+  <title>WonderVN | Quản lý Feedback</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -393,13 +393,12 @@
   <main class="main-content">
     <div class="topbar">
       <div>
-        <h1>Staff Feedback Management</h1>
-        <p>Staff xem feedback của khách hàng và duyệt hoặc ẩn feedback trước khi công khai.</p>
+        <h1>Quản lý Feedback</h1>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/home">
         <i class="fa-solid fa-arrow-left"></i>
-        Về Staff Home
+        Về trang chủ nhân viên
       </a>
     </div>
 
@@ -441,13 +440,13 @@
             <table class="table align-middle">
               <thead>
               <tr>
-                <th>Feedback ID</th>
-                <th>Rate</th>
+                <th>Mã Feedback</th>
+                <th>Số sao</th>
                 <th>Nội dung</th>
                 <th>Ngày tạo</th>
-                <th>Status</th>
-                <th>User ID</th>
-                <th>Booking ID</th>
+                <th>Trạng thái</th>
+                <th>Mã người dùng</th>
+                <th>Mã Booking</th>
                 <th>Thao tác</th>
               </tr>
               </thead>
@@ -479,10 +478,10 @@
                   <td>
                     <c:choose>
                       <c:when test="${feedback.status == 'Visible'}">
-                        <span class="status-badge status-visible">Visible</span>
+                        <span class="status-badge status-visible">Hiển thị</span>
                       </c:when>
                       <c:otherwise>
-                        <span class="status-badge status-hidden">Hidden</span>
+                        <span class="status-badge status-hidden">Đã ẩn</span>
                       </c:otherwise>
                     </c:choose>
                   </td>
@@ -510,7 +509,7 @@
 
                             <button type="submit" class="btn-approve">
                               <i class="fa-solid fa-check"></i>
-                              Approve
+                              Duyệt
                             </button>
                           </form>
                         </c:when>
@@ -525,7 +524,7 @@
 
                             <button type="submit" class="btn-hide">
                               <i class="fa-solid fa-eye-slash"></i>
-                              Hide
+                              Ẩn
                             </button>
                           </form>
                         </c:otherwise>

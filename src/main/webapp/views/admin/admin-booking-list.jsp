@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>${bookingPageTitle} | WonderVN Admin</title>
+  <title>WonderVN | Quản lý Booking</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -25,7 +25,6 @@
 
     .admin-layout { display: flex; min-height: 100vh; }
 
-    /* -- SIDEBAR GỐC -- */
     .sidebar {
       width: 292px;
       background: #0f172a;
@@ -50,15 +49,12 @@
     .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 15px; color: #e2e8f0; text-decoration: none; font-size: 14px; font-weight: 700; margin-bottom: 8px; transition: all 0.2s ease; }
     .sidebar-link i { width: 22px; text-align: center; font-size: 16px; }
     .sidebar-link:hover { background: #1e293b; color: #ffffff; transform: translateX(4px); }
-    /* Đã đổi trạng thái Active sang gradient Cam */
     .sidebar-link.active { background: linear-gradient(135deg, #f97316, #ea580c); color: #ffffff; box-shadow: 0 10px 22px rgba(234, 88, 12, 0.22); }
 
     .admin-user { margin-top: 26px; border-top: 1px solid rgba(148, 163, 184, 0.25); padding: 18px 8px 4px; display: flex; align-items: center; gap: 12px; }
-    /* Đã đổi Avatar sang gradient Cam */
     .avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #f97316, #22c55e); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
     .admin-user small { color: #94a3b8; }
 
-    /* -- MAIN CONTENT GỐC -- */
     .main-content { margin-left: 292px; width: calc(100% - 292px); padding: 34px 42px; }
 
     .topbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 26px; }
@@ -68,20 +64,17 @@
     .top-action-btn { border: none; border-radius: 16px; padding: 12px 18px; text-decoration: none; font-weight: 900; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08); background: #0f172a; color: #ffffff; }
     .top-action-btn:hover { background: #1e293b; color: #ffffff; }
 
-    /* -- STATS CARDS -- */
     .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 22px; }
     .summary-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 22px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06); padding: 20px; display: flex; align-items: center; gap: 14px; }
     .summary-icon { width: 48px; height: 48px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
     .summary-label { color: #64748b; font-size: 13px; font-weight: 800; margin-bottom: 3px; }
     .summary-value { color: #0f172a; font-size: 26px; font-weight: 900; line-height: 1; }
 
-    /* -- BẢNG VÀ CARD NỘI DUNG -- */
     .content-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 24px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08); }
     .table { margin-bottom: 0; }
     .table thead th { background: #f8fafc; color: #334155; font-size: 14px; font-weight: 900; border-bottom: 1px solid #e2e8f0; padding: 16px 14px; white-space: nowrap; }
     .table tbody td { padding: 15px 14px; vertical-align: middle; color: #0f172a; font-size: 14px; }
 
-    /* Mã đơn hàng màu Cam */
     .booking-id { font-weight: 900; color: #ea580c; }
 
     .status-badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 900; }
@@ -90,13 +83,40 @@
     .status-completed { background: #dcfce7; color: #166534; }
     .status-cancelled { background: #fee2e2; color: #991b1b; }
 
-    /* Nút Xem chi tiết màu Cam */
     .btn-view { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px; border-radius: 999px; background: #ea580c; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 900; white-space: nowrap; }
     .btn-view:hover { background: #c2410c; color: #ffffff; }
 
     .empty-box { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 18px; padding: 40px; text-align: center; color: #64748b; font-weight: 800; }
 
-    /* Class màu Cam custom cho Nút Lọc */
+    .toolbar {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: 1fr 220px 220px 120px;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .toolbar .form-control,
+    .toolbar .form-select {
+      border-radius: 13px;
+      border: 1px solid #dbe3ef;
+      min-height: 46px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 1200px) {
+      .toolbar { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .toolbar { grid-template-columns: 1fr; }
+    }
+
     .btn-orange { background-color: #ea580c; color: #fff; border-color: #ea580c; }
     .btn-orange:hover { background-color: #c2410c; color: #fff; border-color: #c2410c; }
     .btn-outline-orange { color: #ea580c; border-color: #ea580c; background-color: transparent; }
@@ -120,98 +140,34 @@
     <jsp:param name="activeAdminMenu" value="booking"/>
     <jsp:param name="sidebarClass" value="sidebar"/>
   </jsp:include>
-  <%--
-  <aside class="sidebar">
-    <div class="brand-box">
-      <div class="brand-logo">WV</div>
-      <h2>WonderVN</h2>
-      <p>Travel ERP System</p>
-    </div>
+  <c:set var="pendingCount" value="0"/>
+  <c:set var="completedCount" value="0"/>
+  <c:set var="cancelledCount" value="0"/>
 
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
-      <i class="fa-solid fa-house"></i>
-      <span>Trang chủ quản trị</span>
-    </a>
-
-    <div class="nav-section-title">Quản trị hệ thống</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
-      <i class="fa-solid fa-chart-line"></i>
-      <span>Dashboard</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
-      <i class="fa-solid fa-users"></i>
-      <span>Quản lý người dùng</span>
-    </a>
-
-    <div class="nav-section-title">Dịch vụ du lịch</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
-      <i class="fa-solid fa-map-location-dot"></i>
-      <span>Quản lý Tour</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
-      <i class="fa-solid fa-hotel"></i>
-      <span>Quản lý lưu trú</span>
-    </a>
-
-    <div class="nav-section-title">Vận hành</div>
-
-    <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/booking">
-      <i class="fa-solid fa-calendar-check"></i>
-      <span>Đơn đặt</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
-      <i class="fa-solid fa-credit-card"></i>
-      <span>Quản lý thanh toán</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/voucher">
-      <i class="fa-solid fa-gift"></i>
-      <span>Quản lý Voucher</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/assignment">
-      <i class="fa-solid fa-user-tie"></i>
-      <span>Điều phối hướng dẫn viên</span>
-    </a>
-
-    <div class="nav-section-title">Nội dung & CSKH</div>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/blog">
-      <i class="fa-solid fa-newspaper"></i>
-      <span>Quản lý Blog</span>
-    </a>
-
-    <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
-      <i class="fa-solid fa-comments"></i>
-      <span>Đánh giá khách hàng</span>
-    </a>
-
-    <div class="admin-user">
-      <div class="avatar">AD</div>
-      <div>
-        <div class="fw-bold">Quản trị viên</div>
-        <small>Admin / Staff</small>
-      </div>
-    </div>
-  </aside>
-  --%>
+  <c:forEach var="bk" items="${bookingList}">
+    <c:choose>
+      <c:when test="${bk.displayStatus == 'Đang xử lý'}">
+        <c:set var="pendingCount" value="${pendingCount + 1}"/>
+      </c:when>
+      <c:when test="${bk.displayStatus == 'Hoàn thành'}">
+        <c:set var="completedCount" value="${completedCount + 1}"/>
+      </c:when>
+      <c:when test="${bk.displayStatus == 'Đã hủy'}">
+        <c:set var="cancelledCount" value="${cancelledCount + 1}"/>
+      </c:when>
+    </c:choose>
+  </c:forEach>
 
   <main class="main-content">
 
     <div class="topbar">
       <div>
-        <h1>${bookingPageTitle}</h1>
-        <p>${bookingPageSubtitle}</p>
+        <h1>Quản lý Booking</h1>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/admin/home">
         <i class="fa-solid fa-arrow-left"></i>
-        Về Admin Home
+        Về trang chủ quản trị
       </a>
     </div>
 
@@ -221,8 +177,8 @@
           <i class="fa-solid fa-clock"></i>
         </div>
         <div>
-          <div class="summary-label">Đang xử lý / Xác nhận</div>
-          <div class="summary-value">${activeBookingCount}</div>
+          <div class="summary-label">Đang xử lý</div>
+          <div class="summary-value">${pendingCount}</div>
         </div>
       </div>
 
@@ -232,7 +188,7 @@
         </div>
         <div>
           <div class="summary-label">Đã hoàn thành</div>
-          <div class="summary-value">${completedBookingCount}</div>
+          <div class="summary-value">${completedCount}</div>
         </div>
       </div>
 
@@ -242,27 +198,38 @@
         </div>
         <div>
           <div class="summary-label">Đã hủy</div>
-          <div class="summary-value">${cancelledBookingCount}</div>
+          <div class="summary-value">${cancelledCount}</div>
         </div>
       </div>
     </div>
 
-    <div class="content-card">
+    <form class="toolbar" method="get" action="${pageContext.request.contextPath}/admin/booking">
+      <input class="form-control" id="bookingSearchInput" type="text" placeholder="Tìm tên, SĐT, email, mã booking...">
 
-      <div class="mb-4 d-flex gap-3">
-        <a href="?type=" class="btn ${empty selectedBookingType ? 'btn-orange' : 'btn-outline-orange'} rounded-pill px-4 fw-bold">Tất cả</a>
-        <a href="?type=Tour" class="btn ${selectedBookingType == 'Tour' ? 'btn-orange' : 'btn-outline-orange'} rounded-pill px-4 fw-bold">
-          <i class="fa-solid fa-map-location-dot me-1"></i> Tour
-        </a>
-        <a href="?type=Accommodation" class="btn ${selectedBookingType == 'Accommodation' ? 'btn-orange' : 'btn-outline-orange'} rounded-pill px-4 fw-bold">
-          <i class="fa-solid fa-hotel me-1"></i> Khách sạn
-        </a>
-      </div>
+      <select class="form-select" name="type" id="typeFilter">
+        <option value="">Tất cả loại booking</option>
+        <option value="Tour" ${param.type == 'Tour' ? 'selected' : ''}>Tour</option>
+        <option value="Accommodation" ${param.type == 'Accommodation' ? 'selected' : ''}>Lưu trú</option>
+      </select>
+
+      <select class="form-select" name="status" id="statusFilter">
+        <option value="">Tất cả trạng thái</option>
+        <option value="Đang xử lý" ${param.status == 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
+        <option value="Hoàn thành" ${param.status == 'Hoàn thành' ? 'selected' : ''}>Hoàn thành</option>
+        <option value="Đã hủy" ${param.status == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
+      </select>
+
+      <button class="btn btn-outline-secondary fw-bold" type="submit">
+        <i class="fa-solid fa-filter me-1"></i> Lọc
+      </button>
+    </form>
+
+    <div class="content-card">
 
       <c:choose>
         <c:when test="${not empty bookingList}">
           <div class="table-responsive">
-            <table class="table align-middle">
+            <table class="table align-middle" id="bookingTable">
               <thead>
               <tr>
                 <th>Mã Đơn</th>
@@ -276,7 +243,9 @@
               </thead>
               <tbody>
               <c:forEach items="${bookingList}" var="booking">
-                <tr>
+                <tr data-status="${booking.displayStatus}"
+                    data-type="${booking.bookingType}"
+                    data-search-content="${booking.bookingCode} ${booking.firstName} ${booking.lastName} ${booking.email} ${booking.phone} ${booking.serviceName}">
                   <td>
                     <span class="booking-id">#${booking.bookingCode}</span>
                   </td>
@@ -299,20 +268,17 @@
 
                   <td>
                     <c:choose>
-                      <c:when test="${booking.status == 'Đang xử lý' || booking.status == 'Pending'}">
-                        <span class="status-badge status-pending">Chờ xử lý</span>
+                      <c:when test="${booking.displayStatus == 'Đang xử lý'}">
+                        <span class="status-badge status-pending">Đang xử lý</span>
                       </c:when>
-                      <c:when test="${booking.status == 'Đã duyệt' || booking.status == 'Confirmed'}">
-                        <span class="status-badge status-confirmed">Đã xác nhận</span>
-                      </c:when>
-                      <c:when test="${booking.status == 'Hoàn thành' || booking.status == 'Completed'}">
+                      <c:when test="${booking.displayStatus == 'Hoàn thành'}">
                         <span class="status-badge status-completed">Đã hoàn thành</span>
                       </c:when>
-                      <c:when test="${booking.status == 'Đã hủy' || booking.status == 'Cancelled'}">
+                      <c:when test="${booking.displayStatus == 'Đã hủy'}">
                         <span class="status-badge status-cancelled">Đã hủy</span>
                       </c:when>
                       <c:otherwise>
-                        <span class="status-badge bg-secondary">${booking.status}</span>
+                        <span class="status-badge bg-secondary">${booking.displayStatus}</span>
                       </c:otherwise>
                     </c:choose>
                   </td>
@@ -341,5 +307,42 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("bookingSearchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const typeFilter = document.getElementById("typeFilter");
+    const rows = Array.from(document.querySelectorAll("#bookingTable tbody tr"));
+
+    function normalize(value) {
+      return (value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    }
+
+    function filterRows() {
+      const keyword = normalize(searchInput ? searchInput.value : "");
+      const status = statusFilter ? statusFilter.value : "";
+      const type = typeFilter ? typeFilter.value : "";
+
+      rows.forEach(function (row) {
+        const matchesKeyword = normalize(row.dataset.searchContent).includes(keyword);
+        const matchesStatus = !status || normalize(row.dataset.status) === normalize(status);
+        const matchesType = !type || normalize(row.dataset.type) === normalize(type);
+        row.style.display = matchesKeyword && matchesStatus && matchesType ? "" : "none";
+      });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("input", filterRows);
+    }
+
+    if (statusFilter) {
+      statusFilter.addEventListener("change", filterRows);
+    }
+
+    if (typeFilter) {
+      typeFilter.addEventListener("change", filterRows);
+    }
+  });
+</script>
 </body>
 </html>

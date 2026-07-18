@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Admin Feedback View</title>
+    <title>WonderVN | Đánh giá khách hàng</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -60,7 +60,7 @@
             width: 52px;
             height: 52px;
             border-radius: 18px;
-            background: linear-gradient(135deg, #06b6d4, #4e46dc);
+            background: linear-gradient(135deg, #f97316, #ea580c);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -118,9 +118,9 @@
         }
 
         .sidebar-link.active {
-            background: linear-gradient(135deg, #06b6d4, #4e46dc);
+            background: linear-gradient(135deg, #f97316, #ea580c);
             color: #ffffff;
-            box-shadow: 0 10px 22px rgba(6, 182, 212, 0.22);
+            box-shadow: 0 10px 22px rgba(234, 88, 12, 0.22);
         }
 
         .admin-user {
@@ -136,7 +136,7 @@
             width: 46px;
             height: 46px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #06b6d4, #22c55e);
+            background: linear-gradient(135deg, #f97316, #22c55e);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -225,7 +225,7 @@
 
         .feedback-id {
             font-weight: 900;
-            color: #4e46dc;
+            color: #ea580c;
         }
 
         .rate-badge {
@@ -277,7 +277,7 @@
             gap: 7px;
             padding: 9px 14px;
             border-radius: 999px;
-            background: #4e46dc;
+            background: #ea580c;
             color: #ffffff;
             text-decoration: none;
             font-size: 13px;
@@ -286,7 +286,7 @@
         }
 
         .btn-view:hover {
-            background: #3730a3;
+            background: #c2410c;
             color: #ffffff;
         }
 
@@ -335,97 +335,16 @@
         <jsp:param name="activeAdminMenu" value="feedback"/>
         <jsp:param name="sidebarClass" value="sidebar"/>
     </jsp:include>
-    <%--
-    <aside class="sidebar">
-        <div class="brand-box">
-            <div class="brand-logo">WV</div>
-            <h2>WonderVN</h2>
-            <p>Travel ERP System</p>
-        </div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ quản trị</span>
-        </a>
-
-        <div class="nav-section-title">Quản trị hệ thống</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/dashboard">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>Dashboard</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
-            <i class="fa-solid fa-users"></i>
-            <span>Quản lý người dùng</span>
-        </a>
-
-        <div class="nav-section-title">Dịch vụ du lịch</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>Quản lý Tour</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
-            <i class="fa-solid fa-hotel"></i>
-            <span>Quản lý lưu trú</span>
-        </a>
-
-        <div class="nav-section-title">Vận hành</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Quản lý booking</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
-            <i class="fa-solid fa-credit-card"></i>
-            <span>Quản lý thanh toán</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/voucher">
-            <i class="fa-solid fa-gift"></i>
-            <span>Quản lý Voucher</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/assignment">
-            <i class="fa-solid fa-user-tie"></i>
-            <span>Điều phối hướng dẫn viên</span>
-        </a>
-
-        <div class="nav-section-title">Nội dung & CSKH</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/blog">
-            <i class="fa-solid fa-newspaper"></i>
-            <span>Quản lý Blog</span>
-        </a>
-
-        <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/feedback">
-            <i class="fa-solid fa-comments"></i>
-            <span>Xem Feedback</span>
-        </a>
-
-        <div class="admin-user">
-            <div class="avatar">AD</div>
-            <div>
-                <div class="fw-bold">Quản trị viên</div>
-                <small>Admin / Staff</small>
-            </div>
-        </div>
-    </aside>
-    --%>
 
     <main class="main-content">
         <div class="topbar">
             <div>
-                <h1>Admin Feedback View</h1>
-                <p>Admin xem danh sách feedback của khách hàng. Admin chỉ có quyền xem, không duyệt hoặc chỉnh sửa feedback.</p>
+                <h1>Đánh giá khách hàng</h1>
             </div>
 
             <a class="top-action-btn" href="${pageContext.request.contextPath}/admin/home">
                 <i class="fa-solid fa-arrow-left"></i>
-                Về Admin Home
+                Về trang chủ quản trị
             </a>
         </div>
 
@@ -436,13 +355,13 @@
                         <table class="table align-middle">
                             <thead>
                             <tr>
-                                <th>Feedback ID</th>
-                                <th>Rate</th>
+                                <th>Mã Feedback</th>
+                                <th>Số sao</th>
                                 <th>Nội dung</th>
                                 <th>Ngày tạo</th>
-                                <th>Status</th>
-                                <th>User ID</th>
-                                <th>Booking ID</th>
+                                <th>Trạng thái</th>
+                                <th>Mã người dùng</th>
+                                <th>Mã Booking</th>
                                 <th>Thao tác</th>
                             </tr>
                             </thead>
@@ -474,10 +393,10 @@
                                     <td>
                                         <c:choose>
                                             <c:when test="${feedback.status == 'Visible'}">
-                                                <span class="status-badge status-visible">Visible</span>
+                                                <span class="status-badge status-visible">Hiển thị</span>
                                             </c:when>
                                             <c:otherwise>
-                                                <span class="status-badge status-hidden">Hidden</span>
+                                                <span class="status-badge status-hidden">Đã ẩn</span>
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
