@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WonderVN | EditTourAssignment</title>
+    <title>WonderVN | Sửa phân công tour</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -24,12 +24,12 @@
         <div class="brand-box">
             <div class="brand-logo staff">WV</div>
             <h2>WonderVN</h2>
-            <p>Staff Workspace</p>
+            <p>Khu vực nhân viên</p>
         </div>
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home"><i class="fa-solid fa-house"></i><span>Trang staff</span></a>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home"><i class="fa-solid fa-house"></i><span>Trang nhân viên</span></a>
         <div class="nav-section-title">Vận hành</div>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking"><i class="fa-solid fa-calendar-check"></i><span>Booking</span></a>
-        <a class="sidebar-link active staff" href="${pageContext.request.contextPath}/staff/assignment"><i class="fa-solid fa-user-tie"></i><span>Tour assignment</span></a>
+        <a class="sidebar-link active staff" href="${pageContext.request.contextPath}/staff/assignment"><i class="fa-solid fa-user-tie"></i><span>Điều phối hướng dẫn viên</span></a>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour"><i class="fa-solid fa-map-location-dot"></i><span>Tour</span></a>
         <div class="nav-section-title">Tài khoản</div>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span></a>
@@ -38,8 +38,8 @@
     <main class="main-content">
         <div class="topbar">
             <div>
-                <h1>EditTourAssignment</h1>
-                <p>Đổi guide khi lịch tour thay đổi hoặc guide không khả dụng.</p>
+                <h1>Sửa phân công tour</h1>
+                <p>Đổi hướng dẫn viên khi lịch tour thay đổi hoặc hướng dẫn viên không khả dụng.</p>
             </div>
             <div class="top-actions">
                 <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/staff/assignment">
@@ -48,7 +48,7 @@
             </div>
         </div>
 
-        <c:if test="${param.error == 'guideBusy'}"><div class="alert alert-danger">Guide mới đang bị trùng lịch. Vui lòng chọn guide khác.</div></c:if>
+        <c:if test="${param.error == 'guideBusy'}"><div class="alert alert-danger">Hướng dẫn viên mới đang bị trùng lịch. Vui lòng chọn người khác.</div></c:if>
 
         <section class="panel">
             <div class="panel-header">
@@ -73,7 +73,7 @@
 
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="form-label">Guide phụ trách</label>
+                            <label class="form-label">Hướng dẫn viên phụ trách</label>
                             <select name="userID" class="form-select" required>
                                 <c:forEach var="g" items="${guideList}">
                                     <option value="${g.userID}" ${g.userID == assignment.userID ? 'selected' : ''}>
@@ -85,31 +85,31 @@
                         <div class="col-md-6">
                             <label class="form-label">Vai trò</label>
                             <select name="roleInTour" class="form-select" required>
-                                <option value="Tour Guide" ${assignment.roleInTour == 'Tour Guide' ? 'selected' : ''}>Tour Guide</option>
-                                <option value="Lead Guide" ${assignment.roleInTour == 'Lead Guide' ? 'selected' : ''}>Lead Guide</option>
-                                <option value="Assistant Guide" ${assignment.roleInTour == 'Assistant Guide' ? 'selected' : ''}>Assistant Guide</option>
+                                <option value="Tour Guide" ${assignment.roleInTour == 'Tour Guide' ? 'selected' : ''}>Hướng dẫn viên</option>
+                                <option value="Lead Guide" ${assignment.roleInTour == 'Lead Guide' ? 'selected' : ''}>Trưởng đoàn</option>
+                                <option value="Assistant Guide" ${assignment.roleInTour == 'Assistant Guide' ? 'selected' : ''}>Hướng dẫn viên phụ</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Trạng thái</label>
                             <select name="assignmentStatus" class="form-select" required>
-                                <option value="Assigned" ${assignment.assignmentStatus == 'Assigned' ? 'selected' : ''}>Assigned</option>
-                                <option value="Pending" ${assignment.assignmentStatus == 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="Accepted" ${assignment.assignmentStatus == 'Accepted' ? 'selected' : ''}>Accepted</option>
-                                <option value="Confirmed" ${assignment.assignmentStatus == 'Confirmed' ? 'selected' : ''}>Confirmed</option>
-                                <option value="In Progress" ${assignment.assignmentStatus == 'In Progress' ? 'selected' : ''}>In Progress</option>
-                                <option value="Completed" ${assignment.assignmentStatus == 'Completed' ? 'selected' : ''}>Completed</option>
-                                <option value="Cancelled" ${assignment.assignmentStatus == 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                                <option value="Rejected" ${assignment.assignmentStatus == 'Rejected' ? 'selected' : ''}>Rejected</option>
+                                <option value="Assigned" ${assignment.assignmentStatus == 'Assigned' ? 'selected' : ''}>Đã phân công</option>
+                                <option value="Pending" ${assignment.assignmentStatus == 'Pending' ? 'selected' : ''}>Chờ nhận tour</option>
+                                <option value="Accepted" ${assignment.assignmentStatus == 'Accepted' ? 'selected' : ''}>Đã nhận tour</option>
+                                <option value="Confirmed" ${assignment.assignmentStatus == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
+                                <option value="In Progress" ${assignment.assignmentStatus == 'In Progress' ? 'selected' : ''}>Đang diễn ra</option>
+                                <option value="Completed" ${assignment.assignmentStatus == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
+                                <option value="Cancelled" ${assignment.assignmentStatus == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
+                                <option value="Rejected" ${assignment.assignmentStatus == 'Rejected' ? 'selected' : ''}>Từ chối</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Độ ưu tiên</label>
                             <select name="priorityLevel" class="form-select" required>
-                                <option value="Normal" ${assignment.priorityLevel == 'Normal' ? 'selected' : ''}>Normal</option>
-                                <option value="Low" ${assignment.priorityLevel == 'Low' ? 'selected' : ''}>Low</option>
-                                <option value="High" ${assignment.priorityLevel == 'High' ? 'selected' : ''}>High</option>
-                                <option value="Urgent" ${assignment.priorityLevel == 'Urgent' ? 'selected' : ''}>Urgent</option>
+                                <option value="Normal" ${assignment.priorityLevel == 'Normal' ? 'selected' : ''}>Bình thường</option>
+                                <option value="Low" ${assignment.priorityLevel == 'Low' ? 'selected' : ''}>Thấp</option>
+                                <option value="High" ${assignment.priorityLevel == 'High' ? 'selected' : ''}>Cao</option>
+                                <option value="Urgent" ${assignment.priorityLevel == 'Urgent' ? 'selected' : ''}>Khẩn cấp</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -126,7 +126,7 @@
                             <input type="datetime-local" name="pickupTime" class="form-control" value="${pickupTimeValue}">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Deadline check-in</label>
+                            <label class="form-label">Hạn check-in</label>
                             <input type="datetime-local" name="checkInDeadline" class="form-control" value="${checkInDeadlineValue}">
                         </div>
                         <div class="col-md-3">
@@ -139,11 +139,11 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Ghi chú staff</label>
+                            <label class="form-label">Ghi chú nhân viên</label>
                             <textarea name="staffNote" class="form-control" rows="4">${assignment.staffNote}</textarea>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Ghi chú guide</label>
+                            <label class="form-label">Ghi chú hướng dẫn viên</label>
                             <textarea name="guideNote" class="form-control" rows="4">${assignment.guideNote}</textarea>
                         </div>
                         <div class="col-md-4">

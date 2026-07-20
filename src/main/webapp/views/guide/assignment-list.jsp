@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -20,7 +21,7 @@
         <div class="brand-box">
             <div class="brand-logo guide">TG</div>
             <h2>WonderVN</h2>
-            <p>Tour Guide Workspace</p>
+            <p>Khu vực hướng dẫn viên</p>
         </div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home">
@@ -47,13 +48,13 @@
         <div class="topbar">
             <div>
                 <h1>Tour được phân công</h1>
-                <p>Theo dõi nhiệm vụ tour và trạng thái assignment của bạn.</p>
+                <p>Theo dõi nhiệm vụ tour và trạng thái phân công của bạn.</p>
             </div>
 
             <div class="top-actions">
                 <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/guide/home">
                     <i class="fa-solid fa-house"></i>
-                    Workspace
+                    Trang hướng dẫn viên
                 </a>
             </div>
         </div>
@@ -62,7 +63,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Danh sách nhiệm vụ</h2>
-                    <p>Các assignment đang được gán cho tài khoản hướng dẫn viên hiện tại.</p>
+                    <p>Các tour đang được gán cho tài khoản hướng dẫn viên hiện tại.</p>
                 </div>
             </div>
 
@@ -73,8 +74,8 @@
                         <tr>
                             <th>Mã</th>
                             <th>Tour</th>
+                            <th>Lịch tour</th>
                             <th>Tuyến</th>
-                            <th>Vai trò</th>
                             <th>Điểm hẹn</th>
                             <th>Ưu tiên</th>
                             <th>Trạng thái</th>
@@ -95,34 +96,39 @@
                                 </td>
                                 <td>
                                     ${a.tourName}
-                                    <div class="text-muted small">${a.departureDate}</div>
+                                </td>
+                                <td>
+                                    <fmt:formatDate value="${a.departureDate}" pattern="dd/MM/yyyy"/>
                                 </td>
                                 <td>${a.startPlace} → ${a.endPlace}</td>
-                                <td>${empty a.roleInTour ? 'Hướng dẫn viên' : a.roleInTour}</td>
                                 <td>
                                     ${empty a.meetingPoint ? 'Chưa nhập' : a.meetingPoint}
-                                    <div class="text-muted small">${empty a.pickupTime ? '' : a.pickupTime}</div>
+                                    <c:if test="${not empty a.pickupTime}">
+                                        <div class="text-muted small">
+                                            <fmt:formatDate value="${a.pickupTime}" pattern="dd/MM/yyyy HH:mm"/>
+                                        </div>
+                                    </c:if>
                                 </td>
-                                <td>${empty a.priorityLevel ? 'Normal' : a.priorityLevel}</td>
+                                <td>${a.priorityLevelLabel}</td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${a.assignmentStatus == 'Pending'}">
-                                            <span class="status-pill status-pending">Pending</span>
+                                            <span class="status-pill status-pending">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'Accepted'}">
-                                            <span class="status-pill status-checked">Accepted</span>
+                                            <span class="status-pill status-checked">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'Confirmed'}">
-                                            <span class="status-pill status-assigned">Confirmed</span>
+                                            <span class="status-pill status-assigned">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'In Progress'}">
-                                            <span class="status-pill status-progress">In Progress</span>
+                                            <span class="status-pill status-progress">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'Completed'}">
-                                            <span class="status-pill status-completed">Completed</span>
+                                            <span class="status-pill status-completed">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="status-pill status-cancelled">${a.assignmentStatus}</span>
+                                            <span class="status-pill status-cancelled">${a.assignmentStatusLabel}</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>

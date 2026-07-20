@@ -1,10 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Tour Guide Home</title>
+    <title>WonderVN | Trang chủ hướng dẫn viên</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Bootstrap + Font Awesome -->
@@ -375,6 +377,16 @@
             color: #c2410c;
         }
 
+        .status-completed {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
         .tour-card-body {
             padding: 22px 24px;
         }
@@ -558,7 +570,7 @@
         <div class="brand-box">
             <div class="brand-logo">TG</div>
             <h2>WonderVN</h2>
-            <p>Tour Guide Workspace</p>
+            <p>Khu vực hướng dẫn viên</p>
         </div>
 
         <a class="sidebar-link active" href="${pageContext.request.contextPath}/guide/home">
@@ -611,7 +623,7 @@
 
         <div class="topbar">
             <div>
-                <h1>Tour Guide Workspace</h1>
+                <h1>Khu vực hướng dẫn viên</h1>
                 <p>Quản lý tour được phân công, xác nhận tour và cập nhật tình trạng tour theo thời gian thực.</p>
             </div>
 
@@ -620,7 +632,7 @@
         <section class="hero">
             <div class="hero-badge">
                 <i class="fa-solid fa-location-dot"></i>
-                Tour Guide Operation
+                Vận hành tour
             </div>
 
             <h2>Nhận tour, xác nhận lịch trình và cập nhật tiến độ tour</h2>
@@ -638,7 +650,7 @@
                     <div class="stat-icon icon-blue">
                         <i class="fa-solid fa-clipboard-list"></i>
                     </div>
-                    <h3>4</h3>
+                    <h3>${assignedTourCount}</h3>
                     <p>Tour được phân công</p>
                 </div>
             </div>
@@ -648,7 +660,7 @@
                     <div class="stat-icon icon-green">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
-                    <h3>2</h3>
+                    <h3>${confirmedTourCount}</h3>
                     <p>Tour đã xác nhận</p>
                 </div>
             </div>
@@ -658,7 +670,7 @@
                     <div class="stat-icon icon-orange">
                         <i class="fa-solid fa-route"></i>
                     </div>
-                    <h3>1</h3>
+                    <h3>${inProgressTourCount}</h3>
                     <p>Tour đang diễn ra</p>
                 </div>
             </div>
@@ -668,8 +680,8 @@
                     <div class="stat-icon icon-cyan">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </div>
-                    <h3>8</h3>
-                    <p>Cập nhật đã gửi</p>
+                    <h3>${completedTourCount}</h3>
+                    <p>Tour hoàn thành</p>
                 </div>
             </div>
         </div>
@@ -677,133 +689,166 @@
         <h3 class="section-title" id="assignedTours">Tour được phân công</h3>
 
         <div class="row g-4">
-            <!-- TOUR CARD 1 -->
-            <div class="col-md-6">
-                <div class="tour-card">
-                    <div class="tour-card-header">
-                        <div>
-                            <h5 class="tour-title">Hà Nội - Hạ Long 3N2Đ</h5>
-                            <div class="tour-code">TOUR-HL-0326 | 25 khách</div>
+            <c:forEach var="assignment" items="${assignedTours}">
+                <c:set var="assignmentStatus" value="${empty assignment.assignmentStatus ? 'Pending' : assignment.assignmentStatus}"/>
+
+                <c:choose>
+                    <c:when test="${assignmentStatus == 'Pending'}">
+                        <c:set var="statusClass" value="status-new"/>
+                        <c:set var="statusLabel" value="Chờ nhận tour"/>
+                    </c:when>
+                    <c:when test="${assignmentStatus == 'Accepted'}">
+                        <c:set var="statusClass" value="status-new"/>
+                        <c:set var="statusLabel" value="Đã nhận tour"/>
+                    </c:when>
+                    <c:when test="${assignmentStatus == 'Confirmed'}">
+                        <c:set var="statusClass" value="status-confirmed"/>
+                        <c:set var="statusLabel" value="Đã xác nhận"/>
+                    </c:when>
+                    <c:when test="${assignmentStatus == 'In Progress'}">
+                        <c:set var="statusClass" value="status-progress"/>
+                        <c:set var="statusLabel" value="Đang diễn ra"/>
+                    </c:when>
+                    <c:when test="${assignmentStatus == 'Completed'}">
+                        <c:set var="statusClass" value="status-completed"/>
+                        <c:set var="statusLabel" value="Hoàn thành"/>
+                    </c:when>
+                    <c:when test="${assignmentStatus == 'Cancelled' || assignmentStatus == 'Rejected'}">
+                        <c:set var="statusClass" value="status-cancelled"/>
+                        <c:set var="statusLabel" value="${assignment.assignmentStatusLabel}"/>
+                    </c:when>
+                    <c:otherwise>
+                        <c:set var="statusClass" value="status-new"/>
+                        <c:set var="statusLabel" value="${assignment.assignmentStatusLabel}"/>
+                    </c:otherwise>
+                </c:choose>
+
+                <div class="col-md-6">
+                    <div class="tour-card">
+                        <div class="tour-card-header">
+                            <div>
+                                <h5 class="tour-title">${assignment.tourName}</h5>
+                                <div class="tour-code">
+                                    <c:choose>
+                                        <c:when test="${not empty assignment.assignmentCode}">${assignment.assignmentCode}</c:when>
+                                        <c:otherwise>ASG-${assignment.assignmentID}</c:otherwise>
+                                    </c:choose>
+                                    | ${assignment.totalGuests} khách
+                                </div>
+                            </div>
+                            <span class="status-badge ${statusClass}">${statusLabel}</span>
                         </div>
-                        <span class="status-badge status-new">Chờ nhận tour</span>
-                    </div>
 
-                    <div class="tour-card-body">
-                        <div class="info-row">
-                            <i class="fa-solid fa-calendar-days"></i>
-                            <span>Ngày khởi hành: 15/06/2026 - 17/06/2026</span>
-                        </div>
+                        <div class="tour-card-body">
+                            <div class="info-row">
+                                <i class="fa-solid fa-calendar-days"></i>
+                                <span>
+                                    Ngày khởi hành:
+                                    <fmt:formatDate value="${assignment.departureDate}" pattern="dd/MM/yyyy"/>
+                                    <c:if test="${not empty assignment.endDate}">
+                                        - <fmt:formatDate value="${assignment.endDate}" pattern="dd/MM/yyyy"/>
+                                    </c:if>
+                                </span>
+                            </div>
 
-                        <div class="info-row">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Điểm đón: Đại học FPT Hòa Lạc, Hà Nội</span>
-                        </div>
+                            <div class="info-row">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span>Điểm đón: ${empty assignment.meetingPoint ? 'Chưa nhập' : assignment.meetingPoint}</span>
+                            </div>
 
-                        <div class="info-row">
-                            <i class="fa-solid fa-bus"></i>
-                            <span>Phương tiện: Xe 45 chỗ | Tài xế: Nguyễn Văn A</span>
-                        </div>
+                            <div class="info-row">
+                                <i class="fa-solid fa-route"></i>
+                                <span>Tuyến: ${assignment.startPlace} → ${assignment.endPlace}</span>
+                            </div>
 
-                        <div class="info-row">
-                            <i class="fa-solid fa-user-group"></i>
-                            <span>Trưởng đoàn: Trần Minh Anh | SĐT: 0901 222 333</span>
-                        </div>
+                            <div class="info-row">
+                                <i class="fa-solid fa-user-group"></i>
+                                <span>
+                                    <c:if test="${not empty assignment.customerPhone}">
+                                        Khách: ${assignment.customerPhone}
+                                    </c:if>
+                                    <c:if test="${empty assignment.customerPhone}">
+                                        Chưa có số điện thoại khách
+                                    </c:if>
+                                </span>
+                            </div>
 
-                        <div class="tour-actions">
-                            <button class="guide-btn btn-accept" data-bs-toggle="modal" data-bs-target="#acceptTourModal">
-                                <i class="fa-solid fa-handshake"></i>
-                                Nhận tour
-                            </button>
+                            <div class="tour-actions">
+                                <a class="guide-btn btn-detail"
+                                   href="${pageContext.request.contextPath}/guide/assignment?action=detail&id=${assignment.assignmentID}">
+                                    <i class="fa-solid fa-eye"></i>
+                                    Xem chi tiết
+                                </a>
 
-                            <button class="guide-btn btn-detail" data-bs-toggle="modal" data-bs-target="#tourDetailModal">
-                                <i class="fa-solid fa-eye"></i>
-                                Xem chi tiết
-                            </button>
+                                <a class="guide-btn btn-update"
+                                   href="${pageContext.request.contextPath}/guide/assignment?action=editPassengerStatus&id=${assignment.assignmentID}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    Cập nhật hành khách
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </c:forEach>
 
-            <!-- TOUR CARD 2 -->
-            <div class="col-md-6">
-                <div class="tour-card">
-                    <div class="tour-card-header">
-                        <div>
-                            <h5 class="tour-title">Ninh Bình - Tràng An 1 ngày</h5>
-                            <div class="tour-code">TOUR-NB-0198 | 18 khách</div>
-                        </div>
-                        <span class="status-badge status-confirmed">Đã xác nhận</span>
-                    </div>
-
-                    <div class="tour-card-body">
-                        <div class="info-row">
-                            <i class="fa-solid fa-calendar-days"></i>
-                            <span>Ngày khởi hành: 20/06/2026</span>
-                        </div>
-
-                        <div class="info-row">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Điểm đón: Cổng Công viên Thống Nhất, Hà Nội</span>
-                        </div>
-
-                        <div class="info-row">
-                            <i class="fa-solid fa-bus"></i>
-                            <span>Phương tiện: Xe 29 chỗ | Tài xế: Lê Văn B</span>
-                        </div>
-
-                        <div class="info-row">
-                            <i class="fa-solid fa-user-group"></i>
-                            <span>Trưởng đoàn: Phạm Thu Hà | SĐT: 0988 111 222</span>
-                        </div>
-
-                        <div class="tour-actions">
-                            <button class="guide-btn btn-confirm" data-bs-toggle="modal" data-bs-target="#confirmTourModal">
-                                <i class="fa-solid fa-circle-check"></i>
-                                Xác nhận lịch trình
-                            </button>
-
-                            <button class="guide-btn btn-update" data-bs-toggle="modal" data-bs-target="#updateTourModal">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                Cập nhật tour
-                            </button>
+            <c:if test="${empty assignedTours}">
+                <div class="col-12">
+                    <div class="tour-card">
+                        <div class="tour-card-body text-center py-5">
+                            <i class="fa-solid fa-clipboard-list fs-2 text-primary mb-3"></i>
+                            <h5 class="tour-title">Chưa có tour được phân công</h5>
+                            <p class="mb-0 text-muted">Khi nhân viên phân công tour cho bạn, danh sách sẽ hiển thị tại đây.</p>
                         </div>
                     </div>
                 </div>
-            </div>
+            </c:if>
         </div>
 
         <h3 class="section-title" id="tourUpdates">Cập nhật tour gần đây</h3>
 
         <div class="timeline-box">
-            <div class="timeline-item">
-                <div class="timeline-icon">
-                    <i class="fa-solid fa-location-dot"></i>
+            <c:forEach var="log" items="${recentProgressLogs}">
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <c:choose>
+                            <c:when test="${log.progressStatus == 'Departed'}">
+                                <i class="fa-solid fa-bus"></i>
+                            </c:when>
+                            <c:when test="${log.progressStatus == 'Completed' || log.progressStatus == 'Activity Completed'}">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </c:when>
+                            <c:when test="${log.progressStatus == 'Issue'}">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </c:when>
+                            <c:otherwise>
+                                <i class="fa-solid fa-location-dot"></i>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                    <div class="timeline-content">
+                        <h6>${empty log.title ? 'Cập nhật tour' : log.title}</h6>
+                        <p>
+                            ${log.tourName}
+                            |
+                            <fmt:formatDate value="${log.logTime}" pattern="dd/MM/yyyy HH:mm"/>
+                            |
+                            ${empty log.content ? log.progressStatusLabel : log.content}
+                        </p>
+                    </div>
                 </div>
-                <div class="timeline-content">
-                    <h6>Đã đến điểm đón khách</h6>
-                    <p>Tour Ninh Bình - Tràng An | 07:15 | Khách đã có mặt 16/18 người.</p>
-                </div>
-            </div>
+            </c:forEach>
 
-            <div class="timeline-item">
-                <div class="timeline-icon">
-                    <i class="fa-solid fa-bus"></i>
+            <c:if test="${empty recentProgressLogs}">
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h6>Chưa có cập nhật tour</h6>
+                        <p>Khi bạn thêm nhật ký tiến độ cho tour được phân công, các cập nhật mới nhất sẽ hiển thị tại đây.</p>
+                    </div>
                 </div>
-                <div class="timeline-content">
-                    <h6>Xe bắt đầu di chuyển</h6>
-                    <p>Tour Hạ Long 3N2Đ | 08:05 | Xe rời điểm đón, lịch trình đúng giờ.</p>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-icon">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <div class="timeline-content">
-                    <h6>Xác nhận hoàn thành điểm tham quan</h6>
-                    <p>Tour Hà Nội City Tour | 14:30 | Hoàn thành tham quan Văn Miếu - Quốc Tử Giám.</p>
-                </div>
-            </div>
+            </c:if>
         </div>
 
     </main>
@@ -864,7 +909,7 @@
                 <label class="form-label">Trạng thái xác nhận</label>
                 <select class="form-select mb-3" name="confirmStatus">
                     <option value="Confirmed">Xác nhận tham gia hướng dẫn</option>
-                    <option value="Need Support">Cần staff hỗ trợ thêm thông tin</option>
+                    <option value="Need Support">Cần nhân viên hỗ trợ thêm thông tin</option>
                 </select>
 
                 <label class="form-label">Ghi chú xác nhận</label>
@@ -938,7 +983,7 @@
                     <div class="col-12">
                         <label class="form-label">Vấn đề phát sinh nếu có</label>
                         <textarea class="form-control" name="issueNote" rows="3"
-                                  placeholder="VD: Có 1 khách đến muộn 10 phút, đã thông báo staff."></textarea>
+                                  placeholder="VD: Có 1 khách đến muộn 10 phút, đã thông báo nhân viên."></textarea>
                     </div>
                 </div>
             </div>
@@ -1010,7 +1055,7 @@
                     </div>
 
                     <div class="col-12">
-                        <strong>Ghi chú staff:</strong>
+                            <strong>Ghi chú nhân viên:</strong>
                         <p>
                             Cần có mặt tại điểm đón trước 30 phút, kiểm tra danh sách khách và hỗ trợ khách trong suốt lịch trình.
                         </p>

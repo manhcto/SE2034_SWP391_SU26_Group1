@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WonderVN | ListAssignedTour</title>
+    <title>WonderVN | Tour được phân công</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -19,11 +19,11 @@
         <div class="brand-box">
             <div class="brand-logo guide">TG</div>
             <h2>WonderVN</h2>
-            <p>Tour Guide Workspace</p>
+            <p>Khu vực hướng dẫn viên</p>
         </div>
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home"><i class="fa-solid fa-house"></i><span>Guide home</span></a>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home"><i class="fa-solid fa-house"></i><span>Trang chủ hướng dẫn viên</span></a>
         <div class="nav-section-title">Nhiệm vụ tour</div>
-        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment"><i class="fa-solid fa-clipboard-list"></i><span>Assigned tours</span></a>
+        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment"><i class="fa-solid fa-clipboard-list"></i><span>Tour được phân công</span></a>
         <div class="nav-section-title">Tài khoản</div>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span></a>
     </aside>
@@ -31,12 +31,12 @@
     <main class="main-content">
         <div class="topbar">
             <div>
-                <h1>ListAssignedTour</h1>
+                <h1>Tour được phân công</h1>
                 <p>Xem các tour được phân công theo ngày hoặc trạng thái.</p>
             </div>
             <div class="top-actions">
                 <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/guide/home">
-                    <i class="fa-solid fa-house"></i>Guide home
+                    <i class="fa-solid fa-house"></i>Trang chủ hướng dẫn viên
                 </a>
             </div>
         </div>
@@ -45,7 +45,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Bộ lọc</h2>
-                    <p>Lọc assignment theo trạng thái và khoảng ngày khởi hành.</p>
+                    <p>Lọc phân công theo trạng thái và khoảng ngày khởi hành.</p>
                 </div>
             </div>
             <div class="panel-body">
@@ -55,12 +55,12 @@
                         <label class="form-label">Trạng thái</label>
                         <select class="form-select" name="status">
                             <option value="">Tất cả</option>
-                            <option value="Assigned" ${status == 'Assigned' ? 'selected' : ''}>Assigned</option>
-                            <option value="Pending" ${status == 'Pending' ? 'selected' : ''}>Pending</option>
-                            <option value="Accepted" ${status == 'Accepted' ? 'selected' : ''}>Accepted</option>
-                            <option value="Confirmed" ${status == 'Confirmed' ? 'selected' : ''}>Confirmed</option>
-                            <option value="In Progress" ${status == 'In Progress' ? 'selected' : ''}>In Progress</option>
-                            <option value="Completed" ${status == 'Completed' ? 'selected' : ''}>Completed</option>
+                            <option value="Assigned" ${status == 'Assigned' ? 'selected' : ''}>Đã phân công</option>
+                            <option value="Pending" ${status == 'Pending' ? 'selected' : ''}>Chờ nhận tour</option>
+                            <option value="Accepted" ${status == 'Accepted' ? 'selected' : ''}>Đã nhận tour</option>
+                            <option value="Confirmed" ${status == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
+                            <option value="In Progress" ${status == 'In Progress' ? 'selected' : ''}>Đang diễn ra</option>
+                            <option value="Completed" ${status == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -84,7 +84,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Tour được phân công</h2>
-                    <p>Danh sách assignment gắn với tài khoản guide đang đăng nhập.</p>
+                    <p>Danh sách phân công gắn với tài khoản hướng dẫn viên đang đăng nhập.</p>
                 </div>
             </div>
             <div class="panel-body">
@@ -109,10 +109,10 @@
                                 <td><fmt:formatDate value="${a.departureDate}" pattern="dd/MM/yyyy HH:mm"/></td>
                                 <td>${empty a.meetingPoint ? 'Chưa nhập' : a.meetingPoint}</td>
                                 <td>${a.totalGuests} khách</td>
-                                <td><span class="status-pill status-assigned">${a.assignmentStatus}</span></td>
+                                <td><span class="status-pill status-assigned">${a.assignmentStatusLabel}</span></td>
                                 <td>
                                     <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/guide/assignment?action=detail&id=${a.assignmentID}">
-                                        <i class="fa-solid fa-eye me-1"></i>ViewAssignedTour
+                                        <i class="fa-solid fa-eye me-1"></i>Xem chi tiết
                                     </a>
                                 </td>
                             </tr>

@@ -265,12 +265,44 @@ public class AssignmentView {
         return assignmentStatus;
     }
 
+    public String getAssignmentStatusLabel() {
+        if (assignmentStatus == null || assignmentStatus.trim().isEmpty()) {
+            return "Chờ nhận tour";
+        }
+
+        return switch (assignmentStatus.trim()) {
+            case "Assigned" -> "Đã phân công";
+            case "Pending" -> "Chờ nhận tour";
+            case "Accepted" -> "Đã nhận tour";
+            case "Confirmed" -> "Đã xác nhận";
+            case "In Progress" -> "Đang diễn ra";
+            case "Completed" -> "Hoàn thành";
+            case "Cancelled", "Canceled" -> "Đã hủy";
+            case "Rejected" -> "Từ chối";
+            default -> assignmentStatus.trim();
+        };
+    }
+
     public void setAssignmentStatus(String assignmentStatus) {
         this.assignmentStatus = assignmentStatus;
     }
 
     public String getPriorityLevel() {
         return priorityLevel;
+    }
+
+    public String getPriorityLevelLabel() {
+        if (priorityLevel == null || priorityLevel.trim().isEmpty()) {
+            return "Bình thường";
+        }
+
+        return switch (priorityLevel.trim()) {
+            case "Low" -> "Thấp";
+            case "Normal" -> "Bình thường";
+            case "High" -> "Cao";
+            case "Urgent" -> "Khẩn cấp";
+            default -> priorityLevel.trim();
+        };
     }
 
     public void setPriorityLevel(String priorityLevel) {

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -11,24 +12,24 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css?v=staff-assignment-left-20260714" rel="stylesheet">
 </head>
 
 <body>
-<div class="workspace-layout">
+<div class="workspace-layout staff-assignment-layout">
     <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
     <main class="main-content">
         <div class="topbar">
             <div>
                 <h1>Điều phối hướng dẫn viên</h1>
-                <p>Quản lý phân công tour dựa trên bảng Tour_Assignments.</p>
+                <p>Quản lý phân công tour cho hướng dẫn viên.</p>
             </div>
 
             <div class="top-actions">
                 <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/staff/home">
                     <i class="fa-solid fa-house"></i>
-                    Trang staff
+                    Trang nhân viên
                 </a>
                 <a class="top-action-btn btn-primary-action" href="${pageContext.request.contextPath}/staff/assignment?action=create">
                     <i class="fa-solid fa-plus"></i>
@@ -65,11 +66,18 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'deleteFailed'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                Không xóa được phân công. Vui lòng tải lại trang và thử lại.
+            </div>
+        </c:if>
+
         <section class="panel">
             <div class="panel-header">
                 <div>
                     <h2>Danh sách phân công</h2>
-                    <p>Theo dõi tour, guide, lịch đón và trạng thái assignment.</p>
+                    <p>Theo dõi tour, hướng dẫn viên, lịch đón và trạng thái phân công.</p>
                 </div>
             </div>
 
@@ -82,7 +90,6 @@
                             <th>Booking</th>
                             <th>Tour</th>
                             <th>Hướng dẫn viên</th>
-                            <th>Vai trò</th>
                             <th>Điểm hẹn</th>
                             <th>Ưu tiên</th>
                             <th>Trạng thái</th>
@@ -114,47 +121,49 @@
                                 </td>
                                 <td>
                                     ${a.tourName}
-                                    <div class="text-muted small">${a.startPlace} → ${a.endPlace}</div>
                                 </td>
                                 <td>
                                     ${a.guideName}
                                     <div class="text-muted small">${a.guidePhone}</div>
                                 </td>
-                                <td>${empty a.roleInTour ? 'Hướng dẫn viên' : a.roleInTour}</td>
                                 <td>
                                     ${empty a.meetingPoint ? 'Chưa nhập' : a.meetingPoint}
-                                    <div class="text-muted small">${empty a.pickupTime ? '' : a.pickupTime}</div>
+                                    <c:if test="${not empty a.pickupTime}">
+                                        <div class="text-muted small">
+                                            <fmt:formatDate value="${a.pickupTime}" pattern="dd/MM/yyyy HH:mm"/>
+                                        </div>
+                                    </c:if>
                                 </td>
-                                <td>${empty a.priorityLevel ? 'Normal' : a.priorityLevel}</td>
+                                <td>${a.priorityLevelLabel}</td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${a.assignmentStatus == 'Pending'}">
-                                            <span class="status-pill status-pending">Pending</span>
+                                            <span class="status-pill status-pending">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'Accepted'}">
-                                            <span class="status-pill status-checked">Accepted</span>
+                                            <span class="status-pill status-checked">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'Confirmed'}">
-                                            <span class="status-pill status-assigned">Confirmed</span>
+                                            <span class="status-pill status-assigned">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'In Progress'}">
-                                            <span class="status-pill status-progress">In Progress</span>
+                                            <span class="status-pill status-progress">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'Completed'}">
-                                            <span class="status-pill status-completed">Completed</span>
+                                            <span class="status-pill status-completed">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'Cancelled'}">
-                                            <span class="status-pill status-cancelled">Cancelled</span>
+                                            <span class="status-pill status-cancelled">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:when test="${a.assignmentStatus == 'Rejected'}">
-                                            <span class="status-pill status-cancelled">Rejected</span>
+                                            <span class="status-pill status-cancelled">${a.assignmentStatusLabel}</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="status-pill status-assigned">Assigned</span>
+                                            <span class="status-pill status-assigned">${a.assignmentStatusLabel}</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td>${a.assignedAt}</td>
+                                <td><fmt:formatDate value="${a.assignedAt}" pattern="dd/MM/yyyy HH:mm"/></td>
                                 <td>
                                     <div class="row-actions">
                                         <a class="btn btn-sm btn-outline-primary"
@@ -183,7 +192,7 @@
 
                         <c:if test="${empty assignmentList}">
                             <tr>
-                                <td colspan="10" class="text-center text-muted py-5">
+                                <td colspan="9" class="text-center text-muted py-5">
                                     Chưa có dữ liệu phân công tour.
                                 </td>
                             </tr>

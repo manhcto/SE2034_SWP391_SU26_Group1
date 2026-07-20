@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css?v=staff-assignment-left-20260714" rel="stylesheet">
 </head>
 
 <body>
@@ -21,14 +21,14 @@
 <fmt:formatDate value="${assignment.actualStartAt}" pattern="yyyy-MM-dd'T'HH:mm" var="actualStartAtValue"/>
 <fmt:formatDate value="${assignment.actualEndAt}" pattern="yyyy-MM-dd'T'HH:mm" var="actualEndAtValue"/>
 
-<div class="workspace-layout">
+<div class="workspace-layout staff-assignment-layout">
     <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
     <main class="main-content">
         <div class="topbar">
             <div>
                 <h1>Sửa phân công tour</h1>
-                <p>Cập nhật thông tin điều phối được lưu trên bảng Tour_Assignments.</p>
+                <p>Cập nhật thông tin điều phối của phân công tour.</p>
             </div>
 
             <div class="top-actions">
@@ -74,7 +74,12 @@
                     </div>
                     <div class="detail-item">
                         <span>Lịch tour</span>
-                        <strong>${assignmentDetail.departureDate} đến ${assignmentDetail.endDate}</strong>
+                        <strong>
+                            <fmt:formatDate value="${assignmentDetail.departureDate}" pattern="dd/MM/yyyy"/>
+                            <c:if test="${not empty assignmentDetail.endDate}">
+                                đến <fmt:formatDate value="${assignmentDetail.endDate}" pattern="dd/MM/yyyy"/>
+                            </c:if>
+                        </strong>
                     </div>
                     <div class="detail-item">
                         <span>Khách</span>
@@ -93,7 +98,7 @@
                     <input type="hidden" name="bookingID" value="${assignment.bookingID}">
 
                     <div class="row g-4">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label class="form-label">Hướng dẫn viên phụ trách</label>
                             <select name="userID" class="form-select" required>
                                 <c:forEach var="g" items="${guideList}">
@@ -104,36 +109,26 @@
                             </select>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">Vai trò trong tour</label>
-                            <select name="roleInTour" class="form-select" required>
-                                <option value="Hướng dẫn viên" ${assignment.roleInTour == 'Hướng dẫn viên' ? 'selected' : ''}>Hướng dẫn viên</option>
-                                <option value="Trưởng đoàn" ${assignment.roleInTour == 'Trưởng đoàn' ? 'selected' : ''}>Trưởng đoàn</option>
-                                <option value="Hướng dẫn viên phụ" ${assignment.roleInTour == 'Hướng dẫn viên phụ' ? 'selected' : ''}>Hướng dẫn viên phụ</option>
-                                <option value="Điều phối viên tour" ${assignment.roleInTour == 'Điều phối viên tour' ? 'selected' : ''}>Điều phối viên tour</option>
-                            </select>
-                        </div>
-
                         <div class="col-md-4">
-                            <label class="form-label">Trạng thái assignment</label>
+                            <label class="form-label">Trạng thái phân công</label>
                             <select name="assignmentStatus" class="form-select" required>
-                                <option value="Pending" ${assignment.assignmentStatus == 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="Accepted" ${assignment.assignmentStatus == 'Accepted' ? 'selected' : ''}>Accepted</option>
-                                <option value="Confirmed" ${assignment.assignmentStatus == 'Confirmed' ? 'selected' : ''}>Confirmed</option>
-                                <option value="In Progress" ${assignment.assignmentStatus == 'In Progress' ? 'selected' : ''}>In Progress</option>
-                                <option value="Completed" ${assignment.assignmentStatus == 'Completed' ? 'selected' : ''}>Completed</option>
-                                <option value="Cancelled" ${assignment.assignmentStatus == 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                                <option value="Rejected" ${assignment.assignmentStatus == 'Rejected' ? 'selected' : ''}>Rejected</option>
+                                <option value="Pending" ${assignment.assignmentStatus == 'Pending' ? 'selected' : ''}>Chờ nhận tour</option>
+                                <option value="Accepted" ${assignment.assignmentStatus == 'Accepted' ? 'selected' : ''}>Đã nhận tour</option>
+                                <option value="Confirmed" ${assignment.assignmentStatus == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
+                                <option value="In Progress" ${assignment.assignmentStatus == 'In Progress' ? 'selected' : ''}>Đang diễn ra</option>
+                                <option value="Completed" ${assignment.assignmentStatus == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
+                                <option value="Cancelled" ${assignment.assignmentStatus == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
+                                <option value="Rejected" ${assignment.assignmentStatus == 'Rejected' ? 'selected' : ''}>Từ chối</option>
                             </select>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Độ ưu tiên</label>
                             <select name="priorityLevel" class="form-select" required>
-                                <option value="Normal" ${assignment.priorityLevel == 'Normal' ? 'selected' : ''}>Normal</option>
-                                <option value="Low" ${assignment.priorityLevel == 'Low' ? 'selected' : ''}>Low</option>
-                                <option value="High" ${assignment.priorityLevel == 'High' ? 'selected' : ''}>High</option>
-                                <option value="Urgent" ${assignment.priorityLevel == 'Urgent' ? 'selected' : ''}>Urgent</option>
+                                <option value="Normal" ${assignment.priorityLevel == 'Normal' ? 'selected' : ''}>Bình thường</option>
+                                <option value="Low" ${assignment.priorityLevel == 'Low' ? 'selected' : ''}>Thấp</option>
+                                <option value="High" ${assignment.priorityLevel == 'High' ? 'selected' : ''}>Cao</option>
+                                <option value="Urgent" ${assignment.priorityLevel == 'Urgent' ? 'selected' : ''}>Khẩn cấp</option>
                             </select>
                         </div>
 
@@ -156,7 +151,7 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Deadline check-in</label>
+                            <label class="form-label">Hạn check-in</label>
                             <input type="datetime-local" name="checkInDeadline" class="form-control"
                                    value="${checkInDeadlineValue}">
                         </div>
@@ -174,12 +169,12 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Ghi chú staff</label>
+                            <label class="form-label">Ghi chú nhân viên</label>
                             <textarea name="staffNote" class="form-control" rows="4">${assignment.staffNote}</textarea>
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Ghi chú guide</label>
+                            <label class="form-label">Ghi chú hướng dẫn viên</label>
                             <textarea name="guideNote" class="form-control" rows="4">${assignment.guideNote}</textarea>
                         </div>
 

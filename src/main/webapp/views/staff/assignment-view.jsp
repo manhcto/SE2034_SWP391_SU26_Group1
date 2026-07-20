@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -11,18 +12,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css?v=staff-assignment-left-20260714" rel="stylesheet">
 </head>
 
 <body>
-<div class="workspace-layout">
+<div class="workspace-layout staff-assignment-layout">
     <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
     <main class="main-content">
         <div class="topbar">
             <div>
                 <h1>Chi tiết phân công tour</h1>
-                <p>Xem đầy đủ thông tin đã lưu trong assignment.</p>
+                <p>Xem đầy đủ thông tin đã lưu trong phân công tour.</p>
             </div>
 
             <div class="top-actions">
@@ -58,16 +59,12 @@
                         <strong>${empty assignment.assignmentCode ? assignment.assignmentID : assignment.assignmentCode}</strong>
                     </div>
                     <div class="detail-item">
-                        <span>Trạng thái assignment</span>
-                        <strong>${empty assignment.assignmentStatus ? 'Pending' : assignment.assignmentStatus}</strong>
+                        <span>Trạng thái phân công</span>
+                        <strong>${assignment.assignmentStatusLabel}</strong>
                     </div>
                     <div class="detail-item">
                         <span>Độ ưu tiên</span>
-                        <strong>${empty assignment.priorityLevel ? 'Normal' : assignment.priorityLevel}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Vai trò trong tour</span>
-                        <strong>${assignment.roleInTour}</strong>
+                        <strong>${assignment.priorityLevelLabel}</strong>
                     </div>
                     <div class="detail-item">
                         <span>Booking</span>
@@ -97,14 +94,19 @@
                     </div>
                     <div class="detail-item">
                         <span>Lịch trình</span>
-                        <strong>${assignment.departureDate} đến ${assignment.endDate}</strong>
+                        <strong>
+                            <fmt:formatDate value="${assignment.departureDate}" pattern="dd/MM/yyyy"/>
+                            <c:if test="${not empty assignment.endDate}">
+                                đến <fmt:formatDate value="${assignment.endDate}" pattern="dd/MM/yyyy"/>
+                            </c:if>
+                        </strong>
                     </div>
                     <div class="detail-item">
                         <span>Hướng dẫn viên</span>
                         <strong>${assignment.guideName}</strong>
                     </div>
                     <div class="detail-item">
-                        <span>Liên hệ guide</span>
+                        <span>Liên hệ hướng dẫn viên</span>
                         <strong>${assignment.guidePhone} - ${assignment.guideEmail}</strong>
                     </div>
                     <div class="detail-item">
@@ -113,23 +115,51 @@
                     </div>
                     <div class="detail-item">
                         <span>Ngày phân công</span>
-                        <strong>${assignment.assignedAt}</strong>
+                        <strong><fmt:formatDate value="${assignment.assignedAt}" pattern="dd/MM/yyyy HH:mm"/></strong>
                     </div>
                     <div class="detail-item">
                         <span>Điểm hẹn</span>
                         <strong>${empty assignment.meetingPoint ? 'Chưa nhập' : assignment.meetingPoint}</strong>
                     </div>
                     <div class="detail-item">
-                        <span>Giờ đón / deadline check-in</span>
-                        <strong>${assignment.pickupTime} / ${assignment.checkInDeadline}</strong>
+                        <span>Giờ đón / hạn check-in</span>
+                        <strong>
+                            <c:choose>
+                                <c:when test="${empty assignment.pickupTime && empty assignment.checkInDeadline}">
+                                    Chưa nhập
+                                </c:when>
+                                <c:otherwise>
+                                    <fmt:formatDate value="${assignment.pickupTime}" pattern="dd/MM/yyyy HH:mm"/>
+                                    <c:if test="${not empty assignment.checkInDeadline}">
+                                        / <fmt:formatDate value="${assignment.checkInDeadline}" pattern="dd/MM/yyyy HH:mm"/>
+                                    </c:if>
+                                </c:otherwise>
+                            </c:choose>
+                        </strong>
                     </div>
                     <div class="detail-item">
                         <span>Bắt đầu / kết thúc thực tế</span>
-                        <strong>${assignment.actualStartAt} / ${assignment.actualEndAt}</strong>
+                        <strong>
+                            <c:choose>
+                                <c:when test="${empty assignment.actualStartAt && empty assignment.actualEndAt}">
+                                    Chưa cập nhật
+                                </c:when>
+                                <c:otherwise>
+                                    <fmt:formatDate value="${assignment.actualStartAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                    <c:if test="${not empty assignment.actualEndAt}">
+                                        / <fmt:formatDate value="${assignment.actualEndAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                    </c:if>
+                                </c:otherwise>
+                            </c:choose>
+                        </strong>
                     </div>
                     <div class="detail-item">
                         <span>Mốc trạng thái</span>
-                        <strong>Accepted: ${assignment.acceptedAt} | Confirmed: ${assignment.confirmedAt} | Completed: ${assignment.completedAt}</strong>
+                        <strong>
+                            Đã nhận: <fmt:formatDate value="${assignment.acceptedAt}" pattern="dd/MM/yyyy HH:mm"/>
+                            | Đã xác nhận: <fmt:formatDate value="${assignment.confirmedAt}" pattern="dd/MM/yyyy HH:mm"/>
+                            | Hoàn thành: <fmt:formatDate value="${assignment.completedAt}" pattern="dd/MM/yyyy HH:mm"/>
+                        </strong>
                     </div>
                     <div class="detail-item">
                         <span>Khách hàng</span>
@@ -149,11 +179,11 @@
                     </div>
                     <div class="detail-item">
                         <span>Tổng tiền booking</span>
-                        <strong>${assignment.totalPrice}</strong>
+                        <strong><fmt:formatNumber value="${assignment.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ</strong>
                     </div>
                     <div class="detail-item">
                         <span>Ngày đặt</span>
-                        <strong>${assignment.bookDate}</strong>
+                        <strong><fmt:formatDate value="${assignment.bookDate}" pattern="dd/MM/yyyy HH:mm"/></strong>
                     </div>
                     <div class="detail-item">
                         <span>Ghi chú booking</span>
@@ -164,11 +194,11 @@
                         <strong>${empty assignment.rejectionReason ? 'Không có' : assignment.rejectionReason}</strong>
                     </div>
                     <div class="detail-item">
-                        <span>Ghi chú staff</span>
+                        <span>Ghi chú nhân viên</span>
                         <strong>${empty assignment.staffNote ? 'Không có' : assignment.staffNote}</strong>
                     </div>
                     <div class="detail-item">
-                        <span>Ghi chú guide</span>
+                        <span>Ghi chú hướng dẫn viên</span>
                         <strong>${empty assignment.guideNote ? 'Không có' : assignment.guideNote}</strong>
                     </div>
                     <div class="detail-item">

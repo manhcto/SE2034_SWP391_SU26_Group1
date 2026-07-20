@@ -166,6 +166,15 @@ body {
     min-width: 0;
 }
 
+.workspace-layout .staff-sidebar ~ .main-content,
+.staff-assignment-layout .main-content {
+    margin-left: 0 !important;
+    width: auto !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-left: 34px;
+}
+
 .topbar {
     display: flex;
     justify-content: space-between;

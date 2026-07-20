@@ -4,7 +4,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import vn.edu.fpt.DAO.AssignmentDAOImpl;
+import vn.edu.fpt.DAO.BookingTravelerDAO;
+import vn.edu.fpt.DAO.ItineraryLogDAO;
 import vn.edu.fpt.model.AssignmentView;
+import vn.edu.fpt.model.ItineraryLog;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
@@ -14,10 +17,14 @@ import java.util.List;
 public class TourGuideScheduleController extends HttpServlet {
 
     private AssignmentDAOImpl assignmentDAO;
+    private BookingTravelerDAO bookingTravelerDAO;
+    private ItineraryLogDAO itineraryLogDAO;
 
     @Override
     public void init() {
         assignmentDAO = new AssignmentDAOImpl();
+        bookingTravelerDAO = new BookingTravelerDAO();
+        itineraryLogDAO = new ItineraryLogDAO();
     }
 
     @Override
@@ -37,7 +44,12 @@ public class TourGuideScheduleController extends HttpServlet {
                 break;
 
             case "editStatus":
+            case "editPassengerStatus":
                 showEditPassengerStatus(request, response);
+                break;
+
+            case "progressLog":
+                showProgressLogForm(request, response);
                 break;
 
             default:
@@ -89,6 +101,10 @@ public class TourGuideScheduleController extends HttpServlet {
         }
 
         request.setAttribute("assignment", assignment);
+        request.setAttribute(
+                "progressLogs",
+                itineraryLogDAO.getLogsByAssignmentForGuide(id, guide.getUserID())
+        );
 
         request.getRequestDispatcher(
                 "/views/guide/assignment-detail.jsp"
@@ -117,9 +133,45 @@ public class TourGuideScheduleController extends HttpServlet {
         }
 
         request.setAttribute("assignment", assignment);
+        request.setAttribute(
+                "travelerList",
+                bookingTravelerDAO.getTravelersByAssignment(id)
+        );
 
         request.getRequestDispatcher(
-                "/views/guide/passenger-status.jsp"
+                "/views/guide/passenger-status-edit.jsp"
+        ).forward(request, response);
+    }
+
+    private void showProgressLogForm(HttpServletRequest request,
+                                     HttpServletResponse response)
+            throws ServletException, IOException {
+
+        User guide = getCurrentGuide(request);
+
+        if (guide == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        int id = Integer.parseInt(request.getParameter("id"));
+
+        AssignmentView assignment =
+                assignmentDAO.getAssignmentDetailForGuide(id, guide.getUserID());
+
+        if (assignment == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        request.setAttribute("assignment", assignment);
+        request.setAttribute(
+                "progressLogs",
+                itineraryLogDAO.getLogsByAssignmentForGuide(id, guide.getUserID())
+        );
+
+        request.getRequestDispatcher(
+                "/views/guide/tour-progress-log-create.jsp"
         ).forward(request, response);
     }
 
@@ -135,31 +187,76 @@ public class TourGuideScheduleController extends HttpServlet {
         }
 
         int assignmentID = Integer.parseInt(request.getParameter("assignmentID"));
-        String status = request.getParameter("status");
-        String guideNote = request.getParameter("guideNote");
+        int travelerID = Integer.parseInt(request.getParameter("travelerID"));
+        String travelerStatus = request.getParameter("travelerStatus");
+        String fullName = request.getParameter("fullName");
+        String phone = request.getParameter("phone");
+        String note = request.getParameter("note");
 
-        if (!isValidAssignmentStatus(status)) {
+        if (!isValidTravelerStatus(travelerStatus)) {
             response.sendRedirect(
                     request.getContextPath()
-                            + "/guide/assignment?action=detail&id="
+                            + "/guide/assignment?action=editPassengerStatus&id="
                             + assignmentID
                             + "&error=invalidStatus"
             );
             return;
         }
 
-        boolean updated = assignmentDAO.updateAssignmentStatusForGuide(
+        boolean updated = bookingTravelerDAO.updateTravelerStatusForGuide(
                 assignmentID,
                 guide.getUserID(),
-                status,
-                guideNote
+                travelerID,
+                travelerStatus,
+                fullName,
+                phone,
+                note
         );
+
+        response.sendRedirect(
+                request.getContextPath()
+                        + "/guide/assignment?action=editPassengerStatus&id="
+                        + assignmentID
+                        + (updated ? "&success=passenger" : "&error=notAllowed")
+        );
+    }
+
+    private void addProgressLog(HttpServletRequest request,
+                                HttpServletResponse response)
+            throws IOException {
+
+        User guide = getCurrentGuide(request);
+
+        if (guide == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        int assignmentID = Integer.parseInt(request.getParameter("assignmentID"));
+
+        AssignmentView assignment =
+                assignmentDAO.getAssignmentDetailForGuide(assignmentID, guide.getUserID());
+
+        if (assignment == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        ItineraryLog log = new ItineraryLog();
+        log.setTourScheduleID(assignment.getTourScheduleID());
+        log.setAssignmentID(assignmentID);
+        log.setLoggedByUserID(guide.getUserID());
+        log.setProgressStatus(request.getParameter("progressStatus"));
+        log.setTitle(request.getParameter("title"));
+        log.setContent(request.getParameter("content"));
+
+        boolean added = itineraryLogDAO.addProgressLog(log);
 
         response.sendRedirect(
                 request.getContextPath()
                         + "/guide/assignment?action=detail&id="
                         + assignmentID
-                        + (updated ? "&success=status" : "&error=notAllowed")
+                        + (added ? "&success=progressLog" : "&error=progressLog")
         );
     }
 
@@ -172,8 +269,13 @@ public class TourGuideScheduleController extends HttpServlet {
 
         String action = request.getParameter("action");
 
-        if ("updateStatus".equals(action)) {
+        if ("updatePassengerStatus".equals(action)) {
             updatePassengerStatus(request, response);
+            return;
+        }
+
+        if ("addProgressLog".equals(action)) {
+            addProgressLog(request, response);
             return;
         }
 
@@ -198,24 +300,33 @@ public class TourGuideScheduleController extends HttpServlet {
     }
 
     private boolean isTourGuide(User user) {
-        String roleName = user.getRoleName();
+        String roleName = normalizeRoleName(user.getRoleName());
 
-        if (roleName != null) {
-            String normalizedRoleName = roleName.trim().toLowerCase();
-            return "tour guide".equals(normalizedRoleName)
-                    || "guide".equals(normalizedRoleName);
+        if (!roleName.isEmpty()) {
+            return "tourguide".equals(roleName)
+                    || "guide".equals(roleName);
         }
 
         return user.getRoleID() == 3;
     }
 
-    private boolean isValidAssignmentStatus(String status) {
+    private String normalizeRoleName(String roleName) {
+        if (roleName == null) {
+            return "";
+        }
+
+        return roleName
+                .trim()
+                .toLowerCase()
+                .replace(" ", "")
+                .replace("-", "")
+                .replace("_", "");
+    }
+
+    private boolean isValidTravelerStatus(String status) {
         return "Pending".equals(status)
-                || "Accepted".equals(status)
-                || "Confirmed".equals(status)
-                || "In Progress".equals(status)
-                || "Completed".equals(status)
-                || "Cancelled".equals(status)
-                || "Rejected".equals(status);
+                || "Checked-in".equals(status)
+                || "Absent".equals(status)
+                || "Completed".equals(status);
     }
 }

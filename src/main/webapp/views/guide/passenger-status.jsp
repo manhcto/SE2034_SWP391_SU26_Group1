@@ -1,12 +1,13 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WonderVN | Cập nhật trạng thái assignment</title>
+    <title>WonderVN | Cập nhật trạng thái phân công</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -20,7 +21,7 @@
         <div class="brand-box">
             <div class="brand-logo guide">TG</div>
             <h2>WonderVN</h2>
-            <p>Tour Guide Workspace</p>
+            <p>Khu vực hướng dẫn viên</p>
         </div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home">
@@ -46,8 +47,8 @@
     <main class="main-content">
         <div class="topbar">
             <div>
-                <h1>Cập nhật trạng thái assignment</h1>
-                <p>Trạng thái này được lưu ở Tour_Assignments.assignmentStatus.</p>
+                <h1>Cập nhật trạng thái phân công</h1>
+                <p>Trạng thái này được lưu trong thông tin phân công tour.</p>
             </div>
 
             <div class="top-actions">
@@ -84,7 +85,12 @@
                         </div>
                         <div class="detail-item">
                             <span>Lịch tour</span>
-                            <strong>${assignment.departureDate} đến ${assignment.endDate}</strong>
+                            <strong>
+                                <fmt:formatDate value="${assignment.departureDate}" pattern="dd/MM/yyyy"/>
+                                <c:if test="${not empty assignment.endDate}">
+                                    đến <fmt:formatDate value="${assignment.endDate}" pattern="dd/MM/yyyy"/>
+                                </c:if>
+                            </strong>
                         </div>
                         <div class="detail-item">
                             <span>Điểm hẹn</span>
@@ -92,26 +98,26 @@
                         </div>
                         <div class="detail-item">
                             <span>Trạng thái hiện tại</span>
-                            <strong>${empty assignment.assignmentStatus ? 'Pending' : assignment.assignmentStatus}</strong>
+                            <strong>${assignment.assignmentStatusLabel}</strong>
                         </div>
                     </div>
 
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="form-label">Trạng thái assignment</label>
+                            <label class="form-label">Trạng thái phân công</label>
                             <select name="status" class="form-select" required>
-                                <option value="Pending" ${assignment.assignmentStatus == 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="Accepted" ${assignment.assignmentStatus == 'Accepted' ? 'selected' : ''}>Accepted</option>
-                                <option value="Confirmed" ${assignment.assignmentStatus == 'Confirmed' ? 'selected' : ''}>Confirmed</option>
-                                <option value="In Progress" ${assignment.assignmentStatus == 'In Progress' ? 'selected' : ''}>In Progress</option>
-                                <option value="Completed" ${assignment.assignmentStatus == 'Completed' ? 'selected' : ''}>Completed</option>
-                                <option value="Cancelled" ${assignment.assignmentStatus == 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                                <option value="Rejected" ${assignment.assignmentStatus == 'Rejected' ? 'selected' : ''}>Rejected</option>
+                                <option value="Pending" ${assignment.assignmentStatus == 'Pending' ? 'selected' : ''}>Chờ nhận tour</option>
+                                <option value="Accepted" ${assignment.assignmentStatus == 'Accepted' ? 'selected' : ''}>Đã nhận tour</option>
+                                <option value="Confirmed" ${assignment.assignmentStatus == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
+                                <option value="In Progress" ${assignment.assignmentStatus == 'In Progress' ? 'selected' : ''}>Đang diễn ra</option>
+                                <option value="Completed" ${assignment.assignmentStatus == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
+                                <option value="Cancelled" ${assignment.assignmentStatus == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
+                                <option value="Rejected" ${assignment.assignmentStatus == 'Rejected' ? 'selected' : ''}>Từ chối</option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">Ghi chú guide</label>
+                            <label class="form-label">Ghi chú hướng dẫn viên</label>
                             <textarea name="guideNote" class="form-control" rows="4">${assignment.guideNote}</textarea>
                         </div>
                     </div>

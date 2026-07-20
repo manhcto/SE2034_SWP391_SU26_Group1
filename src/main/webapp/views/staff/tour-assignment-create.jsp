@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WonderVN | AddTourAssignment</title>
+    <title>WonderVN | Thêm phân công tour</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -19,12 +19,12 @@
         <div class="brand-box">
             <div class="brand-logo staff">WV</div>
             <h2>WonderVN</h2>
-            <p>Staff Workspace</p>
+            <p>Khu vực nhân viên</p>
         </div>
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home"><i class="fa-solid fa-house"></i><span>Trang staff</span></a>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home"><i class="fa-solid fa-house"></i><span>Trang nhân viên</span></a>
         <div class="nav-section-title">Vận hành</div>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking"><i class="fa-solid fa-calendar-check"></i><span>Booking</span></a>
-        <a class="sidebar-link active staff" href="${pageContext.request.contextPath}/staff/assignment"><i class="fa-solid fa-user-tie"></i><span>Tour assignment</span></a>
+        <a class="sidebar-link active staff" href="${pageContext.request.contextPath}/staff/assignment"><i class="fa-solid fa-user-tie"></i><span>Điều phối hướng dẫn viên</span></a>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour"><i class="fa-solid fa-map-location-dot"></i><span>Tour</span></a>
         <div class="nav-section-title">Tài khoản</div>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span></a>
@@ -33,8 +33,8 @@
     <main class="main-content">
         <div class="topbar">
             <div>
-                <h1>AddTourAssignment</h1>
-                <p>Phân công guide còn rảnh cho một lịch tour đã xác nhận.</p>
+                <h1>Thêm phân công tour</h1>
+                <p>Phân công hướng dẫn viên còn rảnh cho một lịch tour đã xác nhận.</p>
             </div>
             <div class="top-actions">
                 <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/staff/assignment">
@@ -43,15 +43,15 @@
             </div>
         </div>
 
-        <c:if test="${param.error == 'guideBusy'}"><div class="alert alert-danger">Guide đang bận trong thời gian lịch tour này. Vui lòng chọn guide khác.</div></c:if>
-        <c:if test="${param.error == 'missing'}"><div class="alert alert-danger">Vui lòng chọn lịch tour và guide.</div></c:if>
-        <c:if test="${param.error == 'insert'}"><div class="alert alert-danger">Không thêm được assignment. Kiểm tra database hoặc dữ liệu nhập.</div></c:if>
+        <c:if test="${param.error == 'guideBusy'}"><div class="alert alert-danger">Hướng dẫn viên đang bận trong thời gian lịch tour này. Vui lòng chọn người khác.</div></c:if>
+        <c:if test="${param.error == 'missing'}"><div class="alert alert-danger">Vui lòng chọn lịch tour và hướng dẫn viên.</div></c:if>
+        <c:if test="${param.error == 'insert'}"><div class="alert alert-danger">Không thêm được phân công. Kiểm tra database hoặc dữ liệu nhập.</div></c:if>
 
         <section class="panel">
             <div class="panel-header">
                 <div>
                     <h2>Thông tin phân công</h2>
-                    <p>Lưu vào Tour_Assignments và tự tạo mã ASG sau khi thêm.</p>
+                    <p>Lưu vào phân công tour và tự tạo mã ASG sau khi thêm.</p>
                 </div>
             </div>
             <div class="panel-body">
@@ -76,7 +76,7 @@
                         <div class="col-md-5">
                             <label class="form-label">Hướng dẫn viên khả dụng</label>
                             <select name="userID" class="form-select" required>
-                                <option value="">Chọn guide</option>
+                                <option value="">Chọn hướng dẫn viên</option>
                                 <c:forEach var="g" items="${guideList}">
                                     <option value="${g.userID}">${g.firstName} ${g.lastName} - ${g.phone}</option>
                                 </c:forEach>
@@ -86,29 +86,29 @@
                         <div class="col-md-4">
                             <label class="form-label">Vai trò</label>
                             <select name="roleInTour" class="form-select" required>
-                                <option value="Tour Guide">Tour Guide</option>
-                                <option value="Lead Guide">Lead Guide</option>
-                                <option value="Assistant Guide">Assistant Guide</option>
+                                <option value="Tour Guide">Hướng dẫn viên</option>
+                                <option value="Lead Guide">Trưởng đoàn</option>
+                                <option value="Assistant Guide">Hướng dẫn viên phụ</option>
                             </select>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Trạng thái</label>
                             <select name="assignmentStatus" class="form-select" required>
-                                <option value="Assigned">Assigned</option>
-                                <option value="Pending">Pending</option>
-                                <option value="Confirmed">Confirmed</option>
-                                <option value="Accepted">Accepted</option>
+                                <option value="Assigned">Đã phân công</option>
+                                <option value="Pending">Chờ nhận tour</option>
+                                <option value="Confirmed">Đã xác nhận</option>
+                                <option value="Accepted">Đã nhận tour</option>
                             </select>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Độ ưu tiên</label>
                             <select name="priorityLevel" class="form-select" required>
-                                <option value="Normal">Normal</option>
-                                <option value="Low">Low</option>
-                                <option value="High">High</option>
-                                <option value="Urgent">Urgent</option>
+                                <option value="Normal">Bình thường</option>
+                                <option value="Low">Thấp</option>
+                                <option value="High">Cao</option>
+                                <option value="Urgent">Khẩn cấp</option>
                             </select>
                         </div>
 
@@ -121,16 +121,16 @@
                             <input type="datetime-local" name="pickupTime" class="form-control">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Deadline check-in</label>
+                            <label class="form-label">Hạn check-in</label>
                             <input type="datetime-local" name="checkInDeadline" class="form-control">
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Ghi chú staff</label>
+                            <label class="form-label">Ghi chú nhân viên</label>
                             <textarea name="staffNote" class="form-control" rows="4"></textarea>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Ghi chú cho guide</label>
+                            <label class="form-label">Ghi chú cho hướng dẫn viên</label>
                             <textarea name="guideNote" class="form-control" rows="4"></textarea>
                         </div>
                         <div class="col-md-4">
@@ -141,7 +141,7 @@
 
                     <div class="top-actions mt-4">
                         <button class="top-action-btn btn-primary-action" type="submit">
-                            <i class="fa-solid fa-floppy-disk"></i>Lưu assignment
+                            <i class="fa-solid fa-floppy-disk"></i>Lưu phân công
                         </button>
                         <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/staff/assignment">Hủy</a>
                     </div>

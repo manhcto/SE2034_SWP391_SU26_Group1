@@ -130,6 +130,14 @@ public class ManageAssignmentTourController extends HttpServlet {
             return;
         }
 
+        if (!assignmentDAO.isCompletedTourBookingForAssignment(bookingID)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=create&error=notCompletedBooking"
+            );
+            return;
+        }
+
         TourAssignments assignment = buildAssignmentFromRequest(request);
 
         assignment.setTourScheduleID(tourScheduleID);
@@ -147,8 +155,13 @@ public class ManageAssignmentTourController extends HttpServlet {
 
         int id = Integer.parseInt(request.getParameter("id"));
 
-        assignmentDAO.deleteAssignment(id);
-        response.sendRedirect(request.getContextPath() + "/staff/assignment?success=delete");
+        boolean deleted = assignmentDAO.deleteAssignment(id);
+
+        response.sendRedirect(
+                request.getContextPath()
+                        + "/staff/assignment"
+                        + (deleted ? "?success=delete" : "?error=deleteFailed")
+        );
     }
 
     private void showEditForm(HttpServletRequest request,

@@ -16,6 +16,9 @@ import java.util.List;
 
 public class AssignmentDAOImpl {
 
+    private static final String ASSIGNABLE_TOUR_BOOKING_STATUS_CONDITION =
+            "LTRIM(RTRIM(ISNULL(b.[status], N''))) IN (N'Hoàn thành', N'Completed', N'Đã duyệt', N'Confirmed')";
+
     private static final String ASSIGNMENT_SELECT = """
         SELECT
             ta.assignmentID,
@@ -284,19 +287,38 @@ public class AssignmentDAOImpl {
     }
 
     public boolean deleteAssignment(int id) {
-        String sql = """
+        String deleteLogsSql = """
+            DELETE FROM Tour_Progress_Log
+            WHERE assignmentID = ?
+            """;
+
+        String deleteAssignmentSql = """
             DELETE FROM Tour_Assignments
             WHERE assignmentID = ?
             """;
 
         DBConnection db = new DBConnection();
 
-        try (
-                Connection conn = db.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+        try (Connection conn = db.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (
+                    PreparedStatement deleteLogs = conn.prepareStatement(deleteLogsSql);
+                    PreparedStatement deleteAssignment = conn.prepareStatement(deleteAssignmentSql)
+            ) {
+                deleteLogs.setInt(1, id);
+                deleteLogs.executeUpdate();
+
+                deleteAssignment.setInt(1, id);
+                int affectedRows = deleteAssignment.executeUpdate();
+
+                if (affectedRows > 0) {
+                    conn.commit();
+                    return true;
+                }
+
+                conn.rollback();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -385,13 +407,21 @@ public class AssignmentDAOImpl {
                 ts.maxParticipants,
                 ts.quantity AS bookedQuantity
             FROM Booking b
-            JOIN Booking_Detail bd
-                ON b.bookingID = bd.bookingID
+            OUTER APPLY (
+                SELECT TOP 1 *
+                FROM Booking_Detail bdInner
+                WHERE bdInner.bookingID = b.bookingID
+                ORDER BY bdInner.bookingDetailID ASC
+            ) bd
             JOIN Tour_Scheduler ts
                 ON bd.tourScheduleID = ts.tourScheduleID
             JOIN Tour t
                 ON ts.tourID = t.tourID
             WHERE bd.tourScheduleID IS NOT NULL
+              AND UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
+              AND (
+                  """ + ASSIGNABLE_TOUR_BOOKING_STATUS_CONDITION + """
+              )
             ORDER BY b.bookingID DESC
             """;
 
@@ -511,6 +541,42 @@ public class AssignmentDAOImpl {
         }
 
         return -1;
+    }
+
+    public boolean isCompletedTourBookingForAssignment(int bookingID) {
+        String sql = """
+            SELECT TOP 1 1
+            FROM Booking b
+            OUTER APPLY (
+                SELECT TOP 1 *
+                FROM Booking_Detail bdInner
+                WHERE bdInner.bookingID = b.bookingID
+                ORDER BY bdInner.bookingDetailID ASC
+            ) bd
+            WHERE b.bookingID = ?
+              AND bd.tourScheduleID IS NOT NULL
+              AND UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
+              AND (
+                  """ + ASSIGNABLE_TOUR_BOOKING_STATUS_CONDITION + """
+              )
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, bookingID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public List<AssignmentView> getAssignmentsByGuide(int guideID) {

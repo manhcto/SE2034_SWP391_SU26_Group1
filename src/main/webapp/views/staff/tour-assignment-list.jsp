@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WonderVN | ListTourAssignment</title>
+    <title>WonderVN | Điều phối hướng dẫn viên</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -19,18 +19,18 @@
         <div class="brand-box">
             <div class="brand-logo staff">WV</div>
             <h2>WonderVN</h2>
-            <p>Staff Workspace</p>
+            <p>Khu vực nhân viên</p>
         </div>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
-            <i class="fa-solid fa-house"></i><span>Trang staff</span>
+            <i class="fa-solid fa-house"></i><span>Trang nhân viên</span>
         </a>
         <div class="nav-section-title">Vận hành</div>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
             <i class="fa-solid fa-calendar-check"></i><span>Booking</span>
         </a>
         <a class="sidebar-link active staff" href="${pageContext.request.contextPath}/staff/assignment">
-            <i class="fa-solid fa-user-tie"></i><span>Tour assignment</span>
+            <i class="fa-solid fa-user-tie"></i><span>Điều phối hướng dẫn viên</span>
         </a>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/tour">
             <i class="fa-solid fa-map-location-dot"></i><span>Tour</span>
@@ -44,15 +44,15 @@
     <main class="main-content">
         <div class="topbar">
             <div>
-                <h1>ListTourAssignment</h1>
+                <h1>Điều phối hướng dẫn viên</h1>
                 <p>Xem, tìm kiếm và lọc lịch tour cần phân công hướng dẫn viên.</p>
             </div>
             <div class="top-actions">
                 <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/staff/home">
-                    <i class="fa-solid fa-house"></i>Staff home
+                    <i class="fa-solid fa-house"></i>Trang nhân viên
                 </a>
                 <a class="top-action-btn btn-primary-action" href="${pageContext.request.contextPath}/staff/assignment?action=create">
-                    <i class="fa-solid fa-plus"></i>AddTourAssignment
+                    <i class="fa-solid fa-plus"></i>Thêm phân công
                 </a>
             </div>
         </div>
@@ -69,7 +69,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Bộ lọc</h2>
-                    <p>Tìm theo mã phân công, tên tour, guide hoặc booking.</p>
+                    <p>Tìm theo mã phân công, tên tour, hướng dẫn viên hoặc booking.</p>
                 </div>
             </div>
             <div class="panel-body">
@@ -77,20 +77,20 @@
                     <input type="hidden" name="action" value="list">
                     <div class="col-md-7">
                         <label class="form-label">Từ khóa</label>
-                        <input class="form-control" name="keyword" value="${keyword}" placeholder="VD: Hạ Long, ASG-000001, guide@wonder.vn">
+                        <input class="form-control" name="keyword" value="${keyword}" placeholder="VD: Hạ Long, ASG-000001, hdv@wonder.vn">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Trạng thái assignment</label>
+                        <label class="form-label">Trạng thái phân công</label>
                         <select class="form-select" name="status">
                             <option value="">Tất cả</option>
-                            <option value="Assigned" ${status == 'Assigned' ? 'selected' : ''}>Assigned</option>
-                            <option value="Pending" ${status == 'Pending' ? 'selected' : ''}>Pending</option>
-                            <option value="Accepted" ${status == 'Accepted' ? 'selected' : ''}>Accepted</option>
-                            <option value="Confirmed" ${status == 'Confirmed' ? 'selected' : ''}>Confirmed</option>
-                            <option value="In Progress" ${status == 'In Progress' ? 'selected' : ''}>In Progress</option>
-                            <option value="Completed" ${status == 'Completed' ? 'selected' : ''}>Completed</option>
-                            <option value="Cancelled" ${status == 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                            <option value="Rejected" ${status == 'Rejected' ? 'selected' : ''}>Rejected</option>
+                            <option value="Assigned" ${status == 'Assigned' ? 'selected' : ''}>Đã phân công</option>
+                            <option value="Pending" ${status == 'Pending' ? 'selected' : ''}>Chờ nhận tour</option>
+                            <option value="Accepted" ${status == 'Accepted' ? 'selected' : ''}>Đã nhận tour</option>
+                            <option value="Confirmed" ${status == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
+                            <option value="In Progress" ${status == 'In Progress' ? 'selected' : ''}>Đang diễn ra</option>
+                            <option value="Completed" ${status == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
+                            <option value="Cancelled" ${status == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
+                            <option value="Rejected" ${status == 'Rejected' ? 'selected' : ''}>Từ chối</option>
                         </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
@@ -106,7 +106,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Lịch tour cần phân công</h2>
-                    <p>Các lịch tour đã sẵn sàng/đã xác nhận nhưng chưa có guide active.</p>
+                    <p>Các lịch tour đã sẵn sàng hoặc đã xác nhận nhưng chưa có hướng dẫn viên đang hoạt động.</p>
                 </div>
             </div>
             <div class="panel-body">
@@ -129,7 +129,7 @@
                                 <td>#${s.tourScheduleID}<div class="text-muted small">${s.scheduleStatus}</div></td>
                                 <td><strong>${s.tourName}</strong><div class="text-muted small">${s.startPlace} → ${s.endPlace}</div></td>
                                 <td><fmt:formatDate value="${s.departureDate}" pattern="dd/MM/yyyy HH:mm"/> - <fmt:formatDate value="${s.endDate}" pattern="dd/MM/yyyy HH:mm"/></td>
-                                <td>${s.bookingCount} booking</td>
+                                <td>${s.bookingCount} lượt đặt</td>
                                 <td>${s.totalGuests} khách</td>
                                 <td>${s.bookedQuantity}/${s.maxParticipants}</td>
                                 <td>
@@ -151,8 +151,8 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <h2>Assignment đã tạo</h2>
-                    <p>Theo dõi guide, lịch tour, trạng thái và thao tác sửa/xem.</p>
+                    <h2>Phân công đã tạo</h2>
+                    <p>Theo dõi hướng dẫn viên, lịch tour, trạng thái và thao tác sửa/xem.</p>
                 </div>
             </div>
             <div class="panel-body">
@@ -162,7 +162,7 @@
                         <tr>
                             <th>Mã</th>
                             <th>Tour</th>
-                            <th>Guide</th>
+                            <th>Hướng dẫn viên</th>
                             <th>Thời gian</th>
                             <th>Điểm đón</th>
                             <th>Trạng thái</th>
@@ -177,7 +177,7 @@
                                 <td>${a.guideName}<div class="text-muted small">${a.guidePhone}</div></td>
                                 <td><fmt:formatDate value="${a.departureDate}" pattern="dd/MM/yyyy HH:mm"/></td>
                                 <td>${empty a.meetingPoint ? 'Chưa nhập' : a.meetingPoint}</td>
-                                <td><span class="status-pill status-assigned">${a.assignmentStatus}</span></td>
+                                <td><span class="status-pill status-assigned">${a.assignmentStatusLabel}</span></td>
                                 <td>
                                     <div class="row-actions">
                                         <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/staff/assignment?action=view&id=${a.assignmentID}">
@@ -186,7 +186,7 @@
                                         <a class="btn btn-sm btn-outline-warning" href="${pageContext.request.contextPath}/staff/assignment?action=edit&id=${a.assignmentID}">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
-                                        <form method="post" action="${pageContext.request.contextPath}/staff/assignment" onsubmit="return confirm('Xóa assignment này?');">
+                                        <form method="post" action="${pageContext.request.contextPath}/staff/assignment" onsubmit="return confirm('Xóa phân công này?');">
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="id" value="${a.assignmentID}">
                                             <button class="btn btn-sm btn-outline-danger" type="submit"><i class="fa-solid fa-trash"></i></button>
@@ -196,7 +196,7 @@
                             </tr>
                         </c:forEach>
                         <c:if test="${empty assignmentList}">
-                            <tr><td colspan="7" class="text-center text-muted py-5">Chưa có assignment phù hợp bộ lọc.</td></tr>
+                            <tr><td colspan="7" class="text-center text-muted py-5">Chưa có phân công phù hợp bộ lọc.</td></tr>
                         </c:if>
                         </tbody>
                     </table>

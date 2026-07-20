@@ -46,13 +46,13 @@ public class HomeController extends HttpServlet {
                 return;
             }
 
-            if (isStaff(user, roleName)) {
-                response.sendRedirect(request.getContextPath() + "/staff/home");
+            if (isTourGuide(user, roleName)) {
+                response.sendRedirect(request.getContextPath() + "/guide/home");
                 return;
             }
 
-            if (isTourGuide(user, roleName)) {
-                response.sendRedirect(request.getContextPath() + "/guide/home");
+            if (isStaff(user, roleName)) {
+                response.sendRedirect(request.getContextPath() + "/staff/home");
                 return;
             }
         }
@@ -105,14 +105,22 @@ public class HomeController extends HttpServlet {
     }
 
     private boolean isStaff(User user, String roleName) {
-        return "staff".equals(roleName) || user.getRoleID() == 2;
+        if (!roleName.isEmpty()) {
+            return "staff".equals(roleName);
+        }
+
+        return user.getRoleID() == 2;
     }
 
     private boolean isTourGuide(User user, String roleName) {
-        String compactRoleName = roleName.replace(" ", "").replace("-", "");
-        return "tourguide".equals(compactRoleName)
-                || "guide".equals(compactRoleName)
-                || user.getRoleID() == 3;
+        String compactRoleName = roleName.replace(" ", "").replace("-", "").replace("_", "");
+
+        if (!compactRoleName.isEmpty()) {
+            return "tourguide".equals(compactRoleName)
+                    || "guide".equals(compactRoleName);
+        }
+
+        return user.getRoleID() == 3;
     }
 
     private <T> List<T> take(List<T> items, int limit) {

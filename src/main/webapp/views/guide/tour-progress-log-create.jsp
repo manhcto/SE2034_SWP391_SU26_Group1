@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WonderVN | AddTourProgressLog</title>
+    <title>WonderVN | Thêm nhật ký tiến độ tour</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -19,11 +19,11 @@
         <div class="brand-box">
             <div class="brand-logo guide">TG</div>
             <h2>WonderVN</h2>
-            <p>Tour Guide Workspace</p>
+            <p>Khu vực hướng dẫn viên</p>
         </div>
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home"><i class="fa-solid fa-house"></i><span>Guide home</span></a>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home"><i class="fa-solid fa-house"></i><span>Trang chủ hướng dẫn viên</span></a>
         <div class="nav-section-title">Nhiệm vụ tour</div>
-        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment"><i class="fa-solid fa-clipboard-list"></i><span>Assigned tours</span></a>
+        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment"><i class="fa-solid fa-clipboard-list"></i><span>Tour được phân công</span></a>
         <div class="nav-section-title">Tài khoản</div>
         <a class="sidebar-link" href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span></a>
     </aside>
@@ -31,8 +31,8 @@
     <main class="main-content">
         <div class="topbar">
             <div>
-                <h1>AddTourProgressLog</h1>
-                <p>Ghi nhật ký itinerary real-time như pickup completed, arrival, departure hoặc issue report.</p>
+                <h1>Thêm nhật ký tiến độ tour</h1>
+                <p>Ghi nhật ký lịch trình theo thời gian thực như đã đón khách, đã đến nơi, đã khởi hành hoặc báo cáo sự cố.</p>
             </div>
             <div class="top-actions">
                 <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/guide/assignment?action=detail&id=${assignment.assignmentID}">
@@ -45,7 +45,7 @@
             <div class="panel-header">
                 <div>
                     <h2>${assignment.tourName}</h2>
-                    <p><fmt:formatDate value="${assignment.departureDate}" pattern="dd/MM/yyyy HH:mm"/> · ${assignment.meetingPoint}</p>
+                    <p><fmt:formatDate value="${assignment.departureDate}" pattern="dd/MM/yyyy"/> · ${assignment.meetingPoint}</p>
                 </div>
             </div>
             <div class="panel-body">
@@ -57,14 +57,14 @@
                         <div class="col-md-4">
                             <label class="form-label">Trạng thái tiến độ</label>
                             <select class="form-select" name="progressStatus" required>
-                                <option value="Pickup Completed">Pickup Completed</option>
-                                <option value="Departed">Departed</option>
-                                <option value="Arrived">Arrived</option>
-                                <option value="Activity Completed">Activity Completed</option>
-                                <option value="Returning">Returning</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Issue">Issue</option>
-                                <option value="Update">Update</option>
+                                <option value="Pickup Completed">Đã đón khách</option>
+                                <option value="Departed">Đã khởi hành</option>
+                                <option value="Arrived">Đã đến nơi</option>
+                                <option value="Activity Completed">Hoàn thành hoạt động</option>
+                                <option value="Returning">Đang quay về</option>
+                                <option value="Completed">Hoàn thành tour</option>
+                                <option value="Issue">Có vấn đề phát sinh</option>
+                                <option value="Update">Cập nhật</option>
                             </select>
                         </div>
                         <div class="col-md-8">
@@ -79,7 +79,7 @@
 
                     <div class="top-actions mt-4">
                         <button class="top-action-btn btn-guide-action" type="submit">
-                            <i class="fa-solid fa-floppy-disk"></i>Lưu progress log
+                            <i class="fa-solid fa-floppy-disk"></i>Lưu nhật ký
                         </button>
                         <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/guide/assignment?action=detail&id=${assignment.assignmentID}">Hủy</a>
                     </div>
@@ -90,8 +90,8 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <h2>Log gần đây</h2>
-                    <p>Các log đã được ghi cho assignment này.</p>
+                    <h2>Nhật ký gần đây</h2>
+                    <p>Các nhật ký đã được ghi cho phân công này.</p>
                 </div>
             </div>
             <div class="panel-body">
@@ -109,13 +109,13 @@
                         <c:forEach var="log" items="${progressLogs}">
                             <tr>
                                 <td><fmt:formatDate value="${log.logTime}" pattern="dd/MM/yyyy HH:mm"/></td>
-                                <td><span class="status-pill status-progress">${log.progressStatus}</span></td>
+                                <td><span class="status-pill status-progress">${log.progressStatusLabel}</span></td>
                                 <td>${empty log.title ? 'Cập nhật tour' : log.title}</td>
                                 <td>${empty log.content ? 'Không có nội dung' : log.content}</td>
                             </tr>
                         </c:forEach>
                         <c:if test="${empty progressLogs}">
-                            <tr><td colspan="4" class="text-center text-muted py-5">Chưa có log nào.</td></tr>
+                            <tr><td colspan="4" class="text-center text-muted py-5">Chưa có nhật ký nào.</td></tr>
                         </c:if>
                         </tbody>
                     </table>

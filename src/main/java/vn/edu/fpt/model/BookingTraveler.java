@@ -14,6 +14,7 @@ public class BookingTraveler {
     private String identityNumber;
     private String travelerStatus;
     private String note;
+    private boolean booker;
 
     public int getTravelerID() {
         return travelerID;
@@ -79,6 +80,14 @@ public class BookingTraveler {
         this.phone = phone;
     }
 
+    public boolean isBooker() {
+        return booker;
+    }
+
+    public void setBooker(boolean booker) {
+        this.booker = booker;
+    }
+
     public String getIdentityNumber() {
         return identityNumber;
     }
@@ -89,6 +98,20 @@ public class BookingTraveler {
 
     public String getTravelerStatus() {
         return travelerStatus;
+    }
+
+    public String getTravelerStatusLabel() {
+        if (travelerStatus == null || travelerStatus.trim().isEmpty()) {
+            return "Chưa check-in";
+        }
+
+        return switch (travelerStatus.trim()) {
+            case "Pending" -> "Chưa check-in";
+            case "Checked-in" -> "Đã check-in";
+            case "Absent" -> "Vắng mặt";
+            case "Completed" -> "Hoàn thành";
+            default -> travelerStatus.trim();
+        };
     }
 
     public void setTravelerStatus(String travelerStatus) {

@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -11,11 +12,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css?v=staff-assignment-left-20260714" rel="stylesheet">
 </head>
 
 <body>
-<div class="workspace-layout">
+<div class="workspace-layout staff-assignment-layout">
     <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
     <main class="main-content">
@@ -40,10 +41,10 @@
             </div>
         </c:if>
 
-        <c:if test="${param.error == 'paymentRequired'}">
+        <c:if test="${param.error == 'notCompletedBooking' || param.error == 'paymentRequired'}">
             <div class="alert alert-danger">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
-                Chỉ những booking đã thanh toán mới được phân công tour.
+                Chỉ booking tour có trạng thái Hoàn thành trong trang quản lý booking mới được phân công hướng dẫn viên.
             </div>
         </c:if>
 
@@ -51,7 +52,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Thông tin phân công</h2>
-                    <p>Chỉ hiển thị booking tour đã thanh toán và lưu trực tiếp vào bảng Tour_Assignments.</p>
+                    <p>Chỉ hiển thị booking tour có trạng thái Hoàn thành và lưu trực tiếp vào phân công tour.</p>
                 </div>
             </div>
 
@@ -86,36 +87,26 @@
                             </select>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label">Vai trò</label>
-                            <select name="roleInTour" class="form-select" required>
-                                <option value="Hướng dẫn viên">Hướng dẫn viên</option>
-                                <option value="Trưởng đoàn">Trưởng đoàn</option>
-                                <option value="Hướng dẫn viên phụ">Hướng dẫn viên phụ</option>
-                                <option value="Điều phối viên tour">Điều phối viên tour</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Trạng thái assignment</label>
+                        <div class="col-md-6">
+                            <label class="form-label">Trạng thái phân công</label>
                             <select name="assignmentStatus" class="form-select" required>
-                                <option value="Pending">Pending</option>
-                                <option value="Accepted">Accepted</option>
-                                <option value="Confirmed">Confirmed</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Cancelled">Cancelled</option>
-                                <option value="Rejected">Rejected</option>
+                                <option value="Pending">Chờ nhận tour</option>
+                                <option value="Accepted">Đã nhận tour</option>
+                                <option value="Confirmed">Đã xác nhận</option>
+                                <option value="In Progress">Đang diễn ra</option>
+                                <option value="Completed">Hoàn thành</option>
+                                <option value="Cancelled">Đã hủy</option>
+                                <option value="Rejected">Từ chối</option>
                             </select>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label">Độ ưu tiên</label>
                             <select name="priorityLevel" class="form-select" required>
-                                <option value="Normal">Normal</option>
-                                <option value="Low">Low</option>
-                                <option value="High">High</option>
-                                <option value="Urgent">Urgent</option>
+                                <option value="Normal">Bình thường</option>
+                                <option value="Low">Thấp</option>
+                                <option value="High">Cao</option>
+                                <option value="Urgent">Khẩn cấp</option>
                             </select>
                         </div>
 
@@ -131,17 +122,17 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Deadline check-in</label>
+                            <label class="form-label">Hạn check-in</label>
                             <input type="datetime-local" name="checkInDeadline" class="form-control">
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Ghi chú staff</label>
+                            <label class="form-label">Ghi chú nhân viên</label>
                             <textarea name="staffNote" class="form-control" rows="4"></textarea>
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Ghi chú cho guide</label>
+                            <label class="form-label">Ghi chú cho hướng dẫn viên</label>
                             <textarea name="guideNote" class="form-control" rows="4"></textarea>
                         </div>
 
@@ -184,6 +175,7 @@
                             <th>Tuyến</th>
                             <th>Lịch</th>
                             <th>Số khách</th>
+                            <th>Trạng thái</th>
                             <th>Tổng tiền</th>
                         </tr>
                         </thead>
@@ -206,18 +198,23 @@
                                 <td>${b.tourName}</td>
                                 <td>${b.startPlace} → ${b.endPlace}</td>
                                 <td>
-                                    ${b.departureDate}
-                                    <div class="text-muted small">đến ${b.endDate}</div>
+                                    <fmt:formatDate value="${b.departureDate}" pattern="dd/MM/yyyy"/>
+                                    <c:if test="${not empty b.endDate}">
+                                        <div class="text-muted small">
+                                            đến <fmt:formatDate value="${b.endDate}" pattern="dd/MM/yyyy"/>
+                                        </div>
+                                    </c:if>
                                 </td>
                                 <td>${b.totalGuests} khách</td>
-                                <td>${b.totalPrice}</td>
+                                <td><span class="status-pill status-completed">Hoàn thành</span></td>
+                                <td><fmt:formatNumber value="${b.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ</td>
                             </tr>
                         </c:forEach>
 
                         <c:if test="${empty bookingList}">
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-5">
-                                    Chưa có booking tour nào có lịch trình để phân công.
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    Chưa có booking tour Hoàn thành nào có lịch trình để phân công.
                                 </td>
                             </tr>
                         </c:if>
