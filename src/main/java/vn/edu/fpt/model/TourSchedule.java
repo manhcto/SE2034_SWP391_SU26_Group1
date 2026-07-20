@@ -28,6 +28,12 @@ public class TourSchedule {
     private String scheduleStatus;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String tourName;
+    private String tourCode;
+    private String tourStatus;
+    private String startPlace;
+    private String endPlace;
+    private String mainTransportType;
 
     public int getTourScheduleID() {
         return tourScheduleID;
@@ -211,6 +217,54 @@ public class TourSchedule {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getTourName() {
+        return tourName;
+    }
+
+    public void setTourName(String tourName) {
+        this.tourName = safeTrim(tourName);
+    }
+
+    public String getTourCode() {
+        return tourCode;
+    }
+
+    public void setTourCode(String tourCode) {
+        this.tourCode = safeTrim(tourCode);
+    }
+
+    public String getTourStatus() {
+        return tourStatus;
+    }
+
+    public void setTourStatus(String tourStatus) {
+        this.tourStatus = safeTrim(tourStatus);
+    }
+
+    public String getStartPlace() {
+        return startPlace;
+    }
+
+    public void setStartPlace(String startPlace) {
+        this.startPlace = safeTrim(startPlace);
+    }
+
+    public String getEndPlace() {
+        return endPlace;
+    }
+
+    public void setEndPlace(String endPlace) {
+        this.endPlace = safeTrim(endPlace);
+    }
+
+    public String getMainTransportType() {
+        return mainTransportType;
+    }
+
+    public void setMainTransportType(String mainTransportType) {
+        this.mainTransportType = safeTrim(mainTransportType);
     }
 
     public int getRemainingSeats() {

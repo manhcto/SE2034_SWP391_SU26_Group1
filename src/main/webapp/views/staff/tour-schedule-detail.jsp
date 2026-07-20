@@ -27,7 +27,6 @@
             <div class="toolbar">
                 <a class="btn-outline-soft" href="${pageContext.request.contextPath}/staff/tour"><i class="fa-solid fa-list"></i> Danh sách tour</a>
                 <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour/schedule?tourID=${tour.tourID}"><i class="fa-solid fa-calendar-days"></i> Danh sách lịch</a>
-                <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour/detail?id=${tour.tourID}"><i class="fa-solid fa-map"></i> Chi tiết tour</a>
                 <c:if test="${canEditSchedule}"><a class="btn-main" href="${pageContext.request.contextPath}/staff/tour/schedule/edit?id=${schedule.tourScheduleID}"><i class="fa-solid fa-pen"></i> Sửa lịch</a></c:if>
             </div>
         </section>
@@ -59,9 +58,9 @@
                             <c:otherwise><span class="status-badge status-Planned">Chưa mở bán</span></c:otherwise>
                         </c:choose>
                     </div>
-                    <div class="info-item"><small>Ngày xuất phát</small><strong><fmt:formatDate value="${schedule.startDate}" pattern="dd/MM/yyyy"/></strong></div>
-                    <div class="info-item"><small>Ngày kết thúc</small><strong><fmt:formatDate value="${schedule.endDate}" pattern="dd/MM/yyyy"/></strong></div>
-                    <div class="info-item"><small>Ngày chốt bán</small><strong><fmt:formatDate value="${schedule.bookingDeadline}" pattern="dd/MM/yyyy"/></strong></div>
+                    <div class="info-item"><small>Ngày xuất phát</small><strong><fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy"/></strong></div>
+                    <div class="info-item"><small>Ngày kết thúc</small><strong><fmt:formatDate value="${schedule.endDate}" pattern="dd-MM-yyyy"/></strong></div>
+                    <div class="info-item"><small>Ngày chốt bán</small><strong><fmt:formatDate value="${schedule.bookingDeadline}" pattern="dd-MM-yyyy"/></strong></div>
                     <div class="info-item"><small>Giờ xuất phát</small><strong>${empty schedule.departureTime ? '-' : schedule.departureTime}</strong></div>
                     <div class="info-item"><small>Giờ về dự kiến</small><strong>${empty schedule.expectedReturnTime ? '-' : schedule.expectedReturnTime}</strong></div>
                     <div class="info-item"><small>Phương tiện</small><strong>${empty schedule.scheduleTransportType ? tour.mainTransportType : schedule.scheduleTransportType}</strong></div>
@@ -69,8 +68,8 @@
                     <div class="info-item"><small>Đã đặt / Tối đa</small><strong>${schedule.quantity} / ${schedule.maxParticipants}</strong></div>
                     <div class="info-item"><small>Còn chỗ</small><strong>${schedule.remainingSeats}</strong></div>
                     <div class="info-item"><small>Tối đa mỗi booking</small><strong>${schedule.maxParticipantsPerBooking}</strong></div>
-                    <div class="info-item"><small>Ngày tạo</small><strong><fmt:formatDate value="${schedule.createdAt}" pattern="dd/MM/yyyy HH:mm"/></strong></div>
-                    <div class="info-item"><small>Cập nhật</small><strong><fmt:formatDate value="${schedule.updatedAt}" pattern="dd/MM/yyyy HH:mm"/></strong></div>
+                    <div class="info-item"><small>Ngày tạo</small><strong><fmt:formatDate value="${schedule.createdAt}" pattern="dd-MM-yyyy HH:mm"/></strong></div>
+                    <div class="info-item"><small>Cập nhật</small><strong><fmt:formatDate value="${schedule.updatedAt}" pattern="dd-MM-yyyy HH:mm"/></strong></div>
                 </div>
             </div>
         </section>

@@ -30,15 +30,16 @@ public class AdminTourListController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        boolean approvalPage = request.getServletPath().endsWith("/approval");
+        if (request.getServletPath().endsWith("/approval")) {
+            response.sendRedirect(request.getContextPath() + "/admin/tour?status=Pending");
+            return;
+        }
+
+        boolean approvalPage = false;
         String keyword = normalize(request.getParameter("keyword"));
         String status = normalize(request.getParameter("status"));
         Integer categoryID = parsePositiveInt(request.getParameter("categoryID"));
         Integer regionID = parsePositiveInt(request.getParameter("regionID"));
-
-        if (approvalPage && status.isBlank()) {
-            status = "Pending";
-        }
 
         if (!isValidTourStatus(status)) {
             status = "";

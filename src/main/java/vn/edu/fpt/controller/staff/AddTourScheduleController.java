@@ -31,6 +31,7 @@ public class AddTourScheduleController extends StaffTourScheduleSupport {
         }
 
         TourSchedule schedule = buildDefaultSchedule(tour);
+        request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
         forwardScheduleForm(
                 request,
                 response,
@@ -84,12 +85,16 @@ public class AddTourScheduleController extends StaffTourScheduleSupport {
     private TourSchedule buildDefaultSchedule(Tour tour) {
         TourSchedule schedule = new TourSchedule();
         schedule.setTourID(tour.getTourID());
-        schedule.setAdultPrice(tour.getAdultPrice());
-        schedule.setChildPrice(tour.getChildrenPrice());
-        schedule.setInfantPrice(tour.getInfantPrice());
-        schedule.setSingleRoomSurcharge(tour.getSingleRoomSurcharge());
+        if (tour.getAdultPrice() != null && tour.getAdultPrice().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            schedule.setAdultPrice(tour.getAdultPrice());
+            schedule.setChildPrice(tour.getChildrenPrice());
+            schedule.setInfantPrice(tour.getInfantPrice());
+        }
+        if (tour.getSingleRoomSurcharge() != null && tour.getSingleRoomSurcharge().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            schedule.setSingleRoomSurcharge(tour.getSingleRoomSurcharge());
+        }
         schedule.setDepositPercent(0);
-        schedule.setVatPercent(DEFAULT_VAT);
+        schedule.setVatPercent(vatRateDAO.getVatPercentForDate(java.time.LocalDate.now()));
         schedule.setCancellationPolicy(DEFAULT_CANCELLATION_POLICY);
         schedule.setScheduleStatus(canOpenScheduleForTour(tour) ? "Open" : "Planned");
         schedule.setScheduleTransportType(resolveScheduleTransportType(tour, null));

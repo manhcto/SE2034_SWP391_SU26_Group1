@@ -468,9 +468,14 @@
             <span>Quản lý người dùng</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour/approval">
-            <i class="fa-solid fa-circle-check"></i>
-            <span>Phê duyệt tour</span>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span>Quản lý tour</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/vat">
+            <i class="fa-solid fa-percent"></i>
+            <span>Quản lý VAT</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">

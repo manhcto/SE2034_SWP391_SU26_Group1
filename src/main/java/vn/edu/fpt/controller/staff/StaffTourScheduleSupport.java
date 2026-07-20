@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.DAO.TourDAO;
+import vn.edu.fpt.DAO.VatRateDAO;
 import vn.edu.fpt.model.Tour;
 import vn.edu.fpt.model.TourSchedule;
 
@@ -24,6 +25,7 @@ import java.util.Map;
 public abstract class StaffTourScheduleSupport extends HttpServlet {
 
     protected final TourDAO tourDAO = new TourDAO();
+    protected final VatRateDAO vatRateDAO = new VatRateDAO();
 
     private static final BigDecimal MIN_ADULT_PRICE = new BigDecimal("500000");
     private static final BigDecimal MAX_MONEY = new BigDecimal("1000000000");
@@ -66,7 +68,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         request.setAttribute("selectedTransportType", selectedTransport);
         request.setAttribute("seatOptions", getSeatOptions(selectedTransport));
         request.setAttribute("todayIso", LocalDate.now().toString());
-        request.setAttribute("defaultVat", DEFAULT_VAT);
+        request.setAttribute("defaultVat", resolveFormVatPercent(schedule));
+        request.setAttribute("vatRates", vatRateDAO.getActiveRates());
         request.setAttribute("bookedSchedule", bookedSchedule);
         request.setAttribute("lockedCore", lockedCore);
         request.setAttribute("canOpenSchedule", canOpenScheduleForTour(tour));
@@ -115,6 +118,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         if (message.startsWith("Ngày chốt bán")) return "bookingDeadline";
         if (message.startsWith("Số ghế")) return "maxParticipants";
         if (message.startsWith("Giá người lớn")) return "adultPrice";
+        if (message.startsWith("Giá trẻ em 5-10")) return "childPrice";
+        if (message.startsWith("Giá trẻ em dưới 5")) return "infantPrice";
         if (message.startsWith("Phụ thu phòng đơn")) return "singleRoomSurcharge";
         if (message.startsWith("Trạng thái lịch")) return "scheduleStatus";
         if (message.startsWith("Tour chưa ở trạng thái")) return "scheduleStatus";
@@ -138,6 +143,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         data.maxParticipantsRaw = request.getParameter("maxParticipants");
         data.maxParticipantsPerBookingRaw = request.getParameter("maxParticipantsPerBooking");
         data.adultPriceRaw = request.getParameter("adultPrice");
+        data.childPriceRaw = request.getParameter("childPrice");
+        data.infantPriceRaw = request.getParameter("infantPrice");
         data.singleRoomSurchargeRaw = request.getParameter("singleRoomSurcharge");
         data.cancellationPolicy = safeTrim(request.getParameter("cancellationPolicy"));
         data.scheduleStatus = safeTrim(request.getParameter("scheduleStatus"));
@@ -263,6 +270,12 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
 
         if (!lockedCore) {
             validateAdultPrice(data.adultPriceRaw, errors);
+            BigDecimal adultPrice = parseBigDecimal(data.adultPriceRaw);
+            if (adultPrice != null && isWholeMoney(adultPrice) && adultPrice.compareTo(MIN_ADULT_PRICE) > 0) {
+                int vatPercent = resolveVatPercentForDate(startDate, existingSchedule, lockedCore);
+                validateDerivedPrice(data.childPriceRaw, "Giá trẻ em 5-10 tuổi", calculatePercentWithVat(adultPrice, CHILD_RATE, vatPercent), errors);
+                validateDerivedPrice(data.infantPriceRaw, "Giá trẻ em dưới 5 tuổi", calculatePercentWithVat(adultPrice, INFANT_SECOND_RATE, vatPercent), errors);
+            }
             validateMoney(data.singleRoomSurchargeRaw, "Phụ thu phòng đơn", true, errors);
         }
 
@@ -335,12 +348,22 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
                 ? existingSchedule.getSingleRoomSurcharge()
                 : parseMoneyOrZero(data.singleRoomSurchargeRaw);
 
+        int vatPercent = resolveVatPercentForDate(startDate, existingSchedule, lockedCore);
+        BigDecimal expectedChildPrice = calculatePercentWithVat(adultPrice, CHILD_RATE, vatPercent);
+        BigDecimal expectedInfantPrice = calculatePercentWithVat(adultPrice, INFANT_SECOND_RATE, vatPercent);
+        BigDecimal childPrice = lockedCore && existingSchedule != null
+                ? existingSchedule.getChildPrice()
+                : parseBigDecimal(data.childPriceRaw);
+        BigDecimal infantPrice = lockedCore && existingSchedule != null
+                ? existingSchedule.getInfantPrice()
+                : parseBigDecimal(data.infantPriceRaw);
+
         schedule.setAdultPrice(adultPrice);
-        schedule.setChildPrice(calculatePercentWithVat(adultPrice, CHILD_RATE));
-        schedule.setInfantPrice(calculatePercentWithVat(adultPrice, INFANT_SECOND_RATE));
+        schedule.setChildPrice(childPrice == null ? expectedChildPrice : childPrice);
+        schedule.setInfantPrice(infantPrice == null ? expectedInfantPrice : infantPrice);
         schedule.setSingleRoomSurcharge(singleRoom == null ? BigDecimal.ZERO : singleRoom);
         schedule.setDepositPercent(0);
-        schedule.setVatPercent(DEFAULT_VAT);
+        schedule.setVatPercent(vatPercent);
         schedule.setCancellationPolicy(isBlank(data.cancellationPolicy) ? DEFAULT_CANCELLATION_POLICY : data.cancellationPolicy);
         schedule.setScheduleStatus(normalizeScheduleStatusForTour(tour, data.scheduleStatus));
 
@@ -535,6 +558,21 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         }
     }
 
+    private void validateDerivedPrice(String rawValue, String label, BigDecimal expectedValue, List<String> errors) {
+        BigDecimal value = parseBigDecimal(rawValue);
+        if (value == null) {
+            errors.add(label + " là bắt buộc và phải là số hợp lệ.");
+            return;
+        }
+        if (!isWholeMoney(value)) {
+            errors.add(label + " phải là số tiền nguyên, không nhập số thập phân.");
+            return;
+        }
+        if (value.compareTo(expectedValue) != 0) {
+            errors.add(label + " phải đúng công thức đã quy định: " + expectedValue.toPlainString() + ".");
+        }
+    }
+
     private boolean isWholeMoney(BigDecimal value) {
         return value != null && value.stripTrailingZeros().scale() <= 0;
     }
@@ -571,12 +609,31 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
     }
 
     private BigDecimal calculatePercentWithVat(BigDecimal base, BigDecimal rate) {
+        return calculatePercentWithVat(base, rate, DEFAULT_VAT);
+    }
+
+    private BigDecimal calculatePercentWithVat(BigDecimal base, BigDecimal rate, int vatPercent) {
         if (base == null) {
             return BigDecimal.ZERO;
         }
         return base.multiply(rate)
-                .multiply(BigDecimal.valueOf(100 + DEFAULT_VAT))
+                .multiply(BigDecimal.valueOf(100L + Math.max(0, vatPercent)))
                 .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
+    }
+
+    private int resolveVatPercentForDate(LocalDate startDate, TourSchedule existingSchedule, boolean lockedCore) {
+        if (lockedCore && existingSchedule != null && existingSchedule.getVatPercent() != null && existingSchedule.getVatPercent() >= 0) {
+            return existingSchedule.getVatPercent();
+        }
+        return vatRateDAO.getVatPercentForDate(startDate == null ? LocalDate.now() : startDate);
+    }
+
+    private int resolveFormVatPercent(TourSchedule schedule) {
+        if (schedule != null && schedule.getVatPercent() != null && schedule.getVatPercent() > 0) {
+            return schedule.getVatPercent();
+        }
+        LocalDate startDate = toLocalDate(schedule == null ? null : schedule.getStartDate());
+        return vatRateDAO.getVatPercentForDate(startDate == null ? LocalDate.now() : startDate);
     }
 
     protected static class ScheduleFormData {
@@ -591,6 +648,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         String maxParticipantsRaw;
         String maxParticipantsPerBookingRaw;
         String adultPriceRaw;
+        String childPriceRaw;
+        String infantPriceRaw;
         String singleRoomSurchargeRaw;
         String cancellationPolicy;
         String scheduleStatus;

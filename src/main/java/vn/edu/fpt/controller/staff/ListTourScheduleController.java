@@ -19,7 +19,13 @@ public class ListTourScheduleController extends StaffTourScheduleSupport {
         Integer tourID = parsePositiveInt(request.getParameter("tourID"));
 
         if (tourID == null) {
-            response.sendRedirect(request.getContextPath() + "/staff/tour?message=notFound");
+            tourDAO.syncOpenSchedulesWithTourStatuses();
+            request.setAttribute("tourList", tourDAO.getToursForStaff(null, null, null, null));
+            request.setAttribute("scheduleList", tourDAO.getSchedulesForStaffOverview());
+            request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
+            request.setAttribute("allSchedules", true);
+            request.getRequestDispatcher("/views/staff/tour-schedule-list.jsp")
+                    .forward(request, response);
             return;
         }
 
@@ -31,9 +37,11 @@ public class ListTourScheduleController extends StaffTourScheduleSupport {
 
         request.setAttribute("tour", tour);
         request.setAttribute("scheduleList", tour.getScheduleList());
+        request.setAttribute("readinessErrors", tourDAO.getTourReadinessErrors(tourID));
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
         request.setAttribute("canManageSchedule", canManageScheduleForTour(tour));
         request.setAttribute("canOpenSchedule", canOpenScheduleForTour(tour));
+        request.setAttribute("allSchedules", false);
         request.getRequestDispatcher("/views/staff/tour-schedule-list.jsp")
                 .forward(request, response);
     }

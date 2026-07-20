@@ -14,15 +14,22 @@
         body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
         .admin-layout { display:flex; min-height:100vh; }
         .admin-main { flex:1; min-width:0; padding:28px; }
-        .page-card { background:#fff; border:1px solid var(--border); border-radius:24px; box-shadow:var(--shadow); margin-bottom:22px; overflow:hidden; }
+        .page-card { background:#fff; border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow); margin-bottom:22px; overflow:hidden; }
         .topbar { padding:24px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
         .topbar h1 { margin:0; color:var(--dark); font-size:28px; font-weight:900; }
         .topbar p { margin:6px 0 0; color:var(--muted); font-weight:600; }
         .section-title { padding:20px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
         .section-title h5 { margin:0; font-weight:900; color:var(--dark); }
-        .section-body { padding:22px; }
-        .form-label { font-weight:800; color:#334155; }
-        .form-control,.form-select { border-radius:13px; border:1px solid #dbe3ef; min-height:46px; }
+        .section-body { padding:24px; }
+        .form-block { border:1px solid var(--border); border-radius:14px; padding:22px; background:#fbfdff; height:100%; }
+        .form-block + .form-block { margin-top:18px; }
+        .form-block-title { display:flex; align-items:center; gap:10px; margin:0 0 18px; font-size:15px; font-weight:900; color:var(--dark); }
+        .form-block-title i { color:var(--primary); }
+        .form-label { font-weight:800; color:#334155; min-height:22px; margin-bottom:8px; }
+        .form-control,.form-select { border-radius:12px; border:1px solid #dbe3ef; min-height:46px; }
+        .form-control::placeholder { color:#94a3b8; }
+        .row.g-3 { --bs-gutter-x: 18px; --bs-gutter-y: 18px; }
+        .row.g-3 > [class*="col-"] { display:flex; flex-direction:column; }
         textarea.form-control { min-height:108px; }
         .form-control:focus,.form-select:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(37,99,235,.12); }
         .btn-main { border:none; border-radius:14px; background:var(--primary); color:#fff; padding:12px 18px; font-weight:800; display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
@@ -35,12 +42,24 @@
         .day-pill { display:inline-flex; align-items:center; justify-content:center; min-width:78px; border-radius:999px; background:#dbeafe; color:#1d4ed8; font-weight:900; padding:7px 12px; margin-bottom:14px; }
         .hint-box { background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; border-radius:16px; padding:14px 16px; font-weight:700; }
         .preview-img { width:100%; max-height:220px; object-fit:cover; border-radius:16px; border:1px solid var(--border); background:#f8fafc; }
-        .preview-small { width:100%; max-height:160px; object-fit:cover; border-radius:14px; border:1px solid var(--border); background:#f8fafc; }
+        .preview-small { width:100%; height:118px; object-fit:cover; border-radius:12px; border:1px solid var(--border); background:#f8fafc; }
         .muted { color:var(--muted); }
         .table thead th { background:#f8fafc; color:#475569; font-size:13px; text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--border); }
         .table td,.table th { vertical-align:middle; padding:14px 16px; }
         .field-error { color:#dc2626; font-size:13px; font-weight:700; margin-top:6px; }
         .is-invalid { border-color:#dc2626 !important; }
+        .status-chip { display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:8px 13px; font-weight:900; background:#eff6ff; color:#1d4ed8; }
+        .custom-select-wrap { position:relative; }
+        .custom-select-source { display:none; }
+        .custom-select-trigger { width:100%; min-height:46px; border:1px solid #dbe3ef; border-radius:13px; background:#fff; color:#1e293b; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; font-weight:600; cursor:default; }
+        .custom-select-trigger.placeholder { color:#94a3b8; }
+        .custom-select-trigger::after { content:"\f107"; font-family:"Font Awesome 6 Free"; font-weight:900; color:#64748b; }
+        .custom-select-menu { position:absolute; z-index:30; top:calc(100% + 6px); left:0; right:0; max-height:240px; overflow:auto; background:#fff; border:1px solid #dbe3ef; border-radius:14px; box-shadow:0 18px 36px rgba(15,23,42,.16); padding:6px; display:none; }
+        .custom-select-wrap:hover .custom-select-menu, .custom-select-wrap.open .custom-select-menu { display:block; }
+        .custom-select-option { padding:10px 12px; border-radius:10px; font-weight:700; color:#334155; cursor:pointer; }
+        .custom-select-option:hover, .custom-select-option.selected { background:#eff6ff; color:#1d4ed8; }
+        .custom-select-option[hidden] { display:none; }
+        .next-step-note { background:#ecfdf5; border:1px solid #bbf7d0; color:#166534; border-radius:16px; padding:14px 16px; font-weight:800; display:flex; align-items:flex-start; gap:10px; }
         @media (max-width:992px) { .admin-layout{display:block;} .admin-main{padding:18px;} .topbar{display:block;} }
     </style>
 </head>
@@ -52,7 +71,10 @@
         <section class="page-card topbar">
             <div>
                 <h1>${pageTitle}</h1>
-                <p>Staff nhập tour gốc, ảnh, thông tin tập trung, lịch trình và lịch khởi hành đầu tiên.</p>
+                <p>Staff nhập hồ sơ tour gốc, ảnh, tuyến đi và lịch trình. Sau khi lưu, hệ thống chuyển sang Lịch tour để nhập ngày khởi hành, số ghế và giá bán theo từng lịch.</p>
+                <div class="mt-2">
+                    <span class="status-chip"><i class="fa-solid fa-circle-dot"></i> ${mode == 'add' ? 'Bản nháp' : tour.displayStatus}</span>
+                </div>
             </div>
             <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour">
                 <i class="fa-solid fa-arrow-left"></i> Về danh sách
@@ -70,7 +92,7 @@
 
         <c:if test="${priceAndScheduleLocked}">
             <div class="alert alert-warning fw-bold">
-                Tour đang ở trạng thái ${tour.displayStatus}. Staff chỉ được bổ sung/chỉnh nội dung mô tả, ảnh, điểm nổi bật và lịch trình. Giá, tuyến, thời lượng, phương tiện và lịch khởi hành đang được khóa để tránh sai lệch dữ liệu bán tour.
+                Tour đang ở trạng thái ${tour.displayStatus}. Staff chỉ được bổ sung/chỉnh nội dung mô tả, ảnh, điểm nổi bật và lịch trình. Giá, tuyến, thời lượng và lịch khởi hành đang được quản lý ở Lịch tour để tránh sai lệch dữ liệu bán tour.
             </div>
         </c:if>
 
@@ -80,45 +102,34 @@
             <input type="hidden" name="existingIntroImage" value="${tour.introImage}">
             <input type="hidden" name="startPlace" id="startPlace" value="${tour.startPlace}">
             <input type="hidden" name="endPlace" id="endPlace" value="${tour.endPlace}">
+            <input type="hidden" name="status" value="${mode == 'add' ? 'Draft' : tour.status}">
+            <input type="hidden" name="mainTransportType" value="${empty tour.mainTransportType ? 'Xe Du Lịch' : tour.mainTransportType}">
 
             <section class="page-card">
                 <div class="section-title">
                     <i class="fa-solid fa-circle-info text-primary"></i>
-                    <h5>1. Thông tin tour, ảnh và tập trung</h5>
+                    <h5>1. Thông tin tour</h5>
                 </div>
                 <div class="section-body">
-                    <div class="row g-3">
-                        <div class="col-md-8">
+                    <div class="next-step-note mb-3">
+                        <i class="fa-solid fa-circle-info mt-1"></i>
+                        <span>AddTour chỉ lưu hồ sơ tour. Lịch khởi hành, số ghế và giá bán sẽ nhập ở trang Lịch tour sau bước này.</span>
+                    </div>
+                    <div class="form-block mb-3">
+                        <div class="form-block-title"><i class="fa-solid fa-file-lines"></i>Thông tin định danh</div>
+                        <div class="row g-3">
+                        <div class="col-lg-6 col-md-12">
                             <label class="form-label">Tên tour <span class="text-danger">*</span></label>
-                            <input type="text" name="tourName" class="form-control ${not empty fieldErrors.tourName ? 'is-invalid' : ''}" value="${tour.tourName}" required maxlength="255" minlength="5">
+                            <input type="text" name="tourName" class="form-control ${not empty fieldErrors.tourName ? 'is-invalid' : ''}" value="${tour.tourName}" required maxlength="255" minlength="5" placeholder="Ví dụ: Đà Nẵng - Hội An - Bà Nà 3N2Đ">
                             <c:if test="${not empty fieldErrors.tourName}"><div class="field-error">${fieldErrors.tourName}</div></c:if>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-lg-3 col-md-6">
                             <label class="form-label">Mã tour</label>
                             <input type="text" class="form-control" value="${empty tour.tourCode ? nextTourCode : tour.tourCode}" readonly>
                             <div class="form-text">Mã dự kiến sẽ được kiểm tra lại khi lưu để tránh trùng.</div>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-                            <select name="tourCategoryID" class="form-select ${not empty fieldErrors.tourCategoryID ? 'is-invalid' : ''}" required>
-                                <option value="">-- Chọn danh mục --</option>
-                                <c:forEach var="category" items="${categoryList}">
-                                    <option value="${category.tourCategoryID}" ${tour.tourCategoryID == category.tourCategoryID ? 'selected' : ''}>${category.categoryName}</option>
-                                </c:forEach>
-                            </select>
-                            <c:if test="${not empty fieldErrors.tourCategoryID}"><div class="field-error">${fieldErrors.tourCategoryID}</div></c:if>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Loại tour <span class="text-danger">*</span></label>
-                            <select name="tourType" class="form-select ${not empty fieldErrors.tourType ? 'is-invalid' : ''}" required>
-                                <option value="Package" ${tour.tourType == 'Package' ? 'selected' : ''}>Tour trọn gói</option>
-                                <option value="Private" ${tour.tourType == 'Private' ? 'selected' : ''}>Tour riêng</option>
-                                <option value="Combo" ${tour.tourType == 'Combo' ? 'selected' : ''}>Combo</option>
-                            </select>
-                            <c:if test="${not empty fieldErrors.tourType}"><div class="field-error">${fieldErrors.tourType}</div></c:if>
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-lg-3 col-md-6">
                             <label class="form-label">Khu vực <span class="text-danger">*</span></label>
                             <c:if test="${routeAndScheduleInfoLocked}"><input type="hidden" name="regionID" value="${tour.regionID}"></c:if>
                             <select name="${routeAndScheduleInfoLocked ? 'regionIDDisplay' : 'regionID'}" id="regionSelect" class="form-select ${not empty fieldErrors.regionID ? 'is-invalid' : ''}" required ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
@@ -130,34 +141,81 @@
                             <c:if test="${not empty fieldErrors.regionID}"><div class="field-error">${fieldErrors.regionID}</div></c:if>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Danh mục <span class="text-danger">*</span></label>
+                            <select name="tourCategoryID" class="form-select ${not empty fieldErrors.tourCategoryID ? 'is-invalid' : ''}" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                <c:forEach var="category" items="${categoryList}">
+                                    <option value="${category.tourCategoryID}" ${tour.tourCategoryID == category.tourCategoryID ? 'selected' : ''}>${category.categoryName}</option>
+                                </c:forEach>
+                            </select>
+                            <c:if test="${not empty fieldErrors.tourCategoryID}"><div class="field-error">${fieldErrors.tourCategoryID}</div></c:if>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Loại tour <span class="text-danger">*</span></label>
+                            <select name="tourType" class="form-select ${not empty fieldErrors.tourType ? 'is-invalid' : ''}" required>
+                                <option value="Package" ${tour.tourType == 'Package' ? 'selected' : ''}>Tour trọn gói</option>
+                                <option value="Private" ${tour.tourType == 'Private' ? 'selected' : ''}>Tour riêng</option>
+                                <option value="Combo" ${tour.tourType == 'Combo' ? 'selected' : ''}>Combo</option>
+                            </select>
+                            <c:if test="${not empty fieldErrors.tourType}"><div class="field-error">${fieldErrors.tourType}</div></c:if>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Ảnh bìa tour</label>
+                            <input type="file" name="coverImageFile" class="form-control image-input ${not empty fieldErrors.coverImage ? 'is-invalid' : ''}" accept="image/*" data-preview="coverPreview">
+                            <input type="url" name="coverImageUrl" class="form-control mt-2 image-url-input ${not empty fieldErrors.coverImage ? 'is-invalid' : ''}" data-preview="coverPreview" placeholder="Hoặc dán URL ảnh bìa https://...">
+                            <c:if test="${not empty fieldErrors.coverImage}"><div class="field-error">${fieldErrors.coverImage}</div></c:if>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Xem trước ảnh bìa</label>
+                            <c:choose>
+                                <c:when test="${not empty tour.image}"><img id="coverPreview" class="preview-small" src="${tour.image}" alt="Ảnh bìa"></c:when>
+                                <c:otherwise><img id="coverPreview" class="preview-small" alt="Chưa chọn ảnh bìa"></c:otherwise>
+                            </c:choose>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Ảnh giới thiệu</label>
+                            <input type="file" name="introImageFile" class="form-control image-input ${not empty fieldErrors.introImage ? 'is-invalid' : ''}" accept="image/*" data-preview="introPreview">
+                            <input type="url" name="introImageUrl" class="form-control mt-2 image-url-input ${not empty fieldErrors.introImage ? 'is-invalid' : ''}" data-preview="introPreview" placeholder="Hoặc dán URL ảnh giới thiệu https://...">
+                            <c:if test="${not empty fieldErrors.introImage}"><div class="field-error">${fieldErrors.introImage}</div></c:if>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Xem trước ảnh giới thiệu</label>
+                            <c:choose>
+                                <c:when test="${not empty tour.introImage}"><img id="introPreview" class="preview-small" src="${tour.introImage}" alt="Ảnh giới thiệu"></c:when>
+                                <c:otherwise><img id="introPreview" class="preview-small" alt="Chưa chọn ảnh giới thiệu"></c:otherwise>
+                            </c:choose>
+                        </div>
+
+                        </div>
+                    </div>
+
+                    <div class="form-block mb-3">
+                        <div class="form-block-title"><i class="fa-solid fa-route"></i>Tuyến đi và thời lượng</div>
+                        <div class="row g-3">
+                        <div class="col-lg-4 col-md-6">
                             <label class="form-label">Số ngày <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="number" name="numberOfDay" id="numberOfDay" min="1" max="15" class="form-control ${not empty fieldErrors.numberOfDay ? 'is-invalid' : ''}" value="${dayCount}" required ${routeAndScheduleInfoLocked ? 'readonly' : ''}>
+                                <input type="number" name="numberOfDay" id="numberOfDay" min="1" max="15" class="form-control ${not empty fieldErrors.numberOfDay ? 'is-invalid' : ''}" value="${dayCount}" required ${routeAndScheduleInfoLocked ? 'readonly' : ''} placeholder="Ví dụ: 3">
                                 <button type="button" id="updateItineraryBtn" class="btn-icon" title="Cập nhật lịch trình từng ngày" ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
                                     <i class="fa-solid fa-rotate"></i>
                                 </button>
                             </div>
                             <c:if test="${not empty fieldErrors.numberOfDay}"><div class="field-error">${fieldErrors.numberOfDay}</div></c:if>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-4 col-md-6">
                             <label class="form-label">Số đêm <span class="text-danger">*</span></label>
-                            <input type="number" name="numberOfNights" id="numberOfNights" min="0" max="15" class="form-control ${not empty fieldErrors.numberOfNights ? 'is-invalid' : ''}" value="${empty tour.numberOfNights ? 0 : tour.numberOfNights}" required ${routeAndScheduleInfoLocked ? 'readonly' : ''}>
+                            <input type="number" name="numberOfNights" id="numberOfNights" min="0" max="15" class="form-control ${not empty fieldErrors.numberOfNights ? 'is-invalid' : ''}" value="${empty tour.numberOfNights ? 0 : tour.numberOfNights}" required ${routeAndScheduleInfoLocked ? 'readonly' : ''} placeholder="Ví dụ: 2">
                             <c:if test="${not empty fieldErrors.numberOfNights}"><div class="field-error">${fieldErrors.numberOfNights}</div></c:if>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Trạng thái</label>
-                            <input type="hidden" name="status" value="${mode == 'add' ? 'Draft' : tour.status}">
-                            <input type="text" class="form-control" value="${mode == 'add' ? 'Bản nháp' : tour.displayStatus}" readonly>
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end">
+                        <div class="col-lg-4 col-md-12 d-flex align-items-end">
                             <div class="form-check fw-bold">
                                 <input class="form-check-input" type="checkbox" name="featured" value="true" id="featured" ${tour.featured ? 'checked' : ''}>
                                 <label class="form-check-label" for="featured">Tour nổi bật</label>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-lg-6 col-md-12">
                             <label class="form-label">Điểm khởi hành <span class="text-danger">*</span></label>
                             <select id="startPlaceSelect" class="form-select place-select ${not empty fieldErrors.startPlace ? 'is-invalid' : ''}" data-hidden="startPlace" data-current="${tour.startPlace}" required ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
                                 <option value="">-- Chọn tỉnh/thành --</option>
@@ -167,7 +225,7 @@
                             </select>
                             <c:if test="${not empty fieldErrors.startPlace}"><div class="field-error">${fieldErrors.startPlace}</div></c:if>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-lg-6 col-md-12">
                             <label class="form-label">Điểm đến <span class="text-danger">*</span></label>
                             <select id="endPlaceSelect" class="form-select place-select ${not empty fieldErrors.endPlace ? 'is-invalid' : ''}" data-hidden="endPlace" data-current="${tour.endPlace}" required ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
                                 <option value="">-- Chọn tỉnh/thành --</option>
@@ -178,180 +236,26 @@
                             <c:if test="${not empty fieldErrors.endPlace}"><div class="field-error">${fieldErrors.endPlace}</div></c:if>
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">Phương tiện chính <span class="text-danger">*</span></label>
-                            <c:if test="${routeAndScheduleInfoLocked}"><input type="hidden" name="mainTransportType" value="${tour.mainTransportType}"></c:if>
-                            <select name="${routeAndScheduleInfoLocked ? 'mainTransportTypeDisplay' : 'mainTransportType'}" id="mainTransportType" class="form-select ${not empty fieldErrors.mainTransportType ? 'is-invalid' : ''}" required ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
-                                <option value="Xe Du Lịch" ${tour.mainTransportType == 'Xe Du Lịch' ? 'selected' : ''}>Xe Du Lịch</option>
-                                <option value="Xe Khách" ${tour.mainTransportType == 'Xe Khách' ? 'selected' : ''}>Xe Khách</option>
-                                <option value="Xe Giường nằm" ${tour.mainTransportType == 'Xe Giường nằm' ? 'selected' : ''}>Xe Giường nằm</option>
-                                <option value="Toa tàu hỏa" ${tour.mainTransportType == 'Toa tàu hỏa' ? 'selected' : ''}>Toa tàu hỏa</option>
-                            </select>
-                            <c:if test="${not empty fieldErrors.mainTransportType}"><div class="field-error">${fieldErrors.mainTransportType}</div></c:if>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Số ghế / khách tối đa <span class="text-danger">*</span></label>
-                            <select name="maxParticipants" id="maxParticipants" class="form-select ${not empty fieldErrors.maxParticipants ? 'is-invalid' : ''}" data-current="${empty initialSchedule ? '' : initialSchedule.maxParticipants}" ${mode == 'edit' ? 'disabled' : 'required'}>
-                                <option value="">-- Chọn số ghế --</option>
-                            </select>
-                            <c:if test="${mode == 'edit'}"><div class="form-text">Sửa lịch khởi hành nên làm ở luồng Schedule riêng.</div></c:if>
-                            <c:if test="${not empty fieldErrors.maxParticipants}"><div class="field-error">${fieldErrors.maxParticipants}</div></c:if>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Số khách tối thiểu</label>
-                            <input type="text" id="minParticipantsPreview" class="form-control" value="" readonly>
-                        </div>
-                        <div class="col-md-8">
+                        <div class="col-12">
                             <label class="form-label">Địa chỉ tập trung</label>
                             <input type="text" name="pickupAddress" class="form-control ${not empty fieldErrors.pickupAddress ? 'is-invalid' : ''}" value="${tour.pickupAddress}" maxlength="500" placeholder="Ví dụ: Cổng chính Nhà hát lớn Hà Nội">
                             <c:if test="${not empty fieldErrors.pickupAddress}"><div class="field-error">${fieldErrors.pickupAddress}</div></c:if>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12">
                             <label class="form-label">Điểm nổi bật của tour</label>
                             <textarea name="tourHighlights" class="form-control ${not empty fieldErrors.tourHighlights ? 'is-invalid' : ''}" maxlength="5000" placeholder="Ví dụ: Tham quan danh thắng nổi bật, khách sạn trung tâm, lịch trình tối ưu...">${tour.tourInclude}</textarea>
                             <c:if test="${not empty fieldErrors.tourHighlights}"><div class="field-error">${fieldErrors.tourHighlights}</div></c:if>
                         </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">Ảnh bìa tour</label>
-                            <input type="file" name="coverImageFile" class="form-control image-input ${not empty fieldErrors.coverImage ? 'is-invalid' : ''}" accept="image/*" data-preview="coverPreview">
-                            <input type="url" name="coverImageUrl" class="form-control mt-2 image-url-input ${not empty fieldErrors.coverImage ? 'is-invalid' : ''}" data-preview="coverPreview" placeholder="Hoặc dán URL ảnh bìa https://...">
-                            <c:if test="${not empty fieldErrors.coverImage}"><div class="field-error">${fieldErrors.coverImage}</div></c:if>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Xem trước ảnh bìa</label>
-                            <c:choose>
-                                <c:when test="${not empty tour.image}"><img id="coverPreview" class="preview-img" src="${tour.image}" alt="Ảnh bìa"></c:when>
-                                <c:otherwise><img id="coverPreview" class="preview-img" alt="Chưa chọn ảnh bìa"></c:otherwise>
-                            </c:choose>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Ảnh giới thiệu</label>
-                            <input type="file" name="introImageFile" class="form-control image-input ${not empty fieldErrors.introImage ? 'is-invalid' : ''}" accept="image/*" data-preview="introPreview">
-                            <input type="url" name="introImageUrl" class="form-control mt-2 image-url-input ${not empty fieldErrors.introImage ? 'is-invalid' : ''}" data-preview="introPreview" placeholder="Hoặc dán URL ảnh giới thiệu https://...">
-                            <c:if test="${not empty fieldErrors.introImage}"><div class="field-error">${fieldErrors.introImage}</div></c:if>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Xem trước ảnh giới thiệu</label>
-                            <c:choose>
-                                <c:when test="${not empty tour.introImage}"><img id="introPreview" class="preview-img" src="${tour.introImage}" alt="Ảnh giới thiệu"></c:when>
-                                <c:otherwise><img id="introPreview" class="preview-img" alt="Chưa chọn ảnh giới thiệu"></c:otherwise>
-                            </c:choose>
                         </div>
                     </div>
+
                 </div>
             </section>
-
-            <section class="page-card">
-                <div class="section-title">
-                    <i class="fa-solid fa-money-bill-wave text-primary"></i>
-                    <h5>2. Giá và chính sách cơ bản</h5>
-                </div>
-                <div class="section-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Giá người lớn <span class="text-danger">*</span></label>
-                            <input type="number" name="adultPrice" id="adultPrice" min="500001" step="1" class="form-control ${not empty fieldErrors.adultPrice ? 'is-invalid' : ''}" value="${tour.adultPrice}" required ${priceAndScheduleLocked ? 'readonly' : ''}>
-                            <div class="form-text"><c:choose><c:when test="${priceAndScheduleLocked}">Giá đang khóa ở trạng thái hiện tại.</c:when><c:otherwise>Giá phải lớn hơn 500.000 đ.</c:otherwise></c:choose></div>
-                            <c:if test="${not empty fieldErrors.adultPrice}"><div class="field-error">${fieldErrors.adultPrice}</div></c:if>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Trẻ em 5–10 tuổi</label>
-                            <input type="text" id="childPricePreview" class="form-control" value="" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Trẻ em dưới 5 tuổi <small class="text-muted">(trẻ thứ 2)</small></label>
-                            <input type="text" id="infantPricePreview" class="form-control" value="" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Trẻ em từ 10 tuổi</label>
-                            <input type="text" id="adultVatPreview" class="form-control" value="" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">VAT</label>
-                            <input type="text" class="form-control" value="8%" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Phụ thu phòng đơn <span class="text-danger">*</span></label>
-                            <input type="number" name="singleRoomSurcharge" min="0" step="1" class="form-control ${not empty fieldErrors.singleRoomSurcharge ? 'is-invalid' : ''}" value="${tour.singleRoomSurcharge}" required ${priceAndScheduleLocked ? 'readonly' : ''}>
-                            <c:if test="${not empty fieldErrors.singleRoomSurcharge}"><div class="field-error">${fieldErrors.singleRoomSurcharge}</div></c:if>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <c:if test="${mode == 'add'}">
-                <section class="page-card">
-                    <div class="section-title">
-                        <i class="fa-solid fa-calendar-check text-primary"></i>
-                        <h5>3. Lịch khởi hành đầu tiên</h5>
-                    </div>
-                    <div class="section-body">
-                        <div class="hint-box mb-3">Lịch này dùng để mở bán ban đầu. Sau khi lưu tour, các lịch khác nên triển khai ở luồng Schedule riêng để giá theo tháng/ngày không làm AddTour bị phình to.</div>
-                        <fmt:formatDate value="${initialSchedule.startDate}" pattern="yyyy-MM-dd" var="scheduleStartDateValue" />
-                        <fmt:formatDate value="${initialSchedule.endDate}" pattern="yyyy-MM-dd" var="scheduleEndDateValue" />
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label">Ngày xuất phát <span class="text-danger">*</span></label>
-                                <input type="date" name="scheduleStartDate" id="scheduleStartDate" class="form-control ${not empty fieldErrors.scheduleStartDate ? 'is-invalid' : ''}" value="${scheduleStartDateValue}" required>
-                                <c:if test="${not empty fieldErrors.scheduleStartDate}"><div class="field-error">${fieldErrors.scheduleStartDate}</div></c:if>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
-                                <input type="date" name="scheduleEndDate" id="scheduleEndDate" class="form-control ${not empty fieldErrors.scheduleEndDate ? 'is-invalid' : ''}" value="${scheduleEndDateValue}" required>
-                                <c:if test="${not empty fieldErrors.scheduleEndDate}"><div class="field-error">${fieldErrors.scheduleEndDate}</div></c:if>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Giờ xuất phát</label>
-                                <input type="time" name="departureTime" class="form-control ${not empty fieldErrors.departureTime ? 'is-invalid' : ''}" value="${initialSchedule.departureTime}">
-                                <c:if test="${not empty fieldErrors.departureTime}"><div class="field-error">${fieldErrors.departureTime}</div></c:if>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Giờ về dự kiến</label>
-                                <input type="time" name="expectedReturnTime" class="form-control ${not empty fieldErrors.expectedReturnTime ? 'is-invalid' : ''}" value="${initialSchedule.expectedReturnTime}">
-                                <c:if test="${not empty fieldErrors.expectedReturnTime}"><div class="field-error">${fieldErrors.expectedReturnTime}</div></c:if>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </c:if>
-
-            <c:if test="${mode == 'edit'}">
-                <section class="page-card">
-                    <div class="section-title">
-                        <i class="fa-solid fa-calendar-check text-primary"></i>
-                        <h5>3. Lịch khởi hành hiện có</h5>
-                    </div>
-                    <c:choose>
-                        <c:when test="${empty tour.scheduleList}">
-                            <div class="section-body"><p class="muted mb-0">Tour chưa có lịch khởi hành.</p></div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="table-responsive">
-                                <table class="table mb-0">
-                                    <thead><tr><th>Ngày đi</th><th>Ngày về</th><th>Giá người lớn</th><th>Đã đặt/Tối đa</th><th>Trạng thái</th></tr></thead>
-                                    <tbody>
-                                    <c:forEach var="schedule" items="${tour.scheduleList}">
-                                        <tr>
-                                            <td><fmt:formatDate value="${schedule.startDate}" pattern="dd/MM/yyyy"/></td>
-                                            <td><fmt:formatDate value="${schedule.endDate}" pattern="dd/MM/yyyy"/></td>
-                                            <td><fmt:formatNumber value="${empty schedule.adultPrice ? tour.adultPrice : schedule.adultPrice}" type="number" maxFractionDigits="0"/> đ</td>
-                                            <td>${schedule.quantity}/${schedule.maxParticipants}</td>
-                                            <td>${schedule.scheduleStatus}</td>
-                                        </tr>
-                                    </c:forEach>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
-                </section>
-            </c:if>
 
             <section class="page-card" id="itinerarySection">
                 <div class="section-title">
                     <i class="fa-solid fa-route text-primary"></i>
-                    <h5>4. Lịch trình từng ngày</h5>
+                    <h5>2. Lịch trình từng ngày</h5>
                 </div>
                 <div class="section-body" id="itineraryContainer">
                     <c:if test="${not empty fieldErrors.itinerary}"><div class="field-error mb-3">${fieldErrors.itinerary}</div></c:if>
@@ -403,23 +307,70 @@
 
 <script>
 (function () {
-    const transportSeats = {
-        'Xe Du Lịch': [4, 7, 16, 29, 45],
-        'Xe Khách': [29, 35, 45, 50],
-        'Xe Giường nằm': [34, 40, 44],
-        'Toa tàu hỏa': [56, 64, 80]
-    };
-
     const regionSelect = document.getElementById('regionSelect');
     const startSelect = document.getElementById('startPlaceSelect');
     const endSelect = document.getElementById('endPlaceSelect');
-    const transportSelect = document.getElementById('mainTransportType');
-    const seatSelect = document.getElementById('maxParticipants');
-    const minPreview = document.getElementById('minParticipantsPreview');
     const numberOfDay = document.getElementById('numberOfDay');
-    const numberOfNights = document.getElementById('numberOfNights');
     const updateItineraryBtn = document.getElementById('updateItineraryBtn');
     const itineraryContainer = document.getElementById('itineraryContainer');
+    const enhancedSelects = [];
+
+    function refreshCustomSelect(select) {
+        if (!select || !select._customSelect) return;
+        const trigger = select._customSelect.trigger;
+        const menu = select._customSelect.menu;
+        const selected = select.options[select.selectedIndex];
+        trigger.textContent = selected ? selected.textContent.trim() : '';
+        trigger.classList.toggle('placeholder', !select.value);
+        menu.querySelectorAll('.custom-select-option').forEach(function (item) {
+            const option = select.options[parseInt(item.getAttribute('data-index') || '-1', 10)];
+            const hidden = !option || option.hidden || option.disabled;
+            item.hidden = hidden;
+            item.classList.toggle('selected', !!option && option.selected);
+        });
+    }
+
+    function refreshAllCustomSelects() {
+        enhancedSelects.forEach(refreshCustomSelect);
+    }
+
+    function enhanceHoverSelect(select) {
+        if (!select || select.disabled || select._customSelect) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-select-wrap';
+        const trigger = document.createElement('div');
+        trigger.className = 'custom-select-trigger';
+        trigger.setAttribute('tabindex', '0');
+        const menu = document.createElement('div');
+        menu.className = 'custom-select-menu';
+
+        Array.from(select.options).forEach(function (option, index) {
+            const item = document.createElement('div');
+            item.className = 'custom-select-option';
+            item.setAttribute('data-index', index);
+            item.textContent = option.textContent.trim();
+            item.addEventListener('click', function () {
+                if (option.disabled || option.hidden) return;
+                select.value = option.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                wrapper.classList.remove('open');
+                refreshCustomSelect(select);
+            });
+            menu.appendChild(item);
+        });
+
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(select);
+        wrapper.appendChild(trigger);
+        wrapper.appendChild(menu);
+        select.classList.add('custom-select-source');
+        select._customSelect = { wrapper: wrapper, trigger: trigger, menu: menu };
+        enhancedSelects.push(select);
+        trigger.addEventListener('focus', function () { wrapper.classList.add('open'); });
+        trigger.addEventListener('blur', function () { setTimeout(function () { wrapper.classList.remove('open'); }, 120); });
+        select.addEventListener('change', function () { refreshCustomSelect(select); });
+        refreshCustomSelect(select);
+    }
 
     function getSelectedRegionName() {
         if (!regionSelect || regionSelect.selectedIndex < 0) return '';
@@ -445,28 +396,8 @@
                 select.value = '';
             }
             syncPlace(select);
+            refreshCustomSelect(select);
         });
-    }
-
-    function updateSeatOptions() {
-        if (!seatSelect || !transportSelect) return;
-        const current = seatSelect.value || seatSelect.getAttribute('data-current') || '';
-        const seats = transportSeats[transportSelect.value] || [];
-        seatSelect.innerHTML = '<option value="">-- Chọn số ghế --</option>';
-        seats.forEach(function (seat) {
-            const option = document.createElement('option');
-            option.value = seat;
-            option.textContent = seat + ' ghế';
-            if (String(seat) === current) option.selected = true;
-            seatSelect.appendChild(option);
-        });
-        updateMinPreview();
-    }
-
-    function updateMinPreview() {
-        if (!minPreview || !seatSelect) return;
-        const max = parseInt(seatSelect.value || '0', 10);
-        minPreview.value = max > 0 ? Math.ceil(max * 0.5) + ' khách' : '';
     }
 
     function attachImageEvents(scope) {
@@ -561,7 +492,6 @@
         }
         itineraryContainer.innerHTML = html;
         attachImageEvents(itineraryContainer);
-        updateEndDateByDayCount();
         if (scrollToSection) {
             document.getElementById('itinerarySection').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -572,72 +502,22 @@
         syncPlace(select);
     });
 
+    document.querySelectorAll('select.form-select').forEach(enhanceHoverSelect);
+
     if (regionSelect) regionSelect.addEventListener('change', function () { filterPlaces(true); });
-    if (transportSelect) transportSelect.addEventListener('change', updateSeatOptions);
-    if (seatSelect) seatSelect.addEventListener('change', updateMinPreview);
     if (updateItineraryBtn) updateItineraryBtn.addEventListener('click', function () { renderItineraryDays(true); });
-
-    const adultPriceInput = document.getElementById('adultPrice');
-    const childPricePreview = document.getElementById('childPricePreview');
-    const infantPricePreview = document.getElementById('infantPricePreview');
-    const adultVatPreview = document.getElementById('adultVatPreview');
-
-    function formatVnd(value) {
-        return Math.round(value || 0).toLocaleString('vi-VN') + ' đ';
-    }
-
-    function updatePricePreview() {
-        const adultPrice = parseFloat((adultPriceInput && adultPriceInput.value) || '0');
-        if (childPricePreview) childPricePreview.value = adultPrice > 0 ? formatVnd(adultPrice * 0.75 * 1.08) : '';
-        if (infantPricePreview) infantPricePreview.value = adultPrice > 0 ? formatVnd(adultPrice * 0.50 * 1.08) : '';
-        if (adultVatPreview) adultVatPreview.value = adultPrice > 0 ? formatVnd(adultPrice) : '';
-    }
-
-    if (adultPriceInput) adultPriceInput.addEventListener('input', updatePricePreview);
-
-    const scheduleStartDate = document.getElementById('scheduleStartDate');
-    const scheduleEndDate = document.getElementById('scheduleEndDate');
-
-    function formatDateInput(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return year + '-' + month + '-' + day;
-    }
-
-    function updateDateLimits() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const todayText = formatDateInput(today);
-        if (scheduleStartDate) scheduleStartDate.min = todayText;
-        if (scheduleEndDate) scheduleEndDate.min = todayText;
-    }
-
-    function updateEndDateByDayCount() {
-        if (!scheduleStartDate || !scheduleEndDate || !scheduleStartDate.value) return;
-        const days = parseInt((numberOfDay && numberOfDay.value) || '1', 10);
-        if (!days || days < 1) return;
-        const start = new Date(scheduleStartDate.value + 'T00:00:00');
-        if (isNaN(start.getTime())) return;
-        start.setDate(start.getDate() + days - 1);
-        scheduleEndDate.value = formatDateInput(start);
-    }
 
     if (numberOfDay) {
         numberOfDay.addEventListener('change', function () {
             const days = parseInt(numberOfDay.value || '1', 10);
             if (days > 0) {
-                updateEndDateByDayCount();
+                numberOfDay.value = Math.min(15, Math.max(1, days));
             }
         });
     }
 
-    if (scheduleStartDate) scheduleStartDate.addEventListener('change', updateEndDateByDayCount);
-
-    updateDateLimits();
     filterPlaces(false);
-    updateSeatOptions();
-    updatePricePreview();
+    refreshAllCustomSelects();
     attachImageEvents(document);
 })();
 </script>

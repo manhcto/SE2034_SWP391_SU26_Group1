@@ -1056,7 +1056,7 @@ public class BookingDAO {
                                                      String note) {
         String sqlGetReservation = """
                 SELECT bd.tourScheduleID, bd.roomID, bd.quantity
-                FROM Payment p WITH (UPDLOCK, HOLDLOCK)
+                FROM Payments p WITH (UPDLOCK, HOLDLOCK)
                 INNER JOIN Booking b ON b.bookingID = p.bookingID
                 LEFT JOIN Booking_Detail bd ON bd.bookingID = b.bookingID
                 WHERE p.bookingID = ? AND p.[status] = N'Pending'
@@ -1077,7 +1077,7 @@ public class BookingDAO {
                 WHERE roomID = ?
                 """;
         String sqlMarkReleased = """
-                UPDATE Payment
+                UPDATE Payments
                 SET checkoutUrl = NULL, expiredAt = NULL, note = ?
                 WHERE bookingID = ? AND [status] = N'Pending' AND expiredAt IS NOT NULL
                 """;

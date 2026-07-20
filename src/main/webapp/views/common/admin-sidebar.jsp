@@ -155,16 +155,16 @@
         <span>Quản lý tour</span>
     </a>
 
-    <a class="sidebar-link${param.activeAdminMenu eq 'tourApproval' ? ' active' : ''}"
-       href="${pageContext.request.contextPath}/admin/tour/approval">
-        <i class="fa-solid fa-clipboard-check"></i>
-        <span>Duyệt tour</span>
-    </a>
-
     <a class="sidebar-link${param.activeAdminMenu eq 'booking' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/booking">
         <i class="fa-solid fa-calendar-check"></i>
         <span>Quản lý booking</span>
+    </a>
+
+    <a class="sidebar-link${param.activeAdminMenu eq 'vat' ? ' active' : ''}"
+       href="${pageContext.request.contextPath}/admin/vat">
+        <i class="fa-solid fa-percent"></i>
+        <span>Quản lý VAT</span>
     </a>
 
     <a class="sidebar-link${param.activeAdminMenu eq 'voucher' ? ' active' : ''}"

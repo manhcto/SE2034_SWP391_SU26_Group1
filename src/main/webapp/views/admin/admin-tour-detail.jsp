@@ -1,11 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Chi tiết duyệt tour | WonderVN Admin</title>
+    <title>Chi tiết tour | WonderVN Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -17,7 +18,7 @@
 <body>
 <div class="admin-layout">
     <jsp:include page="/views/common/admin-sidebar.jsp">
-        <jsp:param name="activeAdminMenu" value="tourApproval"/>
+        <jsp:param name="activeAdminMenu" value="tour"/>
     </jsp:include>
 
     <main class="main-content">
@@ -28,7 +29,6 @@
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 <a class="btn-soft" href="${pageContext.request.contextPath}/admin/tour"><i class="fa-solid fa-list"></i> Quản lý tour</a>
-                <a class="btn-soft" href="${pageContext.request.contextPath}/admin/tour/approval"><i class="fa-solid fa-check-double"></i> Danh sách chờ duyệt</a>
             </div>
         </div>
 
@@ -42,7 +42,13 @@
 
         <section class="content-card">
             <c:choose>
-                <c:when test="${not empty tour.image}"><img class="tour-cover" src="${tour.image}" alt="${tour.tourName}"></c:when>
+                <c:when test="${not empty tour.image}">
+                    <c:set var="coverSrc" value="${tour.image}" />
+                    <c:if test="${not fn:startsWith(coverSrc, 'http://') and not fn:startsWith(coverSrc, 'https://') and (empty pageContext.request.contextPath or not fn:startsWith(coverSrc, pageContext.request.contextPath))}">
+                        <c:set var="coverSrc" value="${pageContext.request.contextPath}${fn:startsWith(coverSrc, '/') ? '' : '/'}${coverSrc}" />
+                    </c:if>
+                    <img class="tour-cover" src="${coverSrc}" alt="${tour.tourName}">
+                </c:when>
                 <c:otherwise><div class="tour-cover d-flex align-items-center justify-content-center text-muted fw-bold">Chưa có ảnh bìa</div></c:otherwise>
             </c:choose>
             <div class="section-body">

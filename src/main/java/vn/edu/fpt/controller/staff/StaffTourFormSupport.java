@@ -194,6 +194,9 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         data.pickupAddress = safeTrim(request.getParameter("pickupAddress"));
         data.arriveBeforeMinutesRaw = null;
         data.mainTransportType = safeTrim(request.getParameter("mainTransportType"));
+        if (isBlank(data.mainTransportType)) {
+            data.mainTransportType = "Xe Du Lịch";
+        }
         data.status = safeTrim(request.getParameter("status"));
         data.featured = "true".equalsIgnoreCase(request.getParameter("featured"));
         data.regionIDRaw = request.getParameter("regionID");
@@ -277,9 +280,6 @@ public abstract class StaffTourFormSupport extends HttpServlet {
             errors.add("Ảnh giới thiệu không hợp lệ. Hãy upload ảnh hoặc dùng URL bắt đầu bằng http:// hoặc https://.");
         }
 
-        validateAdultPrice(data.adultPriceRaw, errors);
-        validateMoney(data.singleRoomSurchargeRaw, "Phụ thu phòng đơn", errors);
-
         if (!isValidStatus(data.status)) {
             errors.add("Trạng thái tour không hợp lệ.");
         }
@@ -314,10 +314,6 @@ public abstract class StaffTourFormSupport extends HttpServlet {
                     errors.add("Ngày " + itinerary.getDayNumber() + ": ảnh lịch trình không hợp lệ.");
                 }
             }
-        }
-
-        if (!editMode) {
-            validateInitialSchedule(data, numberOfDay, errors);
         }
 
         return errors;
@@ -604,6 +600,15 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         data.adultPriceRaw = existingTour.getAdultPrice() == null ? "0" : existingTour.getAdultPrice().toPlainString();
         data.singleRoomSurchargeRaw = existingTour.getSingleRoomSurcharge() == null ? "0" : existingTour.getSingleRoomSurcharge().toPlainString();
         data.status = safeTrim(existingTour.getStatus());
+    }
+
+    protected void preserveTourPricingFields(TourFormData data, Tour existingTour) {
+        if (data == null || existingTour == null) {
+            return;
+        }
+
+        data.adultPriceRaw = existingTour.getAdultPrice() == null ? "0" : existingTour.getAdultPrice().toPlainString();
+        data.singleRoomSurchargeRaw = existingTour.getSingleRoomSurcharge() == null ? "0" : existingTour.getSingleRoomSurcharge().toPlainString();
     }
 
     protected String getChildPricingPolicy() {

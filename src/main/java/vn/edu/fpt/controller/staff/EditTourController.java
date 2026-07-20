@@ -91,6 +91,7 @@ public class EditTourController extends StaffTourFormSupport {
 
         if (existingTour != null) {
             data.status = existingTour.getStatus();
+            preserveTourPricingFields(data, existingTour);
             if (isPriceAndScheduleLocked(existingTour.getStatus())) {
                 preservePriceRouteAndScheduleFields(data, existingTour);
             }

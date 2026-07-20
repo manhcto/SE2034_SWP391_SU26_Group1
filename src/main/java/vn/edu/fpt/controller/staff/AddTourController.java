@@ -26,7 +26,7 @@ public class AddTourController extends StaffTourFormSupport {
         if (request.getParameter("numberOfDay") != null) {
             TourFormData data = readTourFormData(request);
             data.status = "Draft";
-            tour = buildTourFromData(data, getCurrentUserID(request), true);
+            tour = buildTourFromData(data, getCurrentUserID(request), false);
         } else {
             tour = buildDefaultTour(dayCount);
         }
@@ -54,7 +54,7 @@ public class AddTourController extends StaffTourFormSupport {
         TourFormData data = readTourFormData(request);
         data.status = "Draft";
         List<String> errors = validateTourData(data, false);
-        Tour tour = buildTourFromData(data, getCurrentUserID(request), true);
+        Tour tour = buildTourFromData(data, getCurrentUserID(request), false);
 
         if (!errors.isEmpty()) {
             forwardTourForm(
@@ -76,8 +76,8 @@ public class AddTourController extends StaffTourFormSupport {
 
         if (newTourID > 0) {
             response.sendRedirect(request.getContextPath()
-                    + "/staff/tour/detail?id=" + newTourID
-                    + "&message=addSuccess");
+                    + "/staff/tour/schedule/add?tourID=" + newTourID
+                    + "&message=tourCreated");
             return;
         }
 

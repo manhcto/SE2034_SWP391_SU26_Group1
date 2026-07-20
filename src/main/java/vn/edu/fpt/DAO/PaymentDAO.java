@@ -18,7 +18,7 @@ public class PaymentDAO {
     public static final String STATUS_CANCELLED = "Cancelled";
 
     public Payment findByBookingID(int bookingID) {
-        return findOne("SELECT TOP (1) * FROM [dbo].[Payment] WHERE bookingID = ? ORDER BY paymentID DESC",
+        return findOne("SELECT TOP (1) * FROM [dbo].[Payments] WHERE bookingID = ? ORDER BY paymentID DESC",
                 bookingID);
     }
 
@@ -29,7 +29,7 @@ public class PaymentDAO {
         }
 
         String sql = """
-                INSERT INTO [dbo].[Payment]
+                INSERT INTO [dbo].[Payments]
                     (bookingID, payosOrderCode, totalAmount, [status], transactionCode,
                      checkoutUrl, paymentDate, expiredAt, note, createdAt)
                 VALUES (?, ?, ?, N'Pending', NULL, NULL, NULL, DATEADD(MINUTE, 15, GETDATE()),
@@ -56,7 +56,7 @@ public class PaymentDAO {
 
     public boolean prepareCheckout(int bookingID, String checkoutUrl) {
         String sql = """
-                UPDATE [dbo].[Payment]
+                UPDATE [dbo].[Payments]
                 SET payosOrderCode = ?, transactionCode = ?, [status] = N'Pending',
                     checkoutUrl = ?,
                     expiredAt = DATEADD(MINUTE, 15, GETDATE()),
@@ -79,7 +79,7 @@ public class PaymentDAO {
 
     public boolean markPaidByBookingID(int bookingID, String transactionCode) {
         String sql = """
-                UPDATE [dbo].[Payment]
+                UPDATE [dbo].[Payments]
                 SET [status] = N'Paid', transactionCode = ?, paymentDate = GETDATE(),
                     checkoutUrl = NULL, expiredAt = NULL, note = N'Đã thanh toán thành công'
                 WHERE bookingID = ? AND [status] = N'Pending'
@@ -106,7 +106,7 @@ public class PaymentDAO {
 
     public List<Integer> findExpiredPendingBookingIDs() {
         String sql = """
-                SELECT bookingID FROM [dbo].[Payment]
+                SELECT bookingID FROM [dbo].[Payments]
                 WHERE [status] = N'Pending' AND expiredAt IS NOT NULL AND expiredAt <= GETDATE()
                 """;
         List<Integer> bookingIDs = new ArrayList<>();
@@ -124,7 +124,7 @@ public class PaymentDAO {
 
     private boolean updatePendingStatus(int bookingID, String status, String note) {
         String sql = """
-                UPDATE [dbo].[Payment]
+                UPDATE [dbo].[Payments]
                 SET [status] = ?, note = ?
                 WHERE bookingID = ? AND [status] = N'Pending'
                 """;

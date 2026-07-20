@@ -450,9 +450,14 @@
             <span>Quản lý người dùng</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour/approval">
-            <i class="fa-solid fa-circle-check"></i>
-            <span>Phê duyệt Tour</span>
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/tour">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <span>Quản lý Tour</span>
+        </a>
+
+        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/vat">
+            <i class="fa-solid fa-percent"></i>
+            <span>Quản lý VAT</span>
         </a>
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
@@ -581,13 +586,13 @@
             </div>
 
             <div class="col-md-4">
-                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/tour/approval">
+                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/vat">
                     <div class="module-icon">
-                        <i class="fa-solid fa-circle-check"></i>
+                        <i class="fa-solid fa-percent"></i>
                     </div>
-                    <h5>Phê duyệt Tour</h5>
-                    <p>Xem và phê duyệt các tour trước khi công khai cho khách hàng đặt.</p>
-                    <span class="module-open">Mở Tour Approval <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                    <h5>Quản lý VAT</h5>
+                    <p>Thiết lập thuế theo từng khoảng thời gian hiệu lực và giữ lịch sử truy cứu.</p>
+                    <span class="module-open">Mở VAT Management <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
 

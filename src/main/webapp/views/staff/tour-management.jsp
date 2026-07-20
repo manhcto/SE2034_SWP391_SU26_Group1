@@ -23,7 +23,7 @@
         body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
         .admin-layout { display: flex; min-height: 100vh; }
         .admin-main { flex: 1; min-width: 0; padding: 28px; }
-        .page-card { background: #fff; border: 1px solid var(--border); border-radius: 24px; box-shadow: var(--shadow); }
+        .page-card { background: #fff; border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); }
         .topbar { padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
         .topbar h1 { margin: 0; color: var(--dark); font-size: 28px; font-weight: 900; }
         .topbar p { margin: 6px 0 0; color: var(--muted); font-weight: 600; }
@@ -36,14 +36,19 @@
         .table thead th { background: #f8fafc; color: #475569; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); }
         .table td, .table th { vertical-align: middle; padding: 16px; }
         .tour-name { font-weight: 900; color: var(--dark); }
-        .tour-code { color: var(--muted); font-size: 13px; font-weight: 700; }
+        .tour-code { color: #ea580c; font-size: 13px; font-weight: 900; letter-spacing: .02em; }
         .status-badge { border-radius: 999px; padding: 7px 11px; font-size: 12px; font-weight: 900; display: inline-flex; }
         .status-Draft { background: #e0f2fe; color: #0369a1; }
         .status-Pending { background: #fef3c7; color: #92400e; }
         .status-Active { background: #dcfce7; color: #166534; }
         .status-Inactive { background: #fee2e2; color: #991b1b; }
         .status-Rejected { background: #ffe4e6; color: #9f1239; }
-        .action-link { font-weight: 800; text-decoration: none; margin-right: 10px; }
+        .action-buttons { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+        .icon-action { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--border); background: #fff; color: #334155; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; transition: all .18s ease; }
+        .icon-action:hover { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15,23,42,.10); }
+        .icon-action.view { color: #2563eb; background: #eff6ff; border-color: #bfdbfe; }
+        .icon-action.edit { color: #0f766e; background: #f0fdfa; border-color: #99f6e4; }
+        .icon-action.schedule { color: #7c3aed; background: #f5f3ff; border-color: #ddd6fe; }
         .empty-box { padding: 44px; text-align: center; color: var(--muted); }
         .empty-box i { font-size: 42px; color: #94a3b8; margin-bottom: 12px; }
         @media (max-width: 992px) { .admin-layout { display: block; } .admin-main { padding: 18px; } .topbar { display: block; } }
@@ -143,23 +148,23 @@
                         <table class="table align-middle">
                             <thead>
                             <tr>
+                                <th style="width: 126px;">Mã tour</th>
                                 <th>Tour</th>
                                 <th>Danh mục</th>
                                 <th>Tuyến</th>
                                 <th>Thời lượng</th>
-                                <th>Giá người lớn</th>
                                 <th>Lịch</th>
                                 <th>Booking</th>
                                 <th>Trạng thái</th>
-                                <th style="width: 160px;">Thao tác</th>
+                                <th class="text-end" style="width: 150px;">Thao tác</th>
                             </tr>
                             </thead>
                             <tbody>
                             <c:forEach var="tour" items="${tourList}">
                                 <tr>
+                                    <td><span class="tour-code">${empty tour.tourCode ? 'Chưa sinh mã' : tour.tourCode}</span></td>
                                     <td>
                                         <div class="tour-name">${tour.tourName}</div>
-                                        <div class="tour-code">${empty tour.tourCode ? 'Chưa sinh mã' : tour.tourCode}</div>
                                     </td>
                                     <td>
                                         <div class="fw-bold">${tour.categoryName}</div>
@@ -170,18 +175,25 @@
                                         <small class="text-muted">→ ${tour.endPlace}</small>
                                     </td>
                                     <td>${tour.numberOfDay}N${tour.numberOfNights}Đ</td>
-                                    <td><fmt:formatNumber value="${tour.adultPrice}" type="number" maxFractionDigits="0"/> đ</td>
                                     <td>${tour.scheduleCount}</td>
                                     <td>${tour.bookingCount}</td>
                                     <td>
                                         <span class="status-badge status-${tour.status}">${tour.displayStatus}</span>
                                     </td>
                                     <td>
-                                        <a class="action-link" href="${pageContext.request.contextPath}/staff/tour/detail?id=${tour.tourID}">Xem</a>
-                                        <a class="action-link" href="${pageContext.request.contextPath}/staff/tour/schedule?tourID=${tour.tourID}">Lịch</a>
-                                        <c:if test="${tour.status == 'Draft' || tour.status == 'Rejected' || tour.status == 'Pending' || tour.status == 'Active'}">
-                                            <a class="action-link" href="${pageContext.request.contextPath}/staff/tour/edit?id=${tour.tourID}">Sửa</a>
-                                        </c:if>
+                                        <div class="action-buttons">
+                                            <a class="icon-action view" href="${pageContext.request.contextPath}/staff/tour/detail?id=${tour.tourID}" title="Xem chi tiết tour" aria-label="Xem chi tiết tour">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                            <a class="icon-action schedule" href="${pageContext.request.contextPath}/staff/tour/schedule?tourID=${tour.tourID}" title="Lịch tour và giá bán" aria-label="Lịch tour và giá bán">
+                                                <i class="fa-solid fa-calendar-days"></i>
+                                            </a>
+                                            <c:if test="${tour.status == 'Draft' || tour.status == 'Rejected' || tour.status == 'Pending' || tour.status == 'Active'}">
+                                                <a class="icon-action edit" href="${pageContext.request.contextPath}/staff/tour/edit?id=${tour.tourID}" title="Sửa tour" aria-label="Sửa tour">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </a>
+                                            </c:if>
+                                        </div>
                                     </td>
                                 </tr>
                             </c:forEach>

@@ -255,6 +255,45 @@ public class TourDAO {
         return schedules;
     }
 
+    public List<TourSchedule> getSchedulesForStaffOverview() {
+        List<TourSchedule> schedules = new ArrayList<>();
+        boolean hasTransportColumn = hasScheduleTransportTypeColumn();
+        String transportColumn = hasTransportColumn
+                ? "ts.scheduleTransportType AS scheduleTransportType, "
+                : "CAST(NULL AS NVARCHAR(50)) AS scheduleTransportType, ";
+
+        String sql = """
+                SELECT
+                    ts.tourScheduleID, ts.tourID, %s ts.startDate, ts.endDate,
+                    ts.departureTime, ts.expectedReturnTime, ts.bookingDeadline,
+                    ts.minParticipants, ts.maxParticipants, ts.quantity, ts.bookedSeats,
+                    ts.maxParticipantsPerBooking, ts.adultPrice, ts.childPrice, ts.infantPrice,
+                    ts.singleRoomSurcharge, ts.depositPercent, ts.vatPercent, ts.cancellationPolicy,
+                    ts.scheduleStatus, ts.createdAt, ts.updatedAt,
+                    t.tourName, t.tourCode, t.[status] AS tourStatus,
+                    t.startPlace, t.endPlace, t.mainTransportType
+                FROM Tour_Scheduler ts
+                JOIN Tour t ON t.tourID = ts.tourID
+                ORDER BY
+                    CASE WHEN ts.startDate >= CAST(GETDATE() AS DATE) THEN 0 ELSE 1 END,
+                    ts.startDate ASC,
+                    ts.tourScheduleID ASC
+                """.formatted(transportColumn);
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                schedules.add(mapSchedule(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return schedules;
+    }
+
     public List<TourCategory> getActiveCategories() {
         List<TourCategory> categories = new ArrayList<>();
 
@@ -802,6 +841,28 @@ public class TourDAO {
         return false;
     }
 
+    public boolean syncOpenSchedulesWithTourStatuses() {
+        String sql = """
+                UPDATE ts
+                SET scheduleStatus = CASE WHEN t.[status] = N'Inactive' THEN N'Closed' ELSE N'Planned' END,
+                    updatedAt = GETDATE()
+                FROM Tour_Scheduler ts
+                JOIN Tour t ON t.tourID = ts.tourID
+                WHERE ts.scheduleStatus = N'Open'
+                  AND t.[status] <> N'Active'
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public TourSchedule getScheduleById(int tourScheduleID) {
         boolean hasTransportColumn = hasScheduleTransportTypeColumn();
         String sql = """
@@ -1334,10 +1395,6 @@ public class TourDAO {
         if (isBlank(tour.getImage())) {
             errors.add("Thiếu ảnh bìa tour.");
         }
-        if (tour.getAdultPrice() == null || tour.getAdultPrice().compareTo(new java.math.BigDecimal("500000")) <= 0) {
-            errors.add("Giá người lớn phải lớn hơn 500.000 VND.");
-        }
-
         int itineraryCount = countActiveItineraries(tourID);
         if (itineraryCount < tour.getNumberOfDay()) {
             errors.add("Lịch trình từng ngày chưa đủ theo số ngày tour.");
@@ -1345,7 +1402,7 @@ public class TourDAO {
 
         int scheduleCount = countValidSchedulesForApproval(tourID);
         if (scheduleCount <= 0) {
-            errors.add("Tour cần có ít nhất một lịch khởi hành hợp lệ trong tương lai.");
+            errors.add("Tour cần có ít nhất một lịch khởi hành trong tương lai, còn chỗ và có giá người lớn hợp lệ.");
         }
 
         return errors;
@@ -1377,10 +1434,11 @@ public class TourDAO {
                 SELECT COUNT(*)
                 FROM Tour_Scheduler
                 WHERE tourID = ?
-                  AND scheduleStatus <> N'Cancelled'
+                  AND scheduleStatus IN (N'Planned', N'Open')
                   AND startDate >= CAST(GETDATE() AS DATE)
                   AND maxParticipants > 0
                   AND quantity < maxParticipants
+                  AND adultPrice > 500000
                 """;
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -1649,7 +1707,21 @@ public class TourDAO {
         schedule.setScheduleStatus(rs.getString("scheduleStatus"));
         schedule.setCreatedAt(rs.getTimestamp("createdAt"));
         schedule.setUpdatedAt(rs.getTimestamp("updatedAt"));
+        schedule.setTourName(getOptionalString(rs, "tourName"));
+        schedule.setTourCode(getOptionalString(rs, "tourCode"));
+        schedule.setTourStatus(getOptionalString(rs, "tourStatus"));
+        schedule.setStartPlace(getOptionalString(rs, "startPlace"));
+        schedule.setEndPlace(getOptionalString(rs, "endPlace"));
+        schedule.setMainTransportType(getOptionalString(rs, "mainTransportType"));
         return schedule;
+    }
+
+    private String getOptionalString(ResultSet rs, String columnName) throws SQLException {
+        try {
+            return rs.getString(columnName);
+        } catch (SQLException e) {
+            return "";
+        }
     }
 
     private void setNullableString(PreparedStatement ps, int index, String value) throws Exception {

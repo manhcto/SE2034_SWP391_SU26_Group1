@@ -45,7 +45,8 @@
         .table { margin-bottom:0; }
         .table thead th { background:#f8fafc; color:#475569; font-size:13px; text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--border); }
         .table td,.table th { vertical-align:middle; padding:14px 16px; }
-        .action-link { font-weight:800; text-decoration:none; }
+        .icon-action { width:38px; height:38px; border-radius:12px; border:1px solid var(--border); background:#eff6ff; color:#2563eb; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
+        .icon-action:hover { background:#dbeafe; color:#1d4ed8; }
         @media (max-width:1100px) { .info-grid{grid-template-columns:repeat(2,1fr);} }
         @media (max-width:700px) { .admin-layout{display:block;} .admin-main{padding:18px;} .topbar{display:block;} .info-grid{grid-template-columns:1fr;} }
     </style>
@@ -107,11 +108,11 @@
                     <div class="info-item"><small>Loại tour</small><strong>${tour.displayTourType}</strong></div>
                     <div class="info-item"><small>Thời lượng</small><strong>${tour.numberOfDay} ngày ${tour.numberOfNights} đêm</strong></div>
                     <div class="info-item"><small>Phương tiện</small><strong>${empty tour.mainTransportType ? 'Chưa chọn' : tour.mainTransportType}</strong></div>
-                    <div class="info-item"><small>Giá người lớn</small><strong><fmt:formatNumber value="${tour.adultPrice}" type="number" maxFractionDigits="0"/> đ</strong></div>
-                    <div class="info-item"><small>Trẻ em 5–10 tuổi</small><strong><fmt:formatNumber value="${tour.childrenPrice}" type="number" maxFractionDigits="0"/> đ</strong></div>
-                    <div class="info-item"><small>Trẻ em dưới 5 tuổi (trẻ thứ 2)</small><strong><fmt:formatNumber value="${tour.infantPrice}" type="number" maxFractionDigits="0"/> đ</strong></div>
-                    <div class="info-item"><small>Trẻ em từ 10 tuổi</small><strong><fmt:formatNumber value="${tour.adultPrice}" type="number" maxFractionDigits="0"/> đ</strong></div>
-                    <div class="info-item"><small>Phụ thu phòng đơn</small><strong><fmt:formatNumber value="${tour.singleRoomSurcharge}" type="number" maxFractionDigits="0"/> đ</strong></div>
+                    <div class="info-item"><small>Giá người lớn</small><strong>Theo lịch</strong></div>
+                    <div class="info-item"><small>Trẻ em 5–10 tuổi</small><strong>Theo lịch</strong></div>
+                    <div class="info-item"><small>Trẻ em dưới 5 tuổi (trẻ thứ 2)</small><strong>Theo lịch</strong></div>
+                    <div class="info-item"><small>Trẻ em từ 10 tuổi</small><strong>Theo lịch</strong></div>
+                    <div class="info-item"><small>Phụ thu phòng đơn</small><strong>Theo lịch</strong></div>
                     <div class="info-item"><small>Thanh toán / VAT</small><strong>100% / ${tour.vatPercent}%</strong></div>
                     <div class="info-item"><small>Lịch khởi hành</small><strong>${tour.scheduleCount}</strong></div>
                 </div>
@@ -178,14 +179,19 @@
                             <tbody>
                             <c:forEach var="schedule" items="${tour.scheduleList}">
                                 <tr>
-                                    <td><fmt:formatDate value="${schedule.startDate}" pattern="dd/MM/yyyy"/></td>
-                                    <td><fmt:formatDate value="${schedule.endDate}" pattern="dd/MM/yyyy"/></td>
+                                    <td><fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy"/></td>
+                                    <td><fmt:formatDate value="${schedule.endDate}" pattern="dd-MM-yyyy"/></td>
                                     <td>${empty schedule.departureTime ? '-' : schedule.departureTime}</td>
                                     <td>${schedule.minParticipants}</td>
                                     <td>${schedule.quantity}/${schedule.maxParticipants}</td>
-                                    <td><fmt:formatNumber value="${empty schedule.adultPrice ? tour.adultPrice : schedule.adultPrice}" type="number" maxFractionDigits="0"/> đ</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${empty schedule.adultPrice}">Chưa nhập</c:when>
+                                            <c:otherwise><fmt:formatNumber value="${schedule.adultPrice}" type="number" maxFractionDigits="0"/> đ</c:otherwise>
+                                        </c:choose>
+                                    </td>
                                     <td>${schedule.scheduleStatus}</td>
-                                    <td><a class="action-link" href="${pageContext.request.contextPath}/staff/tour/schedule/detail?id=${schedule.tourScheduleID}">Xem</a></td>
+                                    <td><a class="icon-action" href="${pageContext.request.contextPath}/staff/tour/schedule/detail?id=${schedule.tourScheduleID}" title="Xem lịch" aria-label="Xem lịch"><i class="fa-solid fa-eye"></i></a></td>
                                 </tr>
                             </c:forEach>
                             </tbody>
