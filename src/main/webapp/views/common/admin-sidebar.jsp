@@ -143,6 +143,12 @@
 
     <div class="nav-section-title">Quản trị hệ thống</div>
 
+    <a class="sidebar-link${param.activeAdminMenu eq 'dashboard' ? ' active' : ''}"
+       href="${pageContext.request.contextPath}/admin/dashboard">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Báo cáo tổng quan</span>
+    </a>
+
     <a class="sidebar-link${param.activeAdminMenu eq 'user' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/user">
         <i class="fa-solid fa-users-gear"></i>

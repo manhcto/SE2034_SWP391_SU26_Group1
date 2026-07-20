@@ -348,6 +348,7 @@
 <body>
 
 <div class="admin-layout">
+
     <c:choose>
         <c:when test="${voucherManagementRole == 'admin'}">
             <jsp:include page="/views/common/admin-sidebar.jsp">
