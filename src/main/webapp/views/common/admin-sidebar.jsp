@@ -167,12 +167,6 @@
         <span>Quản lý booking</span>
     </a>
 
-    <a class="sidebar-link${param.activeAdminMenu eq 'vat' ? ' active' : ''}"
-       href="${pageContext.request.contextPath}/admin/vat">
-        <i class="fa-solid fa-percent"></i>
-        <span>Quản lý VAT</span>
-    </a>
-
     <a class="sidebar-link${param.activeAdminMenu eq 'voucher' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/voucher">
         <i class="fa-solid fa-ticket"></i>

@@ -455,11 +455,6 @@
             <span>Quản lý Tour</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/vat">
-            <i class="fa-solid fa-percent"></i>
-            <span>Quản lý VAT</span>
-        </a>
-
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
             <i class="fa-solid fa-calendar-check"></i>
             <span>Xem Booking</span>
@@ -582,17 +577,6 @@
                     <h5>Quản lý người dùng</h5>
                     <p>Quản lý tài khoản khách hàng, staff, tour guide, trạng thái và phân quyền.</p>
                     <span class="module-open">Mở Manage User <i class="fa-solid fa-arrow-right ms-1"></i></span>
-                </a>
-            </div>
-
-            <div class="col-md-4">
-                <a class="module-card admin-card" href="${pageContext.request.contextPath}/admin/vat">
-                    <div class="module-icon">
-                        <i class="fa-solid fa-percent"></i>
-                    </div>
-                    <h5>Quản lý VAT</h5>
-                    <p>Thiết lập thuế theo từng khoảng thời gian hiệu lực và giữ lịch sử truy cứu.</p>
-                    <span class="module-open">Mở VAT Management <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
 

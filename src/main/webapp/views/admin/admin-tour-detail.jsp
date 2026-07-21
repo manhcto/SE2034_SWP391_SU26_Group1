@@ -153,12 +153,16 @@
                     <div class="col-lg-7">
                         <h6 class="fw-bold">Điểm nổi bật</h6>
                         <p class="muted">${empty tour.tourInclude ? 'Chưa nhập điểm nổi bật.' : tour.tourInclude}</p>
-                        <h6 class="fw-bold mt-4">Địa chỉ tập trung</h6>
-                        <p class="muted mb-0">${empty tour.pickupAddress ? 'Chưa nhập địa chỉ tập trung.' : tour.pickupAddress}</p>
                     </div>
                     <div class="col-lg-5">
                         <c:choose>
-                            <c:when test="${not empty tour.introImage}"><img class="intro-img" src="${tour.introImage}" alt="Ảnh giới thiệu"></c:when>
+                            <c:when test="${not empty tour.introImage}">
+                                <c:set var="introSrc" value="${tour.introImage}" />
+                                <c:if test="${not fn:startsWith(introSrc, 'http://') and not fn:startsWith(introSrc, 'https://') and (empty pageContext.request.contextPath or not fn:startsWith(introSrc, pageContext.request.contextPath))}">
+                                    <c:set var="introSrc" value="${pageContext.request.contextPath}${fn:startsWith(introSrc, '/') ? '' : '/'}${introSrc}" />
+                                </c:if>
+                                <img class="intro-img" src="${introSrc}" alt="Ảnh giới thiệu">
+                            </c:when>
                             <c:otherwise><div class="p-4 border rounded-4 text-center text-muted fw-bold">Chưa có ảnh giới thiệu</div></c:otherwise>
                         </c:choose>
                     </div>
@@ -175,7 +179,13 @@
                         <c:forEach var="itinerary" items="${tour.itineraryList}">
                             <div class="day-item">
                                 <h6 class="fw-bold">Ngày ${itinerary.dayNumber}: ${itinerary.title}</h6>
-                                <c:if test="${not empty itinerary.imageUrl}"><img class="day-img mb-3" src="${itinerary.imageUrl}" alt="Ngày ${itinerary.dayNumber}"></c:if>
+                                <c:if test="${not empty itinerary.imageUrl}">
+                                    <c:set var="dayImageSrc" value="${itinerary.imageUrl}" />
+                                    <c:if test="${not fn:startsWith(dayImageSrc, 'http://') and not fn:startsWith(dayImageSrc, 'https://') and (empty pageContext.request.contextPath or not fn:startsWith(dayImageSrc, pageContext.request.contextPath))}">
+                                        <c:set var="dayImageSrc" value="${pageContext.request.contextPath}${fn:startsWith(dayImageSrc, '/') ? '' : '/'}${dayImageSrc}" />
+                                    </c:if>
+                                    <img class="day-img mb-3" src="${dayImageSrc}" alt="Ngày ${itinerary.dayNumber}">
+                                </c:if>
                                 <p class="muted mb-0">${empty itinerary.description ? 'Chưa nhập mô tả.' : itinerary.description}</p>
                             </div>
                         </c:forEach>

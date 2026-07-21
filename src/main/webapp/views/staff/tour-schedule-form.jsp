@@ -52,7 +52,6 @@
 
         <fmt:formatDate value="${schedule.startDate}" pattern="yyyy-MM-dd" var="startDateValue" />
         <fmt:formatDate value="${schedule.endDate}" pattern="yyyy-MM-dd" var="endDateValue" />
-        <fmt:formatDate value="${schedule.bookingDeadline}" pattern="yyyy-MM-dd" var="bookingDeadlineValue" />
 
         <form method="post" action="${formAction}" id="scheduleForm" novalidate>
             <input type="hidden" name="tourID" value="${tour.tourID}">
@@ -70,9 +69,9 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
-                            <input type="date" name="endDate" id="endDate" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.endDate ? 'is-invalid' : ''}" value="${endDateValue}" min="${todayIso}" required ${lockedCore ? 'readonly' : ''}>
+                            <input type="date" name="endDate" id="endDate" class="form-control locked ${not empty fieldErrors.endDate ? 'is-invalid' : ''}" value="${endDateValue}" min="${todayIso}" required readonly>
                             <c:if test="${not empty fieldErrors.endDate}"><div class="field-error">${fieldErrors.endDate}</div></c:if>
-                            <div class="form-text">Phải khớp đúng ${tour.numberOfDay} ngày.</div>
+                            <div class="form-text">Tự tính theo thời lượng ${tour.numberOfDay} ngày ${tour.numberOfNights} đêm khi chọn ngày xuất phát.</div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Giờ xuất phát</label>
@@ -83,12 +82,6 @@
                             <label class="form-label">Giờ về dự kiến</label>
                             <input type="time" name="expectedReturnTime" class="form-control ${not empty fieldErrors.expectedReturnTime ? 'is-invalid' : ''}" value="${schedule.expectedReturnTime}">
                             <c:if test="${not empty fieldErrors.expectedReturnTime}"><div class="field-error">${fieldErrors.expectedReturnTime}</div></c:if>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Ngày chốt bán</label>
-                            <input type="date" name="bookingDeadline" id="bookingDeadline" class="form-control ${not empty fieldErrors.bookingDeadline ? 'is-invalid' : ''}" value="${bookingDeadlineValue}" min="${todayIso}">
-                            <c:if test="${not empty fieldErrors.bookingDeadline}"><div class="field-error">${fieldErrors.bookingDeadline}</div></c:if>
-                            <div class="form-text">Nếu bỏ trống, hệ thống lấy trước ngày đi 1 ngày.</div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Phương tiện của lịch <span class="text-danger">*</span></label>
@@ -126,21 +119,9 @@
                         <div class="col-md-3">
                             <input type="hidden" name="scheduleStatus" value="${empty schedule.scheduleStatus ? (canOpenSchedule ? 'Open' : 'Planned') : schedule.scheduleStatus}">
                             <label class="form-label">Trạng thái <span class="text-danger">*</span></label>
-                            <c:choose>
-                                <c:when test="${canOpenSchedule}">
-                                    <select class="form-select locked ${not empty fieldErrors.scheduleStatus ? 'is-invalid' : ''}" disabled>
-                                        <option value="Planned" ${schedule.scheduleStatus == 'Planned' ? 'selected' : ''}>Chưa mở bán</option>
-                                        <option value="Open" ${empty schedule.scheduleStatus || schedule.scheduleStatus == 'Open' ? 'selected' : ''}>Mở bán</option>
-                                        <option value="Closed" ${schedule.scheduleStatus == 'Closed' ? 'selected' : ''}>Đóng bán</option>
-                                        <option value="Completed" ${schedule.scheduleStatus == 'Completed' ? 'selected' : ''}>Hoàn tất</option>
-                                        <c:if test="${!bookedSchedule}"><option value="Cancelled" ${schedule.scheduleStatus == 'Cancelled' ? 'selected' : ''}>Hủy lịch</option></c:if>
-                                    </select>
-                                </c:when>
-                                <c:otherwise>
-                                    <input type="text" class="form-control locked" value="Chưa mở bán" readonly>
-                                    <div class="form-text">Tour chưa được duyệt/đang nháp nên lịch không được mở bán.</div>
-                                </c:otherwise>
-                            </c:choose>
+                            <input type="text" class="form-control locked ${not empty fieldErrors.scheduleStatus ? 'is-invalid' : ''}"
+                                   value="${canOpenSchedule ? (empty schedule.scheduleStatus || schedule.scheduleStatus == 'Open' ? 'Mở bán' : schedule.displayScheduleStatus) : 'Chưa mở bán'}" readonly>
+                            <div class="form-text">Hệ thống tự đồng bộ theo trạng thái tour; Staff không sửa trực tiếp tại form.</div>
                             <c:if test="${not empty fieldErrors.scheduleStatus}"><div class="field-error">${fieldErrors.scheduleStatus}</div></c:if>
                         </div>
                     </div>
@@ -180,11 +161,6 @@
                             <input type="number" name="singleRoomSurcharge" id="singleRoomSurcharge" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.singleRoomSurcharge ? 'is-invalid' : ''}" value="${schedule.singleRoomSurcharge > 0 ? schedule.singleRoomSurcharge : ''}" placeholder="Ví dụ: 1500000" required ${lockedCore ? 'readonly' : ''}>
                             <c:if test="${not empty fieldErrors.singleRoomSurcharge}"><div class="field-error">${fieldErrors.singleRoomSurcharge}</div></c:if>
                         </div>
-                        <div class="col-md-6 d-none">
-                            <label class="form-label">Chính sách hủy riêng cho lịch</label>
-                            <textarea class="form-control ${not empty fieldErrors.cancellationPolicy ? 'is-invalid' : ''}" maxlength="2000" rows="3">${empty schedule.cancellationPolicy ? '' : schedule.cancellationPolicy}</textarea>
-                            <c:if test="${not empty fieldErrors.cancellationPolicy}"><div class="field-error">${fieldErrors.cancellationPolicy}</div></c:if>
-                        </div>
                         <div class="col-12">
                             <div class="hint-box">
                                 <div class="fw-bold mb-2">Quy định nhập giá</div>
@@ -209,7 +185,7 @@
 </div>
 <script>
 (function(){
-    const dayCount = ${tour.numberOfDay};
+    const dayCount = Math.max(1, parseInt('${tour.numberOfDay}', 10) || 1, (parseInt('${tour.numberOfNights}', 10) || 0) + 1);
     const todayIso = '${todayIso}';
     const fallbackVatPercent = parseInt('${defaultVat}', 10) || 8;
     const vatPeriods = [
@@ -241,6 +217,17 @@
     function formatMoney(value){
         if (!isFinite(value)) return '';
         return Math.round(value).toLocaleString('vi-VN') + ' đ';
+    }
+    function formatDateInput(date){
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    function formatDisplayDate(value){
+        if (!value || value.indexOf('-') < 0) return value || '';
+        const parts = value.split('-');
+        return parts.length === 3 ? parts[2] + '-' + parts[1] + '-' + parts[0] : value;
     }
     function selectedVatPercent(){
         const dateValue = (startInput && startInput.value) ? startInput.value : todayIso;
@@ -304,16 +291,16 @@
         if (adultPreview) adultPreview.value = adult > 0 ? formatMoney(adult) : '';
     }
     function updateEndDate(){
-        if (!startInput || !endInput || !startInput.value || endInput.readOnly) return;
+        if (!startInput || !endInput || !startInput.value) return;
         const start = new Date(startInput.value + 'T00:00:00');
         if (isNaN(start.getTime())) return;
         start.setDate(start.getDate() + dayCount - 1);
-        endInput.value = start.toISOString().slice(0,10);
+        endInput.value = formatDateInput(start);
         endInput.min = startInput.value;
         if (deadlineInput && !deadlineInput.value && startInput.value > todayIso) {
             const deadline = new Date(startInput.value + 'T00:00:00');
             deadline.setDate(deadline.getDate() - 1);
-            deadlineInput.value = deadline.toISOString().slice(0,10);
+            deadlineInput.value = formatDateInput(deadline);
         }
     }
     function daysBetweenInclusive(startValue, endValue){
@@ -341,8 +328,8 @@
                 return;
             }
             if (form.dataset.confirmed === 'true') return;
-            const startText = startInput && startInput.value ? startInput.value : 'chưa chọn';
-            const endText = endInput && endInput.value ? endInput.value : 'chưa chọn';
+            const startText = startInput && startInput.value ? formatDisplayDate(startInput.value) : 'chưa chọn';
+            const endText = endInput && endInput.value ? formatDisplayDate(endInput.value) : 'chưa chọn';
             const seatsText = maxInput && maxInput.value ? maxInput.value + ' khách' : 'chưa chọn';
             const adult = adultInput && adultInput.value ? parseInt(adultInput.value, 10) : 0;
             const message = 'Xác nhận lưu lịch tour?\n\n'

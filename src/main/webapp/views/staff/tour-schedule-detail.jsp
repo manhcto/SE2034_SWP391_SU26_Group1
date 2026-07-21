@@ -60,7 +60,6 @@
                     </div>
                     <div class="info-item"><small>Ngày xuất phát</small><strong><fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy"/></strong></div>
                     <div class="info-item"><small>Ngày kết thúc</small><strong><fmt:formatDate value="${schedule.endDate}" pattern="dd-MM-yyyy"/></strong></div>
-                    <div class="info-item"><small>Ngày chốt bán</small><strong><fmt:formatDate value="${schedule.bookingDeadline}" pattern="dd-MM-yyyy"/></strong></div>
                     <div class="info-item"><small>Giờ xuất phát</small><strong>${empty schedule.departureTime ? '-' : schedule.departureTime}</strong></div>
                     <div class="info-item"><small>Giờ về dự kiến</small><strong>${empty schedule.expectedReturnTime ? '-' : schedule.expectedReturnTime}</strong></div>
                     <div class="info-item"><small>Phương tiện</small><strong>${empty schedule.scheduleTransportType ? tour.mainTransportType : schedule.scheduleTransportType}</strong></div>
@@ -88,10 +87,6 @@
             </div>
         </section>
 
-        <section class="page-card">
-            <div class="section-title"><i class="fa-solid fa-file-lines text-primary"></i><h5>Chính sách hủy</h5></div>
-            <div class="section-body"><div class="policy-box">${empty schedule.cancellationPolicy ? 'Chưa nhập chính sách riêng cho lịch này.' : schedule.cancellationPolicy}</div></div>
-        </section>
     </main>
 </div>
 </body>

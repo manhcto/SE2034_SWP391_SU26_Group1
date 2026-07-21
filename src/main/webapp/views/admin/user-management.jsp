@@ -473,11 +473,6 @@
             <span>Quản lý tour</span>
         </a>
 
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/vat">
-            <i class="fa-solid fa-percent"></i>
-            <span>Quản lý VAT</span>
-        </a>
-
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
             <i class="fa-solid fa-calendar-check"></i>
             <span>Đơn đặt</span>

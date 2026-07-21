@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -97,7 +98,13 @@
 
         <section class="page-card">
             <c:choose>
-                <c:when test="${not empty tour.image}"><img class="tour-cover" src="${tour.image}" alt="${tour.tourName}"></c:when>
+                <c:when test="${not empty tour.image}">
+                    <c:set var="coverSrc" value="${tour.image}" />
+                    <c:if test="${not fn:startsWith(coverSrc, 'http://') and not fn:startsWith(coverSrc, 'https://') and (empty pageContext.request.contextPath or not fn:startsWith(coverSrc, pageContext.request.contextPath))}">
+                        <c:set var="coverSrc" value="${pageContext.request.contextPath}${fn:startsWith(coverSrc, '/') ? '' : '/'}${coverSrc}" />
+                    </c:if>
+                    <img class="tour-cover" src="${coverSrc}" alt="${tour.tourName}">
+                </c:when>
                 <c:otherwise><div class="tour-cover d-flex align-items-center justify-content-center text-muted fw-bold">Chưa có ảnh bìa</div></c:otherwise>
             </c:choose>
             <div class="section-body">
@@ -129,18 +136,17 @@
                     </div>
                     <div class="col-md-5">
                         <c:choose>
-                            <c:when test="${not empty tour.introImage}"><img class="intro-img" src="${tour.introImage}" alt="Ảnh giới thiệu"></c:when>
+                            <c:when test="${not empty tour.introImage}">
+                                <c:set var="introSrc" value="${tour.introImage}" />
+                                <c:if test="${not fn:startsWith(introSrc, 'http://') and not fn:startsWith(introSrc, 'https://') and (empty pageContext.request.contextPath or not fn:startsWith(introSrc, pageContext.request.contextPath))}">
+                                    <c:set var="introSrc" value="${pageContext.request.contextPath}${fn:startsWith(introSrc, '/') ? '' : '/'}${introSrc}" />
+                                </c:if>
+                                <img class="intro-img" src="${introSrc}" alt="Ảnh giới thiệu">
+                            </c:when>
                             <c:otherwise><div class="policy-box text-center fw-bold">Chưa có ảnh giới thiệu</div></c:otherwise>
                         </c:choose>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <section class="page-card">
-            <div class="section-title"><i class="fa-solid fa-location-dot text-primary"></i><h5>Tập trung</h5></div>
-            <div class="section-body">
-                <p class="muted mb-1"><strong>Địa chỉ:</strong> ${empty tour.pickupAddress ? 'Chưa nhập địa chỉ tập trung.' : tour.pickupAddress}</p>
             </div>
         </section>
 
@@ -153,7 +159,13 @@
                         <c:forEach var="itinerary" items="${tour.itineraryList}">
                             <div class="day-item">
                                 <div class="day-title">Ngày ${itinerary.dayNumber}: ${itinerary.title}</div>
-                                <c:if test="${not empty itinerary.imageUrl}"><img class="day-img" src="${itinerary.imageUrl}" alt="Ảnh ngày ${itinerary.dayNumber}"></c:if>
+                                <c:if test="${not empty itinerary.imageUrl}">
+                                    <c:set var="dayImageSrc" value="${itinerary.imageUrl}" />
+                                    <c:if test="${not fn:startsWith(dayImageSrc, 'http://') and not fn:startsWith(dayImageSrc, 'https://') and (empty pageContext.request.contextPath or not fn:startsWith(dayImageSrc, pageContext.request.contextPath))}">
+                                        <c:set var="dayImageSrc" value="${pageContext.request.contextPath}${fn:startsWith(dayImageSrc, '/') ? '' : '/'}${dayImageSrc}" />
+                                    </c:if>
+                                    <img class="day-img" src="${dayImageSrc}" alt="Ảnh ngày ${itinerary.dayNumber}">
+                                </c:if>
                                 <strong>Mô tả:</strong>
                                 <p class="muted mb-0">${empty itinerary.description ? 'Chưa nhập mô tả.' : itinerary.description}</p>
                             </div>

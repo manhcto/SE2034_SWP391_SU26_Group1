@@ -186,7 +186,7 @@
                                 <c:forEach var="schedule" items="${scheduleList}">
                                     <tr>
                                         <c:if test="${allSchedules}"><td><span class="strong-cell">${schedule.tourName}</span><span class="sub-cell">${empty schedule.tourCode ? '' : schedule.tourCode}</span></td></c:if>
-                                        <td><span class="strong-cell"><fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy"/></span><span class="sub-cell">Chốt: <fmt:formatDate value="${schedule.bookingDeadline}" pattern="dd-MM-yyyy"/></span></td>
+                                        <td><span class="strong-cell"><fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy"/></span></td>
                                         <td><fmt:formatDate value="${schedule.endDate}" pattern="dd-MM-yyyy"/></td>
                                         <td>${empty schedule.departureTime ? '-' : schedule.departureTime}</td>
                                         <td><span class="strong-cell">${schedule.quantity}/${schedule.maxParticipants}</span><span class="sub-cell">Tối thiểu ${schedule.minParticipants}</span></td>

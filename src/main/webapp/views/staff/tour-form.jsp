@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -144,19 +145,12 @@
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label">Danh mục <span class="text-danger">*</span></label>
                             <select name="tourCategoryID" class="form-select ${not empty fieldErrors.tourCategoryID ? 'is-invalid' : ''}" required>
-                                <option value="">-- Chọn danh mục --</option>
+                                <option value="">Loại tour trọn gói</option>
                                 <c:forEach var="category" items="${categoryList}">
                                     <option value="${category.tourCategoryID}" ${tour.tourCategoryID == category.tourCategoryID ? 'selected' : ''}>${category.categoryName}</option>
                                 </c:forEach>
                             </select>
                             <c:if test="${not empty fieldErrors.tourCategoryID}"><div class="field-error">${fieldErrors.tourCategoryID}</div></c:if>
-                        </div>
-                        <div class="col-lg-3 col-md-6">
-                            <label class="form-label">Loại tour</label>
-                            <input type="hidden" name="tourType" value="Package">
-                            <input type="text" class="form-control" value="Tour trọn gói" readonly>
-                            <div class="form-text">Mô hình hiện tại chỉ kinh doanh tour trọn gói.</div>
-                            <c:if test="${not empty fieldErrors.tourType}"><div class="field-error">${fieldErrors.tourType}</div></c:if>
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label">Ảnh bìa tour</label>
@@ -167,7 +161,13 @@
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label">Xem trước ảnh bìa</label>
                             <c:choose>
-                                <c:when test="${not empty tour.image}"><img id="coverPreview" class="preview-small" src="${tour.image}" alt="Ảnh bìa"></c:when>
+                                <c:when test="${not empty tour.image}">
+                                    <c:set var="coverPreviewSrc" value="${tour.image}" />
+                                    <c:if test="${not fn:startsWith(coverPreviewSrc, 'http://') and not fn:startsWith(coverPreviewSrc, 'https://') and (empty pageContext.request.contextPath or not fn:startsWith(coverPreviewSrc, pageContext.request.contextPath))}">
+                                        <c:set var="coverPreviewSrc" value="${pageContext.request.contextPath}${fn:startsWith(coverPreviewSrc, '/') ? '' : '/'}${coverPreviewSrc}" />
+                                    </c:if>
+                                    <img id="coverPreview" class="preview-small" src="${coverPreviewSrc}" alt="Ảnh bìa">
+                                </c:when>
                                 <c:otherwise><img id="coverPreview" class="preview-small" alt="Chưa chọn ảnh bìa"></c:otherwise>
                             </c:choose>
                         </div>
@@ -180,7 +180,13 @@
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label">Xem trước ảnh giới thiệu</label>
                             <c:choose>
-                                <c:when test="${not empty tour.introImage}"><img id="introPreview" class="preview-small" src="${tour.introImage}" alt="Ảnh giới thiệu"></c:when>
+                                <c:when test="${not empty tour.introImage}">
+                                    <c:set var="introPreviewSrc" value="${tour.introImage}" />
+                                    <c:if test="${not fn:startsWith(introPreviewSrc, 'http://') and not fn:startsWith(introPreviewSrc, 'https://') and (empty pageContext.request.contextPath or not fn:startsWith(introPreviewSrc, pageContext.request.contextPath))}">
+                                        <c:set var="introPreviewSrc" value="${pageContext.request.contextPath}${fn:startsWith(introPreviewSrc, '/') ? '' : '/'}${introPreviewSrc}" />
+                                    </c:if>
+                                    <img id="introPreview" class="preview-small" src="${introPreviewSrc}" alt="Ảnh giới thiệu">
+                                </c:when>
                                 <c:otherwise><img id="introPreview" class="preview-small" alt="Chưa chọn ảnh giới thiệu"></c:otherwise>
                             </c:choose>
                         </div>
@@ -235,11 +241,6 @@
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label">Địa chỉ tập trung</label>
-                            <input type="text" name="pickupAddress" class="form-control ${not empty fieldErrors.pickupAddress ? 'is-invalid' : ''}" value="${tour.pickupAddress}" maxlength="500" placeholder="Ví dụ: Cổng chính Nhà hát lớn Hà Nội">
-                            <c:if test="${not empty fieldErrors.pickupAddress}"><div class="field-error">${fieldErrors.pickupAddress}</div></c:if>
-                        </div>
-                        <div class="col-12">
                             <label class="form-label">Điểm nổi bật của tour</label>
                             <textarea name="tourHighlights" class="form-control ${not empty fieldErrors.tourHighlights ? 'is-invalid' : ''}" maxlength="5000" placeholder="Ví dụ: Tham quan danh thắng nổi bật, khách sạn trung tâm, lịch trình tối ưu...">${tour.tourInclude}</textarea>
                             <c:if test="${not empty fieldErrors.tourHighlights}"><div class="field-error">${fieldErrors.tourHighlights}</div></c:if>
@@ -285,7 +286,13 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Xem trước ảnh ngày ${day}</label>
                                     <c:choose>
-                                        <c:when test="${not empty itinerary.imageUrl}"><img id="itineraryPreview_${day}" class="preview-small" src="${itinerary.imageUrl}" alt="Ảnh ngày ${day}"></c:when>
+                                        <c:when test="${not empty itinerary.imageUrl}">
+                                            <c:set var="itineraryPreviewSrc" value="${itinerary.imageUrl}" />
+                                            <c:if test="${not fn:startsWith(itineraryPreviewSrc, 'http://') and not fn:startsWith(itineraryPreviewSrc, 'https://') and (empty pageContext.request.contextPath or not fn:startsWith(itineraryPreviewSrc, pageContext.request.contextPath))}">
+                                                <c:set var="itineraryPreviewSrc" value="${pageContext.request.contextPath}${fn:startsWith(itineraryPreviewSrc, '/') ? '' : '/'}${itineraryPreviewSrc}" />
+                                            </c:if>
+                                            <img id="itineraryPreview_${day}" class="preview-small" src="${itineraryPreviewSrc}" alt="Ảnh ngày ${day}">
+                                        </c:when>
                                         <c:otherwise><img id="itineraryPreview_${day}" class="preview-small" alt="Chưa chọn ảnh ngày ${day}"></c:otherwise>
                                     </c:choose>
                                 </div>
@@ -427,6 +434,14 @@
             .replace(/'/g, '&#39;');
     }
 
+    function resolveAssetUrl(value) {
+        const path = String(value || '').trim();
+        if (!path || /^https?:\/\//i.test(path)) return path;
+        const contextPath = '${pageContext.request.contextPath}';
+        if (contextPath && path.indexOf(contextPath) === 0) return path;
+        return contextPath + (path.charAt(0) === '/' ? '' : '/') + path;
+    }
+
     function collectItineraryValues() {
         const result = {};
         if (!itineraryContainer) return result;
@@ -451,7 +466,7 @@
 
     function buildDayCard(day, data) {
         data = data || {};
-        const previewSrc = data.previewSrc || data.existingImage || '';
+        const previewSrc = resolveAssetUrl(data.previewSrc || data.existingImage || '');
         return '' +
             '<div class="day-card" data-day="' + day + '">' +
             '<input type="hidden" name="existingItineraryImage_' + day + '" value="' + escapeHtml(data.existingImage || '') + '">' +

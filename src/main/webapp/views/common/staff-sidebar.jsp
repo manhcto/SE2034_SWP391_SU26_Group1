@@ -4,8 +4,7 @@
 
 <c:set var="currentPath" value="${pageContext.request.servletPath}" />
 <c:set var="requestUri" value="${pageContext.request.requestURI}" />
-<c:set var="isTourScheduleActive" value="${fn:contains(requestUri, '/staff/tour/schedule') || fn:contains(currentPath, 'tour-schedule-')}" />
-<c:set var="isTourActive" value="${!isTourScheduleActive && (currentPath eq '/staff/tour' || fn:contains(requestUri, '/staff/tour') || fn:contains(currentPath, 'tour-management.jsp') || fn:contains(currentPath, 'tour-form.jsp') || fn:contains(currentPath, 'tour-detail.jsp'))}" />
+<c:set var="isTourActive" value="${currentPath eq '/staff/tour' || fn:contains(requestUri, '/staff/tour') || fn:contains(currentPath, 'tour-management.jsp') || fn:contains(currentPath, 'tour-form.jsp') || fn:contains(currentPath, 'tour-detail.jsp') || fn:contains(currentPath, 'tour-schedule-')}" />
 
 <style>
     .staff-sidebar {
@@ -159,12 +158,6 @@
        href="${pageContext.request.contextPath}/staff/tour">
         <i class="fa-solid fa-map-location-dot"></i>
         <span>Quản lý tour</span>
-    </a>
-
-    <a class="staff-sidebar-link${isTourScheduleActive ? ' active' : ''}"
-       href="${pageContext.request.contextPath}/staff/tour/schedule">
-        <i class="fa-solid fa-calendar-days"></i>
-        <span>Lịch tour</span>
     </a>
 
     <a class="staff-sidebar-link${currentPath eq '/staff/accommodation' || fn:contains(requestUri, '/staff/accommodation') ? ' active' : ''}"
