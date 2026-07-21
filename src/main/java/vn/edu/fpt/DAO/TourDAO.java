@@ -8,6 +8,7 @@ import vn.edu.fpt.model.TourCategory;
 import vn.edu.fpt.model.TourItinerary;
 import vn.edu.fpt.model.TourSchedule;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -1111,6 +1112,12 @@ public class TourDAO {
     public List<Tour> getPublishedToursForCustomer(String keyword, String startPlace, String destination,
                                                    Integer regionID, Integer categoryID, String startDate,
                                                    int limit) {
+        return getPublishedToursForCustomer(keyword, startPlace, destination, regionID, categoryID, startDate, null, null, limit);
+    }
+
+    public List<Tour> getPublishedToursForCustomer(String keyword, String startPlace, String destination,
+                                                   Integer regionID, Integer categoryID, String startDate,
+                                                   BigDecimal minPrice, BigDecimal maxPrice, int limit) {
         List<Tour> tours = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         int safeLimit = limit <= 0 ? 100 : Math.min(limit, 100);
@@ -1127,6 +1134,16 @@ public class TourDAO {
         if (!isBlank(startDate)) {
             sql.append(" AND CAST(ts.startDate AS date) = CAST(? AS date) ");
             params.add(startDate.trim());
+        }
+
+        if (minPrice != null) {
+            sql.append(" AND COALESCE(ts.adultPrice, t.adultPrice, 0) >= ? ");
+            params.add(minPrice);
+        }
+
+        if (maxPrice != null) {
+            sql.append(" AND COALESCE(ts.adultPrice, t.adultPrice, 0) <= ? ");
+            params.add(maxPrice);
         }
 
         sql.append(" ) ");

@@ -146,8 +146,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         data.childPriceRaw = request.getParameter("childPrice");
         data.infantPriceRaw = request.getParameter("infantPrice");
         data.singleRoomSurchargeRaw = request.getParameter("singleRoomSurcharge");
-        data.cancellationPolicy = safeTrim(request.getParameter("cancellationPolicy"));
-        data.scheduleStatus = safeTrim(request.getParameter("scheduleStatus"));
+        data.cancellationPolicy = DEFAULT_CANCELLATION_POLICY;
+        data.scheduleStatus = "";
         return data;
     }
 
@@ -279,7 +279,7 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
             validateMoney(data.singleRoomSurchargeRaw, "Phụ thu phòng đơn", true, errors);
         }
 
-        String normalizedStatus = normalizeScheduleStatusForTour(tour, data.scheduleStatus);
+        String normalizedStatus = resolveSystemScheduleStatus(tour, existingSchedule);
         if (!isValidScheduleStatus(normalizedStatus)) {
             errors.add("Trạng thái lịch khởi hành không hợp lệ.");
         }
@@ -364,8 +364,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         schedule.setSingleRoomSurcharge(singleRoom == null ? BigDecimal.ZERO : singleRoom);
         schedule.setDepositPercent(0);
         schedule.setVatPercent(vatPercent);
-        schedule.setCancellationPolicy(isBlank(data.cancellationPolicy) ? DEFAULT_CANCELLATION_POLICY : data.cancellationPolicy);
-        schedule.setScheduleStatus(normalizeScheduleStatusForTour(tour, data.scheduleStatus));
+        schedule.setCancellationPolicy(DEFAULT_CANCELLATION_POLICY);
+        schedule.setScheduleStatus(resolveSystemScheduleStatus(tour, existingSchedule));
 
         if (existingSchedule != null) {
             schedule.setQuantity(existingSchedule.getQuantity());
@@ -406,6 +406,13 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
             return "Open";
         }
         return safeStatus;
+    }
+
+    protected String resolveSystemScheduleStatus(Tour tour, TourSchedule existingSchedule) {
+        if (existingSchedule != null && !isBlank(existingSchedule.getScheduleStatus())) {
+            return normalizeScheduleStatusForTour(tour, existingSchedule.getScheduleStatus());
+        }
+        return canOpenScheduleForTour(tour) ? "Open" : "Planned";
     }
 
     protected void alignScheduleStatusForTour(Tour tour, TourSchedule schedule) {

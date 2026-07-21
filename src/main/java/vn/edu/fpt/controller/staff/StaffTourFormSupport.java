@@ -172,7 +172,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         data.tourIDRaw = request.getParameter("tourID");
         data.tourCategoryIDRaw = request.getParameter("tourCategoryID");
         data.tourName = safeTrim(request.getParameter("tourName"));
-        data.tourType = safeTrim(request.getParameter("tourType"));
+        data.tourType = "Package";
         data.numberOfDayRaw = request.getParameter("numberOfDay");
         data.numberOfNightsRaw = request.getParameter("numberOfNights");
         data.startPlace = safeTrim(request.getParameter("startPlace"));
@@ -649,9 +649,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
     }
 
     private boolean isValidTourType(String value) {
-        return "Package".equals(value)
-                || "Private".equals(value)
-                || "Combo".equals(value);
+        return "Package".equals(value);
     }
 
     private boolean isValidStatus(String value) {

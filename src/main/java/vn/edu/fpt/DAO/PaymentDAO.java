@@ -7,7 +7,9 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,19 +30,37 @@ public class PaymentDAO {
             return existing;
         }
 
-        String sql = """
+        boolean hasPaymentMethod = hasPaymentColumn("payment_method");
+        boolean hasPaymentType = hasPaymentColumn("paymentType");
+        boolean hasPayosOrderCode = hasPaymentColumn("payosOrderCode");
+        boolean hasCheckoutUrl = hasPaymentColumn("checkoutUrl");
+        boolean hasExpiredAt = hasPaymentColumn("expiredAt");
+        StringBuilder sql = new StringBuilder("""
                 INSERT INTO [dbo].[Payments]
-                    (bookingID, payosOrderCode, totalAmount, [status], transactionCode,
-                     checkoutUrl, paymentDate, expiredAt, note, createdAt)
-                VALUES (?, ?, ?, N'Pending', NULL, NULL, NULL, DATEADD(MINUTE, 15, GETDATE()),
-                        N'Khởi tạo thanh toán PayOS', GETDATE())
-                """;
+                    (bookingID, %s totalAmount, [status], %s %s transactionCode,
+                     %s paymentDate, %s note, createdAt)
+                VALUES (?, %s ?, N'Pending', %s %s NULL,
+                     %s NULL, %s N'Khởi tạo thanh toán PayOS', GETDATE())
+                """.formatted(
+                hasPaymentMethod ? "payment_method, " : "",
+                hasPaymentType ? "paymentType, " : "",
+                hasPayosOrderCode ? "payosOrderCode, " : "",
+                hasCheckoutUrl ? "checkoutUrl, " : "",
+                hasExpiredAt ? "expiredAt, " : "",
+                hasPaymentMethod ? "N'PayOS', " : "",
+                hasPaymentType ? "N'Online', " : "",
+                hasPayosOrderCode ? "?, " : "",
+                hasCheckoutUrl ? "NULL, " : "",
+                hasExpiredAt ? "DATEADD(MINUTE, 15, GETDATE()), " : ""));
 
         try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             ps.setInt(1, bookingID);
-            ps.setLong(2, bookingID);
-            ps.setBigDecimal(3, amount);
+            int index = 2;
+            if (hasPayosOrderCode) {
+                ps.setLong(index++, bookingID);
+            }
+            ps.setBigDecimal(index, amount);
             ps.executeUpdate();
         } catch (Exception e) {
             // A concurrent request may have inserted the unique booking payment first.
@@ -55,21 +75,32 @@ public class PaymentDAO {
     }
 
     public boolean prepareCheckout(int bookingID, String checkoutUrl) {
+        boolean hasPayosOrderCode = hasPaymentColumn("payosOrderCode");
+        boolean hasCheckoutUrl = hasPaymentColumn("checkoutUrl");
+        boolean hasExpiredAt = hasPaymentColumn("expiredAt");
         String sql = """
                 UPDATE [dbo].[Payments]
-                SET payosOrderCode = ?, transactionCode = ?, [status] = N'Pending',
-                    checkoutUrl = ?,
-                    expiredAt = DATEADD(MINUTE, 15, GETDATE()),
+                SET %s transactionCode = ?, [status] = N'Pending',
+                    %s
+                    %s
                     note = N'Đã tạo mã QR PayOS'
                 WHERE bookingID = ? AND [status] <> N'Paid'
-                """;
+                """.formatted(
+                hasPayosOrderCode ? "payosOrderCode = ?, " : "",
+                hasCheckoutUrl ? "checkoutUrl = ?," : "",
+                hasExpiredAt ? "expiredAt = DATEADD(MINUTE, 15, GETDATE())," : "");
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, bookingID);
-            ps.setString(2, String.valueOf(bookingID));
-            ps.setString(3, checkoutUrl);
-            ps.setInt(4, bookingID);
+            int index = 1;
+            if (hasPayosOrderCode) {
+                ps.setLong(index++, bookingID);
+            }
+            ps.setString(index++, String.valueOf(bookingID));
+            if (hasCheckoutUrl) {
+                ps.setString(index++, checkoutUrl);
+            }
+            ps.setInt(index, bookingID);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -78,13 +109,17 @@ public class PaymentDAO {
     }
 
     public boolean markPaidByBookingID(int bookingID, String transactionCode) {
+        boolean hasCheckoutUrl = hasPaymentColumn("checkoutUrl");
+        boolean hasExpiredAt = hasPaymentColumn("expiredAt");
         String sql = """
                 UPDATE [dbo].[Payments]
                 SET [status] = N'Paid', transactionCode = ?, paymentDate = GETDATE(),
-                    checkoutUrl = NULL, expiredAt = NULL, note = N'Đã thanh toán thành công'
+                    %s %s note = N'Đã thanh toán thành công'
                 WHERE bookingID = ? AND [status] = N'Pending'
                   AND LEFT(ISNULL(note, N''), 15) <> N'[SLOT_RELEASED]'
-                """;
+                """.formatted(
+                hasCheckoutUrl ? "checkoutUrl = NULL, " : "",
+                hasExpiredAt ? "expiredAt = NULL, " : "");
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, transactionCode);
@@ -105,10 +140,15 @@ public class PaymentDAO {
     }
 
     public List<Integer> findExpiredPendingBookingIDs() {
+        boolean hasExpiredAt = hasPaymentColumn("expiredAt");
         String sql = """
                 SELECT bookingID FROM [dbo].[Payments]
-                WHERE [status] = N'Pending' AND expiredAt IS NOT NULL AND expiredAt <= GETDATE()
-                """;
+                WHERE [status] = N'Pending'
+                  AND LEFT(ISNULL(note, N''), 15) <> N'[SLOT_RELEASED]'
+                  AND %s
+                """.formatted(hasExpiredAt
+                ? "expiredAt IS NOT NULL AND expiredAt <= GETDATE()"
+                : "createdAt <= DATEADD(MINUTE, -15, GETDATE())");
         List<Integer> bookingIDs = new ArrayList<>();
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -159,14 +199,70 @@ public class PaymentDAO {
         payment.setBookingID(rs.getInt("bookingID"));
         payment.setTotalAmount(rs.getBigDecimal("totalAmount"));
         payment.setStatus(rs.getString("status"));
-        long orderCode = rs.getLong("payosOrderCode");
-        payment.setPayosOrderCode(rs.wasNull() ? null : orderCode);
-        payment.setTransactionCode(rs.getString("transactionCode"));
-        payment.setCheckoutUrl(rs.getString("checkoutUrl"));
-        payment.setPaymentDate(rs.getTimestamp("paymentDate"));
-        payment.setExpiredAt(rs.getTimestamp("expiredAt"));
-        payment.setNote(rs.getString("note"));
-        payment.setCreatedAt(rs.getTimestamp("createdAt"));
+        if (hasColumn(rs, "payosOrderCode")) {
+            long orderCode = rs.getLong("payosOrderCode");
+            payment.setPayosOrderCode(rs.wasNull() ? null : orderCode);
+        }
+        if (hasColumn(rs, "payment_method")) {
+            payment.setPaymentMethod(rs.getString("payment_method"));
+        }
+        if (hasColumn(rs, "paymentType")) {
+            payment.setPaymentType(rs.getString("paymentType"));
+        }
+        if (hasColumn(rs, "transactionCode")) {
+            payment.setTransactionCode(rs.getString("transactionCode"));
+        }
+        if (hasColumn(rs, "checkoutUrl")) {
+            payment.setCheckoutUrl(rs.getString("checkoutUrl"));
+        }
+        if (hasColumn(rs, "paymentDate")) {
+            payment.setPaymentDate(rs.getTimestamp("paymentDate"));
+        }
+        if (hasColumn(rs, "expiredAt")) {
+            payment.setExpiredAt(rs.getTimestamp("expiredAt"));
+        } else if (hasColumn(rs, "createdAt") && !payment.isPaid()) {
+            Timestamp createdAt = rs.getTimestamp("createdAt");
+            if (createdAt != null) {
+                payment.setExpiredAt(new Timestamp(createdAt.getTime() + 15L * 60L * 1000L));
+            }
+        }
+        if (hasColumn(rs, "note")) {
+            payment.setNote(rs.getString("note"));
+        }
+        if (hasColumn(rs, "createdAt")) {
+            payment.setCreatedAt(rs.getTimestamp("createdAt"));
+        }
         return payment;
+    }
+
+    private boolean hasPaymentColumn(String columnName) {
+        String sql = """
+                SELECT 1
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = 'dbo'
+                  AND TABLE_NAME = 'Payments'
+                  AND COLUMN_NAME = ?
+                """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, columnName);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+        ResultSetMetaData metaData = rs.getMetaData();
+        for (int i = 1; i <= metaData.getColumnCount(); i++) {
+            if (columnName.equalsIgnoreCase(metaData.getColumnLabel(i))
+                    || columnName.equalsIgnoreCase(metaData.getColumnName(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

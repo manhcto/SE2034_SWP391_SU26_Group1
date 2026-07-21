@@ -47,6 +47,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    document.querySelectorAll('.tour-rail-wrap').forEach(function (wrap) {
+        const rail = wrap.querySelector('[data-tour-rail]');
+        const prev = wrap.querySelector('[data-rail-prev]');
+        const next = wrap.querySelector('[data-rail-next]');
+        if (!rail) return;
+        const scrollRail = function (direction) {
+            const firstCard = rail.querySelector('.home-tour-card');
+            const distance = firstCard ? firstCard.getBoundingClientRect().width + 8 : rail.clientWidth * 0.8;
+            rail.scrollBy({ left: direction * distance, behavior: 'smooth' });
+        };
+        if (prev) prev.addEventListener('click', function () { scrollRail(-1); });
+        if (next) next.addEventListener('click', function () { scrollRail(1); });
+    });
+
     const toast = document.getElementById('successToast');
     const dismissButton = document.querySelector('[data-dismiss-toast]');
     if (toast && dismissButton) {

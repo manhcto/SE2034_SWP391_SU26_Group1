@@ -205,10 +205,7 @@ public class Tour {
     }
 
     public String getDisplayTourType() {
-        if ("Package".equalsIgnoreCase(tourType)) return "Tour trọn gói";
-        if ("Private".equalsIgnoreCase(tourType)) return "Tour riêng";
-        if ("Combo".equalsIgnoreCase(tourType)) return "Combo";
-        return tourType;
+        return "Tour trọn gói";
     }
 
     private String safeTrim(String value) {

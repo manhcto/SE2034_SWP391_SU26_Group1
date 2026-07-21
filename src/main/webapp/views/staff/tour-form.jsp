@@ -152,12 +152,10 @@
                             <c:if test="${not empty fieldErrors.tourCategoryID}"><div class="field-error">${fieldErrors.tourCategoryID}</div></c:if>
                         </div>
                         <div class="col-lg-3 col-md-6">
-                            <label class="form-label">Loại tour <span class="text-danger">*</span></label>
-                            <select name="tourType" class="form-select ${not empty fieldErrors.tourType ? 'is-invalid' : ''}" required>
-                                <option value="Package" ${tour.tourType == 'Package' ? 'selected' : ''}>Tour trọn gói</option>
-                                <option value="Private" ${tour.tourType == 'Private' ? 'selected' : ''}>Tour riêng</option>
-                                <option value="Combo" ${tour.tourType == 'Combo' ? 'selected' : ''}>Combo</option>
-                            </select>
+                            <label class="form-label">Loại tour</label>
+                            <input type="hidden" name="tourType" value="Package">
+                            <input type="text" class="form-control" value="Tour trọn gói" readonly>
+                            <div class="form-text">Mô hình hiện tại chỉ kinh doanh tour trọn gói.</div>
                             <c:if test="${not empty fieldErrors.tourType}"><div class="field-error">${fieldErrors.tourType}</div></c:if>
                         </div>
                         <div class="col-lg-3 col-md-6">
@@ -314,6 +312,7 @@
     const updateItineraryBtn = document.getElementById('updateItineraryBtn');
     const itineraryContainer = document.getElementById('itineraryContainer');
     const enhancedSelects = [];
+    const tourForm = document.getElementById('tourForm');
 
     function refreshCustomSelect(select) {
         if (!select || !select._customSelect) return;
@@ -513,6 +512,27 @@
             if (days > 0) {
                 numberOfDay.value = Math.min(15, Math.max(1, days));
             }
+        });
+    }
+
+    if (tourForm) {
+        tourForm.addEventListener('submit', function (event) {
+            if (tourForm.dataset.confirmed === 'true') return;
+            const nameInput = tourForm.querySelector('[name="tourName"]');
+            const dayInput = tourForm.querySelector('[name="numberOfDay"]');
+            const nightInput = tourForm.querySelector('[name="numberOfNights"]');
+            const tourName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'tour này';
+            const dayText = dayInput && dayInput.value ? dayInput.value + ' ngày' : 'chưa nhập số ngày';
+            const nightText = nightInput && nightInput.value ? nightInput.value + ' đêm' : '0 đêm';
+            const message = 'Xác nhận lưu hồ sơ tour?\n\n'
+                + 'Tour: ' + tourName + '\n'
+                + 'Thời lượng: ' + dayText + ' ' + nightText + '\n\n'
+                + 'Sau khi lưu, Staff cần sang Lịch tour để nhập ngày khởi hành, số ghế và giá bán theo từng lịch trước khi đẩy duyệt.';
+            if (!window.confirm(message)) {
+                event.preventDefault();
+                return;
+            }
+            tourForm.dataset.confirmed = 'true';
         });
     }
 

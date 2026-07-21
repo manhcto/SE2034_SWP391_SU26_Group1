@@ -124,10 +124,11 @@
                         </div>
                         <input type="hidden" name="maxParticipantsPerBooking" id="maxParticipantsPerBooking" value="${schedule.maxParticipantsPerBooking <= 0 ? 10 : schedule.maxParticipantsPerBooking}">
                         <div class="col-md-3">
+                            <input type="hidden" name="scheduleStatus" value="${empty schedule.scheduleStatus ? (canOpenSchedule ? 'Open' : 'Planned') : schedule.scheduleStatus}">
                             <label class="form-label">Trạng thái <span class="text-danger">*</span></label>
                             <c:choose>
                                 <c:when test="${canOpenSchedule}">
-                                    <select name="scheduleStatus" class="form-select ${not empty fieldErrors.scheduleStatus ? 'is-invalid' : ''}" required>
+                                    <select class="form-select locked ${not empty fieldErrors.scheduleStatus ? 'is-invalid' : ''}" disabled>
                                         <option value="Planned" ${schedule.scheduleStatus == 'Planned' ? 'selected' : ''}>Chưa mở bán</option>
                                         <option value="Open" ${empty schedule.scheduleStatus || schedule.scheduleStatus == 'Open' ? 'selected' : ''}>Mở bán</option>
                                         <option value="Closed" ${schedule.scheduleStatus == 'Closed' ? 'selected' : ''}>Đóng bán</option>
@@ -136,7 +137,6 @@
                                     </select>
                                 </c:when>
                                 <c:otherwise>
-                                    <input type="hidden" name="scheduleStatus" value="Planned">
                                     <input type="text" class="form-control locked" value="Chưa mở bán" readonly>
                                     <div class="form-text">Tour chưa được duyệt/đang nháp nên lịch không được mở bán.</div>
                                 </c:otherwise>
@@ -180,9 +180,9 @@
                             <input type="number" name="singleRoomSurcharge" id="singleRoomSurcharge" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.singleRoomSurcharge ? 'is-invalid' : ''}" value="${schedule.singleRoomSurcharge > 0 ? schedule.singleRoomSurcharge : ''}" placeholder="Ví dụ: 1500000" required ${lockedCore ? 'readonly' : ''}>
                             <c:if test="${not empty fieldErrors.singleRoomSurcharge}"><div class="field-error">${fieldErrors.singleRoomSurcharge}</div></c:if>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 d-none">
                             <label class="form-label">Chính sách hủy riêng cho lịch</label>
-                            <textarea name="cancellationPolicy" class="form-control ${not empty fieldErrors.cancellationPolicy ? 'is-invalid' : ''}" maxlength="2000" rows="3">${empty schedule.cancellationPolicy ? '' : schedule.cancellationPolicy}</textarea>
+                            <textarea class="form-control ${not empty fieldErrors.cancellationPolicy ? 'is-invalid' : ''}" maxlength="2000" rows="3">${empty schedule.cancellationPolicy ? '' : schedule.cancellationPolicy}</textarea>
                             <c:if test="${not empty fieldErrors.cancellationPolicy}"><div class="field-error">${fieldErrors.cancellationPolicy}</div></c:if>
                         </div>
                         <div class="col-12">
@@ -331,6 +331,34 @@
     if (startInput && !startInput.readOnly) startInput.min = todayIso;
     if (endInput && !endInput.readOnly) endInput.min = todayIso;
     if (deadlineInput) deadlineInput.min = todayIso;
+    if (form) {
+        form.addEventListener('submit', function(event){
+            updateEndDate();
+            updatePrices();
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                form.reportValidity();
+                return;
+            }
+            if (form.dataset.confirmed === 'true') return;
+            const startText = startInput && startInput.value ? startInput.value : 'chưa chọn';
+            const endText = endInput && endInput.value ? endInput.value : 'chưa chọn';
+            const seatsText = maxInput && maxInput.value ? maxInput.value + ' khách' : 'chưa chọn';
+            const adult = adultInput && adultInput.value ? parseInt(adultInput.value, 10) : 0;
+            const message = 'Xác nhận lưu lịch tour?\n\n'
+                + 'Ngày đi: ' + startText + '\n'
+                + 'Ngày về: ' + endText + '\n'
+                + 'Số ghế: ' + seatsText + '\n'
+                + 'Giá người lớn: ' + (adult > 0 ? formatMoney(adult) : 'chưa nhập') + '\n'
+                + 'VAT áp dụng: ' + selectedVatPercent() + '%\n\n'
+                + 'Giá trẻ em sẽ phải đúng công thức hệ thống trước khi lưu.';
+            if (!window.confirm(message)) {
+                event.preventDefault();
+                return;
+            }
+            form.dataset.confirmed = 'true';
+        });
+    }
     updateSeatOptions();
     updateMin();
     updatePrices();

@@ -9,6 +9,7 @@ import vn.edu.fpt.DAO.TourDAO;
 import vn.edu.fpt.model.Tour;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @WebServlet(name = "CustomerTourController", urlPatterns = {"/tour", "/tours", "/tour-detail"})
@@ -39,8 +40,15 @@ public class TourController extends HttpServlet {
         String startDate = normalize(request.getParameter("startDate"));
         Integer regionID = parsePositiveInteger(request.getParameter("regionID"));
         Integer categoryID = parsePositiveInteger(request.getParameter("categoryID"));
+        BigDecimal minPrice = parseNonNegativeMoney(request.getParameter("minPrice"));
+        BigDecimal maxPrice = parseNonNegativeMoney(request.getParameter("maxPrice"));
+        if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0) {
+            BigDecimal swap = minPrice;
+            minPrice = maxPrice;
+            maxPrice = swap;
+        }
 
-        List<Tour> tourList = tourDAO.getPublishedToursForCustomer(keyword, from, destination, regionID, categoryID, startDate, 100);
+        List<Tour> tourList = tourDAO.getPublishedToursForCustomer(keyword, from, destination, regionID, categoryID, startDate, minPrice, maxPrice, 100);
 
         request.setAttribute("tourList", tourList);
         request.setAttribute("categoryList", tourDAO.getActiveCategories());
@@ -54,6 +62,8 @@ public class TourController extends HttpServlet {
         request.setAttribute("selectedStartDate", startDate);
         request.setAttribute("selectedRegionID", regionID == null ? 0 : regionID);
         request.setAttribute("selectedCategoryID", categoryID == null ? 0 : categoryID);
+        request.setAttribute("selectedMinPrice", minPrice == null ? "" : minPrice.toPlainString());
+        request.setAttribute("selectedMaxPrice", maxPrice == null ? "" : maxPrice.toPlainString());
 
         request.getRequestDispatcher("/views/customer/tour-list.jsp").forward(request, response);
     }
@@ -92,5 +102,18 @@ public class TourController extends HttpServlet {
 
     private String normalize(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private BigDecimal parseNonNegativeMoney(String rawValue) {
+        String value = normalize(rawValue).replace(",", "");
+        if (value.isEmpty() || !value.matches("\\d+(\\.\\d+)?")) {
+            return null;
+        }
+        try {
+            BigDecimal parsed = new BigDecimal(value);
+            return parsed.signum() >= 0 ? parsed : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

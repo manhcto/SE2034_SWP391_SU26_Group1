@@ -77,6 +77,7 @@ public class HomeController extends HttpServlet {
         }
 
         request.setAttribute("featuredTours", featuredTours);
+        request.setAttribute("domesticTours", take(packageTours, 8));
         request.setAttribute("packageTours", packageTours);
         request.setAttribute("featuredAccommodations", featuredAccommodations);
         request.setAttribute("latestBlogs", take(publishedBlogs, 3));

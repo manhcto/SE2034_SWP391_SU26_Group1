@@ -1054,6 +1054,16 @@ public class BookingDAO {
     public boolean releasePendingPaymentReservation(int bookingID,
                                                      boolean expiredOnly,
                                                      String note) {
+        boolean hasCheckoutUrl = hasPaymentColumn("checkoutUrl");
+        boolean hasExpiredAt = hasPaymentColumn("expiredAt");
+        String expirationFilter = "";
+        if (hasExpiredAt) {
+            expirationFilter = " AND p.expiredAt IS NOT NULL"
+                    + (expiredOnly ? " AND p.expiredAt <= GETDATE()" : "");
+        } else if (expiredOnly) {
+            expirationFilter = " AND p.createdAt <= DATEADD(MINUTE, -15, GETDATE())";
+        }
+
         String sqlGetReservation = """
                 SELECT bd.tourScheduleID, bd.roomID, bd.quantity
                 FROM Payments p WITH (UPDLOCK, HOLDLOCK)
@@ -1061,8 +1071,8 @@ public class BookingDAO {
                 LEFT JOIN Booking_Detail bd ON bd.bookingID = b.bookingID
                 WHERE p.bookingID = ? AND p.[status] = N'Pending'
                   AND b.[status] IN (N'Đang xử lý', N'Pending')
-                  AND p.expiredAt IS NOT NULL
-                """ + (expiredOnly ? " AND p.expiredAt <= GETDATE()" : "");
+                  AND LEFT(ISNULL(p.note, N''), 15) <> N'[SLOT_RELEASED]'
+                """ + expirationFilter;
         String sqlReleaseTour = """
                 UPDATE Tour_Scheduler
                 SET quantity = CASE WHEN quantity - ? < 0 THEN 0 ELSE quantity - ? END
@@ -1078,9 +1088,12 @@ public class BookingDAO {
                 """;
         String sqlMarkReleased = """
                 UPDATE Payments
-                SET checkoutUrl = NULL, expiredAt = NULL, note = ?
-                WHERE bookingID = ? AND [status] = N'Pending' AND expiredAt IS NOT NULL
-                """;
+                SET %s%s note = ?
+                WHERE bookingID = ? AND [status] = N'Pending'
+                  AND LEFT(ISNULL(note, N''), 15) <> N'[SLOT_RELEASED]'
+                """.formatted(
+                hasCheckoutUrl ? "checkoutUrl = NULL, " : "",
+                hasExpiredAt ? "expiredAt = NULL, " : "");
 
         try (Connection conn = new DBConnection().getConnection()) {
             conn.setAutoCommit(false);
@@ -1131,6 +1144,26 @@ public class BookingDAO {
             }
         } catch (Exception e) {
             System.out.println("Lỗi hoàn chỗ giữ thanh toán: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean hasPaymentColumn(String columnName) {
+        String sql = """
+                SELECT 1
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = 'dbo'
+                  AND TABLE_NAME = 'Payments'
+                  AND COLUMN_NAME = ?
+                """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, columnName);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
