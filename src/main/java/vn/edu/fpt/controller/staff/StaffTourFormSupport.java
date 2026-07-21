@@ -144,7 +144,6 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         if (message.startsWith("Khu vực")) return "regionID";
         if (message.startsWith("Phương tiện chính")) return "mainTransportType";
         if (message.startsWith("Điểm nổi bật")) return "tourHighlights";
-        if (message.startsWith("Địa chỉ tập trung")) return "pickupAddress";
         if (message.startsWith("Số dòng lịch trình")) return "itinerary";
         if (message.startsWith("Ngày xuất phát")) return "scheduleStartDate";
         if (message.startsWith("Ngày kết thúc")) return "scheduleEndDate";
@@ -168,6 +167,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
 
     protected TourFormData readTourFormData(HttpServletRequest request) throws ServletException, IOException {
         TourFormData data = new TourFormData();
+        List<String> uploadErrors = new ArrayList<>();
 
         data.tourIDRaw = request.getParameter("tourID");
         data.tourCategoryIDRaw = request.getParameter("tourCategoryID");
@@ -178,12 +178,12 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         data.startPlace = safeTrim(request.getParameter("startPlace"));
         data.endPlace = safeTrim(request.getParameter("endPlace"));
         data.image = firstNonBlank(
-                saveImageFile(request, "coverImageFile"),
+                saveImageFile(request, "coverImageFile", "Ảnh bìa", uploadErrors),
                 request.getParameter("coverImageUrl"),
                 request.getParameter("existingImage")
         );
         data.introImage = firstNonBlank(
-                saveImageFile(request, "introImageFile"),
+                saveImageFile(request, "introImageFile", "Ảnh giới thiệu", uploadErrors),
                 request.getParameter("introImageUrl"),
                 request.getParameter("existingIntroImage")
         );
@@ -191,7 +191,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         data.singleRoomSurchargeRaw = request.getParameter("singleRoomSurcharge");
         data.tourIntroduce = "";
         data.tourHighlights = safeTrim(request.getParameter("tourHighlights"));
-        data.pickupAddress = safeTrim(request.getParameter("pickupAddress"));
+        data.pickupAddress = "";
         data.arriveBeforeMinutesRaw = null;
         data.mainTransportType = safeTrim(request.getParameter("mainTransportType"));
         if (isBlank(data.mainTransportType)) {
@@ -219,19 +219,21 @@ public abstract class StaffTourFormSupport extends HttpServlet {
             itinerary.setMealPlan("");
             itinerary.setTransportNote("");
             itinerary.setImageUrl(firstNonBlank(
-                    saveImageFile(request, "itineraryImageFile_" + day),
+                    saveImageFile(request, "itineraryImageFile_" + day, "Ngày " + day + ": ảnh lịch trình", uploadErrors),
                     request.getParameter("itineraryImageUrl_" + day),
                     request.getParameter("existingItineraryImage_" + day)
             ));
             itinerary.setStatus("Active");
             data.itineraries.add(itinerary);
         }
+        data.uploadErrors.addAll(uploadErrors);
 
         return data;
     }
 
     protected List<String> validateTourData(TourFormData data, boolean editMode) {
         List<String> errors = new ArrayList<>();
+        errors.addAll(data.uploadErrors);
 
         if (editMode && parsePositiveInt(data.tourIDRaw) == null) {
             errors.add("Mã tour không hợp lệ.");
@@ -295,7 +297,6 @@ public abstract class StaffTourFormSupport extends HttpServlet {
 
         validateLength(data.tourIntroduce, "Giới thiệu tour", 0, 5000, errors);
         validateLength(data.tourHighlights, "Điểm nổi bật của tour", 0, 5000, errors);
-        validateLength(data.pickupAddress, "Địa chỉ tập trung", 0, 500, errors);
         validateLength(data.mainTransportType, "Phương tiện chính", 1, 50, errors);
 
         if (numberOfDay != null) {
@@ -736,7 +737,10 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         return "";
     }
 
-    private String saveImageFile(HttpServletRequest request, String fieldName) throws ServletException, IOException {
+    private String saveImageFile(HttpServletRequest request,
+                                 String fieldName,
+                                 String label,
+                                 List<String> errors) throws IOException {
         if (request.getContentType() == null || !request.getContentType().toLowerCase().startsWith("multipart/")) {
             return "";
         }
@@ -755,12 +759,14 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         }
 
         if (part.getSize() > 5L * 1024 * 1024) {
-            throw new ServletException("Ảnh upload không được vượt quá 5MB.");
+            errors.add(label + " không được vượt quá 5MB.");
+            return "";
         }
 
         String contentType = part.getContentType() == null ? "" : part.getContentType().toLowerCase();
         if (!Set.of("image/jpeg", "image/png", "image/webp", "image/gif").contains(contentType)) {
-            throw new ServletException("Chỉ hỗ trợ ảnh JPG, PNG, WEBP hoặc GIF.");
+            errors.add(label + " chỉ hỗ trợ JPG, PNG, WEBP hoặc GIF.");
+            return "";
         }
 
         String originalFileName = Path.of(part.getSubmittedFileName()).getFileName().toString();
@@ -777,18 +783,28 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         String uploadRelativePath = "/assets/uploads/tours";
         String realPath = request.getServletContext().getRealPath(uploadRelativePath);
         if (realPath == null) {
-            throw new ServletException("Không xác định được thư mục upload trong ứng dụng.");
+            errors.add("Không xác định được thư mục upload ảnh trong ứng dụng.");
+            return "";
         }
 
         Path uploadDir = Path.of(realPath);
-        Files.createDirectories(uploadDir);
-        Path target = uploadDir.resolve(fileName);
+        Path target;
+        try {
+            Files.createDirectories(uploadDir);
+            target = uploadDir.resolve(fileName);
+        } catch (IOException e) {
+            errors.add("Không thể tạo thư mục upload ảnh trong ứng dụng.");
+            return "";
+        }
 
         try (InputStream input = part.getInputStream()) {
             Files.copy(input, target);
+        } catch (IOException e) {
+            errors.add("Không thể lưu " + label.toLowerCase() + ". Hãy thử lại hoặc dùng URL ảnh hợp lệ.");
+            return "";
         }
 
-        return request.getContextPath() + uploadRelativePath + "/" + fileName;
+        return uploadRelativePath.substring(1) + "/" + fileName;
     }
 
     protected static class TourFormData {
@@ -811,6 +827,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         String mainTransportType;
         String status;
         boolean featured;
+        List<String> uploadErrors = new ArrayList<>();
         String regionIDRaw;
         String scheduleStartDateRaw;
         String scheduleEndDateRaw;

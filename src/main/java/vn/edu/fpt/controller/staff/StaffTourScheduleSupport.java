@@ -193,7 +193,7 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
                 : parseLocalDate(data.startDateRaw);
         LocalDate endDate = lockedCore && existingSchedule != null
                 ? toLocalDate(existingSchedule.getEndDate())
-                : parseLocalDate(data.endDateRaw);
+                : resolveScheduleEndDate(tour, startDate, parseLocalDate(data.endDateRaw));
 
         if (startDate == null) {
             errors.add("Ngày xuất phát là bắt buộc và phải đúng định dạng.");
@@ -316,7 +316,7 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
                 : parseLocalDate(data.startDateRaw);
         LocalDate endDate = lockedCore && existingSchedule != null
                 ? toLocalDate(existingSchedule.getEndDate())
-                : parseLocalDate(data.endDateRaw);
+                : resolveScheduleEndDate(tour, startDate, parseLocalDate(data.endDateRaw));
 
         if (startDate != null) {
             schedule.setStartDate(Timestamp.valueOf(startDate.atStartOfDay()));
@@ -518,6 +518,21 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
             return Timestamp.valueOf(startDate.minusDays(1).atTime(23, 59));
         }
         return null;
+    }
+
+    private LocalDate resolveScheduleEndDate(Tour tour, LocalDate startDate, LocalDate submittedEndDate) {
+        if (startDate == null) {
+            return submittedEndDate;
+        }
+        int durationDays = 1;
+        if (tour != null) {
+            durationDays = Math.max(1, tour.getNumberOfDay());
+            Integer nights = tour.getNumberOfNights();
+            if (nights != null && nights >= 0) {
+                durationDays = Math.max(durationDays, nights + 1);
+            }
+        }
+        return startDate.plusDays(durationDays - 1L);
     }
 
     private LocalDate toLocalDate(Timestamp timestamp) {

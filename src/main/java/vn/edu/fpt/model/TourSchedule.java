@@ -271,6 +271,17 @@ public class TourSchedule {
         return Math.max(0, maxParticipants - quantity);
     }
 
+    public String getDisplayScheduleStatus() {
+        return switch (safeTrim(scheduleStatus)) {
+            case "Open" -> "Mở bán";
+            case "Closed" -> "Đóng bán";
+            case "Completed" -> "Hoàn tất";
+            case "Cancelled" -> "Hủy lịch";
+            case "Planned" -> "Chưa mở bán";
+            default -> "Chưa mở bán";
+        };
+    }
+
     private String safeTrim(String value) {
         return value == null ? "" : value.trim();
     }
