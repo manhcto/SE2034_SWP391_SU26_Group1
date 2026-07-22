@@ -143,10 +143,16 @@
                             <input type="number" name="childPrice" id="childPrice" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.childPrice ? 'is-invalid' : ''}" value="${schedule.childPrice > 0 ? schedule.childPrice : ''}" placeholder="Tự tính theo công thức" required ${lockedCore ? 'readonly' : ''}>
                             <c:if test="${not empty fieldErrors.childPrice}"><div class="field-error">${fieldErrors.childPrice}</div></c:if>
                         </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Trẻ em dưới 5 tuổi</label>
+                            <input type="number" name="infantPrice" id="infantPrice" min="0" step="1" inputmode="numeric" class="form-control locked ${not empty fieldErrors.infantPrice ? 'is-invalid' : ''}" value="0" readonly required>
+                            <div class="form-text">Miễn phí, hệ thống luôn lưu 0 đ.</div>
+                            <c:if test="${not empty fieldErrors.infantPrice}"><div class="field-error">${fieldErrors.infantPrice}</div></c:if>
+                        </div>
 
                         <div class="col-md-3">
                             <label class="form-label">Phụ thu phòng đơn <span class="text-danger">*</span></label>
-                            <input type="number" name="singleRoomSurcharge" id="singleRoomSurcharge" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.singleRoomSurcharge ? 'is-invalid' : ''}" value="${schedule.singleRoomSurcharge > 0 ? schedule.singleRoomSurcharge : ''}" placeholder="Ví dụ: 1500000" required ${lockedCore ? 'readonly' : ''}>
+                            <input type="number" name="singleRoomSurcharge" id="singleRoomSurcharge" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.singleRoomSurcharge ? 'is-invalid' : ''}" value="${empty schedule.singleRoomSurcharge ? 0 : schedule.singleRoomSurcharge}" placeholder="Ví dụ: 1500000" required ${lockedCore ? 'readonly' : ''}>
                             <c:if test="${not empty fieldErrors.singleRoomSurcharge}"><div class="field-error">${fieldErrors.singleRoomSurcharge}</div></c:if>
                         </div>
                         <div class="col-12">
@@ -154,7 +160,7 @@
                                 <div class="fw-bold mb-2">Quy định nhập giá</div>
                                 <ul class="mb-0 ps-3">
                                     <li>Giá người lớn phải lớn hơn 500.000 đ.</li>
-                                    <li>Trẻ em 5-10 tuổi = giá người lớn % 50%.</li>
+                                    <li>Trẻ em 5-10 tuổi = giá người lớn × 50%.</li>
                                     <li>Trẻ em dưới 5 tuổi: miễn phí, hệ thống lưu giá 0 đ.</li>
                                     <li>Trẻ từ 10 tuổi áp dụng giá người lớn.</li>
                                     <li>Phụ thu phòng đơn phải từ 0 đ trở lên.</li>
