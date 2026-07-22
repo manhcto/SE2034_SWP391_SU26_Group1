@@ -185,7 +185,7 @@
                         <ul>
                             <li>Lịch trình tour trọn gói theo chương trình đã công bố trên WonderVN.</li>
                             <li>Phương tiện theo từng lịch khởi hành: <c:out value="${empty fromSchedule.scheduleTransportType ? tour.mainTransportType : fromSchedule.scheduleTransportType}" />.</li>
-                            <li>Giá người lớn, trẻ em, VAT và phụ thu phòng đơn được áp dụng theo từng lịch khởi hành.</li>
+                            <li>Giá người lớn, trẻ em 5-10 tuổi và phụ thu phòng đơn được áp dụng theo từng lịch khởi hành.</li>
                             <li>Thông tin số chỗ còn lại được đồng bộ từ lịch tour đang mở bán.</li>
                         </ul>
                     </div>
@@ -208,8 +208,8 @@
                         <strong>Giá vé dành cho trẻ em:</strong>
                         <ul>
                             <li>Trẻ em từ 10 tuổi trở lên áp dụng giá người lớn.</li>
-                            <li>Trẻ em 5-10 tuổi áp dụng giá trẻ em theo công thức của hệ thống ở từng lịch khởi hành.</li>
-                            <li>Trẻ em dưới 5 tuổi áp dụng giá em bé theo từng lịch, trẻ thứ 2 tính theo quy định giá em bé của tour.</li>
+                            <li>Trẻ em 5-10 tuổi áp dụng 50% giá người lớn theo từng lịch khởi hành.</li>
+                            <li>Trẻ em dưới 5 tuổi miễn phí.</li>
                         </ul>
                     </div>
                     <div class="service-block">
@@ -219,7 +219,6 @@
                             <li>Hệ thống tạo yêu cầu thanh toán theo tổng tiền booking và chuyển sang cổng thanh toán PayOS.</li>
                             <li>Booking chỉ được ghi nhận là đã thanh toán khi cổng thanh toán trả về trạng thái thành công.</li>
                             <li>Nếu thanh toán quá hạn hoặc chưa hoàn tất, hệ thống có thể đưa booking về trạng thái chờ/xử lý theo quy trình vận hành.</li>
-                            <li>VAT được áp dụng theo lịch khởi hành tại thời điểm staff tạo lịch tour.</li>
                         </ul>
                     </div>
                     <c:if test="${not empty tour.childPolicyNote}">
@@ -275,8 +274,8 @@
                                                     <th>Loại giá/Độ tuổi</th>
                                                     <th>Người lớn (Từ 11 tuổi)</th>
                                                     <th>Trẻ em (5-10 tuổi)</th>
-                                                    <th>Trẻ nhỏ (2-5 tuổi)</th>
-                                                    <th>Sơ sinh/nhỏ hơn 2 tuổi</th>
+                                                    <th>Trẻ dưới 5 tuổi</th>
+                                                    <th>Ghi chú</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -284,8 +283,8 @@
                                                     <td>Giá</td>
                                                     <td>${adultPriceText}đ</td>
                                                     <td>${childPriceText}đ</td>
-                                                    <td>${infantPriceText}đ</td>
                                                     <td>0đ</td>
+                                                    <td>Miễn phí</td>
                                                 </tr>
                                                 <tr>
                                                     <td>Phụ thu nước ngoài</td>
@@ -307,10 +306,6 @@
                                                     <td colspan="3">Áp dụng khi khách yêu cầu phòng riêng.</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>VAT</td>
-                                                    <td colspan="4">${schedule.vatPercent}% đã tính theo lịch khởi hành này.</td>
-                                                </tr>
-                                                <tr>
                                                     <td>Giảm giá</td>
                                                     <td>0đ</td>
                                                     <td>0đ</td>
@@ -319,7 +314,7 @@
                                                 </tr>
                                                 </tbody>
                                             </table>
-                                            <div class="service-block" style="padding:8px;margin:0;"><strong>Ghi chú:</strong> Giá thanh toán cuối cùng phụ thuộc số khách, VAT, phụ thu phòng đơn và dữ liệu booking tại thời điểm đặt tour.</div>
+                                            <div class="service-block" style="padding:8px;margin:0;"><strong>Ghi chú:</strong> Giá thanh toán cuối cùng phụ thuộc số khách, phụ thu phòng đơn và dữ liệu booking tại thời điểm đặt tour.</div>
                                         </div>
                                     </td>
                                 </tr>

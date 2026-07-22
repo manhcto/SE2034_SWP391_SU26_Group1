@@ -143,19 +143,7 @@
                             <input type="number" name="childPrice" id="childPrice" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.childPrice ? 'is-invalid' : ''}" value="${schedule.childPrice > 0 ? schedule.childPrice : ''}" placeholder="Tự tính theo công thức" required ${lockedCore ? 'readonly' : ''}>
                             <c:if test="${not empty fieldErrors.childPrice}"><div class="field-error">${fieldErrors.childPrice}</div></c:if>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Trẻ em dưới 5 tuổi <small class="text-muted">(trẻ thứ 2)</small></label>
-                            <input type="number" name="infantPrice" id="infantPrice" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.infantPrice ? 'is-invalid' : ''}" value="${schedule.infantPrice > 0 ? schedule.infantPrice : ''}" placeholder="Tự tính theo công thức" required ${lockedCore ? 'readonly' : ''}>
-                            <c:if test="${not empty fieldErrors.infantPrice}"><div class="field-error">${fieldErrors.infantPrice}</div></c:if>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Trẻ em từ 10 tuổi</label>
-                            <input type="text" id="adultPricePreview" class="form-control locked" readonly>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">VAT</label>
-                            <input type="text" class="form-control locked" id="vatPreview" value="${defaultVat}%" readonly>
-                        </div>
+
                         <div class="col-md-3">
                             <label class="form-label">Phụ thu phòng đơn <span class="text-danger">*</span></label>
                             <input type="number" name="singleRoomSurcharge" id="singleRoomSurcharge" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.singleRoomSurcharge ? 'is-invalid' : ''}" value="${schedule.singleRoomSurcharge > 0 ? schedule.singleRoomSurcharge : ''}" placeholder="Ví dụ: 1500000" required ${lockedCore ? 'readonly' : ''}>
@@ -166,8 +154,8 @@
                                 <div class="fw-bold mb-2">Quy định nhập giá</div>
                                 <ul class="mb-0 ps-3">
                                     <li>Giá người lớn phải lớn hơn 500.000 đ.</li>
-                                    <li>Trẻ em 5-10 tuổi = giá người lớn × 75% × VAT ${defaultVat}%.</li>
-                                    <li>Trẻ em dưới 5 tuổi (trẻ thứ 2) = giá người lớn × 50% × VAT ${defaultVat}%.</li>
+                                    <li>Trẻ em 5-10 tuổi = giá người lớn % 50%.</li>
+                                    <li>Trẻ em dưới 5 tuổi: miễn phí, hệ thống lưu giá 0 đ.</li>
                                     <li>Trẻ từ 10 tuổi áp dụng giá người lớn.</li>
                                     <li>Phụ thu phòng đơn phải từ 0 đ trở lên.</li>
                                 </ul>
@@ -187,12 +175,6 @@
 (function(){
     const dayCount = Math.max(1, parseInt('${tour.numberOfDay}', 10) || 1, (parseInt('${tour.numberOfNights}', 10) || 0) + 1);
     const todayIso = '${todayIso}';
-    const fallbackVatPercent = parseInt('${defaultVat}', 10) || 8;
-    const vatPeriods = [
-        <c:forEach var="vat" items="${vatRates}" varStatus="loop">
-        { percent: ${vat.vatPercent}, from: '${vat.effectiveFromIso}', to: '${vat.effectiveToIso}' }${loop.last ? '' : ','}
-        </c:forEach>
-    ];
     const seatMap = {
         'Xe Du Lịch': [4, 7, 16, 29, 45],
         'Xe Khách': [29, 35, 45, 50],
@@ -212,7 +194,6 @@
     const childInput = document.getElementById('childPrice');
     const infantInput = document.getElementById('infantPrice');
     const adultPreview = document.getElementById('adultPricePreview');
-    const vatPreview = document.getElementById('vatPreview');
 
     function formatMoney(value){
         if (!isFinite(value)) return '';
@@ -229,25 +210,15 @@
         const parts = value.split('-');
         return parts.length === 3 ? parts[2] + '-' + parts[1] + '-' + parts[0] : value;
     }
-    function selectedVatPercent(){
-        const dateValue = (startInput && startInput.value) ? startInput.value : todayIso;
-        const matched = vatPeriods.find(function(period){
-            return period.from && period.to && dateValue >= period.from && dateValue <= period.to;
-        });
-        return matched ? matched.percent : fallbackVatPercent;
-    }
-    function updateVatPreview(){
-        if (vatPreview) vatPreview.value = selectedVatPercent() + '%';
-    }
     function expectedChildPrice(adult){
-        return Math.round(adult * 0.75 * (1 + selectedVatPercent() / 100));
+        return Math.round(adult * 0.50);
     }
     function expectedInfantPrice(adult){
-        return Math.round(adult * 0.50 * (1 + selectedVatPercent() / 100));
+        return 0;
     }
     function setDerivedPrice(input, expectedValue, label){
         if (!input) return;
-        if (expectedValue <= 0) {
+        if (expectedValue < 0) {
             input.value = '';
             input.setCustomValidity('');
             input.dataset.autofilled = 'true';
@@ -285,9 +256,8 @@
     }
     function updatePrices(){
         const adult = parseInt(adultInput && adultInput.value ? adultInput.value : '0', 10);
-        updateVatPreview();
-        setDerivedPrice(childInput, adult > 0 ? expectedChildPrice(adult) : 0, 'Giá trẻ em 5-10 tuổi');
-        setDerivedPrice(infantInput, adult > 0 ? expectedInfantPrice(adult) : 0, 'Giá trẻ em dưới 5 tuổi');
+        setDerivedPrice(childInput, adult > 0 ? expectedChildPrice(adult) : -1, 'Giá trẻ em 5-10 tuổi');
+        setDerivedPrice(infantInput, 0, 'Giá trẻ em dưới 5 tuổi');
         if (adultPreview) adultPreview.value = adult > 0 ? formatMoney(adult) : '';
     }
     function updateEndDate(){
@@ -328,17 +298,7 @@
                 return;
             }
             if (form.dataset.confirmed === 'true') return;
-            const startText = startInput && startInput.value ? formatDisplayDate(startInput.value) : 'chưa chọn';
-            const endText = endInput && endInput.value ? formatDisplayDate(endInput.value) : 'chưa chọn';
-            const seatsText = maxInput && maxInput.value ? maxInput.value + ' khách' : 'chưa chọn';
-            const adult = adultInput && adultInput.value ? parseInt(adultInput.value, 10) : 0;
-            const message = 'Xác nhận lưu lịch tour?\n\n'
-                + 'Ngày đi: ' + startText + '\n'
-                + 'Ngày về: ' + endText + '\n'
-                + 'Số ghế: ' + seatsText + '\n'
-                + 'Giá người lớn: ' + (adult > 0 ? formatMoney(adult) : 'chưa nhập') + '\n'
-                + 'VAT áp dụng: ' + selectedVatPercent() + '%\n\n'
-                + 'Giá trẻ em sẽ phải đúng công thức hệ thống trước khi lưu.';
+            const message = 'Bạn đã kiểm tra kỹ lịch tour và chắc chắn muốn lưu không?';
             if (!window.confirm(message)) {
                 event.preventDefault();
                 return;

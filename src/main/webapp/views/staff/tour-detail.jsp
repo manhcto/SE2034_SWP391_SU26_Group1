@@ -117,10 +117,10 @@
                     <div class="info-item"><small>Phương tiện</small><strong>${empty tour.mainTransportType ? 'Chưa chọn' : tour.mainTransportType}</strong></div>
                     <div class="info-item"><small>Giá người lớn</small><strong>Theo lịch</strong></div>
                     <div class="info-item"><small>Trẻ em 5–10 tuổi</small><strong>Theo lịch</strong></div>
-                    <div class="info-item"><small>Trẻ em dưới 5 tuổi (trẻ thứ 2)</small><strong>Theo lịch</strong></div>
+                    <div class="info-item"><small>Trẻ em dưới 5 tuổi</small><strong>Miễn phí</strong></div>
                     <div class="info-item"><small>Trẻ em từ 10 tuổi</small><strong>Theo lịch</strong></div>
                     <div class="info-item"><small>Phụ thu phòng đơn</small><strong>Theo lịch</strong></div>
-                    <div class="info-item"><small>Thanh toán / VAT</small><strong>100% / ${tour.vatPercent}%</strong></div>
+                    <div class="info-item"><small>Thanh toán</small><strong>100% theo booking</strong></div>
                     <div class="info-item"><small>Lịch khởi hành</small><strong>${tour.scheduleCount}</strong></div>
                 </div>
             </div>

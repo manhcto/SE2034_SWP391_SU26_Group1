@@ -43,7 +43,7 @@
         </c:if>
         <c:if test="${messageCode == 'scheduleUpdateSuccess'}"><div class="alert alert-success fw-bold">Cập nhật lịch khởi hành thành công.</div></c:if>
         <c:if test="${messageCode == 'scheduleUpdateFail'}"><div class="alert alert-danger fw-bold">Cập nhật lịch khởi hành thất bại.</div></c:if>
-        <c:if test="${messageCode == 'noScheduleEditPermission'}"><div class="alert alert-warning fw-bold">Lịch này không được sửa do tour đang ngừng bán hoặc lịch đã hủy/hoàn tất.</div></c:if>
+        <c:if test="${messageCode == 'noScheduleEditPermission'}"><div class="alert alert-warning fw-bold">Lịch này không được sửa do tour đã mở bán/ngừng bán hoặc lịch đã hủy/hoàn tất. Staff chỉ được thêm lịch mới khi tour đang mở bán.</div></c:if>
 
         <section class="page-card">
             <div class="section-title"><i class="fa-solid fa-calendar-check text-primary"></i><h5>Thông tin vận hành</h5></div>
@@ -79,10 +79,9 @@
                 <div class="info-grid">
                     <div class="info-item"><small>Người lớn</small><strong><fmt:formatNumber value="${schedule.adultPrice}" type="number" maxFractionDigits="0"/> đ</strong></div>
                     <div class="info-item"><small>Trẻ em 5–10 tuổi</small><strong><fmt:formatNumber value="${schedule.childPrice}" type="number" maxFractionDigits="0"/> đ</strong></div>
-                    <div class="info-item"><small>Trẻ em dưới 5 tuổi</small><strong><fmt:formatNumber value="${schedule.infantPrice}" type="number" maxFractionDigits="0"/> đ</strong></div>
+                    <div class="info-item"><small>Trẻ em dưới 5 tuổi</small><strong>Miễn phí</strong></div>
                     <div class="info-item"><small>Trẻ em từ 10 tuổi</small><strong><fmt:formatNumber value="${schedule.adultPrice}" type="number" maxFractionDigits="0"/> đ</strong></div>
                     <div class="info-item"><small>Phụ thu phòng đơn</small><strong><fmt:formatNumber value="${schedule.singleRoomSurcharge}" type="number" maxFractionDigits="0"/> đ</strong></div>
-                    <div class="info-item"><small>VAT</small><strong>${schedule.vatPercent}%</strong></div>
                 </div>
             </div>
         </section>

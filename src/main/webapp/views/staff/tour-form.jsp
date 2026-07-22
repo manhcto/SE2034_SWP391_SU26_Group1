@@ -93,7 +93,14 @@
 
         <c:if test="${priceAndScheduleLocked}">
             <div class="alert alert-warning fw-bold">
-                Tour đang ở trạng thái ${tour.displayStatus}. Staff chỉ được bổ sung/chỉnh nội dung mô tả, ảnh, điểm nổi bật và lịch trình. Giá, tuyến, thời lượng và lịch khởi hành đang được quản lý ở Lịch tour để tránh sai lệch dữ liệu bán tour.
+                <c:choose>
+                    <c:when test="${activeTourContentOnly}">
+                        Tour đang mở bán. Staff chỉ được thêm/cập nhật ảnh và sửa điểm nổi bật của tour; lịch đã có không được sửa, chỉ được thêm lịch mới ở phần quản lý lịch của tour.
+                    </c:when>
+                    <c:otherwise>
+                        Tour đang ở trạng thái ${tour.displayStatus}. Staff chỉ được bổ sung/chỉnh nội dung mô tả, ảnh, điểm nổi bật và lịch trình. Giá, tuyến, thời lượng và lịch khởi hành đang được quản lý ở Lịch tour để tránh sai lệch dữ liệu bán tour.
+                    </c:otherwise>
+                </c:choose>
             </div>
         </c:if>
 
@@ -121,7 +128,7 @@
                         <div class="row g-3">
                         <div class="col-lg-6 col-md-12">
                             <label class="form-label">Tên tour <span class="text-danger">*</span></label>
-                            <input type="text" name="tourName" class="form-control ${not empty fieldErrors.tourName ? 'is-invalid' : ''}" value="${tour.tourName}" required maxlength="255" minlength="5" placeholder="Ví dụ: Đà Nẵng - Hội An - Bà Nà 3N2Đ">
+                            <input type="text" name="tourName" class="form-control ${activeTourContentOnly ? 'locked' : ''} ${not empty fieldErrors.tourName ? 'is-invalid' : ''}" value="${tour.tourName}" required maxlength="255" minlength="5" placeholder="Ví dụ: Đà Nẵng - Hội An - Bà Nà 3N2Đ" ${activeTourContentOnly ? 'readonly' : ''}>
                             <c:if test="${not empty fieldErrors.tourName}"><div class="field-error">${fieldErrors.tourName}</div></c:if>
                         </div>
                         <div class="col-lg-3 col-md-6">
@@ -144,7 +151,8 @@
 
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-                            <select name="tourCategoryID" class="form-select ${not empty fieldErrors.tourCategoryID ? 'is-invalid' : ''}" required>
+                            <c:if test="${activeTourContentOnly}"><input type="hidden" name="tourCategoryID" value="${tour.tourCategoryID}"></c:if>
+                            <select name="${activeTourContentOnly ? 'tourCategoryIDDisplay' : 'tourCategoryID'}" class="form-select ${not empty fieldErrors.tourCategoryID ? 'is-invalid' : ''}" required ${activeTourContentOnly ? 'disabled' : ''}>
                                 <option value="">Loại tour trọn gói</option>
                                 <c:forEach var="category" items="${categoryList}">
                                     <option value="${category.tourCategoryID}" ${tour.tourCategoryID == category.tourCategoryID ? 'selected' : ''}>${category.categoryName}</option>
@@ -214,7 +222,7 @@
                         </div>
                         <div class="col-lg-4 col-md-12 d-flex align-items-end">
                             <div class="form-check fw-bold">
-                                <input class="form-check-input" type="checkbox" name="featured" value="true" id="featured" ${tour.featured ? 'checked' : ''}>
+                                <input class="form-check-input" type="checkbox" name="featured" value="true" id="featured" ${tour.featured ? 'checked' : ''} ${activeTourContentOnly ? 'disabled' : ''}>
                                 <label class="form-check-label" for="featured">Tour nổi bật</label>
                             </div>
                         </div>
@@ -267,7 +275,7 @@
                                 <div class="col-md-8">
                                     <label class="form-label">Tiêu đề ngày ${day} <span class="text-danger">*</span></label>
                                     <c:set var="titleErrorKey" value="itineraryTitle_${day}" />
-                                    <input type="text" name="itineraryTitle_${day}" class="form-control itinerary-title ${not empty fieldErrors[titleErrorKey] ? 'is-invalid' : ''}" value="${itinerary.title}" required maxlength="255">
+                                    <input type="text" name="itineraryTitle_${day}" class="form-control itinerary-title ${activeTourContentOnly ? 'locked' : ''} ${not empty fieldErrors[titleErrorKey] ? 'is-invalid' : ''}" value="${itinerary.title}" required maxlength="255" ${activeTourContentOnly ? 'readonly' : ''}>
                                     <c:if test="${not empty fieldErrors[titleErrorKey]}"><div class="field-error">${fieldErrors[titleErrorKey]}</div></c:if>
                                 </div>
                                 <div class="col-md-4">
@@ -280,7 +288,7 @@
                                 <div class="col-md-8">
                                     <label class="form-label">Mô tả lịch trình ngày ${day}</label>
                                     <c:set var="descriptionErrorKey" value="itineraryDescription_${day}" />
-                                    <textarea name="itineraryDescription_${day}" class="form-control itinerary-description ${not empty fieldErrors[descriptionErrorKey] ? 'is-invalid' : ''}" maxlength="5000" placeholder="Mô tả hoạt động chính, thời gian, điểm tham quan, ăn uống, lưu trú nếu có...">${itinerary.description}</textarea>
+                                    <textarea name="itineraryDescription_${day}" class="form-control itinerary-description ${activeTourContentOnly ? 'locked' : ''} ${not empty fieldErrors[descriptionErrorKey] ? 'is-invalid' : ''}" maxlength="5000" placeholder="Mô tả hoạt động chính, thời gian, điểm tham quan, ăn uống, lưu trú nếu có..." ${activeTourContentOnly ? 'readonly' : ''}>${itinerary.description}</textarea>
                                     <c:if test="${not empty fieldErrors[descriptionErrorKey]}"><div class="field-error">${fieldErrors[descriptionErrorKey]}</div></c:if>
                                 </div>
                                 <div class="col-md-4">
@@ -533,16 +541,7 @@
     if (tourForm) {
         tourForm.addEventListener('submit', function (event) {
             if (tourForm.dataset.confirmed === 'true') return;
-            const nameInput = tourForm.querySelector('[name="tourName"]');
-            const dayInput = tourForm.querySelector('[name="numberOfDay"]');
-            const nightInput = tourForm.querySelector('[name="numberOfNights"]');
-            const tourName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : 'tour này';
-            const dayText = dayInput && dayInput.value ? dayInput.value + ' ngày' : 'chưa nhập số ngày';
-            const nightText = nightInput && nightInput.value ? nightInput.value + ' đêm' : '0 đêm';
-            const message = 'Xác nhận lưu hồ sơ tour?\n\n'
-                + 'Tour: ' + tourName + '\n'
-                + 'Thời lượng: ' + dayText + ' ' + nightText + '\n\n'
-                + 'Sau khi lưu, Staff cần sang Lịch tour để nhập ngày khởi hành, số ghế và giá bán theo từng lịch trước khi đẩy duyệt.';
+            const message = 'Bạn đã kiểm tra kỹ thông tin tour và chắc chắn muốn lưu không?';
             if (!window.confirm(message)) {
                 event.preventDefault();
                 return;

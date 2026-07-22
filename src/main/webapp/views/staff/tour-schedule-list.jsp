@@ -203,7 +203,7 @@
                                         </td>
                                         <td class="text-end">
                                             <c:choose>
-                                                <c:when test="${(allSchedules || canManageSchedule) && schedule.scheduleStatus != 'Cancelled' && schedule.scheduleStatus != 'Completed' && (empty schedule.tourStatus || schedule.tourStatus != 'Inactive')}">
+                                                <c:when test="${schedule.scheduleStatus != 'Cancelled' && schedule.scheduleStatus != 'Completed' && ((allSchedules && schedule.tourStatus != 'Inactive' && schedule.tourStatus != 'Active') || (!allSchedules && canEditSchedule))}">
                                                     <a class="row-action edit" href="${pageContext.request.contextPath}/staff/tour/schedule/edit?id=${schedule.tourScheduleID}"><i class="fa-solid fa-pen"></i> Sửa</a>
                                                 </c:when>
                                                 <c:otherwise>
