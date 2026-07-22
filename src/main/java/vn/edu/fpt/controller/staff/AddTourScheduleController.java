@@ -92,6 +92,8 @@ public class AddTourScheduleController extends StaffTourScheduleSupport {
         }
         if (tour.getSingleRoomSurcharge() != null && tour.getSingleRoomSurcharge().compareTo(java.math.BigDecimal.ZERO) > 0) {
             schedule.setSingleRoomSurcharge(tour.getSingleRoomSurcharge());
+        } else {
+            schedule.setSingleRoomSurcharge(java.math.BigDecimal.ZERO);
         }
         schedule.setDepositPercent(0);
         schedule.setVatPercent(NO_VAT_PERCENT);

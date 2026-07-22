@@ -259,6 +259,9 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         if (numberOfNights == null || numberOfNights > 15) {
             errors.add("Số đêm phải là số từ 0 đến 15.");
         }
+        if (numberOfDay != null && numberOfNights != null && numberOfNights > numberOfDay) {
+            errors.add("Số đêm không được lớn hơn số ngày của tour.");
+        }
 
         if (isBlank(data.startPlace) || data.startPlace.length() < 2 || data.startPlace.length() > 255) {
             errors.add("Điểm khởi hành phải được chọn từ danh sách tỉnh/thành.");
