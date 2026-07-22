@@ -1191,7 +1191,7 @@ public class TourDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Tour tour = mapTour(rs);
-                    tour.setScheduleList(getAvailableSchedulesForCustomerByTourId(tour.getTourID(), 3));
+                    tour.setScheduleList(getAvailableSchedulesForCustomerByTourId(tour.getTourID(), 100));
                     tours.add(tour);
                 }
             }
@@ -1245,7 +1245,7 @@ public class TourDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Tour tour = mapTour(rs);
-                    tour.setScheduleList(getAvailableSchedulesForCustomerByTourId(tour.getTourID(), 2));
+                    tour.setScheduleList(getAvailableSchedulesForCustomerByTourId(tour.getTourID(), 100));
                     tours.add(tour);
                 }
             }
@@ -1268,7 +1268,7 @@ public class TourDAO {
                 if (rs.next()) {
                     Tour tour = mapTour(rs);
                     tour.setItineraryList(getItinerariesByTourId(tourID));
-                    tour.setScheduleList(getAvailableSchedulesForCustomerByTourId(tourID, 50));
+                    tour.setScheduleList(getAvailableSchedulesForCustomerByTourId(tourID, 100));
                     loadManagedImages(tour);
                     return tour;
                 }

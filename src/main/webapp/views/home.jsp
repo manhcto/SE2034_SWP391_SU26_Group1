@@ -30,7 +30,7 @@
         .home-tour-body { padding: 12px 10px 14px; display: grid; gap: 7px; font-size: 13px; color: #3f3f46; }
         .home-tour-body span { display: flex; align-items: center; gap: 8px; }
         .home-tour-footer { margin-top: 2px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .home-tour-price { margin-left: auto; color: #ec008c; font-size: 17px; font-weight: 500; white-space: nowrap; }
+        .home-tour-price { margin-left: auto; color: #175CD3; font-size: 17px; font-weight: 500; white-space: nowrap; }
         .tour-rail-btn { position: absolute; top: 68px; z-index: 2; width: 32px; height: 58px; border: 0; color: #ffffff; background: rgba(0,0,0,.38); font-size: 34px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
         .tour-rail-btn:hover { background: rgba(0,0,0,.58); }
         .tour-rail-btn.prev { left: 0; }
