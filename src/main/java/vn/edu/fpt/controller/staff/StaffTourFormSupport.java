@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import vn.edu.fpt.common.TourImageStorage;
 import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.TourDAO;
 import vn.edu.fpt.model.Tour;
@@ -14,12 +15,10 @@ import vn.edu.fpt.model.TourSchedule;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -32,7 +31,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 public abstract class StaffTourFormSupport extends HttpServlet {
@@ -41,9 +39,8 @@ public abstract class StaffTourFormSupport extends HttpServlet {
     protected final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
 
     private static final BigDecimal MAX_MONEY = new BigDecimal("1000000000");
-    private static final BigDecimal CHILD_RATE = new BigDecimal("0.75");
-    private static final BigDecimal INFANT_SECOND_RATE = new BigDecimal("0.50");
-    private static final int DEFAULT_VAT = 8;
+    private static final BigDecimal CHILD_RATE = new BigDecimal("0.50");
+    private static final int NO_VAT_PERCENT = 0;
     private static final int DEFAULT_ARRIVE_BEFORE_MINUTES = 30;
     private static final String DEFAULT_CANCELLATION_POLICY = "Thanh toán đủ 100% khi đặt tour. Chính sách hủy/hoàn tiền áp dụng theo trang quy định chung của công ty.";
 
@@ -78,7 +75,6 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         request.setAttribute("regionList", tourDAO.getActiveRegions());
         request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveProvinces());
         request.setAttribute("transportSeats", TRANSPORT_SEATS);
-        request.setAttribute("defaultVat", DEFAULT_VAT);
         request.setAttribute("nextTourCode", tourDAO.getNextTourCodePreview());
 
         String currentStatus = tour == null ? "" : safeTrim(tour.getStatus());
@@ -86,10 +82,12 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         boolean fullEditAllowed = !editMode || isFullEditableStatus(currentStatus);
         boolean limitedEditAllowed = editMode && isLimitedEditableStatus(currentStatus);
         boolean priceAndScheduleLocked = editMode && isPriceAndScheduleLocked(currentStatus);
+        boolean activeTourContentOnly = editMode && isActiveTourStatus(currentStatus);
         request.setAttribute("fullEditAllowed", fullEditAllowed);
         request.setAttribute("limitedEditAllowed", limitedEditAllowed);
         request.setAttribute("priceAndScheduleLocked", priceAndScheduleLocked);
         request.setAttribute("routeAndScheduleInfoLocked", priceAndScheduleLocked);
+        request.setAttribute("activeTourContentOnly", activeTourContentOnly);
         if (tour != null && tour.getScheduleList() != null && !tour.getScheduleList().isEmpty()) {
             request.setAttribute("initialSchedule", tour.getScheduleList().get(0));
         }
@@ -389,11 +387,11 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         tour.setImage(data.image);
         tour.setIntroImage(data.introImage);
         tour.setAdultPrice(adultPrice);
-        tour.setChildrenPrice(calculatePercentWithVat(adultPrice, CHILD_RATE));
-        tour.setInfantPrice(calculatePercentWithVat(adultPrice, INFANT_SECOND_RATE));
+        tour.setChildrenPrice(calculatePercent(adultPrice, CHILD_RATE));
+        tour.setInfantPrice(BigDecimal.ZERO);
         tour.setSingleRoomSurcharge(parseMoneyOrZero(data.singleRoomSurchargeRaw));
         tour.setDepositPercent(0);
-        tour.setVatPercent(DEFAULT_VAT);
+        tour.setVatPercent(NO_VAT_PERCENT);
         tour.setTourIntroduce(data.tourIntroduce);
         tour.setTourInclude(data.tourHighlights);
         tour.setTourNonInclude("");
@@ -442,11 +440,11 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         schedule.setBookedSeats(0);
         schedule.setMaxParticipantsPerBooking(Math.min(10, maxParticipants));
         schedule.setAdultPrice(scheduleAdultPrice);
-        schedule.setChildPrice(calculatePercentWithVat(scheduleAdultPrice, CHILD_RATE));
-        schedule.setInfantPrice(calculatePercentWithVat(scheduleAdultPrice, INFANT_SECOND_RATE));
+        schedule.setChildPrice(calculatePercent(scheduleAdultPrice, CHILD_RATE));
+        schedule.setInfantPrice(BigDecimal.ZERO);
         schedule.setSingleRoomSurcharge(tour.getSingleRoomSurcharge());
         schedule.setDepositPercent(0);
-        schedule.setVatPercent(DEFAULT_VAT);
+        schedule.setVatPercent(NO_VAT_PERCENT);
         schedule.setCancellationPolicy(DEFAULT_CANCELLATION_POLICY);
         schedule.setScheduleStatus("Active".equals(tour.getStatus()) ? "Open" : "Planned");
         return schedule;
@@ -458,7 +456,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         tour.setNumberOfDay(dayCount);
         tour.setNumberOfNights(0);
         tour.setDepositPercent(0);
-        tour.setVatPercent(DEFAULT_VAT);
+        tour.setVatPercent(NO_VAT_PERCENT);
         tour.setArriveBeforeMinutes(null);
         tour.setMainTransportType("Xe Du Lịch");
         tour.setStatus("Draft");
@@ -582,6 +580,10 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         return "Pending".equals(status) || "Active".equals(status);
     }
 
+    protected boolean isActiveTourStatus(String status) {
+        return "Active".equals(status);
+    }
+
     protected boolean isPriceAndScheduleLocked(String status) {
         return isLimitedEditableStatus(status);
     }
@@ -603,6 +605,67 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         data.status = safeTrim(existingTour.getStatus());
     }
 
+    protected void preserveActiveTourEditableFields(TourFormData data, Tour existingTour) {
+        if (data == null || existingTour == null) {
+            return;
+        }
+
+        data.tourCategoryIDRaw = String.valueOf(existingTour.getTourCategoryID());
+        data.tourName = safeTrim(existingTour.getTourName());
+        data.tourType = isBlank(existingTour.getTourType()) ? "Package" : safeTrim(existingTour.getTourType());
+        data.numberOfDayRaw = String.valueOf(existingTour.getNumberOfDay());
+        data.numberOfNightsRaw = existingTour.getNumberOfNights() == null ? "0" : String.valueOf(existingTour.getNumberOfNights());
+        data.startPlace = safeTrim(existingTour.getStartPlace());
+        data.endPlace = safeTrim(existingTour.getEndPlace());
+        data.adultPriceRaw = existingTour.getAdultPrice() == null ? "0" : existingTour.getAdultPrice().toPlainString();
+        data.singleRoomSurchargeRaw = existingTour.getSingleRoomSurcharge() == null ? "0" : existingTour.getSingleRoomSurcharge().toPlainString();
+        data.tourIntroduce = safeTrim(existingTour.getTourIntroduce());
+        data.pickupAddress = safeTrim(existingTour.getPickupAddress());
+        data.arriveBeforeMinutesRaw = existingTour.getArriveBeforeMinutes() == null ? null : String.valueOf(existingTour.getArriveBeforeMinutes());
+        data.mainTransportType = safeTrim(existingTour.getMainTransportType());
+        data.status = safeTrim(existingTour.getStatus());
+        data.featured = existingTour.isFeatured();
+        data.regionIDRaw = existingTour.getRegionID() == null ? null : String.valueOf(existingTour.getRegionID());
+        data.image = firstNonBlank(data.image, existingTour.getImage());
+        data.introImage = firstNonBlank(data.introImage, existingTour.getIntroImage());
+        data.itineraries = mergeActiveTourItineraries(data.itineraries, existingTour.getItineraryList());
+    }
+
+    private List<TourItinerary> mergeActiveTourItineraries(List<TourItinerary> submittedItineraries,
+                                                           List<TourItinerary> existingItineraries) {
+        Map<Integer, TourItinerary> submittedByDay = new HashMap<>();
+        if (submittedItineraries != null) {
+            for (TourItinerary itinerary : submittedItineraries) {
+                submittedByDay.put(itinerary.getDayNumber(), itinerary);
+            }
+        }
+
+        List<TourItinerary> result = new ArrayList<>();
+        if (existingItineraries == null || existingItineraries.isEmpty()) {
+            return result;
+        }
+
+        for (TourItinerary existing : existingItineraries) {
+            TourItinerary submitted = submittedByDay.get(existing.getDayNumber());
+            TourItinerary merged = new TourItinerary();
+            merged.setItineraryID(existing.getItineraryID());
+            merged.setTourID(existing.getTourID());
+            merged.setDayNumber(existing.getDayNumber());
+            merged.setTitle(existing.getTitle());
+            merged.setDescription(existing.getDescription());
+            merged.setMealPlan(existing.getMealPlan());
+            merged.setTransportNote(existing.getTransportNote());
+            merged.setStatus(existing.getStatus());
+            merged.setImageUrl(firstNonBlank(
+                    submitted == null ? null : submitted.getImageUrl(),
+                    existing.getImageUrl()
+            ));
+            result.add(merged);
+        }
+
+        return result;
+    }
+
     protected void preserveTourPricingFields(TourFormData data, Tour existingTour) {
         if (data == null || existingTour == null) {
             return;
@@ -613,7 +676,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
     }
 
     protected String getChildPricingPolicy() {
-        return "Trẻ em dưới 05 tuổi, cao dưới 1m: miễn phí, cha mẹ lo chi phí phát sinh; 02 người lớn chỉ kèm 01 trẻ miễn phí. Trẻ em thứ 2 dưới 05 tuổi tính 50% giá người lớn. Phụ thu ghế ngồi trên xe nếu yêu cầu thêm chỗ: 40% giá người lớn. Trẻ em từ 05–10 tuổi tính 75% giá người lớn, gồm chi phí và ghế riêng, ngủ chung giường với bố mẹ. Trẻ em từ 10 tuổi tính 100% giá tour như người lớn. VAT áp dụng 8%.";
+        return "Trẻ em dưới 5 tuổi miễn phí. Trẻ em từ 5 đến 10 tuổi tính 50% giá người lớn. Trẻ em từ 10 tuổi áp dụng giá người lớn.";
     }
 
     protected String getSingleRoomPolicy() {
@@ -662,7 +725,10 @@ public abstract class StaffTourFormSupport extends HttpServlet {
     }
 
     private boolean isValidImagePath(String value) {
-        return value != null && (value.matches("^https?://.+") || value.startsWith("/") || value.startsWith("assets/"));
+        return value != null && (value.matches("^https?://.+")
+                || value.startsWith("/")
+                || value.startsWith("assets/")
+                || value.startsWith(TourImageStorage.PUBLIC_PATH_PREFIX));
     }
 
     private BigDecimal parseBigDecimal(String value) {
@@ -687,15 +753,6 @@ public abstract class StaffTourFormSupport extends HttpServlet {
             return BigDecimal.ZERO;
         }
         return base.multiply(rate).setScale(0, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calculatePercentWithVat(BigDecimal base, BigDecimal rate) {
-        if (base == null) {
-            return BigDecimal.ZERO;
-        }
-        return base.multiply(rate)
-                .multiply(BigDecimal.valueOf(100 + DEFAULT_VAT))
-                .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
     }
 
     private LocalDate parseLocalDate(String value) {
@@ -764,7 +821,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         }
 
         String contentType = part.getContentType() == null ? "" : part.getContentType().toLowerCase();
-        if (!Set.of("image/jpeg", "image/png", "image/webp", "image/gif").contains(contentType)) {
+        if (!TourImageStorage.isAllowedContentType(contentType)) {
             errors.add(label + " chỉ hỗ trợ JPG, PNG, WEBP hoặc GIF.");
             return "";
         }
@@ -780,31 +837,12 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         }
 
         String fileName = UUID.randomUUID() + extension;
-        String uploadRelativePath = "/assets/uploads/tours";
-        String realPath = request.getServletContext().getRealPath(uploadRelativePath);
-        if (realPath == null) {
-            errors.add("Không xác định được thư mục upload ảnh trong ứng dụng.");
-            return "";
-        }
-
-        Path uploadDir = Path.of(realPath);
-        Path target;
         try {
-            Files.createDirectories(uploadDir);
-            target = uploadDir.resolve(fileName);
-        } catch (IOException e) {
-            errors.add("Không thể tạo thư mục upload ảnh trong ứng dụng.");
-            return "";
-        }
-
-        try (InputStream input = part.getInputStream()) {
-            Files.copy(input, target);
+            return TourImageStorage.save(part, fileName);
         } catch (IOException e) {
             errors.add("Không thể lưu " + label.toLowerCase() + ". Hãy thử lại hoặc dùng URL ảnh hợp lệ.");
             return "";
         }
-
-        return uploadRelativePath.substring(1) + "/" + fileName;
     }
 
     protected static class TourFormData {

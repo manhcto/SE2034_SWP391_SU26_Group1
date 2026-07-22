@@ -55,7 +55,9 @@ public class EditTourController extends StaffTourFormSupport {
         if (request.getParameter("numberOfDay") != null) {
             TourFormData data = readTourFormData(request);
             data.status = tour.getStatus();
-            if (isPriceAndScheduleLocked(tour.getStatus())) {
+            if (isActiveTourStatus(tour.getStatus())) {
+                preserveActiveTourEditableFields(data, tour);
+            } else if (isPriceAndScheduleLocked(tour.getStatus())) {
                 preservePriceRouteAndScheduleFields(data, tour);
             }
             Tour submittedTour = buildTourFromData(data, getCurrentUserID(request), false);
@@ -90,9 +92,16 @@ public class EditTourController extends StaffTourFormSupport {
         Tour existingTour = tourID == null ? null : tourDAO.getTourById(tourID);
 
         if (existingTour != null) {
+            existingTour.setItineraryList(tourDAO.getItinerariesByTourId(existingTour.getTourID()));
+            existingTour.setScheduleList(tourDAO.getSchedulesByTourId(existingTour.getTourID()));
+            tourDAO.loadManagedImages(existingTour);
             data.status = existingTour.getStatus();
-            preserveTourPricingFields(data, existingTour);
-            if (isPriceAndScheduleLocked(existingTour.getStatus())) {
+            if (isActiveTourStatus(existingTour.getStatus())) {
+                preserveActiveTourEditableFields(data, existingTour);
+            } else {
+                preserveTourPricingFields(data, existingTour);
+            }
+            if (!isActiveTourStatus(existingTour.getStatus()) && isPriceAndScheduleLocked(existingTour.getStatus())) {
                 preservePriceRouteAndScheduleFields(data, existingTour);
             }
         }
@@ -102,7 +111,7 @@ public class EditTourController extends StaffTourFormSupport {
         if (tourID == null || existingTour == null) {
             errors.add("Tour cần cập nhật không tồn tại.");
         } else if (!canEditTourStatus(existingTour.getStatus())) {
-            errors.add("Tour ở trạng thái hiện tại không được sửa. Chỉ trạng thái Nháp/Bị từ chối được sửa đầy đủ; Chờ duyệt/Đang bán chỉ được bổ sung nội dung, ảnh và lịch trình.");
+            errors.add("Tour ở trạng thái hiện tại không được sửa. Chỉ trạng thái Nháp/Bị từ chối được sửa đầy đủ; Đang bán chỉ được thêm ảnh và sửa điểm nổi bật.");
         }
 
         Tour tour = buildTourFromData(data, getCurrentUserID(request), false);

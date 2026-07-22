@@ -87,14 +87,14 @@ public class AddTourScheduleController extends StaffTourScheduleSupport {
         schedule.setTourID(tour.getTourID());
         if (tour.getAdultPrice() != null && tour.getAdultPrice().compareTo(java.math.BigDecimal.ZERO) > 0) {
             schedule.setAdultPrice(tour.getAdultPrice());
-            schedule.setChildPrice(tour.getChildrenPrice());
-            schedule.setInfantPrice(tour.getInfantPrice());
+            schedule.setChildPrice(tour.getAdultPrice().multiply(new java.math.BigDecimal("0.50")).setScale(0, java.math.RoundingMode.HALF_UP));
+            schedule.setInfantPrice(java.math.BigDecimal.ZERO);
         }
         if (tour.getSingleRoomSurcharge() != null && tour.getSingleRoomSurcharge().compareTo(java.math.BigDecimal.ZERO) > 0) {
             schedule.setSingleRoomSurcharge(tour.getSingleRoomSurcharge());
         }
         schedule.setDepositPercent(0);
-        schedule.setVatPercent(vatRateDAO.getVatPercentForDate(java.time.LocalDate.now()));
+        schedule.setVatPercent(NO_VAT_PERCENT);
         schedule.setCancellationPolicy(DEFAULT_CANCELLATION_POLICY);
         schedule.setScheduleStatus(canOpenScheduleForTour(tour) ? "Open" : "Planned");
         schedule.setScheduleTransportType(resolveScheduleTransportType(tour, null));

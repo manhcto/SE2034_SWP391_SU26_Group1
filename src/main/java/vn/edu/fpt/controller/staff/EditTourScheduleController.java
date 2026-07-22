@@ -34,7 +34,7 @@ public class EditTourScheduleController extends StaffTourScheduleSupport {
 
         alignScheduleStatusForTour(tour, schedule);
 
-        if (!canManageScheduleForTour(tour) || isFinalScheduleStatus(schedule.getScheduleStatus())) {
+        if (!canEditScheduleForTour(tour) || isFinalScheduleStatus(schedule.getScheduleStatus())) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/tour/schedule/detail?id=" + scheduleID
                     + "&message=noScheduleEditPermission");
@@ -69,6 +69,13 @@ public class EditTourScheduleController extends StaffTourScheduleSupport {
         }
         alignScheduleStatusForTour(tour, existingSchedule);
         boolean lockedCore = Math.max(existingSchedule.getQuantity(), existingSchedule.getBookedSeats()) > 0;
+
+        if (!canEditScheduleForTour(tour) || isFinalScheduleStatus(existingSchedule.getScheduleStatus())) {
+            response.sendRedirect(request.getContextPath()
+                    + "/staff/tour/schedule/detail?id=" + scheduleID
+                    + "&message=noScheduleEditPermission");
+            return;
+        }
 
         if (existingSchedule != null) {
             data.tourIDRaw = String.valueOf(existingSchedule.getTourID());

@@ -40,6 +40,7 @@ public class ListTourScheduleController extends StaffTourScheduleSupport {
         request.setAttribute("readinessErrors", tourDAO.getTourReadinessErrors(tourID));
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
         request.setAttribute("canManageSchedule", canManageScheduleForTour(tour));
+        request.setAttribute("canEditSchedule", canEditScheduleForTour(tour));
         request.setAttribute("canOpenSchedule", canOpenScheduleForTour(tour));
         request.setAttribute("allSchedules", false);
         request.getRequestDispatcher("/views/staff/tour-schedule-list.jsp")

@@ -647,7 +647,7 @@ public class TourDAO {
                 ps.setBigDecimal(12, schedule.getInfantPrice());
                 ps.setBigDecimal(13, schedule.getSingleRoomSurcharge());
                 ps.setInt(14, schedule.getDepositPercent() == null ? 0 : schedule.getDepositPercent());
-                ps.setInt(15, schedule.getVatPercent() == null ? 8 : schedule.getVatPercent());
+                ps.setInt(15, schedule.getVatPercent() == null ? 0 : schedule.getVatPercent());
                 setNullableString(ps, 16, schedule.getCancellationPolicy());
                 ps.setString(17, isBlank(schedule.getScheduleStatus()) ? "Open" : schedule.getScheduleStatus());
                 ps.addBatch();
@@ -1100,7 +1100,7 @@ public class TourDAO {
         ps.setBigDecimal(index++, schedule.getInfantPrice());
         ps.setBigDecimal(index++, schedule.getSingleRoomSurcharge());
         ps.setInt(index++, schedule.getDepositPercent() == null ? 0 : schedule.getDepositPercent());
-        ps.setInt(index++, schedule.getVatPercent() == null ? 8 : schedule.getVatPercent());
+        ps.setInt(index++, schedule.getVatPercent() == null ? 0 : schedule.getVatPercent());
         setNullableString(ps, index++, schedule.getCancellationPolicy());
         ps.setString(index++, isBlank(schedule.getScheduleStatus()) ? "Open" : schedule.getScheduleStatus());
         if (updateMode) {

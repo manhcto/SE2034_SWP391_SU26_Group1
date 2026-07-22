@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.DAO.TourDAO;
-import vn.edu.fpt.DAO.VatRateDAO;
 import vn.edu.fpt.model.Tour;
 import vn.edu.fpt.model.TourSchedule;
 
@@ -25,13 +24,11 @@ import java.util.Map;
 public abstract class StaffTourScheduleSupport extends HttpServlet {
 
     protected final TourDAO tourDAO = new TourDAO();
-    protected final VatRateDAO vatRateDAO = new VatRateDAO();
 
     private static final BigDecimal MIN_ADULT_PRICE = new BigDecimal("500000");
     private static final BigDecimal MAX_MONEY = new BigDecimal("1000000000");
-    private static final BigDecimal CHILD_RATE = new BigDecimal("0.75");
-    private static final BigDecimal INFANT_SECOND_RATE = new BigDecimal("0.50");
-    protected static final int DEFAULT_VAT = 8;
+    private static final BigDecimal CHILD_RATE = new BigDecimal("0.50");
+    protected static final int NO_VAT_PERCENT = 0;
     protected static final String DEFAULT_CANCELLATION_POLICY = "Thanh toán đủ 100% khi đặt tour. Chính sách hủy/hoàn tiền áp dụng theo trang quy định chung của công ty.";
 
     protected static final Map<String, List<Integer>> TRANSPORT_SEATS = new LinkedHashMap<>();
@@ -68,8 +65,6 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         request.setAttribute("selectedTransportType", selectedTransport);
         request.setAttribute("seatOptions", getSeatOptions(selectedTransport));
         request.setAttribute("todayIso", LocalDate.now().toString());
-        request.setAttribute("defaultVat", resolveFormVatPercent(schedule));
-        request.setAttribute("vatRates", vatRateDAO.getActiveRates());
         request.setAttribute("bookedSchedule", bookedSchedule);
         request.setAttribute("lockedCore", lockedCore);
         request.setAttribute("canOpenSchedule", canOpenScheduleForTour(tour));
@@ -165,6 +160,10 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
 
         if (!canManageScheduleForTour(tour)) {
             errors.add("Tour đang ngừng bán nên không được thêm/sửa lịch khởi hành.");
+        }
+
+        if (editMode && !canEditScheduleForTour(tour)) {
+            errors.add("Tour đã mở bán nên không được sửa lịch khởi hành đã có. Staff chỉ được thêm lịch mới cho tour này.");
         }
 
         Integer tourID = parsePositiveInt(data.tourIDRaw);
@@ -272,9 +271,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
             validateAdultPrice(data.adultPriceRaw, errors);
             BigDecimal adultPrice = parseBigDecimal(data.adultPriceRaw);
             if (adultPrice != null && isWholeMoney(adultPrice) && adultPrice.compareTo(MIN_ADULT_PRICE) > 0) {
-                int vatPercent = resolveVatPercentForDate(startDate, existingSchedule, lockedCore);
-                validateDerivedPrice(data.childPriceRaw, "Giá trẻ em 5-10 tuổi", calculatePercentWithVat(adultPrice, CHILD_RATE, vatPercent), errors);
-                validateDerivedPrice(data.infantPriceRaw, "Giá trẻ em dưới 5 tuổi", calculatePercentWithVat(adultPrice, INFANT_SECOND_RATE, vatPercent), errors);
+                validateDerivedPrice(data.childPriceRaw, "Giá trẻ em 5-10 tuổi", calculatePercent(adultPrice, CHILD_RATE), errors);
+                validateDerivedPrice(data.infantPriceRaw, "Giá trẻ em dưới 5 tuổi", BigDecimal.ZERO, errors);
             }
             validateMoney(data.singleRoomSurchargeRaw, "Phụ thu phòng đơn", true, errors);
         }
@@ -348,9 +346,9 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
                 ? existingSchedule.getSingleRoomSurcharge()
                 : parseMoneyOrZero(data.singleRoomSurchargeRaw);
 
-        int vatPercent = resolveVatPercentForDate(startDate, existingSchedule, lockedCore);
-        BigDecimal expectedChildPrice = calculatePercentWithVat(adultPrice, CHILD_RATE, vatPercent);
-        BigDecimal expectedInfantPrice = calculatePercentWithVat(adultPrice, INFANT_SECOND_RATE, vatPercent);
+        int vatPercent = NO_VAT_PERCENT;
+        BigDecimal expectedChildPrice = calculatePercent(adultPrice, CHILD_RATE);
+        BigDecimal expectedInfantPrice = BigDecimal.ZERO;
         BigDecimal childPrice = lockedCore && existingSchedule != null
                 ? existingSchedule.getChildPrice()
                 : parseBigDecimal(data.childPriceRaw);
@@ -391,6 +389,10 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
 
     protected boolean canManageScheduleForTour(Tour tour) {
         return tour != null && !"Inactive".equals(tour.getStatus());
+    }
+
+    protected boolean canEditScheduleForTour(Tour tour) {
+        return tour != null && !"Inactive".equals(tour.getStatus()) && !"Active".equals(tour.getStatus());
     }
 
     protected boolean canOpenScheduleForTour(Tour tour) {
@@ -630,32 +632,11 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         return money == null ? BigDecimal.ZERO : money;
     }
 
-    private BigDecimal calculatePercentWithVat(BigDecimal base, BigDecimal rate) {
-        return calculatePercentWithVat(base, rate, DEFAULT_VAT);
-    }
-
-    private BigDecimal calculatePercentWithVat(BigDecimal base, BigDecimal rate, int vatPercent) {
+    private BigDecimal calculatePercent(BigDecimal base, BigDecimal rate) {
         if (base == null) {
             return BigDecimal.ZERO;
         }
-        return base.multiply(rate)
-                .multiply(BigDecimal.valueOf(100L + Math.max(0, vatPercent)))
-                .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
-    }
-
-    private int resolveVatPercentForDate(LocalDate startDate, TourSchedule existingSchedule, boolean lockedCore) {
-        if (lockedCore && existingSchedule != null && existingSchedule.getVatPercent() != null && existingSchedule.getVatPercent() >= 0) {
-            return existingSchedule.getVatPercent();
-        }
-        return vatRateDAO.getVatPercentForDate(startDate == null ? LocalDate.now() : startDate);
-    }
-
-    private int resolveFormVatPercent(TourSchedule schedule) {
-        if (schedule != null && schedule.getVatPercent() != null && schedule.getVatPercent() > 0) {
-            return schedule.getVatPercent();
-        }
-        LocalDate startDate = toLocalDate(schedule == null ? null : schedule.getStartDate());
-        return vatRateDAO.getVatPercentForDate(startDate == null ? LocalDate.now() : startDate);
+        return base.multiply(rate).setScale(0, RoundingMode.HALF_UP);
     }
 
     protected static class ScheduleFormData {

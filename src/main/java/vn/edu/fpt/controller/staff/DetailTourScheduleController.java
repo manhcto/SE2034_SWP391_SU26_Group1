@@ -36,7 +36,7 @@ public class DetailTourScheduleController extends StaffTourScheduleSupport {
         request.setAttribute("tour", tour);
         request.setAttribute("schedule", schedule);
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
-        request.setAttribute("canEditSchedule", canManageScheduleForTour(tour) && !isFinalScheduleStatus(schedule.getScheduleStatus()));
+        request.setAttribute("canEditSchedule", canEditScheduleForTour(tour) && !isFinalScheduleStatus(schedule.getScheduleStatus()));
         request.getRequestDispatcher("/views/staff/tour-schedule-detail.jsp")
                 .forward(request, response);
     }
