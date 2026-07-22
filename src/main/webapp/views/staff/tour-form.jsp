@@ -324,6 +324,7 @@
     const startSelect = document.getElementById('startPlaceSelect');
     const endSelect = document.getElementById('endPlaceSelect');
     const numberOfDay = document.getElementById('numberOfDay');
+    const numberOfNights = document.getElementById('numberOfNights');
     const updateItineraryBtn = document.getElementById('updateItineraryBtn');
     const itineraryContainer = document.getElementById('itineraryContainer');
     const enhancedSelects = [];
@@ -519,6 +520,20 @@
         }
     }
 
+    function syncNightLimit() {
+        if (!numberOfDay || !numberOfNights) return;
+        const days = parseInt(numberOfDay.value || '0', 10);
+        const nights = parseInt(numberOfNights.value || '0', 10);
+        if (days > 0) {
+            numberOfNights.max = String(Math.min(15, days));
+        }
+        if (days > 0 && nights > days) {
+            numberOfNights.setCustomValidity('Số đêm không được lớn hơn số ngày của tour.');
+        } else {
+            numberOfNights.setCustomValidity('');
+        }
+    }
+
     document.querySelectorAll('.place-select').forEach(function (select) {
         select.addEventListener('change', function () { syncPlace(select); });
         syncPlace(select);
@@ -535,11 +550,19 @@
             if (days > 0) {
                 numberOfDay.value = Math.min(15, Math.max(1, days));
             }
+            syncNightLimit();
         });
     }
+    if (numberOfNights) numberOfNights.addEventListener('input', syncNightLimit);
 
     if (tourForm) {
         tourForm.addEventListener('submit', function (event) {
+            syncNightLimit();
+            if (numberOfNights && !numberOfNights.checkValidity()) {
+                event.preventDefault();
+                numberOfNights.reportValidity();
+                return;
+            }
             if (tourForm.dataset.confirmed === 'true') return;
             const message = 'Bạn đã kiểm tra kỹ thông tin tour và chắc chắn muốn lưu không?';
             if (!window.confirm(message)) {
@@ -551,6 +574,7 @@
     }
 
     filterPlaces(false);
+    syncNightLimit();
     refreshAllCustomSelects();
     attachImageEvents(document);
 })();
