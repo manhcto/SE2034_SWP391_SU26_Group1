@@ -48,8 +48,19 @@
         .table td,.table th { vertical-align:middle; padding:14px 16px; }
         .icon-action { width:38px; height:38px; border-radius:12px; border:1px solid var(--border); background:#eff6ff; color:#2563eb; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
         .icon-action:hover { background:#dbeafe; color:#1d4ed8; }
+        .checklist-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+        .check-item { border:1px solid var(--border); border-radius:16px; padding:15px; display:flex; gap:12px; align-items:flex-start; background:#fff; }
+        .check-item i { width:32px; height:32px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; flex:0 0 32px; }
+        .check-item.ready { border-color:#bbf7d0; background:#f0fdf4; }
+        .check-item.ready i { background:#dcfce7; color:#166534; }
+        .check-item.missing { border-color:#fed7aa; background:#fff7ed; }
+        .check-item.missing i { background:#ffedd5; color:#c2410c; }
+        .check-item strong { display:block; color:var(--dark); }
+        .check-item small { display:block; margin-top:4px; color:var(--muted); font-weight:700; line-height:1.45; }
+        .duplicate-row,.warning-row { background:#fff7ed; }
+        .duplicate-chip,.price-warning-chip { display:inline-flex; align-items:center; gap:6px; margin-top:5px; padding:4px 7px; border-radius:999px; background:#ffedd5; color:#c2410c; font-size:11px; font-weight:900; }
         @media (max-width:1100px) { .info-grid{grid-template-columns:repeat(2,1fr);} }
-        @media (max-width:700px) { .admin-layout{display:block;} .admin-main{padding:18px;} .topbar{display:block;} .info-grid{grid-template-columns:1fr;} }
+        @media (max-width:700px) { .admin-layout{display:block;} .admin-main{padding:18px;} .topbar{display:block;} .info-grid,.checklist-grid{grid-template-columns:1fr;} }
     </style>
 </head>
 <body>
@@ -94,6 +105,25 @@
                     <c:forEach var="err" items="${readinessErrors}"><li>${err}</li></c:forEach>
                 </ul>
             </div>
+        </c:if>
+
+        <c:if test="${tour.status == 'Draft' || tour.status == 'Rejected'}">
+            <section class="page-card">
+                <div class="section-title"><i class="fa-solid fa-list-check text-primary"></i><h5>Checklist độ hoàn thiện trước khi gửi duyệt</h5></div>
+                <div class="section-body">
+                    <div class="checklist-grid">
+                        <c:forEach var="item" items="${readinessChecklist}">
+                            <div class="check-item ${item.ready ? 'ready' : 'missing'}">
+                                <i class="fa-solid ${item.ready ? 'fa-check' : 'fa-triangle-exclamation'}"></i>
+                                <div>
+                                    <strong>${item.title}</strong>
+                                    <small>${item.detail}</small>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+            </section>
         </c:if>
 
         <section class="page-card">
@@ -190,8 +220,14 @@
                             <thead><tr><th>Ngày đi</th><th>Ngày về</th><th>Giờ đi</th><th>Số khách tối thiểu</th><th>Đã đặt/Tối đa</th><th>Giá người lớn</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
                             <tbody>
                             <c:forEach var="schedule" items="${tour.scheduleList}">
-                                <tr>
-                                    <td><fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy"/></td>
+                                <fmt:formatDate value="${schedule.startDate}" pattern="yyyy-MM-dd" var="scheduleDateKey" />
+                                <tr class="${duplicateStartDateMap[scheduleDateKey] == true ? 'duplicate-row' : ''} ${not empty schedulePriceWarningMap[schedule.tourScheduleID] ? 'warning-row' : ''}">
+                                    <td>
+                                        <fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy"/>
+                                        <c:if test="${duplicateStartDateMap[scheduleDateKey] == true}">
+                                            <span class="duplicate-chip"><i class="fa-solid fa-triangle-exclamation"></i> Trùng ngày</span>
+                                        </c:if>
+                                    </td>
                                     <td><fmt:formatDate value="${schedule.endDate}" pattern="dd-MM-yyyy"/></td>
                                     <td>${empty schedule.departureTime ? '-' : schedule.departureTime}</td>
                                     <td>${schedule.minParticipants}</td>
@@ -201,8 +237,11 @@
                                             <c:when test="${empty schedule.adultPrice}">Chưa nhập</c:when>
                                             <c:otherwise><fmt:formatNumber value="${schedule.adultPrice}" type="number" maxFractionDigits="0"/> đ</c:otherwise>
                                         </c:choose>
+                                        <c:if test="${not empty schedulePriceWarningMap[schedule.tourScheduleID]}">
+                                            <span class="price-warning-chip" title="${schedulePriceWarningMap[schedule.tourScheduleID]}"><i class="fa-solid fa-triangle-exclamation"></i> Giá bất thường</span>
+                                        </c:if>
                                     </td>
-                                    <td>${schedule.scheduleStatus}</td>
+                                    <td>${schedule.displayScheduleStatus}</td>
                                     <td><a class="icon-action" href="${pageContext.request.contextPath}/staff/tour/schedule/detail?id=${schedule.tourScheduleID}" title="Xem lịch" aria-label="Xem lịch"><i class="fa-solid fa-eye"></i></a></td>
                                 </tr>
                             </c:forEach>

@@ -25,7 +25,7 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
 
     protected final TourDAO tourDAO = new TourDAO();
 
-    private static final BigDecimal MIN_ADULT_PRICE = new BigDecimal("500000");
+    private static final BigDecimal MIN_ADULT_PRICE = new BigDecimal("100000");
     private static final BigDecimal MAX_MONEY = new BigDecimal("1000000000");
     private static final BigDecimal CHILD_RATE = new BigDecimal("0.50");
     protected static final int NO_VAT_PERCENT = 0;
@@ -68,6 +68,7 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         request.setAttribute("bookedSchedule", bookedSchedule);
         request.setAttribute("lockedCore", lockedCore);
         request.setAttribute("canOpenSchedule", canOpenScheduleForTour(tour));
+        request.setAttribute("existingScheduleDateKeys", getExistingScheduleDateKeys(tour, schedule));
         prepareScheduleValidationAttributes(request, errors);
 
         request.getRequestDispatcher("/views/staff/tour-schedule-form.jsp")
@@ -223,6 +224,9 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
             int currentScheduleID = existingSchedule == null ? 0 : existingSchedule.getTourScheduleID();
             if (!lockedCore && tourDAO.isDuplicateScheduleStartDate(tour.getTourID(), currentScheduleID, Timestamp.valueOf(startDate.atStartOfDay()))) {
                 errors.add("Tour này đã có lịch khởi hành cùng ngày xuất phát. Không nên tạo trùng ngày.");
+            }
+            if (!lockedCore && tourDAO.isScheduleStartDateTooClose(tour.getTourID(), currentScheduleID, Timestamp.valueOf(startDate.atStartOfDay()), 3)) {
+                errors.add("Ngày xuất phát của các lịch trong cùng tour phải cách nhau ít nhất 3 ngày để Staff dễ vận hành và tránh trùng bán.");
             }
         }
 
@@ -437,7 +441,7 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
     }
 
     protected boolean isFinalScheduleStatus(String status) {
-        return "Cancelled".equals(status) || "Completed".equals(status);
+        return "Closed".equals(status) || "Cancelled".equals(status) || "Completed".equals(status);
     }
 
     protected List<Integer> getSeatOptions(Tour tour) {
@@ -446,6 +450,28 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
 
     protected List<Integer> getSeatOptions(String transportType) {
         return TRANSPORT_SEATS.getOrDefault(transportType, List.of(4, 7, 16, 29, 45));
+    }
+
+    private List<String> getExistingScheduleDateKeys(Tour tour, TourSchedule currentSchedule) {
+        List<String> dateKeys = new ArrayList<>();
+        if (tour == null || tour.getScheduleList() == null) {
+            return dateKeys;
+        }
+
+        int currentScheduleID = currentSchedule == null ? 0 : currentSchedule.getTourScheduleID();
+        for (TourSchedule item : tour.getScheduleList()) {
+            if (item == null || item.getStartDate() == null) {
+                continue;
+            }
+            if (item.getTourScheduleID() == currentScheduleID) {
+                continue;
+            }
+            if (isFinalScheduleStatus(item.getScheduleStatus())) {
+                continue;
+            }
+            dateKeys.add(item.getStartDate().toLocalDateTime().toLocalDate().toString());
+        }
+        return dateKeys;
     }
 
     protected String resolveScheduleTransportType(Tour tour, String scheduleTransportType) {
@@ -562,7 +588,7 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
             return;
         }
         if (value.compareTo(MIN_ADULT_PRICE) <= 0 || value.compareTo(MAX_MONEY) > 0) {
-            errors.add("Giá người lớn phải lớn hơn 500.000 và không vượt quá 1.000.000.000.");
+            errors.add("Giá người lớn phải lớn hơn 100.000 và không vượt quá 1.000.000.000.");
         }
     }
 

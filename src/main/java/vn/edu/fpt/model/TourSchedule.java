@@ -3,6 +3,8 @@ package vn.edu.fpt.model;
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class TourSchedule {
     private int tourScheduleID;
@@ -272,6 +274,9 @@ public class TourSchedule {
     }
 
     public String getDisplayScheduleStatus() {
+        if (isUpcomingSoon()) {
+            return "Sắp khởi hành";
+        }
         return switch (safeTrim(scheduleStatus)) {
             case "Open" -> "Mở bán";
             case "Closed" -> "Đóng bán";
@@ -280,6 +285,20 @@ public class TourSchedule {
             case "Planned" -> "Chưa mở bán";
             default -> "Chưa mở bán";
         };
+    }
+
+    public boolean isUpcomingSoon() {
+        String status = safeTrim(scheduleStatus);
+        if (!("Open".equals(status) || "Planned".equals(status))) {
+            return false;
+        }
+        if (startDate == null) {
+            return false;
+        }
+        LocalDate today = LocalDate.now();
+        LocalDate start = startDate.toLocalDateTime().toLocalDate();
+        long days = ChronoUnit.DAYS.between(today, start);
+        return days >= 3 && days <= 7;
     }
 
     private String safeTrim(String value) {

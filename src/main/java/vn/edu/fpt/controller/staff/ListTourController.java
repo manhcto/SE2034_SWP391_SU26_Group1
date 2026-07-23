@@ -9,6 +9,7 @@ import vn.edu.fpt.DAO.TourDAO;
 import vn.edu.fpt.model.Tour;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet(name = "ListTourController", urlPatterns = {"/staff/tour"})
@@ -26,8 +27,18 @@ public class ListTourController extends HttpServlet {
         String status = safeTrim(request.getParameter("status"));
         Integer categoryID = parsePositiveInt(request.getParameter("categoryID"));
         Integer regionID = parsePositiveInt(request.getParameter("regionID"));
+        String readiness = safeTrim(request.getParameter("readiness"));
 
         List<Tour> tourList = tourDAO.getToursForStaff(keyword, status, categoryID, regionID);
+        if ("notReady".equals(readiness)) {
+            List<Tour> notReadyTours = new ArrayList<>();
+            for (Tour tour : tourList) {
+                if (tour != null && !tourDAO.getTourReadinessErrors(tour.getTourID()).isEmpty()) {
+                    notReadyTours.add(tour);
+                }
+            }
+            tourList = notReadyTours;
+        }
 
         request.setAttribute("tourList", tourList);
         request.setAttribute("categoryList", tourDAO.getActiveCategories());
@@ -36,6 +47,7 @@ public class ListTourController extends HttpServlet {
         request.setAttribute("selectedStatus", status);
         request.setAttribute("selectedCategoryID", categoryID);
         request.setAttribute("selectedRegionID", regionID);
+        request.setAttribute("selectedReadiness", readiness);
         request.setAttribute("status", safeTrim(request.getParameter("statusMessage")));
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
 

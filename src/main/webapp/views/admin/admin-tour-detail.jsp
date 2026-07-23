@@ -212,7 +212,7 @@
                                     <td>${schedule.maxParticipants}</td>
                                     <td>${schedule.quantity}</td>
                                     <td>${schedule.remainingSeats}</td>
-                                    <td>${schedule.scheduleStatus}</td>
+                                    <td>${schedule.displayScheduleStatus}</td>
                                 </tr>
                             </c:forEach>
                             </tbody>

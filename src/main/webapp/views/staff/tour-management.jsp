@@ -88,7 +88,7 @@
 
         <section class="page-card toolbar">
             <form method="get" action="${pageContext.request.contextPath}/staff/tour" class="row g-3">
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label fw-bold">Tìm kiếm</label>
                     <input type="text" name="keyword" class="form-control" value="${keyword}" placeholder="Tên tour, mã tour, điểm đi, điểm đến">
                 </div>
@@ -103,7 +103,14 @@
                         <option value="Rejected" ${selectedStatus == 'Rejected' ? 'selected' : ''}>Bị từ chối</option>
                     </select>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label fw-bold">Độ sẵn sàng</label>
+                    <select name="readiness" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="notReady" ${selectedReadiness == 'notReady' ? 'selected' : ''}>Chưa đủ điều kiện bán</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-6">
                     <label class="form-label fw-bold">Danh mục</label>
                     <select name="categoryID" class="form-select">
                         <option value="">Tất cả</option>

@@ -43,6 +43,9 @@ public class DetailTourController extends HttpServlet {
         List<String> readinessErrors = tourDAO.getTourReadinessErrors(tourID);
         request.setAttribute("tour", tour);
         request.setAttribute("readinessErrors", readinessErrors);
+        request.setAttribute("readinessChecklist", tourDAO.getTourReadinessChecklist(tourID));
+        request.setAttribute("duplicateStartDateMap", tourDAO.getDuplicateScheduleStartDateMap(tourID));
+        request.setAttribute("schedulePriceWarningMap", tourDAO.getSchedulePriceWarningMap(tourID));
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
         request.getRequestDispatcher("/views/staff/tour-detail.jsp")
                 .forward(request, response);

@@ -249,6 +249,12 @@
                         </div>
 
                         <div class="col-12">
+                            <label class="form-label">Mô tả ngắn</label>
+                            <textarea name="tourIntroduce" class="form-control ${not empty fieldErrors.tourIntroduce ? 'is-invalid' : ''}" maxlength="5000" placeholder="Tóm tắt trải nghiệm, phong cách tour hoặc thông điệp ngắn hiển thị cho khách.">${tour.tourIntroduce}</textarea>
+                            <c:if test="${not empty fieldErrors.tourIntroduce}"><div class="field-error">${fieldErrors.tourIntroduce}</div></c:if>
+                        </div>
+
+                        <div class="col-12">
                             <label class="form-label">Điểm nổi bật của tour</label>
                             <textarea name="tourHighlights" class="form-control ${not empty fieldErrors.tourHighlights ? 'is-invalid' : ''}" maxlength="5000" placeholder="Ví dụ: Tham quan danh thắng nổi bật, khách sạn trung tâm, lịch trình tối ưu...">${tour.tourInclude}</textarea>
                             <c:if test="${not empty fieldErrors.tourHighlights}"><div class="field-error">${fieldErrors.tourHighlights}</div></c:if>
