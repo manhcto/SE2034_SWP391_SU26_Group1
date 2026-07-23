@@ -4,7 +4,6 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
-import vn.edu.fpt.DAO.BookingDAO;
 import vn.edu.fpt.DAO.PaymentDAO;
 
 import java.util.concurrent.Executors;
@@ -37,18 +36,10 @@ public class PendingPaymentCleanupListener implements ServletContextListener {
 
     private void releaseExpiredReservations() {
         try {
-            PaymentDAO paymentDAO = new PaymentDAO();
-            BookingDAO bookingDAO = new BookingDAO();
-            for (int bookingID : paymentDAO.findExpiredPendingBookingIDs()) {
-                bookingDAO.releasePendingPaymentReservation(
-                        bookingID,
-                        true,
-                        "Hết thời gian giữ chỗ thanh toán 15 phút."
-                );
-            }
+            new PaymentDAO().synchronizeBookingStates();
         } catch (Exception e) {
             if (servletContext != null) {
-                servletContext.log("Không thể hoàn chỗ thanh toán quá hạn", e);
+                servletContext.log("Khong the dong bo thanh toan qua han", e);
             }
         }
     }

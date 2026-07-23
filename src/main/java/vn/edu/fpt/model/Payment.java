@@ -133,4 +133,17 @@ public class Payment {
     public boolean isPaid() {
         return "Đã thanh toán".equalsIgnoreCase(status) || "Paid".equalsIgnoreCase(status);
     }
+
+    public String getDisplayStatus() {
+        if ("Paid".equalsIgnoreCase(status) || "Đã thanh toán".equalsIgnoreCase(status)) {
+            return "Đã thanh toán";
+        }
+        if ("Failed".equalsIgnoreCase(status) || "Thất bại".equalsIgnoreCase(status)) {
+            return "Thất bại";
+        }
+        if ("Cancelled".equalsIgnoreCase(status) || "Đã hủy".equalsIgnoreCase(status)) {
+            return "Đã hủy";
+        }
+        return "Chờ thanh toán";
+    }
 }

@@ -1,13 +1,13 @@
 package vn.edu.fpt.controller.customer;
 
-import vn.edu.fpt.DAO.BookingDAO;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.edu.fpt.DAO.BookingDAO;
+import vn.edu.fpt.DAO.PaymentDAO;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
@@ -15,6 +15,7 @@ import java.util.Map;
 
 @WebServlet(name = "BookingSummaryController", urlPatterns = {"/booking-summary"})
 public class BookingSummaryController extends HttpServlet {
+    private final PaymentDAO paymentDAO = new PaymentDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -33,7 +34,6 @@ public class BookingSummaryController extends HttpServlet {
         }
 
         String bookingIDRaw = request.getParameter("bookingID");
-
         if (bookingIDRaw == null || bookingIDRaw.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/booking");
             return;
@@ -41,9 +41,10 @@ public class BookingSummaryController extends HttpServlet {
 
         try {
             int bookingID = Integer.parseInt(bookingIDRaw);
+            paymentDAO.synchronizeBookingStates();
 
-            BookingDAO dao = new BookingDAO();
-            Map<String, Object> bookingSummary = dao.getBookingSummaryByID(bookingID);
+            BookingDAO bookingDAO = new BookingDAO();
+            Map<String, Object> bookingSummary = bookingDAO.getBookingSummaryByID(bookingID);
 
             if (bookingSummary == null) {
                 request.setAttribute("error", "Khong tim thay thong tin booking.");
@@ -59,7 +60,6 @@ public class BookingSummaryController extends HttpServlet {
 
             request.setAttribute("bookingSummary", bookingSummary);
             request.getRequestDispatcher("/views/customer/booking-summary.jsp").forward(request, response);
-
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/booking");
         }

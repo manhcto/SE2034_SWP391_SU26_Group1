@@ -1,13 +1,13 @@
 package vn.edu.fpt.controller.admin;
 
-import vn.edu.fpt.DAO.BookingDAO;
-import vn.edu.fpt.model.Booking;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import vn.edu.fpt.DAO.BookingDAO;
+import vn.edu.fpt.DAO.PaymentDAO;
+import vn.edu.fpt.model.Booking;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,6 +21,7 @@ public class AdminBookingController extends HttpServlet {
 
     private static final String BOOKING_LIST_PAGE = "/views/admin/admin-booking-list.jsp";
     private static final String BOOKING_DETAIL_PAGE = "/views/admin/admin-booking-detail.jsp";
+    private final PaymentDAO paymentDAO = new PaymentDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -35,11 +36,9 @@ public class AdminBookingController extends HttpServlet {
             case "/admin/booking":
                 showBookingList(request, response);
                 break;
-
             case "/admin/booking-detail":
                 showBookingDetail(request, response);
                 break;
-
             default:
                 response.sendRedirect(request.getContextPath() + "/admin/booking");
                 break;
@@ -48,12 +47,13 @@ public class AdminBookingController extends HttpServlet {
 
     private void showBookingList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        paymentDAO.synchronizeBookingStates();
 
         BookingDAO bookingDAO = new BookingDAO();
         List<Booking> bookingList = bookingDAO.getAllBookings();
 
         String type = request.getParameter("type");
-        String selectedType = (type == null) ? "" : type.trim();
+        String selectedType = type == null ? "" : type.trim();
         if (!selectedType.isEmpty()) {
             final String filterType = selectedType;
             bookingList.removeIf(booking -> {
@@ -63,7 +63,7 @@ public class AdminBookingController extends HttpServlet {
         }
 
         String status = request.getParameter("status");
-        String selectedStatus = (status == null) ? "" : status.trim();
+        String selectedStatus = status == null ? "" : status.trim();
         if (!selectedStatus.isEmpty()) {
             final String filterStatus = selectedStatus;
             bookingList.removeIf(booking -> {
@@ -79,9 +79,9 @@ public class AdminBookingController extends HttpServlet {
 
     private void showBookingDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        paymentDAO.synchronizeBookingStates();
 
         String bookingIDRaw = request.getParameter("bookingID");
-
         if (bookingIDRaw == null || bookingIDRaw.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/admin/booking");
             return;
@@ -94,14 +94,13 @@ public class AdminBookingController extends HttpServlet {
             Map<String, Object> bookingDetail = bookingDAO.getBookingSummaryByID(bookingID);
 
             if (bookingDetail == null) {
-                request.setAttribute("error", "Không tìm thấy booking.");
+                request.setAttribute("error", "Khong tim thay booking.");
                 request.getRequestDispatcher(BOOKING_DETAIL_PAGE).forward(request, response);
                 return;
             }
 
             request.setAttribute("bookingDetail", bookingDetail);
             request.getRequestDispatcher(BOOKING_DETAIL_PAGE).forward(request, response);
-
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/admin/booking");
         }

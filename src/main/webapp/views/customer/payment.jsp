@@ -35,7 +35,6 @@
             margin: 0 0 6px;
             color: #0f172a;
             font-size: 28px;
-            letter-spacing: 0;
         }
 
         .payment-heading p {
@@ -138,7 +137,6 @@
             margin: 0 0 6px;
             color: #0f172a;
             font-size: 19px;
-            letter-spacing: 0;
         }
 
         .payment-qr p {
@@ -154,6 +152,22 @@
             margin: 0 auto 14px;
             border: 1px solid #dce4ef;
             border-radius: 6px;
+        }
+
+        .payment-countdown {
+            margin: 0 auto 16px;
+            padding: 10px 14px;
+            width: fit-content;
+            border-radius: 10px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .payment-countdown.expired {
+            background: #fff1f0;
+            color: #b42318;
         }
 
         .payment-actions {
@@ -300,18 +314,19 @@
                     </div>
                     <div>
                         <span class="payment-label">Trạng thái booking</span>
-                        <span class="payment-value"><c:out value="${bookingSummary.status}" /></span>
+                        <span class="payment-value">
+                            <c:choose>
+                                <c:when test="${bookingSummary.status == 'Đang xử lý' || bookingSummary.status == 'Pending'}">Đang xử lý</c:when>
+                                <c:when test="${bookingSummary.status == 'Đã duyệt' || bookingSummary.status == 'Confirmed'}">Hoàn thành</c:when>
+                                <c:when test="${bookingSummary.status == 'Đã hủy' || bookingSummary.status == 'Cancelled'}">Đã hủy</c:when>
+                                <c:when test="${bookingSummary.status == 'Hoàn thành' || bookingSummary.status == 'Completed'}">Hoàn thành</c:when>
+                                <c:otherwise><c:out value="${bookingSummary.status}" /></c:otherwise>
+                            </c:choose>
+                        </span>
                     </div>
                     <div>
                         <span class="payment-label">Trạng thái thanh toán</span>
-                        <span class="payment-status ${payment.paid ? 'paid' : ''}">
-                            <c:choose>
-                                <c:when test="${payment.status == 'Paid'}">Đã thanh toán</c:when>
-                                <c:when test="${payment.status == 'Failed'}">Thất bại</c:when>
-                                <c:when test="${payment.status == 'Cancelled'}">Đã hủy</c:when>
-                                <c:otherwise>Chờ thanh toán</c:otherwise>
-                            </c:choose>
-                        </span>
+                        <span class="payment-status ${payment.paid ? 'paid' : ''}">${payment.displayStatus}</span>
                     </div>
                     <div>
                         <span class="payment-label">Giữ chỗ đến</span>
@@ -358,11 +373,17 @@
                     </c:when>
                     <c:when test="${payment.reservationReleased}">
                         <h2>Đã hết thời gian giữ chỗ</h2>
-                        <p>Payment vẫn Chờ thanh toán, nhưng slot/phòng đã được hoàn lại.</p>
+                        <p>Payment không còn hiệu lực, slot hoặc phòng đã được hoàn lại.</p>
                     </c:when>
                     <c:when test="${paymentQrAvailable}">
                         <h2>Quét mã QR PayOS</h2>
                         <p>Mã có hiệu lực trong 15 phút kể từ khi được tạo.</p>
+                        <c:if test="${not empty payment.expiredAt}">
+                            <div class="payment-countdown" id="payment-countdown"
+                                 data-expired-at="${payment.expiredAt.time}">
+                                Còn lại --:--
+                            </div>
+                        </c:if>
                         <img src="${pageContext.request.contextPath}/payment/qr?bookingID=${bookingSummary.bookingID}"
                              alt="Mã QR thanh toán PayOS">
                         <div class="bank-transfer">
@@ -412,5 +433,96 @@
 
 <jsp:include page="/views/common/client-footer.jsp" />
 <script src="${pageContext.request.contextPath}/assets/js/home.js"></script>
+<script>
+    (function () {
+        const bookingId = "${bookingSummary.bookingID}";
+        const statusUrl = "${pageContext.request.contextPath}/payment/status?bookingID=" + encodeURIComponent(bookingId);
+        const countdown = document.getElementById("payment-countdown");
+        let syncInFlight = false;
+
+        function syncPaymentStatus(onChanged) {
+            if (!bookingId || syncInFlight) {
+                return;
+            }
+            syncInFlight = true;
+            fetch(statusUrl, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                cache: "no-store"
+            }).then(function (response) {
+                if (!response.ok) {
+                    return null;
+                }
+                return response.json();
+            }).then(function (data) {
+                if (data && data.success && data.changed) {
+                    window.location.reload();
+                    return;
+                }
+                if (typeof onChanged === "function") {
+                    onChanged(data);
+                }
+            }).catch(function () {
+                // Ignore transient polling errors.
+            }).finally(function () {
+                syncInFlight = false;
+            });
+        }
+
+        const pollTimer = window.setInterval(function () {
+            syncPaymentStatus();
+        }, 8000);
+
+        if (!countdown) {
+            return;
+        }
+
+        const expiredAt = Number(countdown.dataset.expiredAt);
+        if (!Number.isFinite(expiredAt) || expiredAt <= 0) {
+            countdown.remove();
+            return;
+        }
+
+        function renderCountdown() {
+            const remainingMs = expiredAt - Date.now();
+            if (remainingMs <= 0) {
+                countdown.textContent = "Mã thanh toán đã hết hạn";
+                countdown.classList.add("expired");
+                syncPaymentStatus(function (data) {
+                    if (data && (data.changed
+                            || data.bookingStatus === "Cancelled"
+                            || data.paymentStatus === "Cancelled"
+                            || data.bookingStatus === "Đã hủy"
+                            || data.paymentStatus === "Đã hủy")) {
+                        window.location.reload();
+                    }
+                });
+                return false;
+            }
+
+            const totalSeconds = Math.floor(remainingMs / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            countdown.textContent = "Còn lại "
+                + String(minutes).padStart(2, "0")
+                + ":"
+                + String(seconds).padStart(2, "0");
+            return true;
+        }
+
+        if (!renderCountdown()) {
+            return;
+        }
+
+        const timer = window.setInterval(function () {
+            if (!renderCountdown()) {
+                window.clearInterval(timer);
+                window.clearInterval(pollTimer);
+            }
+        }, 1000);
+    })();
+</script>
 </body>
 </html>

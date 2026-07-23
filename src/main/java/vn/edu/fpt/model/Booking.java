@@ -3,10 +3,15 @@ package vn.edu.fpt.model;
 import java.util.Date;
 
 public class Booking {
-    public static final String STATUS_PROCESSING = "Đang xử lý";
-    public static final String STATUS_APPROVED = "Đã duyệt";
-    public static final String STATUS_CANCELLED = "Đã hủy";
-    public static final String STATUS_COMPLETED = "Hoàn thành";
+    public static final String STATUS_PROCESSING = "Pending";
+    public static final String STATUS_APPROVED = "Confirmed";
+    public static final String STATUS_CANCELLED = "Cancelled";
+    public static final String STATUS_COMPLETED = "Completed";
+
+    public static final String DISPLAY_STATUS_PROCESSING = "\u0110ang x\u1eed l\u00fd";
+    public static final String DISPLAY_STATUS_APPROVED = "\u0110\u00e3 duy\u1ec7t";
+    public static final String DISPLAY_STATUS_CANCELLED = "\u0110\u00e3 h\u1ee7y";
+    public static final String DISPLAY_STATUS_COMPLETED = "Ho\u00e0n th\u00e0nh";
 
     private int bookingID;
     private String bookingCode;
@@ -164,40 +169,39 @@ public class Booking {
 
     public String getDisplayStatus() {
         if (isProcessingStatus(status)) {
-            return STATUS_PROCESSING;
+            return DISPLAY_STATUS_PROCESSING;
         }
 
-        // Trạng thái "Đã duyệt" đã bị loại bỏ khỏi luồng nghiệp vụ.
-        // Các đơn cũ trong DB còn 'Đã duyệt'/'Confirmed' sẽ hiển thị là "Hoàn thành".
+        // Legacy approved statuses are displayed as completed in the current flow.
         if (isApprovedStatus(status)) {
-            return STATUS_COMPLETED;
+            return DISPLAY_STATUS_COMPLETED;
         }
 
         if (isCancelledStatus(status)) {
-            return STATUS_CANCELLED;
+            return DISPLAY_STATUS_CANCELLED;
         }
 
         if (isCompletedStatus(status)) {
-            return STATUS_COMPLETED;
+            return DISPLAY_STATUS_COMPLETED;
         }
 
         return status;
     }
 
     public static boolean isProcessingStatus(String value) {
-        return STATUS_PROCESSING.equalsIgnoreCase(value) || "Pending".equalsIgnoreCase(value);
+        return STATUS_PROCESSING.equalsIgnoreCase(value) || DISPLAY_STATUS_PROCESSING.equalsIgnoreCase(value);
     }
 
     public static boolean isApprovedStatus(String value) {
-        return STATUS_APPROVED.equalsIgnoreCase(value) || "Confirmed".equalsIgnoreCase(value);
+        return STATUS_APPROVED.equalsIgnoreCase(value) || DISPLAY_STATUS_APPROVED.equalsIgnoreCase(value);
     }
 
     public static boolean isCancelledStatus(String value) {
-        return STATUS_CANCELLED.equalsIgnoreCase(value) || "Cancelled".equalsIgnoreCase(value);
+        return STATUS_CANCELLED.equalsIgnoreCase(value) || DISPLAY_STATUS_CANCELLED.equalsIgnoreCase(value);
     }
 
     public static boolean isCompletedStatus(String value) {
-        return STATUS_COMPLETED.equalsIgnoreCase(value) || "Completed".equalsIgnoreCase(value);
+        return STATUS_COMPLETED.equalsIgnoreCase(value) || DISPLAY_STATUS_COMPLETED.equalsIgnoreCase(value);
     }
 
     @Override

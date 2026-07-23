@@ -20,19 +20,17 @@ abstract class AuthenticationFilterSupport {
             return false;
         }
 
-        String normalizedRole = normalizeRole(user.getRoleName());
-
-        if (!normalizedRole.isEmpty()) {
-            for (String roleName : roleNames) {
-                if (normalizedRole.equals(normalizeRole(roleName))) {
-                    return true;
-                }
-            }
-
-            return false;
+        if (user.getRoleID() == roleID) {
+            return true;
         }
 
-        return user.getRoleID() == roleID;
+        String normalizedRole = normalizeRole(user.getRoleName());
+        for (String roleName : roleNames) {
+            if (normalizedRole.equals(normalizeRole(roleName))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void redirectToLogin(HttpServletRequest request, HttpServletResponse response)
