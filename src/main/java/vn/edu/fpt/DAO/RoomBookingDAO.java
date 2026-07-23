@@ -113,7 +113,7 @@ public class RoomBookingDAO {
                         "identityNumber, identityImageUrl, [address], firstName, lastName, userID, " +
                         "[status], bookDate, isBookedForOther, totalPrice) " +
                         "VALUES (?, N'Accommodation', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-                        "N'Đang xử lý', GETDATE(), 0, ?)";
+                        "N'Pending', GETDATE(), 0, ?)";
 
         String sqlDetail =
                 "INSERT INTO [dbo].[Booking_Detail] " +

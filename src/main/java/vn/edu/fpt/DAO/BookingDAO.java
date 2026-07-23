@@ -104,7 +104,7 @@ public class BookingDAO {
         String sqlBooking = "INSERT INTO Booking (bookingCode, bookingType, firstName, lastName, email, "
                 + "phone, address, note, numberAdult, numberChildren, totalPrice, isBookedForOther, userID, "
                 + "[status], bookDate) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, N'Đang xử lý', GETDATE())";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, N'Pending', GETDATE())";
 
         String sqlDetail = "INSERT INTO Booking_Detail (bookingID, tourScheduleID, quantity, unitPrice, subTotal) "
                 + "VALUES (?, ?, ?, ?, ?)";
@@ -220,7 +220,7 @@ public class BookingDAO {
         String sqlBooking = "INSERT INTO Booking (bookingCode, bookingType, firstName, lastName, email, "
                 + "phone, address, note, identityNumber, identityImageUrl, numberAdult, numberChildren, "
                 + "totalPrice, isBookedForOther, userID, [status], bookDate) "
-                + "VALUES (?, N'Tour', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, N'Đang xử lý', GETDATE())";
+                + "VALUES (?, N'Tour', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, N'Pending', GETDATE())";
 
         String sqlDetail = "INSERT INTO Booking_Detail (bookingID, tourScheduleID, quantity, unitPrice, subTotal) "
                 + "VALUES (?, ?, ?, ?, ?)";
@@ -817,11 +817,18 @@ public class BookingDAO {
         String sqlUpdateBooking = """
                 UPDATE Booking SET [status] = ?, updatedAt = GETDATE() WHERE bookingID = ?
                 """;
+        String sqlPaymentStatus = """
+                SELECT TOP (1) [status]
+                FROM Payment
+                WHERE bookingID = ?
+                ORDER BY paymentID DESC
+                """;
 
         try (Connection conn = new DBConnection().getConnection()) {
             conn.setAutoCommit(false);
             try {
                 String currentStatus;
+                String paymentStatus = null;
                 int tourScheduleID = 0;
                 int roomID = 0;
                 int quantity = 0;
@@ -840,24 +847,43 @@ public class BookingDAO {
                     }
                 }
 
+                try (PreparedStatement ps = conn.prepareStatement(sqlPaymentStatus)) {
+                    ps.setInt(1, bookingID);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            paymentStatus = rs.getString("status");
+                        }
+                    }
+                }
+
                 boolean wasCancelled = Booking.isCancelledStatus(currentStatus);
                 boolean willCancel = Booking.isCancelledStatus(normalizedStatus);
+                boolean willComplete = Booking.isCompletedStatus(normalizedStatus);
 
-                if (!wasCancelled && willCancel && quantity > 0) {
-                    if (tourScheduleID > 0) {
+                if (wasCancelled && !willCancel) {
+                    conn.rollback();
+                    return false;
+                }
+
+                if (willComplete
+                        && paymentStatus != null
+                        && !PaymentDAO.STATUS_PAID.equalsIgnoreCase(paymentStatus)) {
+                    conn.rollback();
+                    return false;
+                }
+
+                if (!wasCancelled && willCancel) {
+                    if (quantity > 0 && tourScheduleID > 0) {
                         executeQuantityUpdate(conn, sqlReleaseTour, quantity, tourScheduleID);
                     }
-                    if (roomID > 0) {
+                    if (quantity > 0 && roomID > 0) {
                         executeQuantityUpdate(conn, sqlReleaseRoom, quantity, roomID);
                     }
-                } else if (wasCancelled && !willCancel && quantity > 0) {
-                    if (tourScheduleID > 0
-                            && !executeQuantityUpdate(conn, sqlReserveTour, quantity, tourScheduleID)) {
+                    if (!cancelPendingPayment(conn, bookingID, "Booking đã bị hủy nên payment không thể thanh toán tiếp.")) {
                         conn.rollback();
                         return false;
                     }
-                    if (roomID > 0
-                            && !executeQuantityUpdate(conn, sqlReserveRoom, quantity, roomID)) {
+                    if (!restoreVoucherUsage(conn, bookingID)) {
                         conn.rollback();
                         return false;
                     }
@@ -901,8 +927,7 @@ public class BookingDAO {
 
     private String normalizeBookingStatus(String status) {
         if (Booking.isProcessingStatus(status)) return Booking.STATUS_PROCESSING;
-        // "Đã duyệt" đã bị loại bỏ: nếu còn nơi nào gửi lên trạng thái duyệt
-        // thì quy về "Hoàn thành" để DB chỉ còn 3 trạng thái.
+        // Legacy approved statuses are collapsed into completed for database writes.
         if (Booking.isApprovedStatus(status)) return Booking.STATUS_COMPLETED;
         if (Booking.isCancelledStatus(status)) return Booking.STATUS_CANCELLED;
         if (Booking.isCompletedStatus(status)) return Booking.STATUS_COMPLETED;
@@ -943,7 +968,7 @@ public class BookingDAO {
                 + "isBookedForOther = ?, "
                 + "totalPrice = ? "
                 + "WHERE bookingID = ? "
-                + "AND status IN (N'Đang xử lý', N'Pending')";
+                + "AND status IN (N'Pending', N'Đang xử lý')";
 
         String sqlUpdateDetail = "UPDATE Booking_Detail "
                 + "SET quantity = ?, "
@@ -1051,11 +1076,114 @@ public class BookingDAO {
         return updateBookingStatus(bookingID, Booking.STATUS_CANCELLED);
     }
 
+    public boolean syncCompletedBookingFromPaidPayment(int bookingID) {
+        String sql = """
+                SELECT b.[status] AS bookingStatus, p.[status] AS paymentStatus
+                FROM Booking b
+                LEFT JOIN Payment p ON p.bookingID = b.bookingID
+                WHERE b.bookingID = ?
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingID);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+
+                String bookingStatus = rs.getString("bookingStatus");
+                String paymentStatus = rs.getString("paymentStatus");
+
+                if (!PaymentDAO.STATUS_PAID.equalsIgnoreCase(paymentStatus)) {
+                    return false;
+                }
+
+                if (Booking.isCompletedStatus(bookingStatus)) {
+                    return true;
+                }
+
+                if (Booking.isCancelledStatus(bookingStatus)) {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi đồng bộ booking đã thanh toán: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+
+        return updateBookingStatus(bookingID, Booking.STATUS_COMPLETED);
+    }
+
+    public boolean hasPayableReservationForPayment(int bookingID) {
+        String sql = """
+                SELECT b.bookingType, b.[status], bd.quantity,
+                       ts.tourScheduleID, ts.maxParticipants, ts.quantity AS bookedSeats, ts.scheduleStatus,
+                       r.roomID, r.numberOfRooms, r.[status] AS roomStatus
+                FROM Booking b
+                INNER JOIN Booking_Detail bd ON bd.bookingID = b.bookingID
+                LEFT JOIN Tour_Scheduler ts ON ts.tourScheduleID = bd.tourScheduleID
+                LEFT JOIN Room r ON r.roomID = bd.roomID
+                WHERE b.bookingID = ?
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+
+                String bookingStatus = rs.getString("status");
+                if (Booking.isCancelledStatus(bookingStatus) || Booking.isCompletedStatus(bookingStatus)) {
+                    return false;
+                }
+
+                String bookingType = rs.getString("bookingType");
+                int quantity = rs.getInt("quantity");
+                if (quantity <= 0) {
+                    return false;
+                }
+
+                if ("Tour".equalsIgnoreCase(bookingType)) {
+                    int tourScheduleID = rs.getInt("tourScheduleID");
+                    int maxParticipants = rs.getInt("maxParticipants");
+                    int bookedSeats = rs.getInt("bookedSeats");
+                    String scheduleStatus = rs.getString("scheduleStatus");
+                    return tourScheduleID > 0
+                            && maxParticipants >= bookedSeats
+                            && !"Cancelled".equalsIgnoreCase(scheduleStatus);
+                }
+
+                if ("Accommodation".equalsIgnoreCase(bookingType)) {
+                    int roomID = rs.getInt("roomID");
+                    int numberOfRooms = rs.getInt("numberOfRooms");
+                    String roomStatus = rs.getString("roomStatus");
+                    return roomID > 0
+                            && numberOfRooms >= quantity
+                            && ("Available".equalsIgnoreCase(roomStatus)
+                            || "Active".equalsIgnoreCase(roomStatus));
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi kiểm tra slot trước khi thanh toán: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public boolean releasePendingPaymentReservation(int bookingID,
                                                      boolean expiredOnly,
                                                      String note) {
         boolean hasCheckoutUrl = hasPaymentColumn("checkoutUrl");
+        boolean hasPaymentLinkId = hasPaymentColumn("paymentLinkId");
+        boolean hasDescription = hasPaymentColumn("description");
         boolean hasExpiredAt = hasPaymentColumn("expiredAt");
+        String paymentTextColumn = hasDescription ? "description" : "note";
         String expirationFilter = "";
         if (hasExpiredAt) {
             expirationFilter = " AND p.expiredAt IS NOT NULL"
@@ -1066,13 +1194,13 @@ public class BookingDAO {
 
         String sqlGetReservation = """
                 SELECT bd.tourScheduleID, bd.roomID, bd.quantity
-                FROM Payments p WITH (UPDLOCK, HOLDLOCK)
+                FROM Payment p WITH (UPDLOCK, HOLDLOCK)
                 INNER JOIN Booking b ON b.bookingID = p.bookingID
                 LEFT JOIN Booking_Detail bd ON bd.bookingID = b.bookingID
                 WHERE p.bookingID = ? AND p.[status] = N'Pending'
-                  AND b.[status] IN (N'Đang xử lý', N'Pending')
-                  AND LEFT(ISNULL(p.note, N''), 15) <> N'[SLOT_RELEASED]'
-                """ + expirationFilter;
+                  AND b.[status] IN (N'Pending', N'Đang xử lý')
+                  AND LEFT(ISNULL(p.%s, N''), 15) <> N'[SLOT_RELEASED]'
+                """.formatted(paymentTextColumn) + expirationFilter;
         String sqlReleaseTour = """
                 UPDATE Tour_Scheduler
                 SET quantity = CASE WHEN quantity - ? < 0 THEN 0 ELSE quantity - ? END
@@ -1087,13 +1215,21 @@ public class BookingDAO {
                 WHERE roomID = ?
                 """;
         String sqlMarkReleased = """
-                UPDATE Payments
-                SET %s%s note = ?
+                UPDATE Payment
+                SET [status] = N'Cancelled',
+                    %s%s %s = ?
                 WHERE bookingID = ? AND [status] = N'Pending'
-                  AND LEFT(ISNULL(note, N''), 15) <> N'[SLOT_RELEASED]'
+                  AND LEFT(ISNULL(%s, N''), 15) <> N'[SLOT_RELEASED]'
                 """.formatted(
-                hasCheckoutUrl ? "checkoutUrl = NULL, " : "",
-                hasExpiredAt ? "expiredAt = NULL, " : "");
+                hasCheckoutUrl ? "checkoutUrl = NULL, " : (hasPaymentLinkId ? "paymentLinkId = NULL, " : ""),
+                hasExpiredAt ? "expiredAt = NULL, " : "",
+                paymentTextColumn,
+                paymentTextColumn);
+        String sqlCancelBooking = """
+                UPDATE Booking
+                SET [status] = ?, updatedAt = GETDATE()
+                WHERE bookingID = ? AND [status] IN (N'Pending', N'Đang xử lý')
+                """;
 
         try (Connection conn = new DBConnection().getConnection()) {
             conn.setAutoCommit(false);
@@ -1134,6 +1270,20 @@ public class BookingDAO {
                     }
                 }
 
+                try (PreparedStatement ps = conn.prepareStatement(sqlCancelBooking)) {
+                    ps.setNString(1, Booking.STATUS_CANCELLED);
+                    ps.setInt(2, bookingID);
+                    if (ps.executeUpdate() == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+
+                if (!restoreVoucherUsage(conn, bookingID)) {
+                    conn.rollback();
+                    return false;
+                }
+
                 conn.commit();
                 return true;
             } catch (Exception e) {
@@ -1149,12 +1299,86 @@ public class BookingDAO {
         }
     }
 
+    private boolean cancelPendingPayment(Connection conn, int bookingID, String note) throws Exception {
+        boolean hasCheckoutUrl = hasPaymentColumn("checkoutUrl");
+        boolean hasPaymentLinkId = hasPaymentColumn("paymentLinkId");
+        boolean hasDescription = hasPaymentColumn("description");
+        boolean hasExpiredAt = hasPaymentColumn("expiredAt");
+        String paymentTextColumn = hasDescription ? "description" : "note";
+
+        String sql = """
+                UPDATE Payment
+                SET [status] = N'Cancelled',
+                    %s%s%s = ?
+                WHERE bookingID = ? AND [status] = N'Pending'
+                """.formatted(
+                hasCheckoutUrl ? "checkoutUrl = NULL, " : (hasPaymentLinkId ? "paymentLinkId = NULL, " : ""),
+                hasExpiredAt ? "expiredAt = NULL, " : "",
+                paymentTextColumn);
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setNString(1, note);
+            ps.setInt(2, bookingID);
+            ps.executeUpdate();
+            return true;
+        }
+    }
+
+    private boolean restoreVoucherUsage(Connection conn, int bookingID) throws Exception {
+        String sqlSelect = """
+                SELECT userVoucherID, voucherID
+                FROM User_Voucher WITH (UPDLOCK, ROWLOCK)
+                WHERE bookingID = ? AND UPPER([status]) = N'USED'
+                """;
+        String sqlResetUserVoucher = """
+                UPDATE User_Voucher
+                SET [status] = N'SAVED', usedAt = NULL, bookingID = NULL
+                WHERE userVoucherID = ?
+                """;
+        String sqlRestoreVoucherCount = """
+                UPDATE Voucher
+                SET usedCount = CASE WHEN usedCount > 0 THEN usedCount - 1 ELSE 0 END,
+                    updatedAt = GETDATE()
+                WHERE voucherID = ?
+                """;
+
+        List<Integer> userVoucherIDs = new ArrayList<>();
+        List<Integer> voucherIDs = new ArrayList<>();
+
+        try (PreparedStatement ps = conn.prepareStatement(sqlSelect)) {
+            ps.setInt(1, bookingID);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    userVoucherIDs.add(rs.getInt("userVoucherID"));
+                    voucherIDs.add(rs.getInt("voucherID"));
+                }
+            }
+        }
+
+        for (int i = 0; i < userVoucherIDs.size(); i++) {
+            try (PreparedStatement psUserVoucher = conn.prepareStatement(sqlResetUserVoucher);
+                 PreparedStatement psVoucher = conn.prepareStatement(sqlRestoreVoucherCount)) {
+                psUserVoucher.setInt(1, userVoucherIDs.get(i));
+                if (psUserVoucher.executeUpdate() == 0) {
+                    return false;
+                }
+
+                psVoucher.setInt(1, voucherIDs.get(i));
+                if (psVoucher.executeUpdate() == 0) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     private boolean hasPaymentColumn(String columnName) {
         String sql = """
                 SELECT 1
                 FROM INFORMATION_SCHEMA.COLUMNS
                 WHERE TABLE_SCHEMA = 'dbo'
-                  AND TABLE_NAME = 'Payments'
+                  AND TABLE_NAME = 'Payment'
                   AND COLUMN_NAME = ?
                 """;
         try (Connection conn = new DBConnection().getConnection();

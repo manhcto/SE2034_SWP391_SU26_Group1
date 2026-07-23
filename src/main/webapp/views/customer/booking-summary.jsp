@@ -462,10 +462,15 @@
             </div>
 
             <div class="summary-actions">
-                <a href="${pageContext.request.contextPath}/payment?bookingID=${bookingSummary.bookingID}"
-                   class="summary-btn summary-btn-primary">
-                    Tiếp tục thanh toán
-                </a>
+                <c:if test="${bookingSummary.status == 'Pending'
+                        || bookingSummary.status == 'Đang xử lý'
+                        || bookingSummary.status == 'Confirmed'
+                        || bookingSummary.status == 'Đã duyệt'}">
+                    <a href="${pageContext.request.contextPath}/payment?bookingID=${bookingSummary.bookingID}"
+                       class="summary-btn summary-btn-primary">
+                        Tiếp tục thanh toán
+                    </a>
+                </c:if>
 
                 <a href="${pageContext.request.contextPath}/views/home.jsp"
                    class="summary-btn summary-btn-outline">

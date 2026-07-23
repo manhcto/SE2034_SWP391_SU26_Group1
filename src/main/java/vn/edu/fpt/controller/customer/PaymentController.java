@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 @WebServlet(name = "PaymentController", urlPatterns = {
-        "/payment", "/payment/return", "/payment/cancel", "/payment/webhook", "/payment/qr"
+        "/payment", "/payment/return", "/payment/cancel", "/payment/webhook", "/payment/qr", "/payment/status"
 })
 public class PaymentController extends HttpServlet {
     private static final String QR_SESSION_PREFIX = "payosQr:";
@@ -56,25 +56,18 @@ public class PaymentController extends HttpServlet {
             return;
         }
 
+        if ("/payment/status".equals(path)) {
+            handleStatusPolling(request, response);
+            return;
+        }
+
         if ("/payment/cancel".equals(path)) {
-            int bookingID = parsePositiveInt(request.getParameter("bookingID"));
-            Map<String, Object> summary = bookingDAO.getBookingSummaryByID(bookingID);
-            if (!canAccessBooking(request, summary, bookingID)) {
-                response.sendRedirect(request.getContextPath() + "/booking-list");
-                return;
-            }
-            boolean released = bookingDAO.releasePendingPaymentReservation(
-                    bookingID, false, "Khách hàng đã hủy phiên thanh toán PayOS."
-            );
-            clearPaymentSession(request.getSession(false), bookingID);
-            showPaymentPage(request, response, null, released
-                    ? "Bạn đã hủy thanh toán. Chỗ giữ đã được hoàn lại; payment vẫn ở trạng thái Chờ thanh toán."
-                    : "Phiên thanh toán không còn chỗ giữ để hoàn lại.");
+            handleCustomerCancel(request, response);
             return;
         }
 
         String message = "/payment/return".equals(path)
-                ? "PayOS đã chuyển về WonderVN. Hệ thống đang đối chiếu trạng thái thanh toán."
+                ? "PayOS da chuyen ve WonderVN. He thong dang doi chieu trang thai thanh toan."
                 : null;
         showPaymentPage(request, response, message, null);
     }
@@ -92,6 +85,24 @@ public class PaymentController extends HttpServlet {
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
     }
 
+    private void handleCustomerCancel(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        int bookingID = parsePositiveInt(request.getParameter("bookingID"));
+        Map<String, Object> summary = bookingDAO.getBookingSummaryByID(bookingID);
+        if (!canAccessBooking(request, summary, bookingID)) {
+            response.sendRedirect(request.getContextPath() + "/booking-list");
+            return;
+        }
+
+        boolean released = bookingDAO.releasePendingPaymentReservation(
+                bookingID, false, "Khach hang da huy phien thanh toan PayOS."
+        );
+        clearPaymentSession(request.getSession(false), bookingID);
+        showPaymentPage(request, response, null, released
+                ? "Ban da huy thanh toan. Payment da sang Cancelled, booking da sang Cancelled va voucher duoc hoan lai neu co."
+                : "Phien thanh toan khong con cho giu de hoan lai.");
+    }
+
     private void showPaymentPage(HttpServletRequest request,
                                  HttpServletResponse response,
                                  String message,
@@ -104,33 +115,35 @@ public class PaymentController extends HttpServlet {
         }
 
         BigDecimal amount = getAmount(summary);
-        Payment payment = paymentDAO.findByBookingID(bookingID);
-        if (payment == null && isProcessingBooking(summary) && amount.signum() > 0) {
-            payment = paymentDAO.createPending(bookingID, amount);
+        Payment payment = ensurePaymentRecord(bookingID, summary, amount);
+
+        if (expirePendingPaymentIfNeeded(bookingID, payment, request.getSession(false))) {
+            error = "Ma thanh toan da qua han. Payment da sang Cancelled va booking da sang Cancelled.";
         }
 
-        if (payment != null
-                && !payment.isPaid()
-                && !payment.isReservationReleased()
-                && !isBlank(payment.getCheckoutUrl())
-                && payOSService.isPaymentPaid(bookingID, amount)) {
-            if (paymentDAO.markPaidByBookingID(bookingID, "PAYOS-" + bookingID)) {
-                clearPaymentSession(request.getSession(false), bookingID);
-                payment = paymentDAO.findByBookingID(bookingID);
-                message = "Thanh toán PayOS thành công. Booking vẫn đang được nhân viên xử lý.";
-            }
+        if (paymentDAO.synchronizeBookingState(bookingID)) {
+            clearPaymentSession(request.getSession(false), bookingID);
         }
 
-        if (payment != null && !payment.isPaid() && payment.isExpired()) {
-            boolean released = bookingDAO.releasePendingPaymentReservation(
-                    bookingID, true, "Hết thời gian giữ chỗ thanh toán 15 phút."
-            );
-            if (released) {
-                clearPaymentSession(request.getSession(false), bookingID);
-                payment = paymentDAO.findByBookingID(bookingID);
-                error = "Mã thanh toán đã quá hạn. Chỗ giữ đã được hoàn lại; payment vẫn Chờ thanh toán.";
-            }
+        summary = bookingDAO.getBookingSummaryByID(bookingID);
+        payment = paymentDAO.findByBookingID(bookingID);
+
+        if (payment != null && payment.isPaid()) {
+            message = "Thanh toan PayOS thanh cong. Booking da duoc chuyen sang Completed va luu xuong database.";
+        } else if (Booking.isCancelledStatus(summary == null ? null : String.valueOf(summary.get("status")))) {
+            error = "Ma thanh toan da qua han hoac khong con hop le. Payment da sang Cancelled, booking da sang Cancelled, slot da duoc tra va voucher duoc hoan lai neu co.";
         }
+
+        if (summary != null
+                && isBookingPayable(summary)
+                && !bookingDAO.hasPayableReservationForPayment(bookingID)
+                && cancelBookingForInvalidReservation(bookingID, payment)) {
+                clearPaymentSession(request.getSession(false), bookingID);
+                error = "Hien khong con du slot/cho hop le de vao payment. Booking da chuyen sang Cancelled.";
+        }
+
+        summary = bookingDAO.getBookingSummaryByID(bookingID);
+        payment = paymentDAO.findByBookingID(bookingID);
 
         HttpSession session = request.getSession();
         String qrCode = sessionString(session, QR_SESSION_PREFIX + bookingID);
@@ -140,21 +153,30 @@ public class PaymentController extends HttpServlet {
         String accountName = sessionString(session, ACCOUNT_NAME_SESSION_PREFIX + bookingID);
         Long transferAmount = sessionLong(session, AMOUNT_SESSION_PREFIX + bookingID);
         String transferDescription = sessionString(session, DESCRIPTION_SESSION_PREFIX + bookingID);
+
         if (isBlank(checkoutUrl) && payment != null) {
             checkoutUrl = payment.getCheckoutUrl();
         }
+        if (isBlank(qrCode) && !isBlank(checkoutUrl)) {
+            qrCode = checkoutUrl;
+            session.setAttribute(QR_SESSION_PREFIX + bookingID, qrCode);
+            session.setAttribute(CHECKOUT_SESSION_PREFIX + bookingID, checkoutUrl);
+        }
+
         boolean canCreateCheckout = payment != null
                 && !payment.isPaid()
                 && !payment.isReservationReleased()
-                && isBookingPayable(summary);
+                && isBookingPayable(summary)
+                && bookingDAO.hasPayableReservationForPayment(bookingID);
 
         if (canCreateCheckout && payOSService.isConfigured()
                 && isBlank(qrCode) && isBlank(checkoutUrl)) {
-            PaymentResult result = payOSService.createPaymentLink(
-                    bookingID, amount, "WonderVN " + bookingID
-            );
-            if (result.isSuccess()
-                    && paymentDAO.prepareCheckout(bookingID, result.getCheckoutUrl())) {
+            Object bookingCodeValue = summary.get("bookingCode");
+            String paymentDescription = bookingCodeValue == null
+                    ? "BOOKING-" + bookingID
+                    : bookingCodeValue.toString();
+            PaymentResult result = payOSService.createPaymentLink(bookingID, amount, paymentDescription);
+            if (result.isSuccess() && paymentDAO.prepareCheckout(bookingID, result.getCheckoutUrl())) {
                 qrCode = result.getQrCode();
                 checkoutUrl = result.getCheckoutUrl();
                 session.setAttribute(QR_SESSION_PREFIX + bookingID, qrCode);
@@ -172,7 +194,7 @@ public class PaymentController extends HttpServlet {
                 payment = paymentDAO.findByBookingID(bookingID);
             } else if (error == null) {
                 error = result.isSuccess()
-                        ? "Không thể lưu phiên thanh toán PayOS."
+                        ? "Khong the luu phien thanh toan PayOS."
                         : result.getMessage();
             }
         }
@@ -191,7 +213,7 @@ public class PaymentController extends HttpServlet {
         request.setAttribute("bookingSummary", summary);
         request.setAttribute("payment", payment);
         request.setAttribute("payosConfigured", payOSService.isConfigured());
-        request.setAttribute("paymentQrAvailable", !isBlank(qrCode));
+        request.setAttribute("paymentQrAvailable", !isBlank(qrCode) || !isBlank(checkoutUrl));
         request.setAttribute("paymentCheckoutUrl", checkoutUrl);
         request.setAttribute("paymentBankName", bankName);
         request.setAttribute("paymentAccountNumber", accountNumber);
@@ -202,6 +224,53 @@ public class PaymentController extends HttpServlet {
         request.setAttribute("message", message);
         request.setAttribute("error", error);
         request.getRequestDispatcher("/views/customer/payment.jsp").forward(request, response);
+    }
+
+    private Payment ensurePaymentRecord(int bookingID, Map<String, Object> summary, BigDecimal amount) {
+        Payment payment = paymentDAO.findByBookingID(bookingID);
+        if (payment == null
+                && isProcessingBooking(summary)
+                && amount.signum() > 0
+                && bookingDAO.hasPayableReservationForPayment(bookingID)) {
+            payment = paymentDAO.createPending(bookingID, amount);
+        }
+        return payment;
+    }
+
+    private void handleStatusPolling(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        int bookingID = parsePositiveInt(request.getParameter("bookingID"));
+        Map<String, Object> summary = bookingDAO.getBookingSummaryByID(bookingID);
+        if (!canAccessBooking(request, summary, bookingID)) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("{\"success\":false,\"message\":\"forbidden\"}");
+            return;
+        }
+
+        BigDecimal amount = getAmount(summary);
+        Payment paymentBeforeSync = ensurePaymentRecord(bookingID, summary, amount);
+        boolean expired = expirePendingPaymentIfNeeded(bookingID, paymentBeforeSync, request.getSession(false));
+        boolean changed = paymentDAO.synchronizeBookingState(bookingID);
+        if (changed || expired) {
+            clearPaymentSession(request.getSession(false), bookingID);
+        }
+
+        summary = bookingDAO.getBookingSummaryByID(bookingID);
+        Payment payment = paymentDAO.findByBookingID(bookingID);
+
+        String bookingStatus = summary == null ? "" : String.valueOf(summary.get("status"));
+        String paymentStatus = payment == null ? "" : payment.getStatus();
+        String message = resolvePollingMessage(paymentBeforeSync, payment, bookingStatus);
+
+        response.getWriter().write("{\"success\":true"
+                + ",\"changed\":" + (changed || expired)
+                + ",\"message\":\"" + escapeJson(message) + "\""
+                + ",\"bookingStatus\":\"" + escapeJson(bookingStatus) + "\""
+                + ",\"paymentStatus\":\"" + escapeJson(paymentStatus) + "\""
+                + "}");
     }
 
     private void renderQrCode(HttpServletRequest request, HttpServletResponse response)
@@ -215,6 +284,16 @@ public class PaymentController extends HttpServlet {
 
         HttpSession session = request.getSession(false);
         String qrCode = sessionString(session, QR_SESSION_PREFIX + bookingID);
+        if (isBlank(qrCode)) {
+            Payment payment = paymentDAO.findByBookingID(bookingID);
+            if (payment != null && !isBlank(payment.getCheckoutUrl())) {
+                qrCode = payment.getCheckoutUrl();
+                if (session != null) {
+                    session.setAttribute(QR_SESSION_PREFIX + bookingID, qrCode);
+                    session.setAttribute(CHECKOUT_SESSION_PREFIX + bookingID, payment.getCheckoutUrl());
+                }
+            }
+        }
         if (isBlank(qrCode)) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
@@ -249,15 +328,14 @@ public class PaymentController extends HttpServlet {
             Map<String, Object> summary = bookingDAO.getBookingSummaryByID(bookingID);
 
             if (summary == null) {
-                writeJson(response, HttpServletResponse.SC_OK, "Webhook hợp lệ");
+                writeJson(response, HttpServletResponse.SC_OK, "Webhook hop le");
                 return;
             }
             if (!"00".equals(data.getCode()) || !isExpectedAmount(summary, data.getAmount())) {
                 paymentDAO.markFailedByBookingID(
-                        bookingID, "Webhook PayOS có trạng thái hoặc số tiền không khớp."
+                        bookingID, "Webhook PayOS co trang thai hoac so tien khong khop."
                 );
-                writeJson(response, HttpServletResponse.SC_BAD_REQUEST,
-                        "Dữ liệu thanh toán không khớp");
+                writeJson(response, HttpServletResponse.SC_BAD_REQUEST, "Du lieu thanh toan khong khop");
                 return;
             }
 
@@ -266,12 +344,13 @@ public class PaymentController extends HttpServlet {
                     : data.getReference();
             if (!paymentDAO.markPaidByBookingID(bookingID, reference)) {
                 writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                        "Không thể cập nhật thanh toán");
+                        "Khong the cap nhat thanh toan");
                 return;
             }
-            writeJson(response, HttpServletResponse.SC_OK, "Đã xác nhận thanh toán");
+            bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
+            writeJson(response, HttpServletResponse.SC_OK, "Da xac nhan thanh toan");
         } catch (Exception e) {
-            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, "Webhook không hợp lệ");
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, "Webhook khong hop le");
         }
     }
 
@@ -319,6 +398,50 @@ public class PaymentController extends HttpServlet {
         }
         long expected = getAmount(summary).setScale(0, RoundingMode.HALF_UP).longValue();
         return expected > 0 && expected == paidAmount;
+    }
+
+    private boolean expirePendingPaymentIfNeeded(int bookingID, Payment payment, HttpSession session) {
+        if (payment == null
+                || payment.isPaid()
+                || payment.isReservationReleased()
+                || !payment.isExpired()) {
+            return false;
+        }
+
+        boolean cancelled = bookingDAO.releasePendingPaymentReservation(
+                bookingID,
+                true,
+                "Het thoi gian giu cho thanh toan 15 phut."
+        );
+        if (cancelled) {
+            clearPaymentSession(session, bookingID);
+        }
+        return cancelled;
+    }
+
+    private boolean cancelBookingForInvalidReservation(int bookingID, Payment payment) {
+        return payment != null && PaymentDAO.STATUS_PENDING.equalsIgnoreCase(payment.getStatus())
+                ? bookingDAO.releasePendingPaymentReservation(
+                bookingID,
+                false,
+                "Khong con du slot hop le de tiep tuc thanh toan."
+        )
+                : bookingDAO.updateBookingStatus(bookingID, Booking.STATUS_CANCELLED);
+    }
+
+    private String resolvePollingMessage(Payment paymentBeforeSync,
+                                         Payment paymentAfterSync,
+                                         String bookingStatus) {
+        if (paymentAfterSync != null && paymentAfterSync.isPaid()) {
+            return "paid";
+        }
+
+        boolean wasPending = paymentBeforeSync != null
+                && PaymentDAO.STATUS_PENDING.equalsIgnoreCase(paymentBeforeSync.getStatus());
+        boolean isCancelled = Booking.isCancelledStatus(bookingStatus)
+                || (paymentAfterSync != null
+                && PaymentDAO.STATUS_CANCELLED.equalsIgnoreCase(paymentAfterSync.getStatus()));
+        return wasPending && isCancelled ? "expired" : "";
     }
 
     private void clearPaymentSession(HttpSession session, int bookingID) {
@@ -371,7 +494,14 @@ public class PaymentController extends HttpServlet {
             throws IOException {
         response.setStatus(status);
         response.getWriter().write("{\"success\":" + (status < 300)
-                + ",\"message\":\"" + message.replace("\"", "'") + "\"}");
+                + ",\"message\":\"" + escapeJson(message) + "\"}");
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     @SuppressWarnings("unchecked")

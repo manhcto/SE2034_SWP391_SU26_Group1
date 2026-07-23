@@ -367,9 +367,6 @@ public class BookingController extends HttpServlet {
             }
 
             if (bookingID > 0) {
-                HttpSession currentSession = request.getSession();
-                currentSession.setAttribute("successMessage",
-                        "Đặt tour thành công! Mã đơn: " + bookingCode + ". Vui lòng hoàn tất thanh toán.");
                 response.sendRedirect(request.getContextPath() + "/payment?bookingID=" + bookingID);
             } else {
                 request.setAttribute("error", "Không thể lưu đơn hàng. Có thể số chỗ vừa được người khác đặt hết. Vui lòng thử lại!");

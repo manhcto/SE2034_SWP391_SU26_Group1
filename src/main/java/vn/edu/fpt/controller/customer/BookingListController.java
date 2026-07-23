@@ -1,14 +1,14 @@
 package vn.edu.fpt.controller.customer;
 
-import vn.edu.fpt.DAO.BookingDAO;
-import vn.edu.fpt.model.Booking;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import vn.edu.fpt.DAO.BookingDAO;
+import vn.edu.fpt.DAO.PaymentDAO;
+import vn.edu.fpt.model.Booking;
 import vn.edu.fpt.model.User;
 
 import java.io.IOException;
@@ -32,6 +32,9 @@ public class BookingListController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
+
+        PaymentDAO paymentDAO = new PaymentDAO();
+        paymentDAO.synchronizeBookingStates();
 
         BookingDAO bookingDAO = new BookingDAO();
         List<Booking> bookingList = bookingDAO.getBookingsByUserID(user.getUserID());

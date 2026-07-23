@@ -621,7 +621,6 @@ public class AccommodationController extends HttpServlet {
             return;
         }
 
-        session.setAttribute("successMessage", "Vui lòng hoàn tất thanh toán cho đơn #" + bookingID);
         response.sendRedirect(request.getContextPath() + "/payment?bookingID=" + bookingID);
     }
 

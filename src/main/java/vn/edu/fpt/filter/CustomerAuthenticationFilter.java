@@ -21,7 +21,6 @@ import java.io.IOException;
         "/booking-edit",
         "/booking-summary",
         "/payment",
-        "/payment/qr",
         "/payment/return",
         "/payment/cancel",
         "/booking/accommodation/form",
@@ -29,7 +28,9 @@ import java.io.IOException;
         "/feedback-list",
         "/feedback-detail",
         "/feedback-add",
+        "/feedback-edit",
         "/my-vouchers",
+        "/my-blogs",
         "/views/customer/*",
         "/views/edit-profile.jsp"
 })
