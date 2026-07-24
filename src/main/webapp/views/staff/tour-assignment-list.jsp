@@ -75,23 +75,9 @@
             <div class="panel-body">
                 <form class="row g-3" method="get" action="${pageContext.request.contextPath}/staff/assignment">
                     <input type="hidden" name="action" value="list">
-                    <div class="col-md-7">
+                    <div class="col-md-10">
                         <label class="form-label">Từ khóa</label>
                         <input class="form-control" name="keyword" value="${keyword}" placeholder="VD: Hạ Long, ASG-000001, hdv@wonder.vn">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Trạng thái phân công</label>
-                        <select class="form-select" name="status">
-                            <option value="">Tất cả</option>
-                            <option value="Assigned" ${status == 'Assigned' ? 'selected' : ''}>Đã phân công</option>
-                            <option value="Pending" ${status == 'Pending' ? 'selected' : ''}>Chờ nhận tour</option>
-                            <option value="Accepted" ${status == 'Accepted' ? 'selected' : ''}>Đã nhận tour</option>
-                            <option value="Confirmed" ${status == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
-                            <option value="In Progress" ${status == 'In Progress' ? 'selected' : ''}>Đang diễn ra</option>
-                            <option value="Completed" ${status == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
-                            <option value="Cancelled" ${status == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
-                            <option value="Rejected" ${status == 'Rejected' ? 'selected' : ''}>Từ chối</option>
-                        </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button class="top-action-btn btn-primary-action w-100" type="submit">
@@ -152,7 +138,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Phân công đã tạo</h2>
-                    <p>Theo dõi hướng dẫn viên, lịch tour, trạng thái và thao tác sửa/xem.</p>
+                    <p>Theo dõi hướng dẫn viên, lịch tour và thao tác sửa/xem.</p>
                 </div>
             </div>
             <div class="panel-body">
@@ -165,7 +151,6 @@
                             <th>Hướng dẫn viên</th>
                             <th>Thời gian</th>
                             <th>Điểm đón</th>
-                            <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
                         </thead>
@@ -177,7 +162,6 @@
                                 <td>${a.guideName}<div class="text-muted small">${a.guidePhone}</div></td>
                                 <td><fmt:formatDate value="${a.departureDate}" pattern="dd/MM/yyyy HH:mm"/></td>
                                 <td>${empty a.meetingPoint ? 'Chưa nhập' : a.meetingPoint}</td>
-                                <td><span class="status-pill status-assigned">${a.assignmentStatusLabel}</span></td>
                                 <td>
                                     <div class="row-actions">
                                         <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/staff/assignment?action=view&id=${a.assignmentID}">
@@ -196,7 +180,7 @@
                             </tr>
                         </c:forEach>
                         <c:if test="${empty assignmentList}">
-                            <tr><td colspan="7" class="text-center text-muted py-5">Chưa có phân công phù hợp bộ lọc.</td></tr>
+                            <tr><td colspan="6" class="text-center text-muted py-5">Chưa có phân công phù hợp bộ lọc.</td></tr>
                         </c:if>
                         </tbody>
                     </table>

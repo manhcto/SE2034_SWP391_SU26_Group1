@@ -12,37 +12,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css?v=guide-sidebar-bottom-20260723" rel="stylesheet">
 </head>
 
 <body>
 <div class="workspace-layout">
-    <aside class="workspace-sidebar">
-        <div class="brand-box">
-            <div class="brand-logo guide">TG</div>
-            <h2>WonderVN</h2>
-            <p>Khu vực hướng dẫn viên</p>
-        </div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ hướng dẫn viên</span>
-        </a>
-
-        <div class="nav-section-title">Nhiệm vụ tour</div>
-
-        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment">
-            <i class="fa-solid fa-clipboard-list"></i>
-            <span>Tour được phân công</span>
-        </a>
-
-        <div class="nav-section-title">Tài khoản</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Đăng xuất</span>
-        </a>
-    </aside>
+    <jsp:include page="/views/common/guide-sidebar.jsp">
+        <jsp:param name="activeGuideMenu" value="assignment"/>
+    </jsp:include>
 
     <main class="main-content">
         <div class="topbar">
@@ -77,7 +54,6 @@
                             <th>Lịch tour</th>
                             <th>Tuyến</th>
                             <th>Điểm hẹn</th>
-                            <th>Ưu tiên</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
@@ -85,6 +61,28 @@
 
                         <tbody>
                         <c:forEach var="a" items="${assignmentList}">
+                            <c:set var="currentAssignmentStatus" value="${empty a.assignmentStatus ? 'Pending' : a.assignmentStatus}"/>
+                            <c:set var="showConfirmButton" value="${currentAssignmentStatus == 'Pending' || currentAssignmentStatus == 'Assigned'}"/>
+                            <c:choose>
+                                <c:when test="${currentAssignmentStatus == 'Pending' || currentAssignmentStatus == 'Assigned'}">
+                                    <c:set var="assignmentStatusClass" value="status-pending"/>
+                                </c:when>
+                                <c:when test="${currentAssignmentStatus == 'Accepted' || currentAssignmentStatus == 'Confirmed'}">
+                                    <c:set var="assignmentStatusClass" value="status-checked"/>
+                                </c:when>
+                                <c:when test="${currentAssignmentStatus == 'In Progress'}">
+                                    <c:set var="assignmentStatusClass" value="status-progress"/>
+                                </c:when>
+                                <c:when test="${currentAssignmentStatus == 'Completed'}">
+                                    <c:set var="assignmentStatusClass" value="status-completed"/>
+                                </c:when>
+                                <c:when test="${currentAssignmentStatus == 'Cancelled' || currentAssignmentStatus == 'Rejected'}">
+                                    <c:set var="assignmentStatusClass" value="status-cancelled"/>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:set var="assignmentStatusClass" value="status-assigned"/>
+                                </c:otherwise>
+                            </c:choose>
                             <tr>
                                 <td>
                                     <strong>
@@ -109,42 +107,32 @@
                                         </div>
                                     </c:if>
                                 </td>
-                                <td>${a.priorityLevelLabel}</td>
+                                <td><span class="status-pill ${assignmentStatusClass}">${a.assignmentStatusLabel}</span></td>
                                 <td>
-                                    <c:choose>
-                                        <c:when test="${a.assignmentStatus == 'Pending'}">
-                                            <span class="status-pill status-pending">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'Accepted'}">
-                                            <span class="status-pill status-checked">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'Confirmed'}">
-                                            <span class="status-pill status-assigned">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'In Progress'}">
-                                            <span class="status-pill status-progress">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'Completed'}">
-                                            <span class="status-pill status-completed">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="status-pill status-cancelled">${a.assignmentStatusLabel}</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td>
-                                    <a class="btn btn-sm btn-outline-primary"
-                                       href="${pageContext.request.contextPath}/guide/assignment?action=detail&id=${a.assignmentID}">
-                                        <i class="fa-solid fa-eye me-1"></i>
-                                        Chi tiết
-                                    </a>
+                                    <div class="row-actions">
+                                        <a class="btn btn-sm btn-outline-primary"
+                                           href="${pageContext.request.contextPath}/guide/assignment?action=detail&id=${a.assignmentID}">
+                                            <i class="fa-solid fa-eye me-1"></i>
+                                            Chi tiết
+                                        </a>
+                                        <c:if test="${showConfirmButton}">
+                                            <form method="post" action="${pageContext.request.contextPath}/guide/assignment" class="m-0">
+                                                <input type="hidden" name="action" value="confirmAssignment">
+                                                <input type="hidden" name="assignmentID" value="${a.assignmentID}">
+                                                <button class="btn btn-sm btn-outline-success" type="submit">
+                                                    <i class="fa-solid fa-circle-check me-1"></i>
+                                                    Xác nhận
+                                                </button>
+                                            </form>
+                                        </c:if>
+                                    </div>
                                 </td>
                             </tr>
                         </c:forEach>
 
                         <c:if test="${empty assignmentList}">
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-5">
+                                <td colspan="7" class="text-center text-muted py-5">
                                     Chưa có tour nào được phân công cho bạn.
                                 </td>
                             </tr>

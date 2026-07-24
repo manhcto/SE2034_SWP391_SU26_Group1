@@ -20,4 +20,14 @@ public interface AssignmentDAO {
     List<AssignmentView> getAssignmentsByGuide(int guideID);
 
     List<AssignmentView> getAssignmentsByGuide(int guideID, String status, String dateFrom, String dateTo);
+
+    boolean hasAssignmentForSameTourGuide(int tourScheduleID, int guideID, int excludedAssignmentID);
+
+    boolean hasAssignmentForSameTourCustomer(int tourScheduleID, int bookingID, int excludedAssignmentID);
+
+    boolean hasOverlappingAssignmentForGuide(int tourScheduleID, int guideID, int excludedAssignmentID);
+
+    boolean confirmAssignmentForGuide(int assignmentID, int guideID);
+
+    boolean updateAssignmentStatusFromProgressForGuide(int assignmentID, int guideID, String status);
 }

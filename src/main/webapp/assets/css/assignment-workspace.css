@@ -18,8 +18,13 @@ body {
     width: 292px;
     background: #0f172a;
     color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
     position: fixed;
     inset: 0 auto 0 0;
+    height: 100vh;
+    min-height: 100vh;
     overflow-y: auto;
     padding: 26px 18px;
     box-shadow: 8px 0 26px rgba(15, 23, 42, 0.18);
@@ -151,6 +156,11 @@ body {
 
 .workspace-user small {
     color: #94a3b8;
+}
+
+.sidebar-bottom,
+.guide-sidebar-shell > .sidebar-bottom {
+    margin-top: auto !important;
 }
 
 .main-content {
@@ -364,13 +374,13 @@ body {
 }
 
 .status-progress {
-    background: #dcfce7;
-    color: #166534;
+    background: #fff7ed;
+    color: #c2410c;
 }
 
 .status-completed {
-    background: #e2e8f0;
-    color: #334155;
+    background: #dcfce7;
+    color: #166534;
 }
 
 .status-cancelled {
@@ -381,6 +391,11 @@ body {
 .status-assigned {
     background: #ecfdf5;
     color: #047857;
+}
+
+.status-issue {
+    background: #fee2e2;
+    color: #b91c1c;
 }
 
 .alert {

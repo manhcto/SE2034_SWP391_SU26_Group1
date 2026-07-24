@@ -11,24 +11,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css?v=guide-sidebar-bottom-20260723" rel="stylesheet">
 </head>
 <body>
 <div class="workspace-layout">
-    <aside class="workspace-sidebar">
-        <div class="brand-box">
-            <div class="brand-logo guide">TG</div>
-            <h2>WonderVN</h2>
-            <p>Khu vực hướng dẫn viên</p>
-        </div>
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home"><i class="fa-solid fa-house"></i><span>Trang chủ hướng dẫn viên</span></a>
-        <div class="nav-section-title">Nhiệm vụ tour</div>
-        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment"><i class="fa-solid fa-clipboard-list"></i><span>Tour được phân công</span></a>
-        <div class="nav-section-title">Tài khoản</div>
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span></a>
-    </aside>
+    <jsp:include page="/views/common/guide-sidebar.jsp">
+        <jsp:param name="activeGuideMenu" value="assignment"/>
+    </jsp:include>
 
     <main class="main-content">
+        <c:set var="currentAssignmentStatus" value="${empty assignment.assignmentStatus ? 'Pending' : assignment.assignmentStatus}"/>
+        <c:set var="showConfirmButton" value="${currentAssignmentStatus == 'Pending' || currentAssignmentStatus == 'Assigned'}"/>
+        <c:set var="showTourActions" value="${currentAssignmentStatus == 'Accepted' || currentAssignmentStatus == 'Confirmed' || currentAssignmentStatus == 'In Progress'}"/>
         <div class="topbar">
             <div>
                 <h1>Chi tiết tour được phân công</h1>
@@ -38,12 +32,23 @@
                 <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/guide/assignment">
                     <i class="fa-solid fa-arrow-left"></i>Quay lại
                 </a>
-                <a class="top-action-btn btn-guide-action" href="${pageContext.request.contextPath}/guide/assignment?action=passengers&id=${assignment.assignmentID}">
-                    <i class="fa-solid fa-user-check"></i>Cập nhật hành khách
-                </a>
-                <a class="top-action-btn btn-guide-action" href="${pageContext.request.contextPath}/guide/assignment?action=progressLog&id=${assignment.assignmentID}">
-                    <i class="fa-solid fa-route"></i>Thêm nhật ký tiến độ
-                </a>
+                <c:if test="${showConfirmButton}">
+                    <form method="post" action="${pageContext.request.contextPath}/guide/assignment" class="m-0">
+                        <input type="hidden" name="action" value="confirmAssignment">
+                        <input type="hidden" name="assignmentID" value="${assignment.assignmentID}">
+                        <button class="top-action-btn btn-guide-action" type="submit">
+                            <i class="fa-solid fa-circle-check"></i>Xác nhận tour
+                        </button>
+                    </form>
+                </c:if>
+                <c:if test="${showTourActions}">
+                    <a class="top-action-btn btn-guide-action" href="${pageContext.request.contextPath}/guide/assignment?action=editPassengerStatus&id=${assignment.assignmentID}">
+                        <i class="fa-solid fa-user-check"></i>Cập nhật hành khách
+                    </a>
+                    <a class="top-action-btn btn-guide-action" href="${pageContext.request.contextPath}/guide/assignment?action=progressLog&id=${assignment.assignmentID}">
+                        <i class="fa-solid fa-route"></i>Thêm nhật ký tiến độ
+                    </a>
+                </c:if>
             </div>
         </div>
 
@@ -58,46 +63,16 @@
                     <h2>${empty assignment.assignmentCode ? assignment.assignmentID : assignment.assignmentCode}</h2>
                     <p>${assignment.tourName}</p>
                 </div>
-                <span class="status-pill status-assigned">${assignment.assignmentStatusLabel}</span>
             </div>
             <div class="panel-body">
                 <div class="detail-grid mb-4">
                     <div class="detail-item"><span>Tour</span><strong>${assignment.tourName}</strong></div>
                     <div class="detail-item"><span>Tuyến</span><strong>${assignment.startPlace} → ${assignment.endPlace}</strong></div>
                     <div class="detail-item"><span>Thời gian</span><strong><fmt:formatDate value="${assignment.departureDate}" pattern="dd/MM/yyyy"/> - <fmt:formatDate value="${assignment.endDate}" pattern="dd/MM/yyyy"/></strong></div>
-                    <div class="detail-item"><span>Vai trò</span><strong>${assignment.roleInTour}</strong></div>
                     <div class="detail-item"><span>Điểm đón</span><strong>${empty assignment.meetingPoint ? 'Chưa nhập' : assignment.meetingPoint}</strong></div>
                     <div class="detail-item"><span>Giờ đón / hạn check-in</span><strong><fmt:formatDate value="${assignment.pickupTime}" pattern="dd/MM/yyyy HH:mm"/> / <fmt:formatDate value="${assignment.checkInDeadline}" pattern="dd/MM/yyyy HH:mm"/></strong></div>
-                    <div class="detail-item"><span>Số khách</span><strong>${assignment.totalGuests} khách từ ${assignment.bookingCount} lượt đặt</strong></div>
-                    <div class="detail-item"><span>Yêu cầu đặc biệt</span><strong>${empty assignment.customerNote ? 'Không có' : assignment.customerNote}</strong></div>
-                    <div class="detail-item"><span>Ghi chú nhân viên</span><strong>${empty assignment.staffNote ? 'Không có' : assignment.staffNote}</strong></div>
-                    <div class="detail-item"><span>Ghi chú hướng dẫn viên</span><strong>${empty assignment.guideNote ? 'Không có' : assignment.guideNote}</strong></div>
+                    <div class="detail-item"><span>Số khách</span><strong>${assignment.totalGuests} khách</strong></div>
                 </div>
-
-                <form class="row g-3" method="post" action="${pageContext.request.contextPath}/guide/assignment">
-                    <input type="hidden" name="action" value="updateAssignmentStatus">
-                    <input type="hidden" name="assignmentID" value="${assignment.assignmentID}">
-                    <div class="col-md-4">
-                        <label class="form-label">Trạng thái phân công</label>
-                        <select name="assignmentStatus" class="form-select">
-                            <option value="Assigned" ${assignment.assignmentStatus == 'Assigned' ? 'selected' : ''}>Đã phân công</option>
-                            <option value="Pending" ${assignment.assignmentStatus == 'Pending' ? 'selected' : ''}>Chờ nhận tour</option>
-                            <option value="Accepted" ${assignment.assignmentStatus == 'Accepted' ? 'selected' : ''}>Đã nhận tour</option>
-                            <option value="Confirmed" ${assignment.assignmentStatus == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
-                            <option value="In Progress" ${assignment.assignmentStatus == 'In Progress' ? 'selected' : ''}>Đang diễn ra</option>
-                            <option value="Completed" ${assignment.assignmentStatus == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
-                            <option value="Cancelled" ${assignment.assignmentStatus == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
-                            <option value="Rejected" ${assignment.assignmentStatus == 'Rejected' ? 'selected' : ''}>Từ chối</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Ghi chú hướng dẫn viên</label>
-                        <input class="form-control" name="guideNote" value="${assignment.guideNote}">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button class="top-action-btn btn-guide-action w-100" type="submit">Lưu</button>
-                    </div>
-                </form>
             </div>
         </section>
 
@@ -159,9 +134,26 @@
                         </thead>
                         <tbody>
                         <c:forEach var="log" items="${progressLogs}">
+                            <c:choose>
+                                <c:when test="${log.progressStatus == 'Completed'}">
+                                    <c:set var="progressStatusClass" value="status-completed"/>
+                                </c:when>
+                                <c:when test="${log.progressStatus == 'Issue'}">
+                                    <c:set var="progressStatusClass" value="status-issue"/>
+                                </c:when>
+                                <c:when test="${log.progressStatus == 'Pickup Completed' || log.progressStatus == 'At Pickup Point'}">
+                                    <c:set var="progressStatusClass" value="status-checked"/>
+                                </c:when>
+                                <c:when test="${log.progressStatus == 'Departed' || log.progressStatus == 'Arrived' || log.progressStatus == 'Arrived Destination' || log.progressStatus == 'Returning' || log.progressStatus == 'Lunch Break' || log.progressStatus == 'Activity Completed' || log.progressStatus == 'Completed Visit'}">
+                                    <c:set var="progressStatusClass" value="status-progress"/>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:set var="progressStatusClass" value="status-assigned"/>
+                                </c:otherwise>
+                            </c:choose>
                             <tr>
                                 <td><fmt:formatDate value="${log.logTime}" pattern="dd/MM/yyyy HH:mm"/></td>
-                                <td><span class="status-pill status-progress">${log.progressStatusLabel}</span></td>
+                                <td><span class="status-pill ${progressStatusClass}">${log.progressStatusLabel}</span></td>
                                 <td>${empty log.title ? 'Cập nhật tour' : log.title}</td>
                                 <td>${empty log.content ? 'Không có nội dung' : log.content}</td>
                             </tr>

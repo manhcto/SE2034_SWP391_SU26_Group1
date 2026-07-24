@@ -9,8 +9,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,6 +78,7 @@ public class AssignmentDAOImpl {
             LTRIM(RTRIM(ISNULL(staff.firstName, N'') + N' ' + ISNULL(staff.lastName, N''))) AS assignedByName,
             ts.startDate,
             ts.endDate,
+            ts.departureTime,
             ts.maxParticipants,
             ts.quantity AS bookedQuantity
         FROM Tour_Assignments ta
@@ -404,6 +409,7 @@ public class AssignmentDAOImpl {
                 t.endPlace,
                 ts.startDate,
                 ts.endDate,
+                ts.departureTime,
                 ts.maxParticipants,
                 ts.quantity AS bookedQuantity
             FROM Booking b
@@ -421,6 +427,30 @@ public class AssignmentDAOImpl {
               AND UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
               AND (
                   """ + ASSIGNABLE_TOUR_BOOKING_STATUS_CONDITION + """
+              )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM Tour_Assignments assignedTour
+                  JOIN Booking assignedBooking
+                      ON assignedTour.bookingID = assignedBooking.bookingID
+                  WHERE assignedTour.tourScheduleID = bd.tourScheduleID
+                    AND (
+                        assignedTour.bookingID = b.bookingID
+                        OR (
+                            b.userID IS NOT NULL
+                            AND assignedBooking.userID = b.userID
+                        )
+                        OR (
+                            NULLIF(LOWER(LTRIM(RTRIM(ISNULL(b.email, N'')))), N'') IS NOT NULL
+                            AND LOWER(LTRIM(RTRIM(ISNULL(assignedBooking.email, N'')))) =
+                                LOWER(LTRIM(RTRIM(ISNULL(b.email, N''))))
+                        )
+                        OR (
+                            NULLIF(LTRIM(RTRIM(ISNULL(b.phone, N''))), N'') IS NOT NULL
+                            AND LTRIM(RTRIM(ISNULL(assignedBooking.phone, N''))) =
+                                LTRIM(RTRIM(ISNULL(b.phone, N'')))
+                        )
+                    )
               )
             ORDER BY b.bookingID DESC
             """;
@@ -456,6 +486,12 @@ public class AssignmentDAOImpl {
                 a.setEndPlace(rs.getString("endPlace"));
                 a.setDepartureDate(rs.getTimestamp("startDate"));
                 a.setEndDate(rs.getTimestamp("endDate"));
+                Timestamp departureAt = composeDepartureAt(
+                        rs.getTimestamp("startDate"),
+                        rs.getTime("departureTime")
+                );
+                a.setPickupTime(minutesBefore(departureAt, 30));
+                a.setCheckInDeadline(minutesBefore(departureAt, 10));
                 a.setMaxParticipants(rs.getInt("maxParticipants"));
                 a.setBookedQuantity(rs.getInt("bookedQuantity"));
 
@@ -466,6 +502,38 @@ public class AssignmentDAOImpl {
         }
 
         return list;
+    }
+
+    public Timestamp getScheduleDepartureAt(int tourScheduleID) {
+        String sql = """
+            SELECT
+                startDate,
+                departureTime
+            FROM Tour_Scheduler
+            WHERE tourScheduleID = ?
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, tourScheduleID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return composeDepartureAt(
+                            rs.getTimestamp("startDate"),
+                            rs.getTime("departureTime")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public List<User> getAllGuides() {
@@ -579,6 +647,137 @@ public class AssignmentDAOImpl {
         return false;
     }
 
+    public boolean hasAssignmentForSameTourGuide(int tourScheduleID, int guideID, int excludedAssignmentID) {
+        if (tourScheduleID <= 0 || guideID <= 0) {
+            return false;
+        }
+
+        String sql = """
+            SELECT TOP 1 1
+            FROM Tour_Assignments
+            WHERE tourScheduleID = ?
+              AND userID = ?
+              AND (? <= 0 OR assignmentID <> ?)
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, tourScheduleID);
+            ps.setInt(2, guideID);
+            ps.setInt(3, excludedAssignmentID);
+            ps.setInt(4, excludedAssignmentID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean hasAssignmentForSameTourCustomer(int tourScheduleID, int bookingID, int excludedAssignmentID) {
+        if (tourScheduleID <= 0 || bookingID <= 0) {
+            return false;
+        }
+
+        String sql = """
+            SELECT TOP 1 1
+            FROM Booking candidateBooking
+            JOIN Tour_Assignments assignedTour
+                ON assignedTour.tourScheduleID = ?
+            JOIN Booking assignedBooking
+                ON assignedTour.bookingID = assignedBooking.bookingID
+            WHERE candidateBooking.bookingID = ?
+              AND (? <= 0 OR assignedTour.assignmentID <> ?)
+              AND (
+                  assignedTour.bookingID = candidateBooking.bookingID
+                  OR (
+                      candidateBooking.userID IS NOT NULL
+                      AND assignedBooking.userID = candidateBooking.userID
+                  )
+                  OR (
+                      NULLIF(LOWER(LTRIM(RTRIM(ISNULL(candidateBooking.email, N'')))), N'') IS NOT NULL
+                      AND LOWER(LTRIM(RTRIM(ISNULL(assignedBooking.email, N'')))) =
+                          LOWER(LTRIM(RTRIM(ISNULL(candidateBooking.email, N''))))
+                  )
+                  OR (
+                      NULLIF(LTRIM(RTRIM(ISNULL(candidateBooking.phone, N''))), N'') IS NOT NULL
+                      AND LTRIM(RTRIM(ISNULL(assignedBooking.phone, N''))) =
+                          LTRIM(RTRIM(ISNULL(candidateBooking.phone, N'')))
+                  )
+              )
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, tourScheduleID);
+            ps.setInt(2, bookingID);
+            ps.setInt(3, excludedAssignmentID);
+            ps.setInt(4, excludedAssignmentID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean hasOverlappingAssignmentForGuide(int tourScheduleID, int guideID, int excludedAssignmentID) {
+        if (tourScheduleID <= 0 || guideID <= 0) {
+            return false;
+        }
+
+        String sql = """
+            SELECT TOP 1 1
+            FROM Tour_Scheduler candidateSchedule
+            JOIN Tour_Assignments assignedTour
+                ON assignedTour.userID = ?
+               AND (? <= 0 OR assignedTour.assignmentID <> ?)
+            JOIN Tour_Scheduler assignedSchedule
+                ON assignedTour.tourScheduleID = assignedSchedule.tourScheduleID
+            WHERE candidateSchedule.tourScheduleID = ?
+              AND LTRIM(RTRIM(ISNULL(assignedTour.assignmentStatus, N''))) NOT IN
+                  (N'Cancelled', N'Rejected', N'Đã hủy', N'Từ chối')
+              AND CONVERT(date, candidateSchedule.startDate) <=
+                  CONVERT(date, ISNULL(assignedSchedule.endDate, assignedSchedule.startDate))
+              AND CONVERT(date, ISNULL(candidateSchedule.endDate, candidateSchedule.startDate)) >=
+                  CONVERT(date, assignedSchedule.startDate)
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, guideID);
+            ps.setInt(2, excludedAssignmentID);
+            ps.setInt(3, excludedAssignmentID);
+            ps.setInt(4, tourScheduleID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public List<AssignmentView> getAssignmentsByGuide(int guideID) {
         List<AssignmentView> list = new ArrayList<>();
 
@@ -644,6 +843,79 @@ public class AssignmentDAOImpl {
             ps.setString(index++, normalizedStatus);
             ps.setString(index++, normalizedStatus);
             ps.setString(index++, normalizedStatus);
+            ps.setString(index++, normalizedStatus);
+            ps.setString(index++, normalizedStatus);
+            ps.setString(index++, normalizedStatus);
+            ps.setString(index++, normalizedStatus);
+            ps.setInt(index++, assignmentID);
+            ps.setInt(index, guideID);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean confirmAssignmentForGuide(int assignmentID, int guideID) {
+        String sql = """
+            UPDATE Tour_Assignments
+            SET
+                assignmentStatus = N'Confirmed',
+                acceptedAt = CASE WHEN acceptedAt IS NULL THEN GETDATE() ELSE acceptedAt END,
+                confirmedAt = CASE WHEN confirmedAt IS NULL THEN GETDATE() ELSE confirmedAt END,
+                updatedAt = GETDATE()
+            WHERE assignmentID = ?
+              AND userID = ?
+              AND LTRIM(RTRIM(ISNULL(assignmentStatus, N'Pending')))
+                  IN (N'Pending', N'Assigned', N'Accepted')
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, assignmentID);
+            ps.setInt(2, guideID);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean updateAssignmentStatusFromProgressForGuide(
+            int assignmentID,
+            int guideID,
+            String status) {
+
+        String sql = """
+            UPDATE Tour_Assignments
+            SET
+                assignmentStatus = ?,
+                actualStartAt = CASE WHEN ? = N'In Progress' AND actualStartAt IS NULL THEN GETDATE() ELSE actualStartAt END,
+                actualEndAt = CASE WHEN ? = N'Completed' AND actualEndAt IS NULL THEN GETDATE() ELSE actualEndAt END,
+                completedAt = CASE WHEN ? = N'Completed' AND completedAt IS NULL THEN GETDATE() ELSE completedAt END,
+                updatedAt = GETDATE()
+            WHERE assignmentID = ?
+              AND userID = ?
+              AND LTRIM(RTRIM(ISNULL(assignmentStatus, N''))) IN (N'Accepted', N'Confirmed', N'In Progress')
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            String normalizedStatus = normalize(status, "In Progress");
+
+            int index = 1;
             ps.setString(index++, normalizedStatus);
             ps.setString(index++, normalizedStatus);
             ps.setString(index++, normalizedStatus);
@@ -752,10 +1024,42 @@ public class AssignmentDAOImpl {
         a.setEndPlace(rs.getString("endPlace"));
         a.setDepartureDate(rs.getTimestamp("startDate"));
         a.setEndDate(rs.getTimestamp("endDate"));
+        Timestamp departureAt = composeDepartureAt(
+                rs.getTimestamp("startDate"),
+                rs.getTime("departureTime")
+        );
+        a.setPickupTime(minutesBefore(departureAt, 30));
+        a.setCheckInDeadline(minutesBefore(departureAt, 10));
         a.setMaxParticipants(rs.getInt("maxParticipants"));
         a.setBookedQuantity(rs.getInt("bookedQuantity"));
 
         return a;
+    }
+
+    private Timestamp composeDepartureAt(Timestamp startDate, Time departureTime) {
+        if (startDate == null) {
+            return null;
+        }
+
+        LocalDateTime startDateTime = startDate.toLocalDateTime();
+        LocalDate date = startDateTime.toLocalDate();
+        LocalTime time = departureTime == null
+                ? startDateTime.toLocalTime()
+                : departureTime.toLocalTime();
+
+        if (departureTime == null && LocalTime.MIDNIGHT.equals(time)) {
+            return null;
+        }
+
+        return Timestamp.valueOf(LocalDateTime.of(date, time));
+    }
+
+    private Timestamp minutesBefore(Timestamp baseTime, int minutes) {
+        if (baseTime == null) {
+            return null;
+        }
+
+        return Timestamp.valueOf(baseTime.toLocalDateTime().minusMinutes(minutes));
     }
 
     private void updateAssignmentCode(Connection conn, int assignmentID) throws Exception {

@@ -28,29 +28,94 @@ public class ItineraryLogDAO {
 
         DBConnection db = new DBConnection();
 
-        try (
-                Connection conn = db.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setInt(1, log.getTourScheduleID());
-            ps.setInt(2, log.getAssignmentID());
+        try (Connection conn = db.getConnection()) {
+            conn.setAutoCommit(false);
 
-            if (log.getLoggedByUserID() > 0) {
-                ps.setInt(3, log.getLoggedByUserID());
-            } else {
-                ps.setNull(3, Types.INTEGER);
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, log.getTourScheduleID());
+                ps.setInt(2, log.getAssignmentID());
+
+                if (log.getLoggedByUserID() > 0) {
+                    ps.setInt(3, log.getLoggedByUserID());
+                } else {
+                    ps.setNull(3, Types.INTEGER);
+                }
+
+                ps.setString(4, normalize(log.getProgressStatus(), "Pickup Completed"));
+                ps.setString(5, blankToNull(log.getTitle()));
+                ps.setString(6, blankToNull(log.getContent()));
+
+                if (ps.executeUpdate() <= 0) {
+                    conn.rollback();
+                    return false;
+                }
             }
 
-            ps.setString(4, normalize(log.getProgressStatus(), "Update"));
-            ps.setString(5, blankToNull(log.getTitle()));
-            ps.setString(6, blankToNull(log.getContent()));
+            if ("Issue".equals(normalize(log.getProgressStatus(), ""))) {
+                if (!insertIssueNotification(conn, log)) {
+                    conn.rollback();
+                    return false;
+                }
+            }
 
-            return ps.executeUpdate() > 0;
+            conn.commit();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return false;
+    }
+
+    private boolean insertIssueNotification(Connection conn, ItineraryLog log) throws Exception {
+        String sql = """
+            INSERT INTO [Notification]
+            (
+                userID,
+                title,
+                message,
+                notificationType,
+                isRead,
+                createdAt
+            )
+            SELECT
+                NULLIF(assignedBy, 0),
+                ?,
+                ?,
+                N'TourIssue',
+                0,
+                GETDATE()
+            FROM Tour_Assignments
+            WHERE assignmentID = ?
+            """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "Có vấn đề phát sinh trong tour");
+            ps.setString(2, buildIssueMessage(log));
+            ps.setInt(3, log.getAssignmentID());
+
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    private String buildIssueMessage(ItineraryLog log) {
+        String title = blankToNull(log.getTitle());
+        String content = blankToNull(log.getContent());
+
+        StringBuilder message = new StringBuilder();
+        message.append("Hướng dẫn viên báo có vấn đề phát sinh cho phân công #")
+                .append(log.getAssignmentID())
+                .append(".");
+
+        if (title != null) {
+            message.append(" Tiêu đề: ").append(title).append(".");
+        }
+
+        if (content != null) {
+            message.append(" Nội dung: ").append(content);
+        }
+
+        return message.toString();
     }
 
     public List<ItineraryLog> getLogsByAssignmentForGuide(int assignmentID, int guideID) {
