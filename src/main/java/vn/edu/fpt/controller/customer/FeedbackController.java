@@ -241,10 +241,15 @@ public class FeedbackController extends HttpServlet {
         int feedbackID = feedbackDAO.insertFeedback(feedback);
 
         if (feedbackID > 0) {
-            String backUrl = request.getContextPath() + "/feedback-list?"
-                    + buildContextQuery(tourID, accommodationID)
-                    + "&success=1";
-            response.sendRedirect(backUrl);
+            if (tourID > 0) {
+                response.sendRedirect(request.getContextPath()
+                        + "/tour-detail?id=" + tourID
+                        + "&feedbackSuccess=1#danh-gia");
+            } else {
+                response.sendRedirect(request.getContextPath()
+                        + "/feedback-list?accommodationID=" + accommodationID
+                        + "&success=1");
+            }
         } else {
             errors.add("Gửi đánh giá thất bại. Vui lòng thử lại.");
             forwardBackToForm(request, response, tourID, accommodationID, rateRaw, content, errors);
@@ -285,13 +290,6 @@ public class FeedbackController extends HttpServlet {
         return feedbackDAO.getLatestEndedBookingIDByAccommodation(userID, accommodationID);
     }
 
-    private String buildContextQuery(int tourID, int accommodationID) {
-        if (tourID > 0) {
-            return "tourID=" + tourID;
-        }
-        return "accommodationID=" + accommodationID;
-    }
-
     private void setContextAttributes(HttpServletRequest request, int tourID, int accommodationID) {
         FeedbackDAO feedbackDAO = new FeedbackDAO();
         if (tourID > 0) {
@@ -305,8 +303,15 @@ public class FeedbackController extends HttpServlet {
 
     private void redirectNotEnded(HttpServletRequest request, HttpServletResponse response,
                                   int tourID, int accommodationID) throws IOException {
-        response.sendRedirect(request.getContextPath() + "/feedback-list?"
-                + buildContextQuery(tourID, accommodationID)
+        if (tourID > 0) {
+            response.sendRedirect(request.getContextPath()
+                    + "/tour-detail?id=" + tourID
+                    + "&feedbackError=notEnded#danh-gia");
+            return;
+        }
+
+        response.sendRedirect(request.getContextPath()
+                + "/feedback-list?accommodationID=" + accommodationID
                 + "&error=notEnded");
     }
 

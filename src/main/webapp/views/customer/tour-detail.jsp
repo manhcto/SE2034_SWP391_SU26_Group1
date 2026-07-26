@@ -83,6 +83,29 @@
         .related-card { border: 1px solid #dddddd; color: #333333; text-decoration: none; background: #ffffff; }
         .related-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
         .related-card strong { display: block; padding: 8px; font-size: 12px; line-height: 1.45; text-transform: uppercase; }
+        .tour-feedback-section { margin: 28px 0 24px; padding: 22px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; box-shadow: 0 12px 28px rgba(15, 23, 42, .06); }
+        .tour-feedback-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+        .tour-feedback-head h2 { margin-bottom: 6px; }
+        .tour-feedback-head p { margin: 0; color: #64748b; font-size: 13px; line-height: 1.6; }
+        .feedback-add-button { min-height: 40px; padding: 0 18px; border-radius: 7px; color: #ffffff; background: var(--coral); display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-size: 13px; font-weight: 900; white-space: nowrap; }
+        .feedback-add-button:hover { color: #ffffff; background: #d94d3b; }
+        .tour-feedback-alert { margin-bottom: 16px; padding: 12px 14px; border-radius: 7px; font-size: 13px; font-weight: 700; line-height: 1.55; }
+        .tour-feedback-alert.success { border: 1px solid #86efac; color: #166534; background: #f0fdf4; }
+        .tour-feedback-alert.error { border: 1px solid #fecaca; color: #991b1b; background: #fef2f2; }
+        .tour-feedback-empty { padding: 42px 20px; border: 1px dashed #cbd5e1; border-radius: 10px; color: #64748b; background: #f8fafc; text-align: center; }
+        .tour-feedback-empty p { margin: 0 0 20px; font-size: 14px; }
+        .tour-feedback-list { display: grid; gap: 14px; }
+        .tour-feedback-card { padding: 16px; border: 1px solid #e2e8f0; border-radius: 10px; background: #ffffff; }
+        .tour-feedback-card-head { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
+        .tour-feedback-avatar { width: 40px; height: 40px; border-radius: 50%; color: #ffffff; background: var(--blue); display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; text-transform: uppercase; }
+        .tour-feedback-user { color: #111827; font-size: 13px; font-weight: 900; }
+        .tour-feedback-date { margin-top: 2px; color: #94a3b8; font-size: 11px; }
+        .tour-feedback-stars { margin-bottom: 9px; color: #f5b301; font-size: 18px; letter-spacing: 2px; }
+        .tour-feedback-stars .star-empty { color: #d1d5db; }
+        .tour-feedback-content { color: #334155; font-size: 13px; line-height: 1.7; white-space: pre-line; }
+        .tour-feedback-image { margin-top: 12px; }
+        .tour-feedback-image img { width: min(260px, 100%); max-height: 220px; border-radius: 8px; object-fit: cover; border: 1px solid #e2e8f0; }
+        .tour-feedback-note { margin-top: 14px; color: #64748b; font-size: 12px; line-height: 1.55; }
         @media (max-width: 1020px) {
             .tour-top, .detail-layout { grid-template-columns: 1fr; }
             .booking-side { position: static; }
@@ -119,36 +142,36 @@
                 <img src="${heroImage}" alt="${fn:escapeXml(tour.tourName)}" onerror="this.src='${pageContext.request.contextPath}/assets/images/home/hero-bana.png';">
             </div>
             <aside class="tour-top-side">
-            <section class="tour-info-box">
-                <h2><c:out value="${tour.tourName}" /></h2>
-                <div class="info-row"><span>Mã tour:</span><strong><c:out value="${tour.tourCode}" /></strong></div>
-                <div class="info-row"><span>Danh mục:</span><strong><c:out value="${empty tour.categoryName ? 'Tour trọn gói' : tour.categoryName}" /></strong></div>
-                <div class="info-row"><span>Thời gian:</span><strong>${tour.numberOfDay} ngày ${tour.numberOfNights} đêm</strong></div>
-                <div class="info-row"><span>Vận chuyển:</span><strong><c:out value="${empty fromSchedule.scheduleTransportType ? tour.mainTransportType : fromSchedule.scheduleTransportType}" /></strong></div>
-                <div class="info-row"><span>Xuất phát:</span><strong>Từ <c:out value="${tour.startPlace}" /></strong></div>
-            </section>
-            <section class="price-card" id="lich-khoi-hanh">
-                <div class="price-card-head">Giá từ <strong id="selectedSchedulePrice"><fmt:formatNumber value="${fromPrice}" pattern="#,##0" /> đ</strong></div>
-                <div class="price-card-body">
-                    <div class="side-highlight">
-                        <h3><i class="fa-solid fa-play"></i> Trải nghiệm:</h3>
-                        <c:choose>
-                            <c:when test="${not empty tour.tourInclude}"><c:out value="${tour.tourInclude}" /></c:when>
-                            <c:otherwise>Hành trình trọn gói, lịch rõ ràng và giá bán theo từng ngày khởi hành.</c:otherwise>
-                        </c:choose>
+                <section class="tour-info-box">
+                    <h2><c:out value="${tour.tourName}" /></h2>
+                    <div class="info-row"><span>Mã tour:</span><strong><c:out value="${tour.tourCode}" /></strong></div>
+                    <div class="info-row"><span>Danh mục:</span><strong><c:out value="${empty tour.categoryName ? 'Tour trọn gói' : tour.categoryName}" /></strong></div>
+                    <div class="info-row"><span>Thời gian:</span><strong>${tour.numberOfDay} ngày ${tour.numberOfNights} đêm</strong></div>
+                    <div class="info-row"><span>Vận chuyển:</span><strong><c:out value="${empty fromSchedule.scheduleTransportType ? tour.mainTransportType : fromSchedule.scheduleTransportType}" /></strong></div>
+                    <div class="info-row"><span>Xuất phát:</span><strong>Từ <c:out value="${tour.startPlace}" /></strong></div>
+                </section>
+                <section class="price-card" id="lich-khoi-hanh">
+                    <div class="price-card-head">Giá từ <strong id="selectedSchedulePrice"><fmt:formatNumber value="${fromPrice}" pattern="#,##0" /> đ</strong></div>
+                    <div class="price-card-body">
+                        <div class="side-highlight">
+                            <h3><i class="fa-solid fa-play"></i> Trải nghiệm:</h3>
+                            <c:choose>
+                                <c:when test="${not empty tour.tourInclude}"><c:out value="${tour.tourInclude}" /></c:when>
+                                <c:otherwise>Hành trình trọn gói, lịch rõ ràng và giá bán theo từng ngày khởi hành.</c:otherwise>
+                            </c:choose>
+                        </div>
+                        <form method="get" action="${pageContext.request.contextPath}/booking">
+                            <select class="schedule-select" id="schedulePicker" name="tourScheduleID" required>
+                                <c:forEach var="schedule" items="${tour.scheduleList}">
+                                    <fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy" var="pickerDateText" />
+                                    <fmt:formatNumber value="${schedule.adultPrice}" pattern="#,##0" var="pickerPriceText" />
+                                    <option value="${schedule.tourScheduleID}" data-price-text="${pickerPriceText} đ" data-date-text="${pickerDateText}">${pickerDateText}</option>
+                                </c:forEach>
+                            </select>
+                            <button class="book-button" type="submit">ĐẶT TOUR</button>
+                        </form>
                     </div>
-                    <form method="get" action="${pageContext.request.contextPath}/booking">
-                        <select class="schedule-select" id="schedulePicker" name="tourScheduleID" required>
-                            <c:forEach var="schedule" items="${tour.scheduleList}">
-                                <fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy" var="pickerDateText" />
-                                <fmt:formatNumber value="${schedule.adultPrice}" pattern="#,##0" var="pickerPriceText" />
-                                <option value="${schedule.tourScheduleID}" data-price-text="${pickerPriceText} đ" data-date-text="${pickerDateText}">${pickerDateText}</option>
-                            </c:forEach>
-                        </select>
-                        <button class="book-button" type="submit">ĐẶT TOUR</button>
-                    </form>
-                </div>
-            </section>
+                </section>
             </aside>
         </section>
 
@@ -357,9 +380,110 @@
                     <a href="#dich-vu"><i class="fa-solid fa-paperclip"></i> Dịch vụ bao gồm và không bao gồm</a>
                     <a href="#ghi-chu"><i class="fa-solid fa-note-sticky"></i> Ghi chú</a>
                     <a href="#ngay-khac"><i class="fa-regular fa-calendar-check"></i> Ngày khởi hành khác</a>
+                    <a href="#danh-gia"><i class="fa-regular fa-star"></i> Đánh giá tour</a>
                 </nav>
             </aside>
         </div>
+
+        <section class="tour-feedback-section" id="danh-gia">
+            <div class="tour-feedback-head">
+                <div>
+                    <h2 class="section-title"><i class="fa-regular fa-star"></i>Đánh giá tour</h2>
+                    <p>Các đánh giá đã được duyệt của khách hàng về <strong><c:out value="${tour.tourName}" /></strong>.</p>
+                </div>
+                <c:if test="${canAddTourFeedback and not empty tourFeedbackList}">
+                    <a class="feedback-add-button" href="${pageContext.request.contextPath}/feedback-add?tourID=${tour.tourID}">
+                        <i class="fa-solid fa-plus"></i> Thêm đánh giá
+                    </a>
+                </c:if>
+            </div>
+
+            <c:if test="${param.feedbackSuccess == '1'}">
+                <div class="tour-feedback-alert success">
+                    Đã gửi đánh giá thành công. Đánh giá của bạn sẽ hiển thị sau khi được nhân viên duyệt.
+                </div>
+            </c:if>
+
+            <c:if test="${param.feedbackError == 'notEnded'}">
+                <div class="tour-feedback-alert error">
+                    Bạn chỉ có thể thêm đánh giá khi booking của tour đã ở trạng thái “Tour kết thúc”.
+                </div>
+            </c:if>
+
+            <c:choose>
+                <c:when test="${empty tourFeedbackList}">
+                    <div class="tour-feedback-empty">
+                        <p>Chưa có đánh giá nào.</p>
+                        <c:choose>
+                            <c:when test="${canAddTourFeedback}">
+                                <a class="feedback-add-button" href="${pageContext.request.contextPath}/feedback-add?tourID=${tour.tourID}">
+                                    <i class="fa-solid fa-plus"></i> Thêm đánh giá
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="tour-feedback-note">Bạn có thể thêm đánh giá sau khi booking của tour đã kết thúc.</div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="tour-feedback-list">
+                        <c:forEach items="${tourFeedbackList}" var="feedback">
+                            <article class="tour-feedback-card">
+                                <div class="tour-feedback-card-head">
+                                    <div class="tour-feedback-avatar">
+                                        <c:out value="${fn:toUpperCase(fn:substring(feedback.userName, 0, 1))}" />
+                                    </div>
+                                    <div>
+                                        <div class="tour-feedback-user"><c:out value="${feedback.userName}" /></div>
+                                        <div class="tour-feedback-date">
+                                            <fmt:formatDate value="${feedback.createDate}" pattern="dd/MM/yyyy HH:mm" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tour-feedback-stars" aria-label="${feedback.rate} trên 5 sao">
+                                    <c:forEach begin="1" end="5" var="starIndex">
+                                        <c:choose>
+                                            <c:when test="${starIndex <= feedback.rate}">★</c:when>
+                                            <c:otherwise><span class="star-empty">★</span></c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+                                </div>
+
+                                <div class="tour-feedback-content"><c:out value="${feedback.content}" /></div>
+
+                                <c:if test="${not empty feedback.image}">
+                                    <c:set var="feedbackImage" value="${feedback.image}" />
+                                    <c:choose>
+                                        <c:when test="${fn:startsWith(feedback.image, 'http://') or fn:startsWith(feedback.image, 'https://')}">
+                                            <c:set var="feedbackImage" value="${feedback.image}" />
+                                        </c:when>
+                                        <c:when test="${not empty pageContext.request.contextPath and fn:startsWith(feedback.image, pageContext.request.contextPath)}">
+                                            <c:set var="feedbackImage" value="${feedback.image}" />
+                                        </c:when>
+                                        <c:when test="${fn:startsWith(feedback.image, '/')}">
+                                            <c:set var="feedbackImage" value="${pageContext.request.contextPath}${feedback.image}" />
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:set var="feedbackImage" value="${pageContext.request.contextPath}/${feedback.image}" />
+                                        </c:otherwise>
+                                    </c:choose>
+                                    <div class="tour-feedback-image">
+                                        <a href="${feedbackImage}" target="_blank" rel="noopener noreferrer">
+                                            <img src="${feedbackImage}" alt="Ảnh đánh giá" loading="lazy">
+                                        </a>
+                                    </div>
+                                </c:if>
+                            </article>
+                        </c:forEach>
+                    </div>
+                    <c:if test="${not canAddTourFeedback}">
+                        <div class="tour-feedback-note">Bạn có thể thêm đánh giá sau khi booking của tour đã kết thúc.</div>
+                    </c:if>
+                </c:otherwise>
+            </c:choose>
+        </section>
 
         <c:if test="${not empty relatedTours}">
             <section class="detail-section">
@@ -391,63 +515,63 @@
 <jsp:include page="/views/common/client-footer.jsp" />
 <script src="${pageContext.request.contextPath}/assets/js/home.js?v=20260721"></script>
 <script>
-(function () {
-    const priceText = document.getElementById('selectedSchedulePrice');
-    const picker = document.getElementById('schedulePicker');
-    const rows = Array.from(document.querySelectorAll('.schedule-main-row'));
+    (function () {
+        const priceText = document.getElementById('selectedSchedulePrice');
+        const picker = document.getElementById('schedulePicker');
+        const rows = Array.from(document.querySelectorAll('.schedule-main-row'));
 
-    function selectSchedule(row) {
-        if (!row) return;
-        rows.forEach(function (item) { item.classList.toggle('active', item === row); });
-        if (priceText && row.dataset.priceText) {
-            priceText.textContent = row.dataset.priceText;
-        }
-        if (picker && row.dataset.scheduleId) {
-            picker.value = row.dataset.scheduleId;
-        }
-    }
-
-    rows.forEach(function (row) {
-        row.addEventListener('mouseenter', function () { selectSchedule(row); });
-        row.addEventListener('focusin', function () { selectSchedule(row); });
-        row.addEventListener('click', function () { selectSchedule(row); });
-    });
-
-    if (picker) {
-        picker.addEventListener('change', function () {
-            const row = rows.find(function (item) { return item.dataset.scheduleId === picker.value; });
-            if (row) {
-                selectSchedule(row);
-            } else {
-                const selected = picker.options[picker.selectedIndex];
-                if (priceText && selected && selected.dataset.priceText) {
-                    priceText.textContent = selected.dataset.priceText;
-                }
+        function selectSchedule(row) {
+            if (!row) return;
+            rows.forEach(function (item) { item.classList.toggle('active', item === row); });
+            if (priceText && row.dataset.priceText) {
+                priceText.textContent = row.dataset.priceText;
             }
-        });
-    }
+            if (picker && row.dataset.scheduleId) {
+                picker.value = row.dataset.scheduleId;
+            }
+        }
 
-    document.querySelectorAll('[data-price-detail-target]').forEach(function (button) {
-        button.addEventListener('click', function (event) {
-            event.preventDefault();
-            const target = document.getElementById(button.getAttribute('data-price-detail-target'));
-            if (!target) return;
-            document.querySelectorAll('.price-detail-box.open').forEach(function (box) {
-                if (box !== target) box.classList.remove('open');
+        rows.forEach(function (row) {
+            row.addEventListener('mouseenter', function () { selectSchedule(row); });
+            row.addEventListener('focusin', function () { selectSchedule(row); });
+            row.addEventListener('click', function () { selectSchedule(row); });
+        });
+
+        if (picker) {
+            picker.addEventListener('change', function () {
+                const row = rows.find(function (item) { return item.dataset.scheduleId === picker.value; });
+                if (row) {
+                    selectSchedule(row);
+                } else {
+                    const selected = picker.options[picker.selectedIndex];
+                    if (priceText && selected && selected.dataset.priceText) {
+                        priceText.textContent = selected.dataset.priceText;
+                    }
+                }
             });
-            target.classList.toggle('open');
-            const parentRow = button.closest('.schedule-main-row');
-            selectSchedule(parentRow);
-        });
-    });
+        }
 
-    document.querySelectorAll('[data-price-detail-close]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            const target = document.getElementById(button.getAttribute('data-price-detail-close'));
-            if (target) target.classList.remove('open');
+        document.querySelectorAll('[data-price-detail-target]').forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                const target = document.getElementById(button.getAttribute('data-price-detail-target'));
+                if (!target) return;
+                document.querySelectorAll('.price-detail-box.open').forEach(function (box) {
+                    if (box !== target) box.classList.remove('open');
+                });
+                target.classList.toggle('open');
+                const parentRow = button.closest('.schedule-main-row');
+                selectSchedule(parentRow);
+            });
         });
-    });
-})();
+
+        document.querySelectorAll('[data-price-detail-close]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const target = document.getElementById(button.getAttribute('data-price-detail-close'));
+                if (target) target.classList.remove('open');
+            });
+        });
+    })();
 </script>
 </body>
 </html>

@@ -42,8 +42,6 @@
         .tour-result-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
         .detail-button { min-width: 100px; min-height: 38px; padding: 0 14px; border-radius: 8px; color: #ffffff; background: var(--blue); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 13px; font-weight: 900; }
         .detail-button:hover { background: var(--blue-dark); color: #ffffff; }
-        .detail-button.feedback-button { color: var(--blue); background: #ffffff; border: 1px solid var(--blue); }
-        .detail-button.feedback-button:hover { color: #ffffff; background: var(--blue); }
         .tour-filter-side { position: sticky; top: 18px; padding: 24px 18px; background: #f4f4f4; border: 1px solid #e5e7eb; }
         .tour-filter-side h2 { margin: 0 0 22px; color: #111827; text-align: center; font-size: 16px; font-weight: 900; text-transform: uppercase; }
         .filter-form { display: grid; gap: 15px; }
@@ -310,7 +308,6 @@
                                                 <strong class="tour-result-price"><fmt:formatNumber value="${empty firstSchedule ? tour.adultPrice : firstSchedule.adultPrice}" pattern="#,##0" /> đ</strong>
                                             </div>
                                             <div class="tour-result-actions">
-                                                <a class="detail-button feedback-button" href="${pageContext.request.contextPath}/feedback-list?tourID=${tour.tourID}">Đánh giá</a>
                                                 <a class="detail-button" href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">Xem chi tiết</a>
                                             </div>
                                         </div>
@@ -341,14 +338,14 @@
 <jsp:include page="/views/common/client-footer.jsp" />
 <script src="${pageContext.request.contextPath}/assets/js/home.js?v=20260721"></script>
 <script>
-document.querySelectorAll('.departure-toggle').forEach(function (button) {
-    button.addEventListener('click', function () {
-        var departureList = button.closest('.departures');
-        if (!departureList) return;
-        var expanded = departureList.classList.toggle('expanded');
-        button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    document.querySelectorAll('.departure-toggle').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var departureList = button.closest('.departures');
+            if (!departureList) return;
+            var expanded = departureList.classList.toggle('expanded');
+            button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
     });
-});
 </script>
 </body>
 </html>

@@ -372,8 +372,8 @@
 
                     <c:choose>
                         <c:when test="${not empty tourID}">
-                            <a href="${pageContext.request.contextPath}/feedback-list?tourID=${tourID}"
-                               class="btn-back">Quay lại danh sách</a>
+                            <a href="${pageContext.request.contextPath}/tour-detail?id=${tourID}#danh-gia"
+                               class="btn-back">Quay lại đánh giá tour</a>
                         </c:when>
                         <c:otherwise>
                             <a href="${pageContext.request.contextPath}/feedback-list?accommodationID=${accommodationID}"

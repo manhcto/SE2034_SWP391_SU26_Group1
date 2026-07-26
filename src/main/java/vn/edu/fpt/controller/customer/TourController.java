@@ -5,9 +5,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.DAO.AdministrativeUnitDAO;
+import vn.edu.fpt.DAO.FeedbackDAO;
 import vn.edu.fpt.DAO.TourDAO;
 import vn.edu.fpt.model.Tour;
+import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -23,6 +26,7 @@ public class TourController extends HttpServlet {
 
     private final TourDAO tourDAO = new TourDAO();
     private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
+    private final FeedbackDAO feedbackDAO = new FeedbackDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -106,7 +110,22 @@ public class TourController extends HttpServlet {
             return;
         }
 
+        List<Map<String, Object>> tourFeedbackList = feedbackDAO.getVisibleFeedbacksByTourID(tourID);
+        boolean canAddTourFeedback = false;
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            Object sessionUser = session.getAttribute("user");
+            if (sessionUser instanceof User) {
+                User currentUser = (User) sessionUser;
+                canAddTourFeedback = feedbackDAO
+                        .getLatestEndedBookingIDByTour(currentUser.getUserID(), tourID) > 0;
+            }
+        }
+
         request.setAttribute("tour", tour);
+        request.setAttribute("tourFeedbackList", tourFeedbackList);
+        request.setAttribute("canAddTourFeedback", canAddTourFeedback);
         request.setAttribute("relatedTours", tourDAO.getPublishedToursForCustomer(null, null, null, tour.getRegionID(), null, null, 4));
         request.getRequestDispatcher("/views/customer/tour-detail.jsp").forward(request, response);
     }
