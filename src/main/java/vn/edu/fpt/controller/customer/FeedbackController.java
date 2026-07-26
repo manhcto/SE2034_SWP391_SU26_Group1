@@ -96,13 +96,21 @@ public class FeedbackController extends HttpServlet {
             feedbackList = feedbackDAO.getVisibleFeedbacksByTourID(tourID);
             request.setAttribute("filterType", "tour");
             request.setAttribute("filterID", tourID);
+            request.setAttribute("serviceName", feedbackDAO.getTourNameByID(tourID));
 
         } else if (accommodationID > 0) {
             feedbackList = feedbackDAO.getVisibleFeedbacksByAccommodationID(accommodationID);
             request.setAttribute("filterType", "accommodation");
             request.setAttribute("filterID", accommodationID);
+            request.setAttribute("serviceName", feedbackDAO.getAccommodationNameByID(accommodationID));
         }
 
+        User currentUser = getSessionUser(request);
+        boolean hasFeedbackContext = tourID > 0 || accommodationID > 0;
+        boolean canAddFeedback = currentUser != null
+                && hasFeedbackContext
+                && findEndedBookingID(currentUser.getUserID(), tourID, accommodationID) > 0;
+        request.setAttribute("canAddFeedback", canAddFeedback);
         request.setAttribute("feedbackList", feedbackList);
         request.getRequestDispatcher(LIST_PAGE).forward(request, response);
     }
@@ -130,7 +138,7 @@ public class FeedbackController extends HttpServlet {
         request.getRequestDispatcher(DETAIL_PAGE).forward(request, response);
     }
 
-    // Hiển thị form thêm feedback (yêu cầu đăng nhập + có booking 'Hoàn thành')
+    // Hiển thị form thêm feedback (yêu cầu đăng nhập + booking đã ở trạng thái Tour kết thúc)
     private void showAddFeedbackForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -148,10 +156,10 @@ public class FeedbackController extends HttpServlet {
             return;
         }
 
-        int bookingID = findCompletedBookingID(user.getUserID(), tourID, accommodationID);
+        int bookingID = findEndedBookingID(user.getUserID(), tourID, accommodationID);
 
         if (bookingID <= 0) {
-            redirectNotCompleted(request, response, tourID, accommodationID);
+            redirectNotEnded(request, response, tourID, accommodationID);
             return;
         }
 
@@ -177,10 +185,10 @@ public class FeedbackController extends HttpServlet {
             return;
         }
 
-        int bookingID = findCompletedBookingID(user.getUserID(), tourID, accommodationID);
+        int bookingID = findEndedBookingID(user.getUserID(), tourID, accommodationID);
 
         if (bookingID <= 0) {
-            redirectNotCompleted(request, response, tourID, accommodationID);
+            redirectNotEnded(request, response, tourID, accommodationID);
             return;
         }
 
@@ -266,15 +274,15 @@ public class FeedbackController extends HttpServlet {
         }
     }
 
-    // Tìm booking 'Hoàn thành' mới nhất của user cho tour hoặc nơi lưu trú
-    private int findCompletedBookingID(int userID, int tourID, int accommodationID) {
+    // Tìm booking đã kết thúc mới nhất của user cho tour hoặc nơi lưu trú.
+    private int findEndedBookingID(int userID, int tourID, int accommodationID) {
         FeedbackDAO feedbackDAO = new FeedbackDAO();
 
         if (tourID > 0) {
-            return feedbackDAO.getLatestCompletedBookingIDByTour(userID, tourID);
+            return feedbackDAO.getLatestEndedBookingIDByTour(userID, tourID);
         }
 
-        return feedbackDAO.getLatestCompletedBookingIDByAccommodation(userID, accommodationID);
+        return feedbackDAO.getLatestEndedBookingIDByAccommodation(userID, accommodationID);
     }
 
     private String buildContextQuery(int tourID, int accommodationID) {
@@ -285,18 +293,21 @@ public class FeedbackController extends HttpServlet {
     }
 
     private void setContextAttributes(HttpServletRequest request, int tourID, int accommodationID) {
+        FeedbackDAO feedbackDAO = new FeedbackDAO();
         if (tourID > 0) {
             request.setAttribute("tourID", tourID);
+            request.setAttribute("serviceName", feedbackDAO.getTourNameByID(tourID));
         } else {
             request.setAttribute("accommodationID", accommodationID);
+            request.setAttribute("serviceName", feedbackDAO.getAccommodationNameByID(accommodationID));
         }
     }
 
-    private void redirectNotCompleted(HttpServletRequest request, HttpServletResponse response,
-                                      int tourID, int accommodationID) throws IOException {
+    private void redirectNotEnded(HttpServletRequest request, HttpServletResponse response,
+                                  int tourID, int accommodationID) throws IOException {
         response.sendRedirect(request.getContextPath() + "/feedback-list?"
                 + buildContextQuery(tourID, accommodationID)
-                + "&error=notCompleted");
+                + "&error=notEnded");
     }
 
     private void forwardBackToForm(HttpServletRequest request, HttpServletResponse response,

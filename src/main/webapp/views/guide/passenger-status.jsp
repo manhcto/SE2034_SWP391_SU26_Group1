@@ -12,37 +12,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css?v=guide-sidebar-bottom-20260723" rel="stylesheet">
 </head>
 
 <body>
 <div class="workspace-layout">
-    <aside class="workspace-sidebar">
-        <div class="brand-box">
-            <div class="brand-logo guide">TG</div>
-            <h2>WonderVN</h2>
-            <p>Khu vực hướng dẫn viên</p>
-        </div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ hướng dẫn viên</span>
-        </a>
-
-        <div class="nav-section-title">Nhiệm vụ tour</div>
-
-        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment">
-            <i class="fa-solid fa-clipboard-list"></i>
-            <span>Tour được phân công</span>
-        </a>
-
-        <div class="nav-section-title">Tài khoản</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Đăng xuất</span>
-        </a>
-    </aside>
+    <jsp:include page="/views/common/guide-sidebar.jsp">
+        <jsp:param name="activeGuideMenu" value="assignment"/>
+    </jsp:include>
 
     <main class="main-content">
         <div class="topbar">

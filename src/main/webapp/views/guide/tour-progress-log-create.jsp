@@ -11,22 +11,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css?v=guide-sidebar-bottom-20260723" rel="stylesheet">
 </head>
 <body>
 <div class="workspace-layout">
-    <aside class="workspace-sidebar">
-        <div class="brand-box">
-            <div class="brand-logo guide">TG</div>
-            <h2>WonderVN</h2>
-            <p>Khu vực hướng dẫn viên</p>
-        </div>
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home"><i class="fa-solid fa-house"></i><span>Trang chủ hướng dẫn viên</span></a>
-        <div class="nav-section-title">Nhiệm vụ tour</div>
-        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment"><i class="fa-solid fa-clipboard-list"></i><span>Tour được phân công</span></a>
-        <div class="nav-section-title">Tài khoản</div>
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span></a>
-    </aside>
+    <jsp:include page="/views/common/guide-sidebar.jsp">
+        <jsp:param name="activeGuideMenu" value="assignment"/>
+    </jsp:include>
 
     <main class="main-content">
         <div class="topbar">
@@ -60,11 +51,9 @@
                                 <option value="Pickup Completed">Đã đón khách</option>
                                 <option value="Departed">Đã khởi hành</option>
                                 <option value="Arrived">Đã đến nơi</option>
-                                <option value="Activity Completed">Hoàn thành hoạt động</option>
                                 <option value="Returning">Đang quay về</option>
-                                <option value="Completed">Hoàn thành tour</option>
+                                <option value="Completed">Kết thúc tour</option>
                                 <option value="Issue">Có vấn đề phát sinh</option>
-                                <option value="Update">Cập nhật</option>
                             </select>
                         </div>
                         <div class="col-md-8">
@@ -107,9 +96,26 @@
                         </thead>
                         <tbody>
                         <c:forEach var="log" items="${progressLogs}">
+                            <c:choose>
+                                <c:when test="${log.progressStatus == 'Completed'}">
+                                    <c:set var="progressStatusClass" value="status-completed"/>
+                                </c:when>
+                                <c:when test="${log.progressStatus == 'Issue'}">
+                                    <c:set var="progressStatusClass" value="status-issue"/>
+                                </c:when>
+                                <c:when test="${log.progressStatus == 'Pickup Completed' || log.progressStatus == 'At Pickup Point'}">
+                                    <c:set var="progressStatusClass" value="status-checked"/>
+                                </c:when>
+                                <c:when test="${log.progressStatus == 'Departed' || log.progressStatus == 'Arrived' || log.progressStatus == 'Arrived Destination' || log.progressStatus == 'Returning' || log.progressStatus == 'Lunch Break' || log.progressStatus == 'Activity Completed' || log.progressStatus == 'Completed Visit'}">
+                                    <c:set var="progressStatusClass" value="status-progress"/>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:set var="progressStatusClass" value="status-assigned"/>
+                                </c:otherwise>
+                            </c:choose>
                             <tr>
                                 <td><fmt:formatDate value="${log.logTime}" pattern="dd/MM/yyyy HH:mm"/></td>
-                                <td><span class="status-pill status-progress">${log.progressStatusLabel}</span></td>
+                                <td><span class="status-pill ${progressStatusClass}">${log.progressStatusLabel}</span></td>
                                 <td>${empty log.title ? 'Cập nhật tour' : log.title}</td>
                                 <td>${empty log.content ? 'Không có nội dung' : log.content}</td>
                             </tr>

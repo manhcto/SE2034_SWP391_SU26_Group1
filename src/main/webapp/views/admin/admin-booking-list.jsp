@@ -64,7 +64,7 @@
     .top-action-btn { border: none; border-radius: 16px; padding: 12px 18px; text-decoration: none; font-weight: 900; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08); background: #0f172a; color: #ffffff; }
     .top-action-btn:hover { background: #1e293b; color: #ffffff; }
 
-    .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-bottom: 22px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 22px; }
     .summary-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 22px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06); padding: 20px; display: flex; align-items: center; gap: 14px; }
     .summary-icon { width: 48px; height: 48px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
     .summary-label { color: #64748b; font-size: 13px; font-weight: 800; margin-bottom: 3px; }
@@ -82,6 +82,7 @@
     .status-confirmed { background: #e0f2fe; color: #0369a1; }
     .status-completed { background: #dcfce7; color: #166534; }
     .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .status-ended { background: #ede9fe; color: #6d28d9; }
 
     .btn-view { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px; border-radius: 999px; background: #ea580c; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 900; white-space: nowrap; }
     .btn-view:hover { background: #c2410c; color: #ffffff; }
@@ -140,24 +141,6 @@
     <jsp:param name="activeAdminMenu" value="booking"/>
     <jsp:param name="sidebarClass" value="sidebar"/>
   </jsp:include>
-  <c:set var="pendingCount" value="0"/>
-  <c:set var="completedCount" value="0"/>
-  <c:set var="cancelledCount" value="0"/>
-
-  <c:forEach var="bk" items="${bookingList}">
-    <c:choose>
-      <c:when test="${bk.displayStatus == 'Đang xử lý'}">
-        <c:set var="pendingCount" value="${pendingCount + 1}"/>
-      </c:when>
-      <c:when test="${bk.displayStatus == 'Hoàn thành'}">
-        <c:set var="completedCount" value="${completedCount + 1}"/>
-      </c:when>
-      <c:when test="${bk.displayStatus == 'Đã hủy'}">
-        <c:set var="cancelledCount" value="${cancelledCount + 1}"/>
-      </c:when>
-    </c:choose>
-  </c:forEach>
-
   <main class="main-content">
 
     <div class="topbar">
@@ -177,7 +160,7 @@
           <i class="fa-solid fa-clock"></i>
         </div>
         <div>
-          <div class="summary-label">Đang xử lý</div>
+          <div class="summary-label">Đang thanh toán</div>
           <div class="summary-value">${pendingCount}</div>
         </div>
       </div>
@@ -187,7 +170,7 @@
           <i class="fa-solid fa-circle-check"></i>
         </div>
         <div>
-          <div class="summary-label">Đã hoàn thành</div>
+          <div class="summary-label">Thanh toán thành công</div>
           <div class="summary-value">${completedCount}</div>
         </div>
       </div>
@@ -199,6 +182,16 @@
         <div>
           <div class="summary-label">Đã hủy</div>
           <div class="summary-value">${cancelledCount}</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon" style="background: #ede9fe; color: #6d28d9;">
+          <i class="fa-solid fa-flag-checkered"></i>
+        </div>
+        <div>
+          <div class="summary-label">Tour kết thúc</div>
+          <div class="summary-value">${endedCount}</div>
         </div>
       </div>
     </div>
@@ -214,9 +207,10 @@
 
       <select class="form-select" name="status" id="statusFilter">
         <option value="">Tất cả trạng thái</option>
-        <option value="Đang xử lý" ${param.status == 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
-        <option value="Hoàn thành" ${param.status == 'Hoàn thành' ? 'selected' : ''}>Hoàn thành</option>
+        <option value="Đang thanh toán" ${param.status == 'Đang thanh toán' ? 'selected' : ''}>Đang thanh toán</option>
+        <option value="Thanh toán thành công" ${param.status == 'Thanh toán thành công' ? 'selected' : ''}>Thanh toán thành công</option>
         <option value="Đã hủy" ${param.status == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
+        <option value="Tour kết thúc" ${param.status == 'Tour kết thúc' ? 'selected' : ''}>Tour kết thúc</option>
       </select>
 
       <button class="btn btn-outline-secondary fw-bold" type="submit">
@@ -254,7 +248,7 @@
 
                   <td>
                                             <span class="badge ${booking.bookingType == 'Tour' ? 'bg-info text-dark' : 'bg-success'}">
-                                                ${booking.bookingType == 'Tour' ? 'Tour' : 'Phòng'}
+                                                ${booking.bookingType == 'Tour' ? 'Tour' : 'Lưu trú'}
                                             </span>
                   </td>
 
@@ -268,14 +262,17 @@
 
                   <td>
                     <c:choose>
-                      <c:when test="${booking.displayStatus == 'Đang xử lý'}">
-                        <span class="status-badge status-pending">Đang xử lý</span>
+                      <c:when test="${booking.displayStatus == 'Đang thanh toán'}">
+                        <span class="status-badge status-pending">Đang thanh toán</span>
                       </c:when>
-                      <c:when test="${booking.displayStatus == 'Hoàn thành'}">
-                        <span class="status-badge status-completed">Đã hoàn thành</span>
+                      <c:when test="${booking.displayStatus == 'Thanh toán thành công'}">
+                        <span class="status-badge status-completed">Thanh toán thành công</span>
                       </c:when>
                       <c:when test="${booking.displayStatus == 'Đã hủy'}">
                         <span class="status-badge status-cancelled">Đã hủy</span>
+                      </c:when>
+                      <c:when test="${booking.displayStatus == 'Tour kết thúc'}">
+                        <span class="status-badge status-ended">Tour kết thúc</span>
                       </c:when>
                       <c:otherwise>
                         <span class="status-badge bg-secondary">${booking.displayStatus}</span>

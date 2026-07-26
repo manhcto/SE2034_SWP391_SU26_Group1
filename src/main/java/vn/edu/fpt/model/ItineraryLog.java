@@ -60,7 +60,7 @@ public class ItineraryLog {
 
     public String getProgressStatusLabel() {
         if (progressStatus == null || progressStatus.trim().isEmpty()) {
-            return "Cập nhật";
+            return "Đang diễn ra";
         }
 
         return switch (progressStatus.trim()) {
@@ -69,11 +69,11 @@ public class ItineraryLog {
             case "Departed" -> "Đã khởi hành";
             case "Arrived", "Arrived Destination" -> "Đã đến nơi";
             case "Lunch Break" -> "Đang nghỉ ăn trưa";
-            case "Activity Completed", "Completed Visit" -> "Hoàn thành hoạt động";
+            case "Activity Completed", "Completed Visit" -> "Đang diễn ra";
             case "Returning" -> "Đang quay về";
             case "Completed" -> "Hoàn thành tour";
             case "Issue" -> "Có vấn đề phát sinh";
-            case "Update" -> "Cập nhật";
+            case "Update" -> "Đang diễn ra";
             default -> progressStatus.trim();
         };
     }

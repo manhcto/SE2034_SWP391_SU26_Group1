@@ -271,9 +271,9 @@ public class AssignmentView {
         }
 
         return switch (assignmentStatus.trim()) {
-            case "Assigned" -> "Đã phân công";
+            case "Assigned" -> "Chờ nhận tour";
             case "Pending" -> "Chờ nhận tour";
-            case "Accepted" -> "Đã nhận tour";
+            case "Accepted" -> "Đã xác nhận";
             case "Confirmed" -> "Đã xác nhận";
             case "In Progress" -> "Đang diễn ra";
             case "Completed" -> "Hoàn thành";

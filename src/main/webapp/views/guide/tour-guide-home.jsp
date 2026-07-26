@@ -481,6 +481,31 @@
             flex: 0 0 auto;
         }
 
+        .timeline-icon-pickup {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .timeline-icon-moving {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .timeline-icon-arrived {
+            background: #ecfeff;
+            color: #0e7490;
+        }
+
+        .timeline-icon-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .timeline-icon-issue {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
         .timeline-content h6 {
             margin: 0 0 4px;
             font-weight: 900;
@@ -565,58 +590,10 @@
 <body>
 <div class="guide-layout">
 
-    <!-- SIDEBAR -->
-    <aside class="guide-sidebar">
-        <div class="brand-box">
-            <div class="brand-logo">TG</div>
-            <h2>WonderVN</h2>
-            <p>Khu vực hướng dẫn viên</p>
-        </div>
-
-        <a class="sidebar-link active" href="${pageContext.request.contextPath}/guide/home">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ hướng dẫn viên</span>
-        </a>
-
-        <div class="nav-section-title">Nhiệm vụ tour</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/assignment">
-            <i class="fa-solid fa-clipboard-list"></i>
-            <span>Tour được phân công</span>
-        </a>
-
-        <a class="sidebar-link" href="#confirmedTours">
-            <i class="fa-solid fa-circle-check"></i>
-            <span>Tour đã xác nhận</span>
-        </a>
-
-        <a class="sidebar-link" href="#tourUpdates">
-            <i class="fa-solid fa-pen-to-square"></i>
-            <span>Cập nhật tour</span>
-        </a>
-
-        <div class="sidebar-bottom">
-            <div class="nav-section-title">Tài khoản</div>
-
-            <div class="guide-user">
-                <div class="avatar">TG</div>
-                <div>
-                    <div class="fw-bold">${sessionScope.user.firstName} ${sessionScope.user.lastName}</div>
-                    <small>Hướng dẫn viên</small>
-                </div>
-            </div>
-
-            <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/profile">
-                <i class="fa-solid fa-user"></i>
-                <span>Hồ sơ</span>
-            </a>
-
-            <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Đăng xuất</span>
-            </a>
-        </div>
-    </aside>
+    <jsp:include page="/views/common/guide-sidebar.jsp">
+        <jsp:param name="sidebarClass" value="guide-sidebar"/>
+        <jsp:param name="activeGuideMenu" value="home"/>
+    </jsp:include>
 
     <!-- MAIN -->
     <main class="main-content">
@@ -691,15 +668,17 @@
         <div class="row g-4">
             <c:forEach var="assignment" items="${assignedTours}">
                 <c:set var="assignmentStatus" value="${empty assignment.assignmentStatus ? 'Pending' : assignment.assignmentStatus}"/>
+                <c:set var="showConfirmButton" value="${assignmentStatus == 'Pending' || assignmentStatus == 'Assigned'}"/>
+                <c:set var="showTourActions" value="${assignmentStatus == 'Accepted' || assignmentStatus == 'Confirmed' || assignmentStatus == 'In Progress'}"/>
 
                 <c:choose>
-                    <c:when test="${assignmentStatus == 'Pending'}">
+                    <c:when test="${assignmentStatus == 'Pending' || assignmentStatus == 'Assigned'}">
                         <c:set var="statusClass" value="status-new"/>
                         <c:set var="statusLabel" value="Chờ nhận tour"/>
                     </c:when>
                     <c:when test="${assignmentStatus == 'Accepted'}">
-                        <c:set var="statusClass" value="status-new"/>
-                        <c:set var="statusLabel" value="Đã nhận tour"/>
+                        <c:set var="statusClass" value="status-confirmed"/>
+                        <c:set var="statusLabel" value="Đã xác nhận"/>
                     </c:when>
                     <c:when test="${assignmentStatus == 'Confirmed'}">
                         <c:set var="statusClass" value="status-confirmed"/>
@@ -780,11 +759,30 @@
                                     Xem chi tiết
                                 </a>
 
-                                <a class="guide-btn btn-update"
-                                   href="${pageContext.request.contextPath}/guide/assignment?action=editPassengerStatus&id=${assignment.assignmentID}">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                    Cập nhật hành khách
-                                </a>
+                                <c:if test="${showConfirmButton}">
+                                    <form method="post" action="${pageContext.request.contextPath}/guide/assignment" class="m-0">
+                                        <input type="hidden" name="action" value="confirmAssignment">
+                                        <input type="hidden" name="assignmentID" value="${assignment.assignmentID}">
+                                        <button class="guide-btn btn-confirm" type="submit">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            Xác nhận tour
+                                        </button>
+                                    </form>
+                                </c:if>
+
+                                <c:if test="${showTourActions}">
+                                    <a class="guide-btn btn-update"
+                                       href="${pageContext.request.contextPath}/guide/assignment?action=editPassengerStatus&id=${assignment.assignmentID}">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                        Cập nhật hành khách
+                                    </a>
+
+                                    <a class="guide-btn btn-confirm"
+                                       href="${pageContext.request.contextPath}/guide/assignment?action=progressLog&id=${assignment.assignmentID}">
+                                        <i class="fa-solid fa-route"></i>
+                                        Nhật ký tiến độ
+                                    </a>
+                                </c:if>
                             </div>
                         </div>
                     </div>
@@ -808,13 +806,36 @@
 
         <div class="timeline-box">
             <c:forEach var="log" items="${recentProgressLogs}">
+                <c:choose>
+                    <c:when test="${log.progressStatus == 'Completed'}">
+                        <c:set var="timelineIconClass" value="timeline-icon-completed"/>
+                    </c:when>
+                    <c:when test="${log.progressStatus == 'Issue'}">
+                        <c:set var="timelineIconClass" value="timeline-icon-issue"/>
+                    </c:when>
+                    <c:when test="${log.progressStatus == 'Pickup Completed' || log.progressStatus == 'At Pickup Point'}">
+                        <c:set var="timelineIconClass" value="timeline-icon-pickup"/>
+                    </c:when>
+                    <c:when test="${log.progressStatus == 'Arrived' || log.progressStatus == 'Arrived Destination'}">
+                        <c:set var="timelineIconClass" value="timeline-icon-arrived"/>
+                    </c:when>
+                    <c:when test="${log.progressStatus == 'Departed' || log.progressStatus == 'Returning' || log.progressStatus == 'Lunch Break' || log.progressStatus == 'Activity Completed' || log.progressStatus == 'Completed Visit'}">
+                        <c:set var="timelineIconClass" value="timeline-icon-moving"/>
+                    </c:when>
+                    <c:otherwise>
+                        <c:set var="timelineIconClass" value="timeline-icon-pickup"/>
+                    </c:otherwise>
+                </c:choose>
                 <div class="timeline-item">
-                    <div class="timeline-icon">
+                    <div class="timeline-icon ${timelineIconClass}">
                         <c:choose>
-                            <c:when test="${log.progressStatus == 'Departed'}">
+                            <c:when test="${log.progressStatus == 'Pickup Completed' || log.progressStatus == 'At Pickup Point'}">
+                                <i class="fa-solid fa-user-check"></i>
+                            </c:when>
+                            <c:when test="${log.progressStatus == 'Departed' || log.progressStatus == 'Returning' || log.progressStatus == 'Lunch Break' || log.progressStatus == 'Activity Completed' || log.progressStatus == 'Completed Visit'}">
                                 <i class="fa-solid fa-bus"></i>
                             </c:when>
-                            <c:when test="${log.progressStatus == 'Completed' || log.progressStatus == 'Activity Completed'}">
+                            <c:when test="${log.progressStatus == 'Completed'}">
                                 <i class="fa-solid fa-circle-check"></i>
                             </c:when>
                             <c:when test="${log.progressStatus == 'Issue'}">

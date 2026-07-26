@@ -43,7 +43,7 @@ public class TourGuideHomeController extends HttpServlet {
 
         request.setAttribute("assignedTours", assignedTours);
         request.setAttribute("assignedTourCount", assignedTours.size());
-        request.setAttribute("confirmedTourCount", countByStatus(assignedTours, "Confirmed"));
+        request.setAttribute("confirmedTourCount", countByStatus(assignedTours, "Accepted", "Confirmed"));
         request.setAttribute("inProgressTourCount", countByStatus(assignedTours, "In Progress"));
         request.setAttribute("completedTourCount", countByStatus(assignedTours, "Completed"));
         request.setAttribute("recentProgressLogs", itineraryLogDAO.getRecentLogsByGuide(guide.getUserID(), 5));
@@ -58,12 +58,15 @@ public class TourGuideHomeController extends HttpServlet {
         return user instanceof User currentUser ? currentUser : null;
     }
 
-    private int countByStatus(List<AssignmentView> assignedTours, String status) {
+    private int countByStatus(List<AssignmentView> assignedTours, String... statuses) {
         int count = 0;
 
         for (AssignmentView assignment : assignedTours) {
-            if (status.equals(assignment.getAssignmentStatus())) {
-                count++;
+            for (String status : statuses) {
+                if (status.equals(assignment.getAssignmentStatus())) {
+                    count++;
+                    break;
+                }
             }
         }
 

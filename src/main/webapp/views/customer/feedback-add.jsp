@@ -271,7 +271,7 @@
         <div class="section-head" style="justify-content: center; text-align: center; margin-bottom: 36px;">
             <div>
                 <p class="section-kicker">Đánh giá</p>
-                <h2>Viết đánh giá</h2>
+                <h2>Viết đánh giá cho <c:out value="${serviceName}"/></h2>
                 <p>Đánh giá của bạn sẽ hiển thị công khai sau khi được nhân viên duyệt.</p>
             </div>
         </div>

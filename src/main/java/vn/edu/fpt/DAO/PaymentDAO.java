@@ -1,6 +1,7 @@
 package vn.edu.fpt.DAO;
 
 import vn.edu.fpt.common.DBConnection;
+import vn.edu.fpt.model.Booking;
 import vn.edu.fpt.model.Payment;
 import vn.edu.fpt.service.PayOSService;
 
@@ -60,30 +61,30 @@ public class PaymentDAO {
 
     public boolean prepareCheckout(int bookingID, String checkoutUrl) {
         String sql = """
-                UPDATE [dbo].[Payment]
-                SET [status] = N'Pending',
-                    expiredAt = DATEADD(MINUTE, 15, GETDATE()),
-                    [description] = N'Da tao ma QR PayOS'
-                WHERE bookingID = ? AND [status] <> N'Paid'
-                """;
+            UPDATE [dbo].[Payment]
+            SET [status] = N'Pending',
+                checkoutUrl = ?, 
+                expiredAt = DATEADD(MINUTE, 15, GETDATE()),
+                [description] = N'Da tao ma QR PayOS'
+            WHERE bookingID = ? AND [status] <> N'Paid'
+            """;
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, bookingID);
+            ps.setString(1, checkoutUrl); // Thêm dòng này để lưu checkoutUrl
+            ps.setInt(2, bookingID);      // Thay đổi index của bookingID thành 2
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
-
     public boolean markPaidByBookingID(int bookingID, String transactionCode) {
         String sql = """
                 UPDATE [dbo].[Payment]
                 SET [status] = N'Paid',
                     transactionReference = ?,
                     paymentDate = GETDATE(),
-                    expiredAt = NULL,
                     [description] = N'Da thanh toan thanh cong'
                 WHERE bookingID = ? AND [status] = N'Pending'
                   AND LEFT(ISNULL([description], N''), 15) <> N'[SLOT_RELEASED]'
@@ -152,7 +153,12 @@ public class PaymentDAO {
         }
 
         BookingDAO bookingDAO = new BookingDAO();
-        if (payment.isPaid()) {
+        if (STATUS_CANCELLED.equalsIgnoreCase(payment.getStatus())
+                || STATUS_FAILED.equalsIgnoreCase(payment.getStatus())) {
+            return bookingDAO.updateBookingStatus(bookingID, Booking.STATUS_CANCELLED);
+        }
+
+        if (payment.isPaid() && isBeforeExpiryOrUnknown(payment)) {
             return bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
         }
 
@@ -161,12 +167,8 @@ public class PaymentDAO {
             return false;
         }
 
-        if (payment.isExpired()) {
-            return bookingDAO.releasePendingPaymentReservation(
-                    bookingID,
-                    true,
-                    "Het thoi gian giu cho thanh toan 15 phut."
-            );
+        if (isPendingPaymentExpired(payment)) {
+            return expirePendingPayment(bookingID);
         }
 
         BigDecimal amount = payment.getTotalAmount();
@@ -176,15 +178,32 @@ public class PaymentDAO {
 
         PayOSService payOSService = new PayOSService();
         if (!payOSService.isPaymentPaid(bookingID, amount)) {
-            return false;
+            return bookingDAO.syncPendingBookingFromPendingPayment(bookingID);
         }
 
         if (!markPaidByBookingID(bookingID, "PAYOS-SYNC-" + bookingID)) {
             return false;
         }
 
-        bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
-        return true;
+        Payment paidPayment = findByBookingID(bookingID);
+        if (paidPayment != null && paidPayment.isPaid() && isBeforeExpiryOrUnknown(paidPayment)) {
+            return bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
+        }
+
+        return false;
+    }
+
+    public boolean expirePendingPayment(int bookingID) {
+        Payment payment = findByBookingID(bookingID);
+        if (!isPendingPaymentExpired(payment)) {
+            return false;
+        }
+
+        return new BookingDAO().releasePendingPaymentReservation(
+                bookingID,
+                true,
+                "Het thoi gian giu cho thanh toan 15 phut."
+        );
     }
 
     public void synchronizeBookingStates() {
@@ -275,6 +294,27 @@ public class PaymentDAO {
             payment.setCreatedAt(rs.getTimestamp("createdAt"));
         }
         return payment;
+    }
+
+    private boolean isPendingPaymentExpired(Payment payment) {
+        if (payment == null
+                || payment.isPaid()
+                || payment.isReservationReleased()
+                || !STATUS_PENDING.equalsIgnoreCase(payment.getStatus())) {
+            return false;
+        }
+
+        Timestamp expiredAt = payment.getExpiredAt();
+        return expiredAt != null && System.currentTimeMillis() >= expiredAt.getTime();
+    }
+
+    private boolean isBeforeExpiryOrUnknown(Payment payment) {
+        if (payment == null) {
+            return false;
+        }
+
+        Timestamp expiredAt = payment.getExpiredAt();
+        return expiredAt == null || System.currentTimeMillis() < expiredAt.getTime();
     }
 
     private boolean hasColumn(ResultSet rs, String columnName) throws SQLException {

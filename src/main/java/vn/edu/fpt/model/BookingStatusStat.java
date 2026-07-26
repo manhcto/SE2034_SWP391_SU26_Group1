@@ -31,7 +31,7 @@ public class BookingStatusStat {
 
     public String getDisplayStatus() {
         if ("Pending".equalsIgnoreCase(status)) {
-            return "Chờ xử lý";
+            return "Đang thanh toán";
         }
 
         if ("Confirmed".equalsIgnoreCase(status)) {
@@ -43,7 +43,11 @@ public class BookingStatusStat {
         }
 
         if ("Completed".equalsIgnoreCase(status)) {
-            return "Hoàn tất";
+            return "Thanh toán thành công";
+        }
+
+        if ("End".equalsIgnoreCase(status) || "Ended".equalsIgnoreCase(status)) {
+            return "Tour kết thúc";
         }
 
         return status;

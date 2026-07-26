@@ -205,11 +205,10 @@
                         <span class="summary-value">
                             <span class="status-badge">
                                 <c:choose>
-                                    <c:when test="${bookingSummary.status == 'Đang xử lý' || bookingSummary.status == 'Pending'}">Đang xử lý</c:when>
-                                    <%-- Trạng thái "Đã duyệt" đã bỏ: đơn cũ hiển thị là Hoàn thành --%>
-                                    <c:when test="${bookingSummary.status == 'Đã duyệt' || bookingSummary.status == 'Confirmed'}">Hoàn thành</c:when>
+                                    <c:when test="${bookingSummary.status == 'Đang xử lý' || bookingSummary.status == 'Pending' || bookingSummary.status == 'Đang đợi chuyển khoản'}">Đang đợi chuyển khoản</c:when>
+                                    <c:when test="${bookingSummary.status == 'Đã duyệt' || bookingSummary.status == 'Confirmed' || bookingSummary.status == 'Hoàn thành' || bookingSummary.status == 'Completed' || bookingSummary.status == 'Đã booking và thanh toán thành công'}">Đã booking và thanh toán thành công</c:when>
                                     <c:when test="${bookingSummary.status == 'Đã hủy' || bookingSummary.status == 'Cancelled'}">Đã hủy</c:when>
-                                    <c:when test="${bookingSummary.status == 'Hoàn thành' || bookingSummary.status == 'Completed'}">Hoàn thành</c:when>
+                                    <c:when test="${bookingSummary.status == 'End' || bookingSummary.status == 'Ended' || bookingSummary.status == 'Tour kết thúc' || bookingSummary.status == 'Đã kết thúc'}">Tour kết thúc</c:when>
                                     <c:otherwise>${bookingSummary.status}</c:otherwise>
                                 </c:choose>
                             </span>

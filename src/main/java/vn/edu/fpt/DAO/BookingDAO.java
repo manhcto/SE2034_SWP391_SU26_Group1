@@ -857,14 +857,26 @@ public class BookingDAO {
                 }
 
                 boolean wasCancelled = Booking.isCancelledStatus(currentStatus);
+                boolean wasEnded = Booking.isEndedStatus(currentStatus);
                 boolean willCancel = Booking.isCancelledStatus(normalizedStatus);
                 boolean willComplete = Booking.isCompletedStatus(normalizedStatus);
+                boolean willEnd = Booking.isEndedStatus(normalizedStatus);
 
                 if (wasCancelled && !willCancel) {
                     conn.rollback();
                     return false;
                 }
 
+                // Tour kết thúc là trạng thái cuối, không để đồng bộ Payment đổi ngược
+                // booking về Pending, Completed hoặc Cancelled.
+                if (wasEnded && !willEnd) {
+                    conn.rollback();
+                    return false;
+                }
+
+                // Completed vẫn chỉ được tạo tự động khi Payment đã Paid.
+                // Riêng End là thao tác nghiệp vụ của Staff nên được phép với cả
+                // đơn đang thanh toán và đơn đã thanh toán thành công.
                 if (willComplete
                         && paymentStatus != null
                         && !PaymentDAO.STATUS_PAID.equalsIgnoreCase(paymentStatus)) {
@@ -931,6 +943,7 @@ public class BookingDAO {
         if (Booking.isApprovedStatus(status)) return Booking.STATUS_COMPLETED;
         if (Booking.isCancelledStatus(status)) return Booking.STATUS_CANCELLED;
         if (Booking.isCompletedStatus(status)) return Booking.STATUS_COMPLETED;
+        if (Booking.isEndedStatus(status)) return Booking.STATUS_ENDED;
         return null;
     }
 
@@ -1076,6 +1089,47 @@ public class BookingDAO {
         return updateBookingStatus(bookingID, Booking.STATUS_CANCELLED);
     }
 
+    public boolean syncPendingBookingFromPendingPayment(int bookingID) {
+        String sql = """
+                SELECT b.[status] AS bookingStatus, p.[status] AS paymentStatus
+                FROM Booking b
+                LEFT JOIN Payment p ON p.bookingID = b.bookingID
+                WHERE b.bookingID = ?
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingID);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+
+                String bookingStatus = rs.getString("bookingStatus");
+                String paymentStatus = rs.getString("paymentStatus");
+
+                if (!PaymentDAO.STATUS_PENDING.equalsIgnoreCase(paymentStatus)) {
+                    return false;
+                }
+
+                if (Booking.isCancelledStatus(bookingStatus)
+                        || Booking.isEndedStatus(bookingStatus)) {
+                    return false;
+                }
+
+                if (Booking.isProcessingStatus(bookingStatus)) {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Loi dong bo booking pending tu payment pending: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+
+        return updateBookingStatus(bookingID, Booking.STATUS_PROCESSING);
+    }
+
     public boolean syncCompletedBookingFromPaidPayment(int bookingID) {
         String sql = """
                 SELECT b.[status] AS bookingStatus, p.[status] AS paymentStatus
@@ -1099,8 +1153,9 @@ public class BookingDAO {
                     return false;
                 }
 
-                if (Booking.isCompletedStatus(bookingStatus)) {
-                    return true;
+                if (Booking.isCompletedStatus(bookingStatus)
+                        || Booking.isEndedStatus(bookingStatus)) {
+                    return false;
                 }
 
                 if (Booking.isCancelledStatus(bookingStatus)) {
@@ -1138,7 +1193,9 @@ public class BookingDAO {
                 }
 
                 String bookingStatus = rs.getString("status");
-                if (Booking.isCancelledStatus(bookingStatus) || Booking.isCompletedStatus(bookingStatus)) {
+                if (Booking.isCancelledStatus(bookingStatus)
+                        || Booking.isCompletedStatus(bookingStatus)
+                        || Booking.isEndedStatus(bookingStatus)) {
                     return false;
                 }
 
@@ -1177,8 +1234,8 @@ public class BookingDAO {
     }
 
     public boolean releasePendingPaymentReservation(int bookingID,
-                                                     boolean expiredOnly,
-                                                     String note) {
+                                                    boolean expiredOnly,
+                                                    String note) {
         boolean hasCheckoutUrl = hasPaymentColumn("checkoutUrl");
         boolean hasPaymentLinkId = hasPaymentColumn("paymentLinkId");
         boolean hasDescription = hasPaymentColumn("description");
