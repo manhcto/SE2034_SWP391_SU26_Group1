@@ -1076,6 +1076,46 @@ public class BookingDAO {
         return updateBookingStatus(bookingID, Booking.STATUS_CANCELLED);
     }
 
+    public boolean syncPendingBookingFromPendingPayment(int bookingID) {
+        String sql = """
+                SELECT b.[status] AS bookingStatus, p.[status] AS paymentStatus
+                FROM Booking b
+                LEFT JOIN Payment p ON p.bookingID = b.bookingID
+                WHERE b.bookingID = ?
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingID);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+
+                String bookingStatus = rs.getString("bookingStatus");
+                String paymentStatus = rs.getString("paymentStatus");
+
+                if (!PaymentDAO.STATUS_PENDING.equalsIgnoreCase(paymentStatus)) {
+                    return false;
+                }
+
+                if (Booking.isCancelledStatus(bookingStatus)) {
+                    return false;
+                }
+
+                if (Booking.isProcessingStatus(bookingStatus)) {
+                    return false;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Loi dong bo booking pending tu payment pending: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+
+        return updateBookingStatus(bookingID, Booking.STATUS_PROCESSING);
+    }
+
     public boolean syncCompletedBookingFromPaidPayment(int bookingID) {
         String sql = """
                 SELECT b.[status] AS bookingStatus, p.[status] AS paymentStatus
@@ -1100,7 +1140,7 @@ public class BookingDAO {
                 }
 
                 if (Booking.isCompletedStatus(bookingStatus)) {
-                    return true;
+                    return false;
                 }
 
                 if (Booking.isCancelledStatus(bookingStatus)) {

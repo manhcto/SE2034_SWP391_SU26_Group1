@@ -280,7 +280,6 @@
     <section class="payment-shell">
         <header class="payment-heading">
             <h1>Thanh toán booking</h1>
-            <p>Quét mã PayOS hoặc mở trang thanh toán. Booking và payment được xử lý độc lập.</p>
         </header>
 
         <c:if test="${not empty message}">
@@ -317,9 +316,9 @@
                         <span class="payment-value">
                             <c:choose>
                                 <c:when test="${bookingSummary.status == 'Đang xử lý' || bookingSummary.status == 'Pending'}">Đang xử lý</c:when>
-                                <c:when test="${bookingSummary.status == 'Đã duyệt' || bookingSummary.status == 'Confirmed'}">Hoàn thành</c:when>
+                                <c:when test="${bookingSummary.status == 'Đã duyệt' || bookingSummary.status == 'Confirmed'}">Đã xác nhận</c:when>
                                 <c:when test="${bookingSummary.status == 'Đã hủy' || bookingSummary.status == 'Cancelled'}">Đã hủy</c:when>
-                                <c:when test="${bookingSummary.status == 'Hoàn thành' || bookingSummary.status == 'Completed'}">Hoàn thành</c:when>
+                                <c:when test="${bookingSummary.status == 'Hoàn thành' || bookingSummary.status == 'Completed'}">Hoàn tất</c:when>
                                 <c:otherwise><c:out value="${bookingSummary.status}" /></c:otherwise>
                             </c:choose>
                         </span>

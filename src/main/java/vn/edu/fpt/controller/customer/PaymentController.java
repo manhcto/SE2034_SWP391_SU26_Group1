@@ -401,18 +401,7 @@ public class PaymentController extends HttpServlet {
     }
 
     private boolean expirePendingPaymentIfNeeded(int bookingID, Payment payment, HttpSession session) {
-        if (payment == null
-                || payment.isPaid()
-                || payment.isReservationReleased()
-                || !payment.isExpired()) {
-            return false;
-        }
-
-        boolean cancelled = bookingDAO.releasePendingPaymentReservation(
-                bookingID,
-                true,
-                "Het thoi gian giu cho thanh toan 15 phut."
-        );
+        boolean cancelled = paymentDAO.expirePendingPayment(bookingID);
         if (cancelled) {
             clearPaymentSession(session, bookingID);
         }
