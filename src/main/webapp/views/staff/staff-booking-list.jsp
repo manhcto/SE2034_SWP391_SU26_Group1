@@ -75,7 +75,7 @@
 
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
             margin-bottom: 22px;
         }
@@ -197,6 +197,11 @@
             color: #991b1b;
         }
 
+        .status-ended {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
         .action-group {
             display: flex;
             align-items: center;
@@ -248,6 +253,12 @@
             border-color: var(--danger);
         }
 
+        .icon-btn.ended {
+            background: #7c3aed;
+            color: white;
+            border-color: #7c3aed;
+        }
+
         .inline-form {
             display: inline-flex;
             margin: 0;
@@ -290,26 +301,6 @@
 <div class="admin-layout">
     <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
-    <%-- Chỉ còn 3 trạng thái: Đang xử lý, Hoàn thành, Đã hủy.
-         Đếm theo displayStatus nên đơn cũ 'Đã duyệt' được tính vào Hoàn thành. --%>
-    <c:set var="pendingCount" value="0"/>
-    <c:set var="completedCount" value="0"/>
-    <c:set var="cancelledCount" value="0"/>
-
-    <c:forEach var="bk" items="${bookingList}">
-        <c:choose>
-            <c:when test="${bk.displayStatus == 'Đang xử lý'}">
-                <c:set var="pendingCount" value="${pendingCount + 1}"/>
-            </c:when>
-            <c:when test="${bk.displayStatus == 'Hoàn thành'}">
-                <c:set var="completedCount" value="${completedCount + 1}"/>
-            </c:when>
-            <c:when test="${bk.displayStatus == 'Đã hủy'}">
-                <c:set var="cancelledCount" value="${cancelledCount + 1}"/>
-            </c:when>
-        </c:choose>
-    </c:forEach>
-
     <main class="admin-main">
         <div class="staff-page-topbar">
             <div>
@@ -320,16 +311,20 @@
 
         <div class="stat-grid">
             <div class="stat-card">
-                <div class="label">Đang xử lý</div>
+                <div class="label">Đang thanh toán</div>
                 <div class="value">${pendingCount}</div>
             </div>
             <div class="stat-card">
-                <div class="label">Hoàn thành</div>
+                <div class="label">Thanh toán thành công</div>
                 <div class="value">${completedCount}</div>
             </div>
             <div class="stat-card">
                 <div class="label">Đã hủy</div>
                 <div class="value">${cancelledCount}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Tour kết thúc</div>
+                <div class="value">${endedCount}</div>
             </div>
         </div>
 
@@ -344,9 +339,10 @@
 
             <select class="form-select" name="status" id="statusFilter">
                 <option value="">Tất cả trạng thái</option>
-                <option value="Đang xử lý" ${param.status == 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
-                <option value="Hoàn thành" ${param.status == 'Hoàn thành' ? 'selected' : ''}>Hoàn thành</option>
+                <option value="Đang thanh toán" ${param.status == 'Đang thanh toán' ? 'selected' : ''}>Đang thanh toán</option>
+                <option value="Thanh toán thành công" ${param.status == 'Thanh toán thành công' ? 'selected' : ''}>Thanh toán thành công</option>
                 <option value="Đã hủy" ${param.status == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
+                <option value="Tour kết thúc" ${param.status == 'Tour kết thúc' ? 'selected' : ''}>Tour kết thúc</option>
             </select>
 
             <button class="btn btn-outline-secondary fw-bold" type="submit">
@@ -403,16 +399,18 @@
                                         <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ
                                     </td>
                                     <td>
-                                            <%-- displayStatus tự quy đơn cũ 'Đã duyệt' về Hoàn thành --%>
                                         <c:choose>
-                                            <c:when test="${booking.displayStatus == 'Đang xử lý'}">
-                                                <span class="status-pill status-pending">Đang xử lý</span>
+                                            <c:when test="${booking.displayStatus == 'Đang thanh toán'}">
+                                                <span class="status-pill status-pending">Đang thanh toán</span>
                                             </c:when>
-                                            <c:when test="${booking.displayStatus == 'Hoàn thành'}">
-                                                <span class="status-pill status-completed">Hoàn thành</span>
+                                            <c:when test="${booking.displayStatus == 'Thanh toán thành công'}">
+                                                <span class="status-pill status-completed">Thanh toán thành công</span>
                                             </c:when>
                                             <c:when test="${booking.displayStatus == 'Đã hủy'}">
                                                 <span class="status-pill status-cancelled">Đã hủy</span>
+                                            </c:when>
+                                            <c:when test="${booking.displayStatus == 'Tour kết thúc'}">
+                                                <span class="status-pill status-ended">Tour kết thúc</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <span class="status-pill">${booking.displayStatus}</span>
@@ -426,39 +424,26 @@
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
 
-                                            <c:if test="${booking.displayStatus != 'Đang xử lý'}">
-                                                <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post">
-                                                    <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                                                    <input type="hidden" name="status" value="Đang xử lý">
-                                                    <input type="hidden" name="type" value="${param.type}">
-                                                    <input type="hidden" name="statusFilter" value="${param.status}">
-                                                    <button class="icon-btn warning" type="submit" title="Chuyển về đang xử lý">
-                                                        <i class="fa-solid fa-clock"></i>
-                                                    </button>
-                                                </form>
-                                            </c:if>
-
-                                                <%-- Nút tích xanh: cập nhật trạng thái Hoàn thành --%>
-                                            <c:if test="${booking.displayStatus != 'Hoàn thành'}">
-                                                <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post">
-                                                    <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                                                    <input type="hidden" name="status" value="Hoàn thành">
-                                                    <input type="hidden" name="type" value="${param.type}">
-                                                    <input type="hidden" name="statusFilter" value="${param.status}">
-                                                    <button class="icon-btn success" type="submit" title="Hoàn thành booking">
-                                                        <i class="fa-solid fa-check"></i>
-                                                    </button>
-                                                </form>
-                                            </c:if>
-
-                                            <c:if test="${booking.displayStatus != 'Đã hủy'}">
+                                                <%-- Với đơn đang thanh toán hoặc đã thanh toán, Staff đều có thể kết thúc hoặc hủy. --%>
+                                            <c:if test="${booking.displayStatus != 'Đã hủy' && booking.displayStatus != 'Tour kết thúc'}">
                                                 <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post"
-                                                      onsubmit="return confirm('Bạn chắc chắn muốn hủy booking này?');">
+                                                      onsubmit="return confirm('Bạn chắc chắn muốn đánh dấu tour này đã kết thúc?');">
                                                     <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                                                    <input type="hidden" name="status" value="Đã hủy">
+                                                    <input type="hidden" name="status" value="End">
                                                     <input type="hidden" name="type" value="${param.type}">
                                                     <input type="hidden" name="statusFilter" value="${param.status}">
-                                                    <button class="icon-btn danger" type="submit" title="Hủy booking">
+                                                    <button class="icon-btn ended" type="submit" title="Đánh dấu Tour kết thúc">
+                                                        <i class="fa-solid fa-flag-checkered"></i>
+                                                    </button>
+                                                </form>
+
+                                                <form class="inline-form" action="${pageContext.request.contextPath}/staff/booking-status" method="post"
+                                                      onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn booking này?');">
+                                                    <input type="hidden" name="bookingID" value="${booking.bookingID}">
+                                                    <input type="hidden" name="status" value="Cancelled">
+                                                    <input type="hidden" name="type" value="${param.type}">
+                                                    <input type="hidden" name="statusFilter" value="${param.status}">
+                                                    <button class="icon-btn danger" type="submit" title="Hủy đơn">
                                                         <i class="fa-solid fa-xmark"></i>
                                                     </button>
                                                 </form>

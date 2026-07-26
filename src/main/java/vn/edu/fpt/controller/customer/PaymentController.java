@@ -138,8 +138,8 @@ public class PaymentController extends HttpServlet {
                 && isBookingPayable(summary)
                 && !bookingDAO.hasPayableReservationForPayment(bookingID)
                 && cancelBookingForInvalidReservation(bookingID, payment)) {
-                clearPaymentSession(request.getSession(false), bookingID);
-                error = "Hien khong con du slot/cho hop le de vao payment. Booking da chuyen sang Cancelled.";
+            clearPaymentSession(request.getSession(false), bookingID);
+            error = "Hien khong con du slot/cho hop le de vao payment. Booking da chuyen sang Cancelled.";
         }
 
         summary = bookingDAO.getBookingSummaryByID(bookingID);
@@ -379,7 +379,8 @@ public class PaymentController extends HttpServlet {
         Object status = summary == null ? null : summary.get("status");
         return status instanceof String
                 && !Booking.isCancelledStatus((String) status)
-                && !Booking.isCompletedStatus((String) status);
+                && !Booking.isCompletedStatus((String) status)
+                && !Booking.isEndedStatus((String) status);
     }
 
     private BigDecimal getAmount(Map<String, Object> summary) {

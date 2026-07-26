@@ -170,35 +170,31 @@ public class FeedbackDAO {
         return feedbackList;
     }
 
-    // Tìm booking 'Hoàn thành' MỚI NHẤT của user cho 1 tour (trả về -1 nếu không có)
-    public int getLatestCompletedBookingIDByTour(int userID, int tourID) {
+    // Chỉ booking đã kết thúc dịch vụ mới được phép gửi đánh giá.
+    public int getLatestEndedBookingIDByTour(int userID, int tourID) {
         String sql = "SELECT TOP 1 b.bookingID "
                 + "FROM Booking b "
                 + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
                 + "JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID "
-                // Đơn 'Hoàn thành' mới được feedback; đơn cũ 'Đã duyệt'/'Confirmed'/'Completed'
-                // được quy về Hoàn thành nên cũng được chấp nhận.
                 + "WHERE b.userID = ? AND ts.tourID = ? "
-                + "AND b.status IN (N'Hoàn thành', N'Completed', N'Đã duyệt', N'Confirmed') "
+                + "AND b.status IN (N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc') "
                 + "ORDER BY b.bookDate DESC, b.bookingID DESC";
 
-        return getLatestCompletedBookingID(sql, userID, tourID);
+        return getLatestEndedBookingID(sql, userID, tourID);
     }
 
-    // Tìm booking 'Hoàn thành' MỚI NHẤT của user cho 1 nơi lưu trú (trả về -1 nếu không có)
-    public int getLatestCompletedBookingIDByAccommodation(int userID, int accommodationID) {
+    public int getLatestEndedBookingIDByAccommodation(int userID, int accommodationID) {
         String sql = "SELECT TOP 1 b.bookingID "
                 + "FROM Booking b "
                 + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
                 + "WHERE b.userID = ? AND bd.accommodationID = ? "
-                + "AND b.status IN (N'Hoàn thành', N'Completed', N'Đã duyệt', N'Confirmed') "
+                + "AND b.status IN (N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc') "
                 + "ORDER BY b.bookDate DESC, b.bookingID DESC";
 
-        return getLatestCompletedBookingID(sql, userID, accommodationID);
+        return getLatestEndedBookingID(sql, userID, accommodationID);
     }
 
-    // Dùng chung cho 2 method phía trên
-    private int getLatestCompletedBookingID(String sql, int userID, int filterID) {
+    private int getLatestEndedBookingID(String sql, int userID, int filterID) {
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -212,11 +208,36 @@ public class FeedbackDAO {
             }
 
         } catch (Exception e) {
-            System.out.println("Lỗi tìm booking hoàn thành: " + e.getMessage());
+            System.out.println("Lỗi tìm booking đã kết thúc: " + e.getMessage());
             e.printStackTrace();
         }
 
         return -1;
+    }
+
+    public String getTourNameByID(int tourID) {
+        return getServiceName("SELECT tourName FROM Tour WHERE tourID = ?", tourID);
+    }
+
+    public String getAccommodationNameByID(int accommodationID) {
+        return getServiceName("SELECT [name] FROM Accommodation WHERE accommodationID = ?", accommodationID);
+    }
+
+    private String getServiceName(String sql, int serviceID) {
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, serviceID);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String name = rs.getString(1);
+                    return name == null ? "" : name.trim();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi lấy tên dịch vụ: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return "";
     }
 
     // ==========================================================

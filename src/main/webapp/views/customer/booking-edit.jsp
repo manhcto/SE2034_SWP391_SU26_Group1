@@ -291,10 +291,10 @@
               <span class="info-label">Trạng thái</span>
               <span class="info-value">
                 <c:choose>
-                  <c:when test="${booking.status == 'Đang xử lý' || booking.status == 'Pending'}">Đang xử lý</c:when>
-                  <c:when test="${booking.status == 'Đã duyệt' || booking.status == 'Confirmed'}">Đã duyệt</c:when>
+                  <c:when test="${booking.status == 'Đang xử lý' || booking.status == 'Pending' || booking.status == 'Đang đợi chuyển khoản'}">Đang đợi chuyển khoản</c:when>
+                  <c:when test="${booking.status == 'Đã duyệt' || booking.status == 'Confirmed' || booking.status == 'Hoàn thành' || booking.status == 'Completed' || booking.status == 'Đã booking và thanh toán thành công'}">Đã booking và thanh toán thành công</c:when>
                   <c:when test="${booking.status == 'Đã hủy' || booking.status == 'Cancelled'}">Đã hủy</c:when>
-                  <c:when test="${booking.status == 'Hoàn thành' || booking.status == 'Completed'}">Hoàn thành</c:when>
+                  <c:when test="${booking.status == 'End' || booking.status == 'Ended' || booking.status == 'Tour kết thúc' || booking.status == 'Đã kết thúc'}">Tour kết thúc</c:when>
                   <c:otherwise>${booking.status}</c:otherwise>
                 </c:choose>
               </span>

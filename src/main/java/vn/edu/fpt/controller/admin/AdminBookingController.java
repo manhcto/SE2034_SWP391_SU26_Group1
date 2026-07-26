@@ -51,6 +51,7 @@ public class AdminBookingController extends HttpServlet {
 
         BookingDAO bookingDAO = new BookingDAO();
         List<Booking> bookingList = bookingDAO.getAllBookings();
+        setStatusCounts(request, bookingList);
 
         String type = request.getParameter("type");
         String selectedType = type == null ? "" : type.trim();
@@ -75,6 +76,31 @@ public class AdminBookingController extends HttpServlet {
         request.setAttribute("selectedBookingType", selectedType.isEmpty() ? null : selectedType);
         request.setAttribute("bookingList", bookingList);
         request.getRequestDispatcher(BOOKING_LIST_PAGE).forward(request, response);
+    }
+
+    private void setStatusCounts(HttpServletRequest request, List<Booking> bookingList) {
+        int pendingCount = 0;
+        int completedCount = 0;
+        int cancelledCount = 0;
+        int endedCount = 0;
+
+        for (Booking booking : bookingList) {
+            String status = booking.getStatus();
+            if (Booking.isProcessingStatus(status)) {
+                pendingCount++;
+            } else if (Booking.isCancelledStatus(status)) {
+                cancelledCount++;
+            } else if (Booking.isEndedStatus(status)) {
+                endedCount++;
+            } else if (Booking.isCompletedStatus(status) || Booking.isApprovedStatus(status)) {
+                completedCount++;
+            }
+        }
+
+        request.setAttribute("pendingCount", pendingCount);
+        request.setAttribute("completedCount", completedCount);
+        request.setAttribute("cancelledCount", cancelledCount);
+        request.setAttribute("endedCount", endedCount);
     }
 
     private void showBookingDetail(HttpServletRequest request, HttpServletResponse response)

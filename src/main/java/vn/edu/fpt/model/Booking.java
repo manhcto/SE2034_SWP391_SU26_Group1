@@ -7,11 +7,15 @@ public class Booking {
     public static final String STATUS_APPROVED = "Confirmed";
     public static final String STATUS_CANCELLED = "Cancelled";
     public static final String STATUS_COMPLETED = "Completed";
+    public static final String STATUS_ENDED = "End";
 
-    public static final String DISPLAY_STATUS_PROCESSING = "\u0110ang x\u1eed l\u00fd";
+    public static final String DISPLAY_STATUS_PROCESSING = "Đang thanh toán";
+    public static final String LEGACY_DISPLAY_STATUS_PROCESSING = "Đang đợi chuyển khoản";
     public static final String DISPLAY_STATUS_APPROVED = "\u0110\u00e3 duy\u1ec7t";
     public static final String DISPLAY_STATUS_CANCELLED = "\u0110\u00e3 h\u1ee7y";
-    public static final String DISPLAY_STATUS_COMPLETED = "Ho\u00e0n th\u00e0nh";
+    public static final String DISPLAY_STATUS_COMPLETED = "Thanh toán thành công";
+    public static final String LEGACY_DISPLAY_STATUS_COMPLETED = "Đã booking và thanh toán thành công";
+    public static final String DISPLAY_STATUS_ENDED = "Tour kết thúc";
 
     private int bookingID;
     private String bookingCode;
@@ -185,23 +189,44 @@ public class Booking {
             return DISPLAY_STATUS_COMPLETED;
         }
 
+        if (isEndedStatus(status)) {
+            return DISPLAY_STATUS_ENDED;
+        }
+
         return status;
     }
 
     public static boolean isProcessingStatus(String value) {
-        return STATUS_PROCESSING.equalsIgnoreCase(value) || DISPLAY_STATUS_PROCESSING.equalsIgnoreCase(value);
+        return value != null && (STATUS_PROCESSING.equalsIgnoreCase(value)
+                || DISPLAY_STATUS_PROCESSING.equalsIgnoreCase(value)
+                || LEGACY_DISPLAY_STATUS_PROCESSING.equalsIgnoreCase(value)
+                || "Đang xử lý".equalsIgnoreCase(value));
     }
 
     public static boolean isApprovedStatus(String value) {
-        return STATUS_APPROVED.equalsIgnoreCase(value) || DISPLAY_STATUS_APPROVED.equalsIgnoreCase(value);
+        return value != null && (STATUS_APPROVED.equalsIgnoreCase(value)
+                || DISPLAY_STATUS_APPROVED.equalsIgnoreCase(value));
     }
 
     public static boolean isCancelledStatus(String value) {
-        return STATUS_CANCELLED.equalsIgnoreCase(value) || DISPLAY_STATUS_CANCELLED.equalsIgnoreCase(value);
+        return value != null && (STATUS_CANCELLED.equalsIgnoreCase(value)
+                || DISPLAY_STATUS_CANCELLED.equalsIgnoreCase(value)
+                || "Hủy".equalsIgnoreCase(value));
     }
 
     public static boolean isCompletedStatus(String value) {
-        return STATUS_COMPLETED.equalsIgnoreCase(value) || DISPLAY_STATUS_COMPLETED.equalsIgnoreCase(value);
+        return value != null && (STATUS_COMPLETED.equalsIgnoreCase(value)
+                || DISPLAY_STATUS_COMPLETED.equalsIgnoreCase(value)
+                || LEGACY_DISPLAY_STATUS_COMPLETED.equalsIgnoreCase(value)
+                || "Hoàn thành".equalsIgnoreCase(value));
+    }
+
+    public static boolean isEndedStatus(String value) {
+        return value != null && (STATUS_ENDED.equalsIgnoreCase(value)
+                || "Ended".equalsIgnoreCase(value)
+                || DISPLAY_STATUS_ENDED.equalsIgnoreCase(value)
+                || "Đã kết thúc".equalsIgnoreCase(value)
+                || "Kết thúc".equalsIgnoreCase(value));
     }
 
     @Override

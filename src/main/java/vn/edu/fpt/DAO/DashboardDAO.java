@@ -1,6 +1,7 @@
 package vn.edu.fpt.DAO;
 
 import vn.edu.fpt.common.DBConnection;
+import vn.edu.fpt.model.Booking;
 import vn.edu.fpt.model.BookingStatusStat;
 import vn.edu.fpt.model.BookingTypeStat;
 import vn.edu.fpt.model.BookingValueDataPoint;
@@ -28,10 +29,10 @@ public class DashboardDAO {
                         "(SELECT COUNT(*) FROM [dbo].[Booking] " +
                         " WHERE bookDate >= ? AND bookDate < ?) AS totalBookings, " +
                         "(SELECT ISNULL(SUM(totalPrice), 0) FROM [dbo].[Booking] " +
-                        " WHERE [status] IN (N'Confirmed', N'Completed') " +
+                        " WHERE [status] IN (N'Confirmed', N'Completed', N'End') " +
                         " AND bookDate >= ? AND bookDate < ?) AS confirmedBookingValue, " +
                         "(SELECT COUNT(*) FROM [dbo].[Booking] " +
-                        " WHERE [status] = N'Completed' " +
+                        " WHERE [status] IN (N'Completed', N'End') " +
                         " AND bookDate >= ? AND bookDate < ?) AS completedBookings, " +
                         "(SELECT COUNT(*) FROM [dbo].[User] " +
                         " WHERE roleID = 4 AND createAt >= ? AND createAt < ?) AS newCustomers";
@@ -79,7 +80,7 @@ public class DashboardDAO {
         String sql =
                 "SELECT CAST(bookDate AS date) AS bookingDate, ISNULL(SUM(totalPrice), 0) AS totalValue " +
                         "FROM [dbo].[Booking] " +
-                        "WHERE [status] IN (N'Confirmed', N'Completed') " +
+                        "WHERE [status] IN (N'Confirmed', N'Completed', N'End') " +
                         "AND bookDate >= ? AND bookDate < ? " +
                         "GROUP BY CAST(bookDate AS date) " +
                         "ORDER BY bookingDate ASC";
@@ -112,9 +113,9 @@ public class DashboardDAO {
     public List<BookingStatusStat> getBookingStatusStats(LocalDate fromDate, LocalDate toDate) {
         Map<String, Integer> countByStatus = new LinkedHashMap<>();
         countByStatus.put("Pending", 0);
-        countByStatus.put("Confirmed", 0);
-        countByStatus.put("Cancelled", 0);
         countByStatus.put("Completed", 0);
+        countByStatus.put("Cancelled", 0);
+        countByStatus.put("End", 0);
 
         String sql =
                 "SELECT [status], COUNT(*) AS bookingCount " +
@@ -130,7 +131,23 @@ public class DashboardDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    countByStatus.put(rs.getString("status"), rs.getInt("bookingCount"));
+                    String rawStatus = rs.getString("status");
+                    int bookingCount = rs.getInt("bookingCount");
+                    String normalizedStatus;
+
+                    if (Booking.isProcessingStatus(rawStatus)) {
+                        normalizedStatus = Booking.STATUS_PROCESSING;
+                    } else if (Booking.isCancelledStatus(rawStatus)) {
+                        normalizedStatus = Booking.STATUS_CANCELLED;
+                    } else if (Booking.isEndedStatus(rawStatus)) {
+                        normalizedStatus = Booking.STATUS_ENDED;
+                    } else if (Booking.isCompletedStatus(rawStatus) || Booking.isApprovedStatus(rawStatus)) {
+                        normalizedStatus = Booking.STATUS_COMPLETED;
+                    } else {
+                        normalizedStatus = rawStatus;
+                    }
+
+                    countByStatus.merge(normalizedStatus, bookingCount, Integer::sum);
                 }
             }
 
@@ -194,7 +211,7 @@ public class DashboardDAO {
                         "INNER JOIN [dbo].[Booking_Detail] bd ON b.bookingID = bd.bookingID " +
                         "INNER JOIN [dbo].[Tour_Scheduler] ts ON bd.tourScheduleID = ts.tourScheduleID " +
                         "INNER JOIN [dbo].[Tour] t ON ts.tourID = t.tourID " +
-                        "WHERE b.[status] IN (N'Confirmed', N'Completed') " +
+                        "WHERE b.[status] IN (N'Confirmed', N'Completed', N'End') " +
                         "AND b.bookingType = N'Tour' " +
                         "AND b.bookDate >= ? AND b.bookDate < ? " +
                         "GROUP BY t.tourID, t.tourName " +
@@ -232,7 +249,7 @@ public class DashboardDAO {
                         "FROM [dbo].[Booking] b " +
                         "INNER JOIN [dbo].[Booking_Detail] bd ON b.bookingID = bd.bookingID " +
                         "INNER JOIN [dbo].[Accommodation] a ON bd.accommodationID = a.accommodationID " +
-                        "WHERE b.[status] IN (N'Confirmed', N'Completed') " +
+                        "WHERE b.[status] IN (N'Confirmed', N'Completed', N'End') " +
                         "AND b.bookingType = N'Accommodation' " +
                         "AND b.bookDate >= ? AND b.bookDate < ? " +
                         "GROUP BY a.accommodationID, a.[name] " +

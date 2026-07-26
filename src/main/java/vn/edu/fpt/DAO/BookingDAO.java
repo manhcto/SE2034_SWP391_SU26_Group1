@@ -857,14 +857,26 @@ public class BookingDAO {
                 }
 
                 boolean wasCancelled = Booking.isCancelledStatus(currentStatus);
+                boolean wasEnded = Booking.isEndedStatus(currentStatus);
                 boolean willCancel = Booking.isCancelledStatus(normalizedStatus);
                 boolean willComplete = Booking.isCompletedStatus(normalizedStatus);
+                boolean willEnd = Booking.isEndedStatus(normalizedStatus);
 
                 if (wasCancelled && !willCancel) {
                     conn.rollback();
                     return false;
                 }
 
+                // Tour kết thúc là trạng thái cuối, không để đồng bộ Payment đổi ngược
+                // booking về Pending, Completed hoặc Cancelled.
+                if (wasEnded && !willEnd) {
+                    conn.rollback();
+                    return false;
+                }
+
+                // Completed vẫn chỉ được tạo tự động khi Payment đã Paid.
+                // Riêng End là thao tác nghiệp vụ của Staff nên được phép với cả
+                // đơn đang thanh toán và đơn đã thanh toán thành công.
                 if (willComplete
                         && paymentStatus != null
                         && !PaymentDAO.STATUS_PAID.equalsIgnoreCase(paymentStatus)) {
@@ -931,6 +943,7 @@ public class BookingDAO {
         if (Booking.isApprovedStatus(status)) return Booking.STATUS_COMPLETED;
         if (Booking.isCancelledStatus(status)) return Booking.STATUS_CANCELLED;
         if (Booking.isCompletedStatus(status)) return Booking.STATUS_COMPLETED;
+        if (Booking.isEndedStatus(status)) return Booking.STATUS_ENDED;
         return null;
     }
 
@@ -1099,7 +1112,8 @@ public class BookingDAO {
                     return false;
                 }
 
-                if (Booking.isCancelledStatus(bookingStatus)) {
+                if (Booking.isCancelledStatus(bookingStatus)
+                        || Booking.isEndedStatus(bookingStatus)) {
                     return false;
                 }
 
@@ -1139,7 +1153,8 @@ public class BookingDAO {
                     return false;
                 }
 
-                if (Booking.isCompletedStatus(bookingStatus)) {
+                if (Booking.isCompletedStatus(bookingStatus)
+                        || Booking.isEndedStatus(bookingStatus)) {
                     return false;
                 }
 
@@ -1178,7 +1193,9 @@ public class BookingDAO {
                 }
 
                 String bookingStatus = rs.getString("status");
-                if (Booking.isCancelledStatus(bookingStatus) || Booking.isCompletedStatus(bookingStatus)) {
+                if (Booking.isCancelledStatus(bookingStatus)
+                        || Booking.isCompletedStatus(bookingStatus)
+                        || Booking.isEndedStatus(bookingStatus)) {
                     return false;
                 }
 
@@ -1217,8 +1234,8 @@ public class BookingDAO {
     }
 
     public boolean releasePendingPaymentReservation(int bookingID,
-                                                     boolean expiredOnly,
-                                                     String note) {
+                                                    boolean expiredOnly,
+                                                    String note) {
         boolean hasCheckoutUrl = hasPaymentColumn("checkoutUrl");
         boolean hasPaymentLinkId = hasPaymentColumn("paymentLinkId");
         boolean hasDescription = hasPaymentColumn("description");

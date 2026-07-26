@@ -2,6 +2,7 @@ package vn.edu.fpt.DAO;
 
 import vn.edu.fpt.common.DBConnection;
 import vn.edu.fpt.model.AssignmentView;
+import vn.edu.fpt.model.Booking;
 import vn.edu.fpt.model.TourAssignments;
 import vn.edu.fpt.model.User;
 
@@ -894,7 +895,7 @@ public class AssignmentDAOImpl {
             int guideID,
             String status) {
 
-        String sql = """
+        String updateAssignmentSql = """
             UPDATE Tour_Assignments
             SET
                 assignmentStatus = ?,
@@ -907,28 +908,70 @@ public class AssignmentDAOImpl {
               AND LTRIM(RTRIM(ISNULL(assignmentStatus, N''))) IN (N'Accepted', N'Confirmed', N'In Progress')
             """;
 
+        String endBookingSql = """
+            UPDATE b
+            SET b.[status] = ?, b.updatedAt = GETDATE()
+            FROM Booking b
+            INNER JOIN Booking_Detail bd ON bd.bookingID = b.bookingID
+            INNER JOIN Tour_Assignments ta ON ta.tourScheduleID = bd.tourScheduleID
+            WHERE ta.assignmentID = ?
+              AND ta.userID = ?
+              AND (
+                    (ta.bookingID IS NOT NULL AND ta.bookingID > 0 AND b.bookingID = ta.bookingID)
+                    OR (ta.bookingID IS NULL OR ta.bookingID = 0)
+                  )
+              AND LTRIM(RTRIM(ISNULL(b.[status], N''))) IN (
+                    N'Completed', N'Hoàn thành', N'Confirmed', N'Đã duyệt',
+                    N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc'
+                  )
+            """;
+
+        String normalizedStatus = normalize(status, "In Progress");
         DBConnection db = new DBConnection();
 
-        try (
-                Connection conn = db.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            String normalizedStatus = normalize(status, "In Progress");
+        try (Connection conn = db.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = conn.prepareStatement(updateAssignmentSql)) {
+                    int index = 1;
+                    ps.setString(index++, normalizedStatus);
+                    ps.setString(index++, normalizedStatus);
+                    ps.setString(index++, normalizedStatus);
+                    ps.setString(index++, normalizedStatus);
+                    ps.setInt(index++, assignmentID);
+                    ps.setInt(index, guideID);
 
-            int index = 1;
-            ps.setString(index++, normalizedStatus);
-            ps.setString(index++, normalizedStatus);
-            ps.setString(index++, normalizedStatus);
-            ps.setString(index++, normalizedStatus);
-            ps.setInt(index++, assignmentID);
-            ps.setInt(index, guideID);
+                    if (ps.executeUpdate() == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
 
-            return ps.executeUpdate() > 0;
+                if ("Completed".equalsIgnoreCase(normalizedStatus)) {
+                    try (PreparedStatement ps = conn.prepareStatement(endBookingSql)) {
+                        ps.setNString(1, Booking.STATUS_ENDED);
+                        ps.setInt(2, assignmentID);
+                        ps.setInt(3, guideID);
+
+                        if (ps.executeUpdate() == 0) {
+                            conn.rollback();
+                            return false;
+                        }
+                    }
+                }
+
+                conn.commit();
+                return true;
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
-
-        return false;
     }
 
     private TourAssignments mapTourAssignment(ResultSet rs) throws Exception {

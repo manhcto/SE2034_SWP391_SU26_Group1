@@ -52,7 +52,7 @@
                                 <option value="Departed">Đã khởi hành</option>
                                 <option value="Arrived">Đã đến nơi</option>
                                 <option value="Returning">Đang quay về</option>
-                                <option value="Completed">Hoàn thành tour</option>
+                                <option value="Completed">Kết thúc tour</option>
                                 <option value="Issue">Có vấn đề phát sinh</option>
                             </select>
                         </div>

@@ -1004,7 +1004,7 @@
                                 <a class="feedback-btn"
                                    href="${pageContext.request.contextPath}/feedback-list?accommodationID=${acc.accommodationID}">
                                     <i class="fa-regular fa-comment-dots"></i>
-                                    Feedback
+                                    Đánh giá
                                 </a>
                                 <a class="detail-btn"
                                    href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.accommodationID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">

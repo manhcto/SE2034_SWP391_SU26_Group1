@@ -159,11 +159,11 @@
                 <p class="section-kicker">Đánh giá</p>
                 <c:choose>
                     <c:when test="${filterType == 'tour'}">
-                        <h2>Đánh giá của Tour #${filterID}</h2>
+                        <h2>Đánh giá về <c:out value="${serviceName}"/></h2>
                         <p>Các đánh giá đã được duyệt của khách hàng đã đặt tour này.</p>
                     </c:when>
                     <c:when test="${filterType == 'accommodation'}">
-                        <h2>Đánh giá của Nơi lưu trú #${filterID}</h2>
+                        <h2>Đánh giá về <c:out value="${serviceName}"/></h2>
                         <p>Các đánh giá đã được duyệt của khách hàng đã đặt nơi lưu trú này.</p>
                     </c:when>
                     <c:otherwise>
@@ -180,14 +180,13 @@
             </div>
         </c:if>
 
-        <c:if test="${param.error == 'notCompleted'}">
+        <c:if test="${param.error == 'notEnded' || param.error == 'notCompleted'}">
             <div class="alert-box alert-error">
-                ⚠ Bạn chỉ có thể viết đánh giá khi đã có booking ở trạng thái "Hoàn thành"
-                cho <c:choose><c:when test="${filterType == 'tour'}">tour</c:when><c:otherwise>nơi lưu trú</c:otherwise></c:choose> này.
+                ⚠ Bạn chỉ có thể viết đánh giá khi booking đã ở trạng thái "Tour kết thúc".
             </div>
         </c:if>
 
-        <c:if test="${not empty filterType}">
+        <c:if test="${not empty filterType && canAddFeedback}">
             <div class="top-action">
                 <c:choose>
                     <c:when test="${filterType == 'tour'}">
