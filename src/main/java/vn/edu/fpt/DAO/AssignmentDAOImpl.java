@@ -921,6 +921,7 @@ public class AssignmentDAOImpl {
                     OR (ta.bookingID IS NULL OR ta.bookingID = 0)
                   )
               AND LTRIM(RTRIM(ISNULL(b.[status], N''))) IN (
+                    N'Pending', N'Đang xử lý', N'Đang thanh toán', N'Đang đợi chuyển khoản',
                     N'Completed', N'Hoàn thành', N'Confirmed', N'Đã duyệt',
                     N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc'
                   )

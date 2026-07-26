@@ -158,6 +158,7 @@
         .status-confirmed { background: #dbeafe; color: #1d4ed8; }
         .status-completed { background: #dcfce7; color: #166534; }
         .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-ended { background: #ede9fe; color: #6d28d9; }
 
         .identity-wrap {
             display: grid;
@@ -238,18 +239,17 @@
                         <span class="detail-label">Trạng thái</span>
                         <span class="detail-value">
                             <c:choose>
-                                <c:when test="${bookingDetail.status == 'Đang xử lý' || bookingDetail.status == 'Pending'}">
-                                    <span class="status-pill status-pending">Đang xử lý</span>
+                                <c:when test="${bookingDetail.status == 'Pending' || bookingDetail.status == 'Đang xử lý' || bookingDetail.status == 'Đang thanh toán' || bookingDetail.status == 'Đang đợi chuyển khoản'}">
+                                    <span class="status-pill status-pending">Đang thanh toán</span>
                                 </c:when>
-                                <%-- Trạng thái "Đã duyệt" đã bỏ: đơn cũ hiển thị là Hoàn thành --%>
-                                <c:when test="${bookingDetail.status == 'Đã duyệt' || bookingDetail.status == 'Confirmed'}">
-                                    <span class="status-pill status-completed">Hoàn thành</span>
+                                <c:when test="${bookingDetail.status == 'Completed' || bookingDetail.status == 'Hoàn thành' || bookingDetail.status == 'Confirmed' || bookingDetail.status == 'Đã duyệt' || bookingDetail.status == 'Thanh toán thành công' || bookingDetail.status == 'Đã booking và thanh toán thành công'}">
+                                    <span class="status-pill status-completed">Thanh toán thành công</span>
                                 </c:when>
-                                <c:when test="${bookingDetail.status == 'Hoàn thành' || bookingDetail.status == 'Completed'}">
-                                    <span class="status-pill status-completed">Hoàn thành</span>
-                                </c:when>
-                                <c:when test="${bookingDetail.status == 'Đã hủy' || bookingDetail.status == 'Cancelled'}">
+                                <c:when test="${bookingDetail.status == 'Cancelled' || bookingDetail.status == 'Đã hủy' || bookingDetail.status == 'Hủy'}">
                                     <span class="status-pill status-cancelled">Đã hủy</span>
+                                </c:when>
+                                <c:when test="${bookingDetail.status == 'End' || bookingDetail.status == 'Ended' || bookingDetail.status == 'Tour kết thúc' || bookingDetail.status == 'Đã kết thúc'}">
+                                    <span class="status-pill status-ended">Tour kết thúc</span>
                                 </c:when>
                                 <c:otherwise>${bookingDetail.status}</c:otherwise>
                             </c:choose>

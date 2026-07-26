@@ -58,6 +58,7 @@ public class ManageBookingController extends HttpServlet {
         paymentDAO.synchronizeBookingStates();
 
         List<Booking> bookingList = bookingDAO.getAllBookings();
+        setStatusCounts(request, bookingList);
 
         String type = trim(request.getParameter("type"));
         if (!type.isEmpty()) {
@@ -116,9 +117,37 @@ public class ManageBookingController extends HttpServlet {
     }
 
     private boolean isValidStatus(String status) {
-        return Booking.isProcessingStatus(status)
-                || Booking.isCancelledStatus(status)
-                || Booking.isCompletedStatus(status);
+        // Staff chỉ được thực hiện hai thay đổi nghiệp vụ từ danh sách:
+        // hủy đơn hoặc đánh dấu dịch vụ đã kết thúc. Pending/Completed
+        // được đồng bộ tự động theo trạng thái thanh toán.
+        return Booking.isCancelledStatus(status)
+                || Booking.isEndedStatus(status);
+    }
+
+    private void setStatusCounts(HttpServletRequest request, List<Booking> bookingList) {
+        int pendingCount = 0;
+        int completedCount = 0;
+        int cancelledCount = 0;
+        int endedCount = 0;
+
+        for (Booking booking : bookingList) {
+            String bookingStatus = booking.getStatus();
+            if (Booking.isProcessingStatus(bookingStatus)) {
+                pendingCount++;
+            } else if (Booking.isCancelledStatus(bookingStatus)) {
+                cancelledCount++;
+            } else if (Booking.isEndedStatus(bookingStatus)) {
+                endedCount++;
+            } else if (Booking.isCompletedStatus(bookingStatus)
+                    || Booking.isApprovedStatus(bookingStatus)) {
+                completedCount++;
+            }
+        }
+
+        request.setAttribute("pendingCount", pendingCount);
+        request.setAttribute("completedCount", completedCount);
+        request.setAttribute("cancelledCount", cancelledCount);
+        request.setAttribute("endedCount", endedCount);
     }
 
     private int parsePositiveInt(String value) {
