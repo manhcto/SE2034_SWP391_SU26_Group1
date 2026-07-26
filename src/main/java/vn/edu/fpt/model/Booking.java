@@ -9,13 +9,13 @@ public class Booking {
     public static final String STATUS_COMPLETED = "Completed";
     public static final String STATUS_ENDED = "End";
 
-    public static final String DISPLAY_STATUS_PROCESSING = "Đang thanh toán";
+    public static final String DISPLAY_STATUS_PROCESSING = "Chờ xử lý";
     public static final String LEGACY_DISPLAY_STATUS_PROCESSING = "Đang đợi chuyển khoản";
-    public static final String DISPLAY_STATUS_APPROVED = "\u0110\u00e3 duy\u1ec7t";
+    public static final String DISPLAY_STATUS_APPROVED = "Đã xác nhận";
     public static final String DISPLAY_STATUS_CANCELLED = "\u0110\u00e3 h\u1ee7y";
     public static final String DISPLAY_STATUS_COMPLETED = "Thanh toán thành công";
     public static final String LEGACY_DISPLAY_STATUS_COMPLETED = "Đã booking và thanh toán thành công";
-    public static final String DISPLAY_STATUS_ENDED = "Tour kết thúc";
+    public static final String DISPLAY_STATUS_ENDED = "Hoàn tất Tour";
 
     private int bookingID;
     private String bookingCode;
@@ -176,9 +176,8 @@ public class Booking {
             return DISPLAY_STATUS_PROCESSING;
         }
 
-        // Legacy approved statuses are displayed as completed in the current flow.
         if (isApprovedStatus(status)) {
-            return DISPLAY_STATUS_COMPLETED;
+            return DISPLAY_STATUS_APPROVED;
         }
 
         if (isCancelledStatus(status)) {
@@ -197,36 +196,76 @@ public class Booking {
     }
 
     public static boolean isProcessingStatus(String value) {
-        return value != null && (STATUS_PROCESSING.equalsIgnoreCase(value)
-                || DISPLAY_STATUS_PROCESSING.equalsIgnoreCase(value)
-                || LEGACY_DISPLAY_STATUS_PROCESSING.equalsIgnoreCase(value)
-                || "Đang xử lý".equalsIgnoreCase(value));
+        return equalsAny(value, STATUS_PROCESSING, DISPLAY_STATUS_PROCESSING,
+                LEGACY_DISPLAY_STATUS_PROCESSING, "Đang xử lý", "Đang thanh toán");
     }
 
     public static boolean isApprovedStatus(String value) {
-        return value != null && (STATUS_APPROVED.equalsIgnoreCase(value)
-                || DISPLAY_STATUS_APPROVED.equalsIgnoreCase(value));
+        return equalsAny(value, STATUS_APPROVED, DISPLAY_STATUS_APPROVED, "Đã duyệt");
     }
 
     public static boolean isCancelledStatus(String value) {
-        return value != null && (STATUS_CANCELLED.equalsIgnoreCase(value)
-                || DISPLAY_STATUS_CANCELLED.equalsIgnoreCase(value)
-                || "Hủy".equalsIgnoreCase(value));
+        return equalsAny(value, STATUS_CANCELLED, DISPLAY_STATUS_CANCELLED, "Hủy");
     }
 
     public static boolean isCompletedStatus(String value) {
-        return value != null && (STATUS_COMPLETED.equalsIgnoreCase(value)
-                || DISPLAY_STATUS_COMPLETED.equalsIgnoreCase(value)
-                || LEGACY_DISPLAY_STATUS_COMPLETED.equalsIgnoreCase(value)
-                || "Hoàn thành".equalsIgnoreCase(value));
+        return equalsAny(value, STATUS_COMPLETED, DISPLAY_STATUS_COMPLETED,
+                LEGACY_DISPLAY_STATUS_COMPLETED, "Hoàn thành");
     }
 
     public static boolean isEndedStatus(String value) {
-        return value != null && (STATUS_ENDED.equalsIgnoreCase(value)
-                || "Ended".equalsIgnoreCase(value)
-                || DISPLAY_STATUS_ENDED.equalsIgnoreCase(value)
-                || "Đã kết thúc".equalsIgnoreCase(value)
-                || "Kết thúc".equalsIgnoreCase(value));
+        return equalsAny(value, STATUS_ENDED, "Ended", DISPLAY_STATUS_ENDED,
+                "Tour kết thúc", "Đã kết thúc", "Kết thúc", "Hoàn tất");
+    }
+
+    public static String normalizeStatus(String value) {
+        if (isProcessingStatus(value)) return STATUS_PROCESSING;
+        if (isApprovedStatus(value)) return STATUS_APPROVED;
+        if (isCancelledStatus(value)) return STATUS_CANCELLED;
+        if (isCompletedStatus(value)) return STATUS_COMPLETED;
+        if (isEndedStatus(value)) return STATUS_ENDED;
+        return null;
+    }
+
+    public static String toDisplayStatus(String value) {
+        String normalized = normalizeStatus(value);
+        if (STATUS_PROCESSING.equals(normalized)) return DISPLAY_STATUS_PROCESSING;
+        if (STATUS_APPROVED.equals(normalized)) return DISPLAY_STATUS_APPROVED;
+        if (STATUS_CANCELLED.equals(normalized)) return DISPLAY_STATUS_CANCELLED;
+        if (STATUS_COMPLETED.equals(normalized)) return DISPLAY_STATUS_COMPLETED;
+        if (STATUS_ENDED.equals(normalized)) return DISPLAY_STATUS_ENDED;
+        return value;
+    }
+
+    public static boolean canTransitionStatus(String currentStatus, String targetStatus) {
+        String current = normalizeStatus(currentStatus);
+        String target = normalizeStatus(targetStatus);
+
+        if (current == null || target == null || current.equals(target)) {
+            return false;
+        }
+
+        if (STATUS_PROCESSING.equals(current) || STATUS_COMPLETED.equals(current)) {
+            return STATUS_APPROVED.equals(target) || STATUS_CANCELLED.equals(target);
+        }
+
+        if (STATUS_APPROVED.equals(current)) {
+            return STATUS_ENDED.equals(target) || STATUS_CANCELLED.equals(target);
+        }
+
+        return false;
+    }
+
+    private static boolean equalsAny(String value, String... candidates) {
+        if (value == null) {
+            return false;
+        }
+        for (String candidate : candidates) {
+            if (candidate != null && candidate.equalsIgnoreCase(value.trim())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

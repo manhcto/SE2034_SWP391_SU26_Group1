@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.util.Locale;
 
-@WebServlet(urlPatterns = {"/staff/blog", "/admin/blog"})
+@WebServlet("/staff/blog")
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
         maxFileSize = 10 * 1024 * 1024,
@@ -38,8 +38,6 @@ public class ManageBlogController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
         String action = normalize(request.getParameter("action"));
-        boolean readOnly = false;
-
         try {
             switch (action) {
                 case "view":
@@ -51,10 +49,6 @@ public class ManageBlogController extends HttpServlet {
                     forwardDetailView(request, response, viewingPost);
                     break;
                 case "edit":
-                    if (readOnly) {
-                        response.sendRedirect(resolveManagementPath(request));
-                        return;
-                    }
                     BlogPost editingPost = blogDAO.getPostById(parseId(request.getParameter("id")));
                     if (editingPost == null) {
                         response.sendRedirect(resolveManagementPath(request) + "?message=not_found");
@@ -65,23 +59,12 @@ public class ManageBlogController extends HttpServlet {
                     forwardManagement(request, response);
                     break;
                 case "new":
-                    if (readOnly) {
-                        response.sendRedirect(resolveManagementPath(request));
-                        return;
-                    }
                     request.setAttribute("showBlogForm", true);
                     forwardManagement(request, response);
                     break;
                 case "delete":
-                    if (readOnly) {
-                        response.sendRedirect(resolveManagementPath(request));
-                        return;
-                    }
                     blogDAO.deletePost(parseId(request.getParameter("id")));
                     response.sendRedirect(resolveManagementPath(request) + "?message=deleted");
-                    break;
-                case "status":
-                    response.sendRedirect(resolveManagementPath(request));
                     break;
                 case "list":
                 default:
@@ -99,16 +82,6 @@ public class ManageBlogController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         try {
-            String action = normalize(request.getParameter("action"));
-            if ("status".equalsIgnoreCase(action)) {
-                int blogID = parseId(request.getParameter("id"));
-                String status = normalizeReviewStatus(request.getParameter("status"));
-                boolean updated = blogID > 0 && blogDAO.updatePostStatus(blogID, status);
-                response.sendRedirect(resolveManagementPath(request)
-                        + "?message=" + (updated ? "status_updated" : "error"));
-                return;
-            }
-
             BlogPost post = buildPostFromRequest(request);
             if (post.getTitle().isEmpty() || post.getContent().isEmpty()) {
                 request.setAttribute("editingPost", post);
@@ -139,18 +112,12 @@ public class ManageBlogController extends HttpServlet {
     private void forwardManagement(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String keyword = normalize(request.getParameter("keyword"));
-        String category = normalize(request.getParameter("category"));
         String status = normalizeStatusFilter(request.getParameter("status"));
-        boolean adminRequest = isAdminRequest(request);
 
-        request.setAttribute("BLOG_LIST", blogDAO.getPostsForStaff(keyword, category, status));
-        request.setAttribute("CATEGORY_LIST", blogDAO.getStaffCategories());
+        request.setAttribute("BLOG_LIST", blogDAO.getPostsForStaff(keyword, status));
         request.setAttribute("keyword", keyword);
-        request.setAttribute("selectedCategory", category);
         request.setAttribute("selectedStatus", status);
         request.setAttribute("blogManagementPath", resolveManagementPath(request));
-        request.setAttribute("blogManagementReadOnly", false);
-        request.setAttribute("blogManagementRole", adminRequest ? "admin" : "staff");
         request.setAttribute("showBlogForm",
                 Boolean.TRUE.equals(request.getAttribute("showBlogForm"))
                         || request.getAttribute("editingPost") != null);
@@ -166,12 +133,8 @@ public class ManageBlogController extends HttpServlet {
         request.getRequestDispatcher("/views/customer/blog-detail.jsp").forward(request, response);
     }
 
-    private boolean isAdminRequest(HttpServletRequest request) {
-        return request.getServletPath() != null && request.getServletPath().startsWith("/admin/");
-    }
-
     private String resolveManagementPath(HttpServletRequest request) {
-        return request.getContextPath() + (isAdminRequest(request) ? "/admin/blog" : "/staff/blog");
+        return request.getContextPath() + "/staff/blog";
     }
 
     private BlogPost buildPostFromRequest(HttpServletRequest request)
@@ -210,7 +173,6 @@ public class ManageBlogController extends HttpServlet {
 
             post.setImage("uploads/blog/" + fileName);
         }
-        post.setCategory(normalize(request.getParameter("category")));
         post.setStatus(normalizeStatus(request.getParameter("status")));
         post.setAuthorID(resolveAuthorIDForSave(request, blogID));
         return post;
@@ -278,18 +240,7 @@ public class ManageBlogController extends HttpServlet {
         if ("Published".equalsIgnoreCase(value)) {
             return "Published";
         }
-        if ("Pending".equalsIgnoreCase(value)) {
-            return "Pending";
-        }
-        if ("Rejected".equalsIgnoreCase(value)) {
-            return "Rejected";
-        }
         return "Draft";
-    }
-
-    private String normalizeReviewStatus(String status) {
-        String value = normalize(status);
-        return "Published".equalsIgnoreCase(value) ? "Published" : "Rejected";
     }
 
     private String normalizeStatusFilter(String status) {
@@ -299,12 +250,6 @@ public class ManageBlogController extends HttpServlet {
         }
         if ("Draft".equalsIgnoreCase(value)) {
             return "Draft";
-        }
-        if ("Pending".equalsIgnoreCase(value)) {
-            return "Pending";
-        }
-        if ("Rejected".equalsIgnoreCase(value)) {
-            return "Rejected";
         }
         return "";
     }

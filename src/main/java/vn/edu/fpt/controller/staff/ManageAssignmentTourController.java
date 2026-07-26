@@ -130,10 +130,10 @@ public class ManageAssignmentTourController extends HttpServlet {
             return;
         }
 
-        if (!assignmentDAO.isCompletedTourBookingForAssignment(bookingID)) {
+        if (!assignmentDAO.isConfirmedTourBookingForAssignment(bookingID)) {
             response.sendRedirect(
                     request.getContextPath()
-                            + "/staff/assignment?action=create&error=notCompletedBooking"
+                            + "/staff/assignment?action=create&error=notConfirmedBooking"
             );
             return;
         }

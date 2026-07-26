@@ -10,24 +10,48 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class FeedbackDAO {
+
+    private static final String MANAGEMENT_TARGET_APPLY =
+            "OUTER APPLY (" +
+                    "SELECT TOP (1) " +
+                    "CASE WHEN t.tourID IS NOT NULL THEN N'Tour' " +
+                    "WHEN a.accommodationID IS NOT NULL THEN N'Accommodation' " +
+                    "ELSE N'Unknown' END AS serviceType, " +
+                    "t.tourID, a.accommodationID, " +
+                    "COALESCE(t.tourName, a.[name], N'Không xác định') AS serviceName " +
+                    "FROM Booking_Detail bd " +
+                    "LEFT JOIN Tour_Scheduler ts ON ts.tourScheduleID = bd.tourScheduleID " +
+                    "LEFT JOIN Tour t ON t.tourID = ts.tourID " +
+                    "LEFT JOIN Room r ON r.roomID = bd.roomID " +
+                    "LEFT JOIN Accommodation a " +
+                    "ON a.accommodationID = COALESCE(bd.accommodationID, r.accommodationID) " +
+                    "WHERE bd.bookingID = f.bookingID " +
+                    "ORDER BY CASE WHEN t.tourID IS NOT NULL THEN 0 " +
+                    "WHEN a.accommodationID IS NOT NULL THEN 1 ELSE 2 END, bd.bookingDetailID" +
+                    ") feedbackTarget ";
 
     // Get all feedbacks
     public List<Feedback> getAllFeedbacks() {
         List<Feedback> feedbackList = new ArrayList<>();
 
-        String sql = "SELECT feedbackID, rate, content, createDate, status, image, userID, bookingID "
-                + "FROM Feedback "
-                + "ORDER BY createDate DESC";
+        String sql = "SELECT f.feedbackID, f.rate, f.content, f.createDate, f.status, "
+                + "f.image, f.userID, f.bookingID, feedbackTarget.serviceType, "
+                + "COALESCE(feedbackTarget.tourID, feedbackTarget.accommodationID, 0) AS serviceID, "
+                + "feedbackTarget.serviceName "
+                + "FROM Feedback f "
+                + MANAGEMENT_TARGET_APPLY
+                + "ORDER BY f.createDate DESC";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+            ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                feedbackList.add(mapFeedback(rs));
+                feedbackList.add(mapManagedFeedback(rs));
             }
 
         } catch (Exception e) {
@@ -36,6 +60,38 @@ public class FeedbackDAO {
         }
 
         return feedbackList;
+    }
+
+    public List<Feedback> getFeedbacksForManagement(
+            String serviceType, String status, String keyword) {
+        String normalizedType = serviceType == null ? "" : serviceType.trim();
+        String normalizedStatus = status == null ? "" : status.trim();
+        String normalizedKeyword = keyword == null
+                ? ""
+                : keyword.trim().toLowerCase(Locale.ROOT);
+        List<Feedback> filtered = new ArrayList<>();
+
+        for (Feedback feedback : getAllFeedbacks()) {
+            if (!normalizedType.isEmpty()
+                    && !normalizedType.equalsIgnoreCase(feedback.getServiceType())) {
+                continue;
+            }
+            if (!normalizedStatus.isEmpty()
+                    && !normalizedStatus.equalsIgnoreCase(feedback.getStatus())) {
+                continue;
+            }
+            if (!normalizedKeyword.isEmpty()) {
+                String searchable = (feedback.getServiceName() + " "
+                        + feedback.getFeedbackID() + " "
+                        + feedback.getBookingID()).toLowerCase(Locale.ROOT);
+                if (!searchable.contains(normalizedKeyword)) {
+                    continue;
+                }
+            }
+            filtered.add(feedback);
+        }
+
+        return filtered;
     }
 
     // Get feedbacks by tourID (Feedback -> Booking -> Booking_Detail -> Tour_Scheduler -> Tour)
@@ -178,6 +234,7 @@ public class FeedbackDAO {
                 + "JOIN Tour_Scheduler ts ON bd.tourScheduleID = ts.tourScheduleID "
                 + "WHERE b.userID = ? AND ts.tourID = ? "
                 + "AND b.status IN (N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc') "
+                + "AND NOT EXISTS (SELECT 1 FROM Feedback existing WHERE existing.bookingID = b.bookingID) "
                 + "ORDER BY b.bookDate DESC, b.bookingID DESC";
 
         return getLatestEndedBookingID(sql, userID, tourID);
@@ -189,6 +246,7 @@ public class FeedbackDAO {
                 + "JOIN Booking_Detail bd ON b.bookingID = bd.bookingID "
                 + "WHERE b.userID = ? AND bd.accommodationID = ? "
                 + "AND b.status IN (N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc') "
+                + "AND NOT EXISTS (SELECT 1 FROM Feedback existing WHERE existing.bookingID = b.bookingID) "
                 + "ORDER BY b.bookDate DESC, b.bookingID DESC";
 
         return getLatestEndedBookingID(sql, userID, accommodationID);
@@ -258,6 +316,14 @@ public class FeedbackDAO {
         return feedback;
     }
 
+    private Feedback mapManagedFeedback(ResultSet rs) throws Exception {
+        Feedback feedback = mapFeedback(rs);
+        feedback.setServiceType(rs.getString("serviceType"));
+        feedback.setServiceID(rs.getInt("serviceID"));
+        feedback.setServiceName(rs.getString("serviceName"));
+        return feedback;
+    }
+
     // Get feedback by ID
     public Feedback getFeedbackByID(int feedbackID) {
         String sql = "SELECT feedbackID, rate, content, createDate, status, image, userID, bookingID "
@@ -299,10 +365,14 @@ public class FeedbackDAO {
                 + "u.email, "
                 + "b.bookingCode, "
                 + "b.bookingType, "
-                + "b.totalPrice "
+                + "b.totalPrice, "
+                + "feedbackTarget.serviceType, "
+                + "COALESCE(feedbackTarget.tourID, feedbackTarget.accommodationID, 0) AS serviceID, "
+                + "feedbackTarget.serviceName "
                 + "FROM Feedback f "
-                + "JOIN [User] u ON f.userID = u.userID "
+                + "LEFT JOIN [User] u ON f.userID = u.userID "
                 + "JOIN Booking b ON f.bookingID = b.bookingID "
+                + MANAGEMENT_TARGET_APPLY
                 + "WHERE f.feedbackID = ?";
 
         try (Connection conn = new DBConnection().getConnection();
@@ -329,6 +399,9 @@ public class FeedbackDAO {
                     detail.put("bookingCode", rs.getString("bookingCode"));
                     detail.put("bookingType", rs.getString("bookingType"));
                     detail.put("totalPrice", rs.getDouble("totalPrice"));
+                    detail.put("serviceType", rs.getString("serviceType"));
+                    detail.put("serviceID", rs.getInt("serviceID"));
+                    detail.put("serviceName", rs.getString("serviceName"));
 
                     return detail;
                 }

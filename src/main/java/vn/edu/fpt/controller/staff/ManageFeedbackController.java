@@ -71,9 +71,16 @@ public class ManageFeedbackController extends HttpServlet {
             throws ServletException, IOException {
 
         FeedbackDAO feedbackDAO = new FeedbackDAO();
-        List<Feedback> feedbackList = feedbackDAO.getAllFeedbacks();
+        String serviceType = request.getParameter("serviceType");
+        String status = request.getParameter("status");
+        String keyword = request.getParameter("keyword");
+        List<Feedback> feedbackList =
+                feedbackDAO.getFeedbacksForManagement(serviceType, status, keyword);
 
         request.setAttribute("feedbackList", feedbackList);
+        request.setAttribute("selectedServiceType", serviceType);
+        request.setAttribute("selectedStatus", status);
+        request.setAttribute("keyword", keyword);
         request.getRequestDispatcher(STAFF_FEEDBACK_LIST_PAGE).forward(request, response);
     }
 

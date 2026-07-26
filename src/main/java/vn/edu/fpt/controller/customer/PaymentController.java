@@ -129,7 +129,7 @@ public class PaymentController extends HttpServlet {
         payment = paymentDAO.findByBookingID(bookingID);
 
         if (payment != null && payment.isPaid()) {
-            message = "Thanh toan PayOS thanh cong. Booking da duoc chuyen sang Completed va luu xuong database.";
+            message = "Thanh toan PayOS thanh cong. Booking dang cho Staff kiem tra va xac nhan.";
         } else if (Booking.isCancelledStatus(summary == null ? null : String.valueOf(summary.get("status")))) {
             error = "Ma thanh toan da qua han hoac khong con hop le. Payment da sang Cancelled, booking da sang Cancelled, slot da duoc tra va voucher duoc hoan lai neu co.";
         }
@@ -347,7 +347,7 @@ public class PaymentController extends HttpServlet {
                         "Khong the cap nhat thanh toan");
                 return;
             }
-            bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
+            bookingDAO.syncPendingBookingFromPaidPayment(bookingID);
             writeJson(response, HttpServletResponse.SC_OK, "Da xac nhan thanh toan");
         } catch (Exception e) {
             writeJson(response, HttpServletResponse.SC_BAD_REQUEST, "Webhook khong hop le");
@@ -377,10 +377,7 @@ public class PaymentController extends HttpServlet {
 
     private boolean isBookingPayable(Map<String, Object> summary) {
         Object status = summary == null ? null : summary.get("status");
-        return status instanceof String
-                && !Booking.isCancelledStatus((String) status)
-                && !Booking.isCompletedStatus((String) status)
-                && !Booking.isEndedStatus((String) status);
+        return status instanceof String && Booking.isProcessingStatus((String) status);
     }
 
     private BigDecimal getAmount(Map<String, Object> summary) {

@@ -41,10 +41,17 @@
             </div>
         </c:if>
 
-        <c:if test="${param.error == 'notCompletedBooking' || param.error == 'paymentRequired'}">
+        <c:if test="${param.error == 'notConfirmedBooking' || param.error == 'paymentRequired'}">
             <div class="alert alert-danger">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
-                Chỉ booking tour có trạng thái Hoàn thành trong trang quản lý booking mới được phân công hướng dẫn viên.
+                Chỉ booking tour đã được Staff xác nhận thanh toán mới được phân công hướng dẫn viên.
+            </div>
+        </c:if>
+
+        <c:if test="${param.error == 'unavailable'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-calendar-xmark me-2"></i>
+                Không thể phân công: tour đã có hướng dẫn viên hoặc hướng dẫn viên đang bận trong thời gian này.
             </div>
         </c:if>
 
@@ -52,7 +59,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Thông tin phân công</h2>
-                    <p>Chỉ hiển thị booking tour có trạng thái Hoàn thành và lưu trực tiếp vào phân công tour.</p>
+                    <p>Chỉ hiển thị booking tour đã xác nhận thanh toán và lưu trực tiếp vào phân công tour.</p>
                 </div>
             </div>
 
@@ -206,7 +213,7 @@
                                     </c:if>
                                 </td>
                                 <td>${b.totalGuests} khách</td>
-                                <td><span class="status-pill status-completed">Hoàn thành</span></td>
+                                <td><span class="status-pill status-assigned">Đã xác nhận thanh toán</span></td>
                                 <td><fmt:formatNumber value="${b.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ</td>
                             </tr>
                         </c:forEach>
@@ -214,7 +221,7 @@
                         <c:if test="${empty bookingList}">
                             <tr>
                                 <td colspan="8" class="text-center text-muted py-5">
-                                    Chưa có booking tour Hoàn thành nào có lịch trình để phân công.
+                                    Chưa có booking tour đã xác nhận thanh toán nào có lịch trình để phân công.
                                 </td>
                             </tr>
                         </c:if>

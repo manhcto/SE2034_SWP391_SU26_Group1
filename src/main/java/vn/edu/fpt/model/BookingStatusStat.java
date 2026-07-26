@@ -30,27 +30,7 @@ public class BookingStatusStat {
     }
 
     public String getDisplayStatus() {
-        if ("Pending".equalsIgnoreCase(status)) {
-            return "Đang thanh toán";
-        }
-
-        if ("Confirmed".equalsIgnoreCase(status)) {
-            return "Đã xác nhận";
-        }
-
-        if ("Cancelled".equalsIgnoreCase(status)) {
-            return "Đã hủy";
-        }
-
-        if ("Completed".equalsIgnoreCase(status)) {
-            return "Thanh toán thành công";
-        }
-
-        if ("End".equalsIgnoreCase(status) || "Ended".equalsIgnoreCase(status)) {
-            return "Tour kết thúc";
-        }
-
-        return status;
+        return Booking.toDisplayStatus(status);
     }
 
     public double getPercentage() {

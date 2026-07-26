@@ -159,7 +159,7 @@ public class PaymentDAO {
         }
 
         if (payment.isPaid() && isBeforeExpiryOrUnknown(payment)) {
-            return bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
+            return bookingDAO.syncPendingBookingFromPaidPayment(bookingID);
         }
 
         if (payment.isReservationReleased()
@@ -187,7 +187,7 @@ public class PaymentDAO {
 
         Payment paidPayment = findByBookingID(bookingID);
         if (paidPayment != null && paidPayment.isPaid() && isBeforeExpiryOrUnknown(paidPayment)) {
-            return bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
+            return bookingDAO.syncPendingBookingFromPaidPayment(bookingID);
         }
 
         return false;
@@ -214,7 +214,7 @@ public class PaymentDAO {
         }
 
         for (int bookingID : findPaidBookingIDs()) {
-            bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
+            bookingDAO.syncPendingBookingFromPaidPayment(bookingID);
         }
     }
 

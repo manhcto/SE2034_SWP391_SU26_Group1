@@ -49,7 +49,7 @@ public class ProfileController extends HttpServlet {
         request.setAttribute("profileTheme", "customer");
 
         if ("/staff/profile".equals(servletPath)) {
-            request.setAttribute("profileHomePath", request.getContextPath() + "/staff/home");
+            request.setAttribute("profileHomePath", request.getContextPath() + "/staff/tour");
             request.setAttribute("profileEditPath", request.getContextPath() + "/staff/edit-profile");
             request.setAttribute("profileRoleLabel", "Nhân viên");
             request.setAttribute("profileKicker", "Khu vực nhân viên");

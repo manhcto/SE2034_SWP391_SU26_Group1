@@ -10,10 +10,21 @@
         flex-direction: column;
         position: fixed;
         inset: 0 auto 0 0;
+        height: 100vh;
         overflow-y: auto;
         padding: 26px 18px;
         box-shadow: 8px 0 26px rgba(15, 23, 42, 0.18);
         flex-shrink: 0;
+        z-index: 1000;
+    }
+
+    .admin-sidebar::-webkit-scrollbar {
+        width: 7px;
+    }
+
+    .admin-sidebar::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 20px;
     }
 
     .brand-box {
@@ -128,9 +139,9 @@
     }
 </style>
 
-<aside class="${empty param.sidebarClass ? 'admin-sidebar' : param.sidebarClass}">
+<aside class="admin-sidebar">
     <div class="brand-box">
-        <div class="brand-logo${empty param.brandLogoClass ? '' : ' '.concat(param.brandLogoClass)}">AD</div>
+        <div class="brand-logo">AD</div>
         <h2>WonderVN</h2>
         <p>Admin Control Center</p>
     </div>
@@ -152,13 +163,19 @@
     <a class="sidebar-link${param.activeAdminMenu eq 'user' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/user">
         <i class="fa-solid fa-users-gear"></i>
-        <span>Quản lí người dùng</span>
+        <span>Quản lý người dùng</span>
     </a>
 
     <a class="sidebar-link${param.activeAdminMenu eq 'tour' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/tour">
         <i class="fa-solid fa-map-location-dot"></i>
         <span>Quản lý tour</span>
+    </a>
+
+    <a class="sidebar-link${param.activeAdminMenu eq 'accommodation' ? ' active' : ''}"
+       href="${pageContext.request.contextPath}/admin/accommodation?action=list">
+        <i class="fa-solid fa-hotel"></i>
+        <span>Quản lý lưu trú</span>
     </a>
 
     <a class="sidebar-link${param.activeAdminMenu eq 'booking' ? ' active' : ''}"
@@ -170,19 +187,13 @@
     <a class="sidebar-link${param.activeAdminMenu eq 'voucher' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/voucher">
         <i class="fa-solid fa-ticket"></i>
-        <span>Duyệt Voucher</span>
+        <span>Quản lý voucher</span>
     </a>
 
     <a class="sidebar-link${param.activeAdminMenu eq 'feedback' ? ' active' : ''}"
        href="${pageContext.request.contextPath}/admin/feedback">
         <i class="fa-solid fa-comments"></i>
         <span>Đánh giá khách hàng</span>
-    </a>
-
-    <a class="sidebar-link${param.activeAdminMenu eq 'blog' ? ' active' : ''}"
-       href="${pageContext.request.contextPath}/admin/blog">
-        <i class="fa-solid fa-newspaper"></i>
-        <span>Quản lí blog</span>
     </a>
 
     <div class="sidebar-bottom">

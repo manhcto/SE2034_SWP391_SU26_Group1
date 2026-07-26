@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -223,6 +224,86 @@
       box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
     }
 
+    .filter-card {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) 220px 190px auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 18px;
+      margin-bottom: 18px;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      background: #ffffff;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    }
+
+    .filter-card .form-control,
+    .filter-card .form-select {
+      min-height: 46px;
+      border-radius: 13px;
+      font-weight: 700;
+    }
+
+    .filter-button,
+    .reset-button {
+      min-height: 46px;
+      border-radius: 13px;
+      padding: 0 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-weight: 900;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .filter-button {
+      border: 0;
+      background: #4e46dc;
+      color: #ffffff;
+    }
+
+    .reset-button {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+    }
+
+    .service-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+
+    .service-tour {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .service-accommodation {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .service-name {
+      display: block;
+      max-width: 280px;
+      color: #0f172a;
+      font-weight: 800;
+      text-decoration: none;
+      line-height: 1.4;
+    }
+
+    .service-name:hover {
+      color: #4e46dc;
+    }
+
     .table {
       margin-bottom: 0;
     }
@@ -381,6 +462,10 @@
       .top-action-btn {
         margin-top: 16px;
       }
+
+      .filter-card {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -396,9 +481,9 @@
         <h1>Quản lý Feedback</h1>
       </div>
 
-      <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/home">
+      <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/tour">
         <i class="fa-solid fa-arrow-left"></i>
-        Về trang chủ nhân viên
+        Về quản lý tour
       </a>
     </div>
 
@@ -433,6 +518,37 @@
       </div>
     </c:if>
 
+    <form class="filter-card"
+          action="${pageContext.request.contextPath}/staff/feedback"
+          method="get">
+      <input class="form-control"
+             type="search"
+             name="keyword"
+             value="${fn:escapeXml(keyword)}"
+             placeholder="Tìm tên tour, khách sạn, mã feedback hoặc booking...">
+
+      <select class="form-select" name="serviceType" aria-label="Lọc loại dịch vụ">
+        <option value="">Tất cả loại feedback</option>
+        <option value="Tour" ${selectedServiceType == 'Tour' ? 'selected' : ''}>Feedback Tour</option>
+        <option value="Accommodation" ${selectedServiceType == 'Accommodation' ? 'selected' : ''}>Feedback Accommodation</option>
+      </select>
+
+      <select class="form-select" name="status" aria-label="Lọc trạng thái">
+        <option value="">Tất cả trạng thái</option>
+        <option value="Visible" ${selectedStatus == 'Visible' ? 'selected' : ''}>Hiển thị</option>
+        <option value="Hidden" ${selectedStatus == 'Hidden' ? 'selected' : ''}>Đã ẩn</option>
+      </select>
+
+      <button class="filter-button" type="submit">
+        <i class="fa-solid fa-filter"></i>
+        Lọc
+      </button>
+
+      <a class="reset-button" href="${pageContext.request.contextPath}/staff/feedback">
+        Xóa lọc
+      </a>
+    </form>
+
     <div class="content-card">
       <c:choose>
         <c:when test="${not empty feedbackList}">
@@ -443,6 +559,7 @@
                 <th>Mã Feedback</th>
                 <th>Số sao</th>
                 <th>Nội dung</th>
+                <th>Đối tượng đánh giá</th>
                 <th>Ngày tạo</th>
                 <th>Trạng thái</th>
                 <th>Mã người dùng</th>
@@ -467,8 +584,34 @@
 
                   <td>
                     <div class="content-preview">
-                        ${feedback.content}
+                      <c:out value="${feedback.content}"/>
                     </div>
+                  </td>
+
+                  <td>
+                    <c:choose>
+                      <c:when test="${feedback.serviceType == 'Tour'}">
+                        <span class="service-badge service-tour">
+                          <i class="fa-solid fa-map-location-dot"></i> Tour
+                        </span>
+                        <a class="service-name"
+                           href="${pageContext.request.contextPath}/tour-detail?id=${feedback.serviceID}">
+                          <c:out value="${feedback.serviceName}"/>
+                        </a>
+                      </c:when>
+                      <c:when test="${feedback.serviceType == 'Accommodation'}">
+                        <span class="service-badge service-accommodation">
+                          <i class="fa-solid fa-hotel"></i> Accommodation
+                        </span>
+                        <a class="service-name"
+                           href="${pageContext.request.contextPath}/accommodation/detail?id=${feedback.serviceID}">
+                          <c:out value="${feedback.serviceName}"/>
+                        </a>
+                      </c:when>
+                      <c:otherwise>
+                        <span class="text-muted">Không xác định</span>
+                      </c:otherwise>
+                    </c:choose>
                   </td>
 
                   <td>
@@ -540,7 +683,7 @@
 
         <c:otherwise>
           <div class="empty-box">
-            Chưa có feedback nào trong hệ thống.
+            Không có feedback phù hợp với bộ lọc.
           </div>
         </c:otherwise>
       </c:choose>

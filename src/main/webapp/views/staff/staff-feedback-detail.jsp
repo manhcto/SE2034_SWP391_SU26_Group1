@@ -490,6 +490,50 @@
         <div class="divider"></div>
 
         <div class="section-title">
+          <i class="fa-solid fa-location-dot me-2"></i>
+          Đối tượng được đánh giá
+        </div>
+
+        <div class="info-grid">
+          <div class="info-box">
+            <span class="info-label">Loại dịch vụ</span>
+            <span class="info-value">
+              <c:choose>
+                <c:when test="${feedbackDetail.serviceType == 'Tour'}">Tour</c:when>
+                <c:when test="${feedbackDetail.serviceType == 'Accommodation'}">Accommodation</c:when>
+                <c:otherwise>Không xác định</c:otherwise>
+              </c:choose>
+            </span>
+          </div>
+
+          <div class="info-box">
+            <span class="info-label">Mã dịch vụ</span>
+            <span class="info-value">#${feedbackDetail.serviceID}</span>
+          </div>
+
+          <div class="info-box">
+            <span class="info-label">Tour / khách sạn</span>
+            <span class="info-value">
+              <c:choose>
+                <c:when test="${feedbackDetail.serviceType == 'Tour'}">
+                  <a href="${pageContext.request.contextPath}/tour-detail?id=${feedbackDetail.serviceID}">
+                    <c:out value="${feedbackDetail.serviceName}"/>
+                  </a>
+                </c:when>
+                <c:when test="${feedbackDetail.serviceType == 'Accommodation'}">
+                  <a href="${pageContext.request.contextPath}/accommodation/detail?id=${feedbackDetail.serviceID}">
+                    <c:out value="${feedbackDetail.serviceName}"/>
+                  </a>
+                </c:when>
+                <c:otherwise>Không xác định</c:otherwise>
+              </c:choose>
+            </span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">
           <i class="fa-solid fa-calendar-check me-2"></i>
           Thông tin Booking
         </div>

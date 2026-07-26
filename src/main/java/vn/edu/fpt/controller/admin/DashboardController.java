@@ -204,7 +204,7 @@ public class DashboardController extends HttpServlet {
         String contextPath = request.getContextPath();
 
         if (roleID == STAFF_ROLE_ID) {
-            return contextPath + "/staff/home";
+            return contextPath + "/staff/tour";
         }
 
         if (roleID == GUIDE_ROLE_ID) {

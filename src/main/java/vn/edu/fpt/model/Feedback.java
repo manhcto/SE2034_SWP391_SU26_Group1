@@ -11,6 +11,9 @@ public class Feedback {
     private String image;
     private int userID;
     private int bookingID;
+    private String serviceType;
+    private int serviceID;
+    private String serviceName;
 
     public Feedback() {
     }
@@ -89,6 +92,30 @@ public class Feedback {
 
     public void setBookingID(int bookingID) {
         this.bookingID = bookingID;
+    }
+
+    public String getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(String serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    public int getServiceID() {
+        return serviceID;
+    }
+
+    public void setServiceID(int serviceID) {
+        this.serviceID = serviceID;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     @Override

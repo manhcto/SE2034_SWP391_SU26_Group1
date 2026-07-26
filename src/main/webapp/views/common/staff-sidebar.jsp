@@ -146,12 +146,6 @@
         <p>Khu vực nhân viên</p>
     </div>
 
-    <a class="staff-sidebar-link${currentPath eq '/staff/home' || currentPath eq '/staff' ? ' active' : ''}"
-       href="${pageContext.request.contextPath}/staff/home">
-        <i class="fa-solid fa-house"></i>
-        <span>Trang chủ nhân viên</span>
-    </a>
-
     <div class="staff-nav-section-title">Dịch vụ du lịch</div>
 
     <a class="staff-sidebar-link${isTourActive ? ' active' : ''}"
@@ -172,12 +166,6 @@
        href="${pageContext.request.contextPath}/staff/booking">
         <i class="fa-solid fa-calendar-check"></i>
         <span>Quản lý booking</span>
-    </a>
-
-    <a class="staff-sidebar-link${currentPath eq '/staff/payment' || fn:contains(requestUri, '/staff/payment') ? ' active' : ''}"
-       href="${pageContext.request.contextPath}/staff/payment">
-        <i class="fa-solid fa-credit-card"></i>
-        <span>Quản lý thanh toán</span>
     </a>
 
     <a class="staff-sidebar-link${currentPath eq '/staff/voucher' || fn:contains(requestUri, '/staff/voucher') ? ' active' : ''}"

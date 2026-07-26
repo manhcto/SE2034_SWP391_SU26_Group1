@@ -237,7 +237,7 @@
   <c:set var="editProfileHomePath" value="${pageContext.request.contextPath}/admin/home"/>
 </c:if>
 <c:if test="${sessionScope.user.roleID == 2}">
-  <c:set var="editProfileHomePath" value="${pageContext.request.contextPath}/staff/home"/>
+  <c:set var="editProfileHomePath" value="${pageContext.request.contextPath}/staff/tour"/>
 </c:if>
 <c:if test="${sessionScope.user.roleID == 3}">
   <c:set var="editProfileHomePath" value="${pageContext.request.contextPath}/guide/home"/>

@@ -12,6 +12,7 @@ import jakarta.servlet.http.Part;
 import vn.edu.fpt.DAO.AccommodationDAO;
 import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.FacilityDAO;
+import vn.edu.fpt.DAO.FeedbackDAO;
 import vn.edu.fpt.DAO.RoomBookingDAO;
 import vn.edu.fpt.DAO.RoomDAO;
 import vn.edu.fpt.DAO.UserVoucherDAO;
@@ -49,8 +50,10 @@ import java.util.UUID;
 )
 public class AccommodationController extends HttpServlet {
 
+    private static final int ACCOMMODATIONS_PER_PAGE = 9;
     private final AccommodationDAO accommodationDAO = new AccommodationDAO();
     private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
+    private final FeedbackDAO feedbackDAO = new FeedbackDAO();
     private final RoomDAO roomDAO = new RoomDAO();
     private final FacilityDAO facilityDAO = new FacilityDAO();
     private final RoomBookingDAO roomBookingDAO = new RoomBookingDAO();
@@ -179,8 +182,8 @@ public class AccommodationController extends HttpServlet {
                 continue;
             }
 
-            if (minRate != null && (accommodation.getRate() == null
-                    || accommodation.getRate().compareTo(BigDecimal.valueOf(minRate)) < 0)) {
+            if (minRate != null
+                    && accommodation.getAverageRate().compareTo(BigDecimal.valueOf(minRate)) < 0) {
                 continue;
             }
 
@@ -207,7 +210,19 @@ public class AccommodationController extends HttpServlet {
             filteredAccommodations.add(accommodation);
         }
 
-        request.setAttribute("accommodationList", filteredAccommodations);
+        Integer requestedPage = parsePositiveInt(request.getParameter("page"));
+        int totalResults = filteredAccommodations.size();
+        int totalPages = Math.max(1,
+                (totalResults + ACCOMMODATIONS_PER_PAGE - 1) / ACCOMMODATIONS_PER_PAGE);
+        int currentPage = requestedPage == null ? 1 : Math.min(requestedPage, totalPages);
+        int fromIndex = (currentPage - 1) * ACCOMMODATIONS_PER_PAGE;
+        int toIndex = Math.min(fromIndex + ACCOMMODATIONS_PER_PAGE, totalResults);
+        List<Accommodation> pageItems = filteredAccommodations.subList(fromIndex, toIndex);
+
+        request.setAttribute("accommodationList", pageItems);
+        request.setAttribute("totalResults", totalResults);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
         request.setAttribute("accommodationFacilityOptions", facilityDAO.getAccommodationFacilityOptions());
 
         request.setAttribute("keyword", request.getParameter("keyword"));
@@ -298,8 +313,30 @@ public class AccommodationController extends HttpServlet {
         accommodation.setRoomList(filteredRooms);
         accommodation.setFacilityList(facilityDAO.getFacilitiesByAccommodation(accommodationID));
 
+        List<Map<String, Object>> feedbackList =
+                feedbackDAO.getVisibleFeedbacksByAccommodationID(accommodationID);
+        int[] ratingDistribution = new int[6];
+        for (Map<String, Object> feedback : feedbackList) {
+            Object rawRate = feedback.get("rate");
+            int star = rawRate instanceof Number
+                    ? (int) Math.round(((Number) rawRate).doubleValue())
+                    : 0;
+            if (star >= 1 && star <= 5) {
+                ratingDistribution[star]++;
+            }
+        }
+
+        HttpSession session = request.getSession(false);
+        User currentUser = session == null ? null : (User) session.getAttribute("user");
+        boolean canAddFeedback = currentUser != null
+                && feedbackDAO.getLatestEndedBookingIDByAccommodation(
+                        currentUser.getUserID(), accommodationID) > 0;
+
         request.setAttribute("accommodation", accommodation);
         request.setAttribute("roomList", filteredRooms);
+        request.setAttribute("feedbackList", feedbackList);
+        request.setAttribute("ratingDistribution", ratingDistribution);
+        request.setAttribute("canAddFeedback", canAddFeedback);
 
         request.setAttribute("checkIn", checkIn);
         request.setAttribute("checkOut", checkOut);

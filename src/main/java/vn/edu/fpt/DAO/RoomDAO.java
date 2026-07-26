@@ -19,9 +19,25 @@ public class RoomDAO {
 
     private static final Logger LOGGER = Logger.getLogger(RoomDAO.class.getName());
     private static final String BASE_SELECT =
-            "SELECT roomID, roomType, numberOfRooms, priceOfRoom, [status], accommodationID, " +
-                    "roomAvailability, [image], [description], bedCount, bedType, " +
-                    "maxAdults, maxChildren, roomSize, createdAt, updatedAt FROM [dbo].[Room] ";
+            "SELECT r.roomID, r.roomType, r.numberOfRooms, r.priceOfRoom, r.[status], " +
+                    "r.accommodationID, r.roomAvailability, r.[image], r.[description], " +
+                    "r.bedCount, r.bedType, r.maxAdults, r.maxChildren, r.roomSize, " +
+                    "r.createdAt, r.updatedAt, " +
+                    "COALESCE(fr.averageRate, CAST(0 AS decimal(3,2))) AS averageRate, " +
+                    "COALESCE(fr.reviewCount, 0) AS reviewCount " +
+                    "FROM [dbo].[Room] r " +
+                    "LEFT JOIN (" +
+                    "    SELECT rated.roomID, " +
+                    "           CAST(AVG(CAST(rated.rate AS decimal(10,2))) AS decimal(3,2)) AS averageRate, " +
+                    "           COUNT(*) AS reviewCount " +
+                    "    FROM (" +
+                    "        SELECT DISTINCT f.feedbackID, bd.roomID, f.rate " +
+                    "        FROM [dbo].[Feedback] f " +
+                    "        INNER JOIN [dbo].[Booking_Detail] bd ON bd.bookingID = f.bookingID " +
+                    "        WHERE f.[status] = N'Visible' AND bd.roomID IS NOT NULL" +
+                    "    ) rated " +
+                    "    GROUP BY rated.roomID" +
+                    ") fr ON fr.roomID = r.roomID ";
     private static final String INSERT_SQL =
             "INSERT INTO [dbo].[Room] " +
                     "(roomType, numberOfRooms, priceOfRoom, [status], accommodationID, roomAvailability, " +
@@ -29,26 +45,26 @@ public class RoomDAO {
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     public List<Room> getAllRooms() {
-        return findMany(BASE_SELECT + "ORDER BY roomID DESC", null);
+        return findMany(BASE_SELECT + "ORDER BY r.roomID DESC", null);
     }
 
     public List<Room> getRoomsByAccommodation(int accommodationID) {
         String sql = BASE_SELECT +
-                "WHERE accommodationID = ? ORDER BY priceOfRoom ASC, roomID DESC";
+                "WHERE r.accommodationID = ? ORDER BY r.priceOfRoom ASC, r.roomID DESC";
         return findMany(sql, accommodationID);
     }
 
     public List<Room> getAvailableRoomsByAccommodation(int accommodationID) {
         String sql = BASE_SELECT +
-                "WHERE accommodationID = ? AND [status] = N'Available' " +
-                "AND roomAvailability > 0 ORDER BY priceOfRoom ASC, roomID DESC";
+                "WHERE r.accommodationID = ? AND r.[status] = N'Available' " +
+                "AND r.roomAvailability > 0 ORDER BY r.priceOfRoom ASC, r.roomID DESC";
         return findMany(sql, accommodationID);
     }
 
     public List<Room> getAllAvailableRooms() {
         String sql = BASE_SELECT +
-                "WHERE [status] IN (N'Available', N'Active') AND roomAvailability > 0 " +
-                "ORDER BY accommodationID, priceOfRoom, roomID";
+                "WHERE r.[status] IN (N'Available', N'Active') AND r.roomAvailability > 0 " +
+                "ORDER BY r.accommodationID, r.priceOfRoom, r.roomID";
         return findMany(sql, null);
     }
 
@@ -63,12 +79,12 @@ public class RoomDAO {
     }
 
     public Room getRoomById(int roomID) {
-        return findOne(BASE_SELECT + "WHERE roomID = ?", roomID, null);
+        return findOne(BASE_SELECT + "WHERE r.roomID = ?", roomID, null);
     }
 
     public Room getRoomByIdAndAccommodation(int roomID, int accommodationID) {
         return findOne(
-                BASE_SELECT + "WHERE roomID = ? AND accommodationID = ?",
+                BASE_SELECT + "WHERE r.roomID = ? AND r.accommodationID = ?",
                 roomID,
                 accommodationID);
     }
@@ -381,6 +397,8 @@ public class RoomDAO {
         room.setMaxAdults(resultSet.getInt("maxAdults"));
         room.setMaxChildren(resultSet.getInt("maxChildren"));
         room.setRoomSize(resultSet.getBigDecimal("roomSize"));
+        room.setAverageRate(resultSet.getBigDecimal("averageRate"));
+        room.setReviewCount(resultSet.getInt("reviewCount"));
         if (resultSet.getTimestamp("createdAt") != null) {
             room.setCreatedAt(resultSet.getTimestamp("createdAt").toLocalDateTime());
         }

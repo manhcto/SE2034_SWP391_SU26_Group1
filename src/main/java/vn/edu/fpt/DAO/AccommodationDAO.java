@@ -20,13 +20,27 @@ public class AccommodationDAO {
     private static final String BASE_SELECT =
             "SELECT a.accommodationID, a.[name], a.[image], a.[address], a.phone, a.[description], " +
                     "a.rate, a.[type], a.[status], a.checkInTime, a.checkOutTime, " +
-                    "a.province, a.district, a.ward, a.createdByUserID, a.createdAt, a.updatedAt " +
-                    "FROM [dbo].[Accommodation] a ";
+                    "a.province, a.district, a.ward, a.createdByUserID, a.createdAt, a.updatedAt, " +
+                    "COALESCE(fr.averageRate, CAST(0 AS decimal(3,2))) AS averageRate, " +
+                    "COALESCE(fr.reviewCount, 0) AS reviewCount " +
+                    "FROM [dbo].[Accommodation] a " +
+                    "LEFT JOIN (" +
+                    "    SELECT rated.accommodationID, " +
+                    "           CAST(AVG(CAST(rated.rate AS decimal(10,2))) AS decimal(3,2)) AS averageRate, " +
+                    "           COUNT(*) AS reviewCount " +
+                    "    FROM (" +
+                    "        SELECT DISTINCT f.feedbackID, bd.accommodationID, f.rate " +
+                    "        FROM [dbo].[Feedback] f " +
+                    "        INNER JOIN [dbo].[Booking_Detail] bd ON bd.bookingID = f.bookingID " +
+                    "        WHERE f.[status] = N'Visible' AND bd.accommodationID IS NOT NULL" +
+                    "    ) rated " +
+                    "    GROUP BY rated.accommodationID" +
+                    ") fr ON fr.accommodationID = a.accommodationID ";
     private static final String INSERT_SQL =
             "INSERT INTO [dbo].[Accommodation] " +
-                    "([name], [image], [address], phone, [description], rate, [type], [status], " +
+                    "([name], [image], [address], phone, [description], [type], [status], " +
                     "checkInTime, checkOutTime, province, district, ward, createdByUserID) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     public List<Accommodation> getAllAccommodations() {
         return findMany(BASE_SELECT + "ORDER BY a.accommodationID DESC");
@@ -35,7 +49,7 @@ public class AccommodationDAO {
     public List<Accommodation> getAvailableAccommodationsForCustomer() {
         String sql = BASE_SELECT +
                 "WHERE a.[status] IN (N'Available', N'Active') " +
-                "ORDER BY a.rate DESC, a.accommodationID DESC";
+                "ORDER BY averageRate DESC, a.accommodationID DESC";
         return findMany(sql);
     }
 
@@ -53,10 +67,10 @@ public class AccommodationDAO {
 
     public int addAccommodationAndReturnId(Accommodation accommodation) {
         try (Connection connection = new DBConnection().getConnection();
-             PreparedStatement statement = connection.prepareStatement(
+            PreparedStatement statement = connection.prepareStatement(
                      INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
             bindAccommodationFields(statement, accommodation);
-            setNullableInteger(statement, 14, accommodation.getCreatedByUserID());
+            setNullableInteger(statement, 13, accommodation.getCreatedByUserID());
 
             if (statement.executeUpdate() == 0) {
                 return 0;
@@ -103,14 +117,14 @@ public class AccommodationDAO {
         String sql =
                 "UPDATE [dbo].[Accommodation] " +
                         "SET [name] = ?, [image] = ?, [address] = ?, phone = ?, [description] = ?, " +
-                        "rate = ?, [type] = ?, [status] = ?, checkInTime = ?, checkOutTime = ?, " +
+                        "[type] = ?, [status] = ?, checkInTime = ?, checkOutTime = ?, " +
                         "province = ?, district = ?, ward = ?, updatedAt = GETDATE() " +
                         "WHERE accommodationID = ?";
 
         try (Connection connection = new DBConnection().getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             bindAccommodationFields(statement, accommodation);
-            statement.setInt(14, accommodation.getAccommodationID());
+            statement.setInt(13, accommodation.getAccommodationID());
             return statement.executeUpdate() == 1;
         } catch (SQLException e) {
             logFailure("update accommodation", e);
@@ -123,7 +137,7 @@ public class AccommodationDAO {
         String sql =
                 "UPDATE [dbo].[Accommodation] " +
                         "SET [name] = ?, [image] = ?, [address] = ?, phone = ?, [description] = ?, " +
-                        "rate = ?, [type] = ?, [status] = ?, checkInTime = ?, checkOutTime = ?, " +
+                        "[type] = ?, [status] = ?, checkInTime = ?, checkOutTime = ?, " +
                         "province = ?, district = ?, ward = ?, updatedAt = GETDATE() " +
                         "WHERE accommodationID = ?";
 
@@ -131,7 +145,7 @@ public class AccommodationDAO {
             connection.setAutoCommit(false);
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 bindAccommodationFields(statement, accommodation);
-                statement.setInt(14, accommodation.getAccommodationID());
+                statement.setInt(13, accommodation.getAccommodationID());
                 if (statement.executeUpdate() != 1) {
                     connection.rollback();
                     return false;
@@ -243,7 +257,7 @@ public class AccommodationDAO {
         try (PreparedStatement statement = connection.prepareStatement(
                 INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
             bindAccommodationFields(statement, accommodation);
-            setNullableInteger(statement, 14, accommodation.getCreatedByUserID());
+            setNullableInteger(statement, 13, accommodation.getCreatedByUserID());
             if (statement.executeUpdate() != 1) {
                 return 0;
             }
@@ -261,14 +275,13 @@ public class AccommodationDAO {
         statement.setString(3, accommodation.getAddress());
         statement.setString(4, accommodation.getPhone());
         statement.setString(5, accommodation.getDescription());
-        statement.setBigDecimal(6, accommodation.getRate());
-        statement.setString(7, accommodation.getType());
-        statement.setString(8, accommodation.getStatus());
-        statement.setTime(9, accommodation.getCheckInTime());
-        statement.setTime(10, accommodation.getCheckOutTime());
-        statement.setString(11, accommodation.getProvince());
-        statement.setString(12, accommodation.getDistrict());
-        statement.setString(13, accommodation.getWard());
+        statement.setString(6, accommodation.getType());
+        statement.setString(7, accommodation.getStatus());
+        statement.setTime(8, accommodation.getCheckInTime());
+        statement.setTime(9, accommodation.getCheckOutTime());
+        statement.setString(10, accommodation.getProvince());
+        statement.setString(11, accommodation.getDistrict());
+        statement.setString(12, accommodation.getWard());
     }
 
     private void setNullableInteger(PreparedStatement statement, int index, Integer value)
@@ -297,6 +310,8 @@ public class AccommodationDAO {
         accommodation.setPhone(resultSet.getString("phone"));
         accommodation.setDescription(resultSet.getString("description"));
         accommodation.setRate(resultSet.getBigDecimal("rate"));
+        accommodation.setAverageRate(resultSet.getBigDecimal("averageRate"));
+        accommodation.setReviewCount(resultSet.getInt("reviewCount"));
         accommodation.setType(resultSet.getString("type"));
         accommodation.setStatus(resultSet.getString("status"));
         accommodation.setCheckInTime(resultSet.getTime("checkInTime"));

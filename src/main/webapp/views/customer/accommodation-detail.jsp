@@ -390,6 +390,122 @@
             margin-top: 24px;
         }
 
+        .rating-summary {
+            display: grid;
+            grid-template-columns: 180px minmax(0, 1fr);
+            gap: 28px;
+            align-items: center;
+            padding: 22px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--soft);
+        }
+
+        .rating-total {
+            text-align: center;
+        }
+
+        .rating-number {
+            color: #f59e0b;
+            font-size: 52px;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .rating-stars,
+        .review-stars {
+            color: #f59e0b;
+            letter-spacing: 2px;
+        }
+
+        .rating-row {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr) 48px;
+            gap: 10px;
+            align-items: center;
+            margin: 8px 0;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .rating-track {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #e2e8f0;
+        }
+
+        .rating-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: #2563eb;
+        }
+
+        .review-list {
+            display: grid;
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .review-item {
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: #fff;
+        }
+
+        .review-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .review-author {
+            color: var(--dark);
+            font-weight: 900;
+        }
+
+        .review-date {
+            color: var(--muted);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .review-content {
+            color: #475569;
+            line-height: 1.7;
+            margin-top: 10px;
+            white-space: pre-line;
+        }
+
+        .review-image {
+            width: 120px;
+            height: 88px;
+            margin-top: 12px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .review-actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .review-action {
+            min-width: 150px;
+            border-radius: 14px;
+            padding: 11px 18px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 900;
+        }
+
         .btn-view-room {
             border-radius: 16px;
             font-weight: 900;
@@ -435,6 +551,10 @@
 
             .title {
                 font-size: 28px;
+            }
+
+            .rating-summary {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -494,7 +614,10 @@
                         <div class="info-card">
                             <i class="fa-solid fa-star"></i>
                             <div class="info-label">Đánh giá</div>
-                            <div class="info-value">${accommodation.rate}/5</div>
+                            <div class="info-value">
+                                <fmt:formatNumber value="${accommodation.averageRate}" pattern="0.0"/>/5
+                            </div>
+                            <div class="small text-muted">${accommodation.reviewCount} đánh giá</div>
                         </div>
 
                         <div class="info-card">
@@ -624,6 +747,12 @@
 
                                             <div class="room-specs">
                                                 <span class="pill">
+                                                    <i class="fa-solid fa-star text-warning"></i>
+                                                    <fmt:formatNumber value="${r.averageRate}" pattern="0.0"/>
+                                                    (${r.reviewCount})
+                                                </span>
+
+                                                <span class="pill">
                                                     <i class="fa-solid fa-bed"></i>
                                                     ${r.bedCount} ${r.displayBedType}
                                                 </span>
@@ -690,6 +819,94 @@
                             </c:forEach>
                         </c:otherwise>
                     </c:choose>
+                </div>
+            </section>
+
+            <section class="section-card" id="feedbackSection">
+                <h2 class="section-title mt-0">
+                    <i class="fa-solid fa-star text-warning"></i>
+                    Đánh giá <c:out value="${accommodation.name}"/>
+                </h2>
+
+                <div class="rating-summary">
+                    <div class="rating-total">
+                        <div class="rating-number">
+                            <fmt:formatNumber value="${accommodation.averageRate}" pattern="0.0"/>
+                        </div>
+                        <div class="text-muted">/5</div>
+                        <div class="rating-stars mt-2" aria-label="Điểm đánh giá">
+                            <c:forEach begin="1" end="5" var="star">
+                                <i class="${star <= accommodation.averageRate ? 'fa-solid' : 'fa-regular'} fa-star"></i>
+                            </c:forEach>
+                        </div>
+                        <div class="text-muted small mt-2">${accommodation.reviewCount} đánh giá đã duyệt</div>
+                    </div>
+
+                    <div>
+                        <c:forEach begin="1" end="5" var="row" varStatus="status">
+                            <c:set var="currentStar" value="${6 - row}"/>
+                            <c:set var="starCount" value="${ratingDistribution[currentStar]}"/>
+                            <c:set var="starPercent"
+                                   value="${accommodation.reviewCount > 0 ? starCount * 100 / accommodation.reviewCount : 0}"/>
+                            <div class="rating-row">
+                                <span>${currentStar} <i class="fa-solid fa-star text-warning"></i></span>
+                                <div class="rating-track">
+                                    <div class="rating-fill" style="width:${starPercent}%"></div>
+                                </div>
+                                <span><fmt:formatNumber value="${starPercent}" maxFractionDigits="0"/>%</span>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+
+                <div class="review-list">
+                    <c:choose>
+                        <c:when test="${empty feedbackList}">
+                            <div class="text-center text-muted py-4">
+                                Chưa có đánh giá đã duyệt cho nơi lưu trú này.
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach var="feedback" items="${feedbackList}">
+                                <article class="review-item">
+                                    <div class="review-head">
+                                        <div>
+                                            <div class="review-author"><c:out value="${feedback.userName}"/></div>
+                                            <div class="review-stars" aria-label="${feedback.rate} trên 5 sao">
+                                                <c:forEach begin="1" end="5" var="star">
+                                                    <i class="${star <= feedback.rate ? 'fa-solid' : 'fa-regular'} fa-star"></i>
+                                                </c:forEach>
+                                            </div>
+                                        </div>
+                                        <time class="review-date">
+                                            <fmt:formatDate value="${feedback.createDate}" pattern="dd/MM/yyyy"/>
+                                        </time>
+                                    </div>
+
+                                    <div class="review-content"><c:out value="${feedback.content}"/></div>
+
+                                    <c:if test="${not empty feedback.image}">
+                                        <img class="review-image"
+                                             src="${fn:escapeXml(feedback.image)}"
+                                             alt="Ảnh đánh giá của ${fn:escapeXml(feedback.userName)}">
+                                    </c:if>
+                                </article>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+
+                <div class="review-actions">
+                    <c:if test="${canAddFeedback}">
+                        <a class="review-action btn btn-primary"
+                           href="${pageContext.request.contextPath}/feedback-add?accommodationID=${accommodation.accommodationID}">
+                            Viết đánh giá
+                        </a>
+                    </c:if>
+                    <a class="review-action btn btn-outline-primary"
+                       href="${pageContext.request.contextPath}/feedback-list?accommodationID=${accommodation.accommodationID}">
+                        Xem tất cả đánh giá
+                    </a>
                 </div>
             </section>
         </div>

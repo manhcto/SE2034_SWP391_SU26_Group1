@@ -276,10 +276,23 @@ public class AssignmentView {
             case "Accepted" -> "Đã xác nhận";
             case "Confirmed" -> "Đã xác nhận";
             case "In Progress" -> "Đang diễn ra";
-            case "Completed" -> "Hoàn thành";
+            case "Completed" -> "Đã đi hoàn tất";
             case "Cancelled", "Canceled" -> "Đã hủy";
             case "Rejected" -> "Từ chối";
             default -> assignmentStatus.trim();
+        };
+    }
+
+    public static boolean canGuideTransitionStatus(String currentStatus, String targetStatus) {
+        String current = currentStatus == null ? "Pending" : currentStatus.trim();
+        String target = targetStatus == null ? "" : targetStatus.trim();
+
+        return switch (current) {
+            case "Assigned", "Pending" -> "Accepted".equals(target) || "Rejected".equals(target);
+            case "Accepted" -> "Confirmed".equals(target) || "Rejected".equals(target);
+            case "Confirmed" -> "In Progress".equals(target) || "Cancelled".equals(target);
+            case "In Progress" -> "Completed".equals(target) || "Cancelled".equals(target);
+            default -> false;
         };
     }
 

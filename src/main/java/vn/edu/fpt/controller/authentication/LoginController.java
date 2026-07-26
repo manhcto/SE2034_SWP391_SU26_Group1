@@ -139,7 +139,7 @@ public class LoginController extends HttpServlet {
         }
 
         if (isStaff(user, roleName)) {
-            response.sendRedirect(request.getContextPath() + "/staff/home");
+            response.sendRedirect(request.getContextPath() + "/staff/tour");
             return;
         }
 

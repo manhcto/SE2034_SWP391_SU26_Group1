@@ -598,6 +598,37 @@
             font-size: 16px;
         }
 
+        .pagination-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 32px auto 8px;
+        }
+
+        .page-link-custom {
+            min-width: 42px;
+            height: 42px;
+            padding: 0 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            background: #fff;
+            color: #334155;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .page-link-custom:hover,
+        .page-link-custom.active {
+            border-color: #2563eb;
+            background: #2563eb;
+            color: #fff;
+        }
+
         @media (max-width: 1280px) {
             .accommodation-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -889,7 +920,7 @@
 
         <div class="result-badge">
             <i class="fa-solid fa-layer-group"></i>
-            Tìm thấy <strong>${fn:length(accommodationList)}</strong> nơi lưu trú
+            Tìm thấy <strong>${totalResults}</strong> nơi lưu trú
         </div>
     </div>
 
@@ -913,7 +944,8 @@
                             <div class="rating-badge">
                                 <i class="fa-solid fa-star" style="color:#facc15;"></i>
                                 <span>
-                                    <fmt:formatNumber value="${acc.rate}" pattern="0.0"/>
+                                    <fmt:formatNumber value="${acc.averageRate}" pattern="0.0"/>
+                                    (${acc.reviewCount})
                                 </span>
                             </div>
 
@@ -1016,6 +1048,36 @@
                     </article>
                 </c:forEach>
             </section>
+
+            <c:if test="${totalPages > 1}">
+                <nav class="pagination-wrap" aria-label="Phân trang nơi lưu trú">
+                    <c:forEach begin="1" end="${totalPages}" var="pageNumber">
+                        <c:url var="pageUrl" value="/accommodation">
+                            <c:param name="page" value="${pageNumber}"/>
+                            <c:param name="keyword" value="${keyword}"/>
+                            <c:param name="province" value="${selectedProvince}"/>
+                            <c:param name="district" value="${selectedDistrict}"/>
+                            <c:param name="type" value="${selectedType}"/>
+                            <c:param name="guests" value="${selectedGuests}"/>
+                            <c:param name="adults" value="${selectedAdults}"/>
+                            <c:param name="children" value="${selectedChildren}"/>
+                            <c:param name="rooms" value="${selectedRooms}"/>
+                            <c:param name="checkIn" value="${selectedCheckIn}"/>
+                            <c:param name="checkOut" value="${selectedCheckOut}"/>
+                            <c:param name="minRate" value="${selectedMinRate}"/>
+                            <c:param name="minPrice" value="${selectedMinPrice}"/>
+                            <c:param name="maxPrice" value="${selectedMaxPrice}"/>
+                            <c:param name="facilityId" value="${selectedFacilityId}"/>
+                            <c:param name="facilityName" value="${selectedFacilityName}"/>
+                        </c:url>
+                        <a class="page-link-custom${pageNumber == currentPage ? ' active' : ''}"
+                           href="${pageUrl}"
+                           aria-current="${pageNumber == currentPage ? 'page' : ''}">
+                            ${pageNumber}
+                        </a>
+                    </c:forEach>
+                </nav>
+            </c:if>
         </c:when>
 
         <c:otherwise>

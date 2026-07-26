@@ -314,7 +314,11 @@
                             <article class="product-card stay-card">
                                 <a class="product-image" href="${pageContext.request.contextPath}/accommodation/detail?id=${stay.accommodationID}">
                                     <img src="${stayImage}" alt="${fn:escapeXml(stay.name)}" loading="lazy">
-                                    <span class="image-badge rating"><i class="fa-solid fa-star"></i> ${stay.rate}</span>
+                                    <span class="image-badge rating">
+                                        <i class="fa-solid fa-star"></i>
+                                        <fmt:formatNumber value="${stay.averageRate}" pattern="0.0"/>
+                                        (${stay.reviewCount})
+                                    </span>
                                 </a>
                                 <div class="product-body">
                                     <p class="product-meta"><i class="fa-solid fa-location-dot"></i> ${stay.province}</p>

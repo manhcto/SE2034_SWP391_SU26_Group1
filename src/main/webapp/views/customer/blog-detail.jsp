@@ -148,10 +148,6 @@
                         <li class="breadcrumb-item"><a href="${backToBlogManagementPath}">Quản lí blog</a></li>
                         <li class="breadcrumb-item">Chi tiết bài viết</li>
                     </c:when>
-                    <c:when test="${not empty backToMyBlogPath}">
-                        <li class="breadcrumb-item"><a href="${backToMyBlogPath}">Blog của tôi</a></li>
-                        <li class="breadcrumb-item">Chi tiết bài viết</li>
-                    </c:when>
                     <c:otherwise>
                         <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
                         <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/blog">Blog</a></li>
@@ -242,14 +238,6 @@
                         <c:when test="${not empty backToBlogManagementPath}">
                             <a href="${backToBlogManagementPath}" class="btn btn-outline-primary w-100 fw-bold mt-3">
                                 <i class="fa-solid fa-arrow-left me-1"></i> Quay lại quản lí blog
-                            </a>
-                        </c:when>
-                        <c:when test="${not empty backToMyBlogPath}">
-                            <a href="${pageContext.request.contextPath}/my-blogs?action=edit&id=${post.blogID}" class="btn btn-primary w-100 fw-bold mt-3">
-                                <i class="fa-solid fa-pen-to-square me-1"></i> Sửa bài viết
-                            </a>
-                            <a href="${backToMyBlogPath}" class="btn btn-outline-primary w-100 fw-bold mt-3">
-                                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại Blog của tôi
                             </a>
                         </c:when>
                         <c:otherwise>

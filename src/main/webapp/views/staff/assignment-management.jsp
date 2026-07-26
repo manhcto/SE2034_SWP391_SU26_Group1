@@ -27,9 +27,9 @@
             </div>
 
             <div class="top-actions">
-                <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/staff/home">
+                <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/staff/tour">
                     <i class="fa-solid fa-house"></i>
-                    Trang nhân viên
+                    Quản lý tour
                 </a>
                 <a class="top-action-btn btn-primary-action" href="${pageContext.request.contextPath}/staff/assignment?action=create">
                     <i class="fa-solid fa-plus"></i>

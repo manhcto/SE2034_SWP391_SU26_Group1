@@ -493,6 +493,15 @@
                             <div class="info-label">Diện tích</div>
                             <div class="info-value">${room.roomSize} m²</div>
                         </div>
+
+                        <div class="info-card">
+                            <i class="fa-solid fa-star text-warning"></i>
+                            <div class="info-label">Đánh giá phòng</div>
+                            <div class="info-value">
+                                <fmt:formatNumber value="${room.averageRate}" pattern="0.0"/>/5
+                            </div>
+                            <div class="small text-muted">${room.reviewCount} đánh giá</div>
+                        </div>
                     </div>
 
                     <h2 class="section-title">

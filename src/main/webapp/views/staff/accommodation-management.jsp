@@ -46,6 +46,11 @@
             padding: 28px;
         }
 
+        .admin-readonly-main {
+            margin-left: 292px;
+            width: calc(100% - 292px);
+        }
+
         .staff-page-topbar {
             background: white;
             border: 1px solid var(--border);
@@ -406,15 +411,31 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (max-width: 992px) {
+            .admin-readonly-main {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
 <body>
 
 <div class="admin-layout">
-    <jsp:include page="/views/common/staff-sidebar.jsp"/>
+    <c:choose>
+        <c:when test="${adminReadOnly}">
+            <jsp:include page="/views/common/admin-sidebar.jsp">
+                <jsp:param name="activeAdminMenu" value="accommodation"/>
+            </jsp:include>
+        </c:when>
+        <c:otherwise>
+            <jsp:include page="/views/common/staff-sidebar.jsp"/>
+        </c:otherwise>
+    </c:choose>
 
-    <main class="admin-main">
+    <main class="admin-main${adminReadOnly ? ' admin-readonly-main' : ''}">
         <jsp:include page="/views/common/admin-header.jsp"/>
 
         <header class="staff-page-topbar">
@@ -423,10 +444,12 @@
                 <p>Quản lý khách sạn, homestay, resort, căn hộ, phòng và tiện ích.</p>
             </div>
 
-            <button class="btn-main" type="button" data-bs-toggle="modal" data-bs-target="#addAccommodationModal">
-                <i class="fa-solid fa-plus"></i>
-                Thêm nơi lưu trú
-            </button>
+            <c:if test="${!adminReadOnly}">
+                <button class="btn-main" type="button" data-bs-toggle="modal" data-bs-target="#addAccommodationModal">
+                    <i class="fa-solid fa-plus"></i>
+                    Thêm nơi lưu trú
+                </button>
+            </c:if>
         </header>
 
         <c:if test="${not empty sessionScope.errors}">
@@ -508,15 +531,15 @@
             <div class="stat-card">
                 <div class="label">Đánh giá trung bình</div>
                 <div class="value">
-                    <c:set var="totalRate" value="0"/>
-                    <c:set var="rateCount" value="0"/>
+                    <c:set var="weightedRate" value="0"/>
+                    <c:set var="reviewCount" value="0"/>
                     <c:forEach var="a" items="${accommodationList}">
-                        <c:set var="totalRate" value="${totalRate + a.rate}"/>
-                        <c:set var="rateCount" value="${rateCount + 1}"/>
+                        <c:set var="weightedRate" value="${weightedRate + (a.averageRate * a.reviewCount)}"/>
+                        <c:set var="reviewCount" value="${reviewCount + a.reviewCount}"/>
                     </c:forEach>
                     <c:choose>
-                        <c:when test="${rateCount > 0}">
-                            <fmt:formatNumber value="${totalRate / rateCount}" maxFractionDigits="1"/>
+                        <c:when test="${reviewCount > 0}">
+                            <fmt:formatNumber value="${weightedRate / reviewCount}" maxFractionDigits="1"/>
                         </c:when>
                         <c:otherwise>0</c:otherwise>
                     </c:choose>
@@ -612,10 +635,11 @@ data-status="${fn:escapeXml(a.status)}">
                                     </td>
 
                                     <td>
-                                        <strong>${a.rate}</strong>
+                                        <strong><fmt:formatNumber value="${a.averageRate}" pattern="0.0"/></strong>
                                         <span class="text-warning">
                                             <i class="fa-solid fa-star"></i>
                                         </span>
+                                        <div class="small text-muted">${a.reviewCount} đánh giá</div>
                                     </td>
 
                                     <td>
@@ -653,31 +677,33 @@ data-status="${fn:escapeXml(a.status)}">
                                     <td>
                                         <div class="action-group justify-content-end">
                                             <a class="btn-icon"
-                                               href="${pageContext.request.contextPath}/staff/accommodation?action=detail&id=${a.accommodationID}"
+                                               href="${accommodationPath}?action=detail&amp;id=${a.accommodationID}"
                                                title="Xem chi tiết"
                                                aria-label="Xem chi tiết nơi lưu trú">
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
 
-                                            <button class="btn-icon" type="button"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editAccommodationModal${a.accommodationID}"
-                                                    aria-label="Sửa nơi lưu trú"
-                                                    title="Sửa">
-                                                <i class="fa-solid fa-pen"></i>
-                                            </button>
-
-                                            <form class="m-0 js-confirm-delete"
-                                                  action="${pageContext.request.contextPath}/staff/accommodation"
-                                                  method="post"
-                                                  data-confirm-message="Bạn có chắc muốn xóa nơi lưu trú này?">
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="id" value="${a.accommodationID}">
-                                                <button class="btn-icon danger" type="submit"
-                                                        title="Xóa" aria-label="Xóa nơi lưu trú">
-                                                    <i class="fa-solid fa-trash"></i>
+                                            <c:if test="${!adminReadOnly}">
+                                                <button class="btn-icon" type="button"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editAccommodationModal${a.accommodationID}"
+                                                        aria-label="Sửa nơi lưu trú"
+                                                        title="Sửa">
+                                                    <i class="fa-solid fa-pen"></i>
                                                 </button>
-                                            </form>
+
+                                                <form class="m-0 js-confirm-delete"
+                                                      action="${pageContext.request.contextPath}/staff/accommodation"
+                                                      method="post"
+                                                      data-confirm-message="Bạn có chắc muốn xóa nơi lưu trú này?">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="id" value="${a.accommodationID}">
+                                                    <button class="btn-icon danger" type="submit"
+                                                            title="Xóa" aria-label="Xóa nơi lưu trú">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </c:if>
                                         </div>
                                     </td>
                                 </tr>
@@ -733,11 +759,6 @@ data-status="${fn:escapeXml(a.status)}">
                                                         <div class="col-md-3">
                                                             <label class="form-label fw-bold">Số điện thoại</label>
                                                             <input class="form-control" name="phone" value="${fn:escapeXml(a.phone)}">
-                                                        </div>
-
-                                                        <div class="col-md-3">
-                                                            <label class="form-label fw-bold">Đánh giá</label>
-                                                            <input class="form-control" type="number" step="0.1" min="0" max="5" name="rate" value="${a.rate}">
                                                         </div>
 
                                                         <div class="col-md-4">
@@ -876,11 +897,6 @@ data-status="${fn:escapeXml(a.status)}">
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Số điện thoại</label>
                             <input class="form-control" name="phone" placeholder="0900000000">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold">Đánh giá</label>
-                            <input class="form-control" type="number" step="0.1" min="0" max="5" name="rate" value="4.5">
                         </div>
 
                         <div class="col-md-4">
@@ -1145,8 +1161,6 @@ data-status="${fn:escapeXml(a.status)}">
         if (!validateText(getInput(form, "name"), "Tên nơi lưu trú", 2, 255)) valid = false;
         if (!validateUrlInput(getInput(form, "image"), "Link ảnh")) valid = false;
         if (!validatePhoneInput(getInput(form, "phone"))) valid = false;
-        const rate = getInput(form, "rate");
-        if (rate && rate.value.trim() && !validateNumberRange(rate, "Đánh giá", 0, 5, true)) valid = false;
         if (!validateText(getInput(form, "province"), "Tỉnh/thành", 2, 100)) valid = false;
         if (!validateText(getInput(form, "ward"), "Phường/xã", 2, 150)) valid = false;
         if (!validateText(getInput(form, "address"), "Địa chỉ cụ thể", 3, 255)) valid = false;

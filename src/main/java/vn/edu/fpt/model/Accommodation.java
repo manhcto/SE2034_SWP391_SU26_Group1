@@ -15,6 +15,8 @@ public class Accommodation {
     private String phone;
     private String description;
     private BigDecimal rate;
+    private BigDecimal averageRate = BigDecimal.ZERO;
+    private int reviewCount;
     private String type;
     private String status;
     private Time checkInTime;
@@ -88,6 +90,22 @@ public class Accommodation {
 
     public void setRate(BigDecimal rate) {
         this.rate = rate;
+    }
+
+    public BigDecimal getAverageRate() {
+        return averageRate;
+    }
+
+    public void setAverageRate(BigDecimal averageRate) {
+        this.averageRate = averageRate == null ? BigDecimal.ZERO : averageRate;
+    }
+
+    public int getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(int reviewCount) {
+        this.reviewCount = Math.max(0, reviewCount);
     }
 
     public String getType() {

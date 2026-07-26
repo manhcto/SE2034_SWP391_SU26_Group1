@@ -22,7 +22,7 @@ import java.util.List;
 public class AssignmentDAOImpl {
 
     private static final String ASSIGNABLE_TOUR_BOOKING_STATUS_CONDITION =
-            "LTRIM(RTRIM(ISNULL(b.[status], N''))) IN (N'Hoàn thành', N'Completed', N'Đã duyệt', N'Confirmed')";
+            "LTRIM(RTRIM(ISNULL(b.[status], N''))) IN (N'Confirmed', N'Đã xác nhận', N'Đã duyệt')";
 
     private static final String ASSIGNMENT_SELECT = """
         SELECT
@@ -612,7 +612,7 @@ public class AssignmentDAOImpl {
         return -1;
     }
 
-    public boolean isCompletedTourBookingForAssignment(int bookingID) {
+    public boolean isConfirmedTourBookingForAssignment(int bookingID) {
         String sql = """
             SELECT TOP 1 1
             FROM Booking b

@@ -133,18 +133,8 @@ public class BlogDAO {
         return new ArrayList<>();
     }
 
-    // Lấy toàn bộ bài viết cho staff không áp bộ lọc.
-    public List<BlogPost> getAllPostsForStaff() {
-        return getPostsForStaff("", "", "");
-    }
-
-    // Lấy danh sách bài viết cho staff theo từ khóa và category.
-    public List<BlogPost> getPostsForStaff(String searchKeyword, String category) {
-        return getPostsForStaff(searchKeyword, category, "");
-    }
-
     // Lấy danh sách bài viết cho staff theo từ khóa và trạng thái.
-    public List<BlogPost> getPostsForStaff(String searchKeyword, String category, String status) {
+    public List<BlogPost> getPostsForStaff(String searchKeyword, String status) {
         List<BlogPost> posts = new ArrayList<>();
         String search = trimValue(searchKeyword);
         String selectedStatus = trimValue(status);
@@ -152,8 +142,9 @@ public class BlogDAO {
                 "FROM Blog p " +
                 "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
                 "WHERE (? = N'' OR p.title LIKE ? OR p.summary LIKE ? OR p.content LIKE ?) " +
+                "AND p.[status] IN (N'Published', N'Draft') " +
                 "AND (? = N'' OR p.[status] = ?) " +
-                "ORDER BY CASE WHEN p.[status] = N'Pending' THEN 0 ELSE 1 END, p.createdAt DESC, p.blogID DESC";
+                "ORDER BY p.createdAt DESC, p.blogID DESC";
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -176,11 +167,6 @@ public class BlogDAO {
         return posts;
     }
 
-    // SQL 3.0 chưa có cột category trong Blog.
-    public List<String> getStaffCategories() {
-        return new ArrayList<>();
-    }
-
     // Lấy chi tiết bài viết bất kể trạng thái theo blogID.
     public BlogPost getPostById(int blogID) {
         String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
@@ -188,51 +174,6 @@ public class BlogDAO {
                 "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
                 "WHERE p.blogID = ?";
         return getSinglePost(sql, blogID);
-    }
-
-    public List<BlogPost> getPostsByAuthorID(int authorID) {
-        List<BlogPost> posts = new ArrayList<>();
-        String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
-                "FROM Blog p " +
-                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
-                "WHERE p.authorUserID = ? " +
-                "ORDER BY CASE WHEN p.[status] = N'Pending' THEN 0 ELSE 1 END, p.createdAt DESC, p.blogID DESC";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, authorID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    posts.add(mapBlogPost(rs));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return posts;
-    }
-
-    public BlogPost getPostByIdAndAuthorID(int blogID, int authorID) {
-        String sql = "SELECT p.*, " + AUTHOR_NAME_SQL + " " +
-                "FROM Blog p " +
-                "LEFT JOIN [User] u ON p.authorUserID = u.userID " +
-                "WHERE p.blogID = ? AND p.authorUserID = ?";
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, blogID);
-            ps.setInt(2, authorID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapBlogPost(rs);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     // Thêm mới một bài viết blog.
@@ -262,24 +203,6 @@ public class BlogDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             fillPostStatement(ps, post);
             ps.setInt(8, post.getBlogID());
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    // Cập nhật riêng trạng thái publish/draft của bài viết.
-    public boolean updatePostStatus(int blogID, String status) {
-        String sql = "UPDATE Blog SET " +
-                "[status] = ?, " +
-                "updatedAt = GETDATE() " +
-                "WHERE blogID = ?";
-
-        try (Connection conn = new DBConnection().getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setNString(1, status);
-            ps.setInt(2, blogID);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();

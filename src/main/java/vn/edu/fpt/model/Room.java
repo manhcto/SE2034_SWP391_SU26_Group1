@@ -21,6 +21,8 @@ public class Room {
     private int maxAdults;
     private int maxChildren;
     private BigDecimal roomSize;
+    private BigDecimal averageRate = BigDecimal.ZERO;
+    private int reviewCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -141,6 +143,22 @@ public class Room {
 
     public void setRoomSize(BigDecimal roomSize) {
         this.roomSize = roomSize;
+    }
+
+    public BigDecimal getAverageRate() {
+        return averageRate;
+    }
+
+    public void setAverageRate(BigDecimal averageRate) {
+        this.averageRate = averageRate == null ? BigDecimal.ZERO : averageRate;
+    }
+
+    public int getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(int reviewCount) {
+        this.reviewCount = Math.max(0, reviewCount);
     }
 
     public LocalDateTime getCreatedAt() {

@@ -505,65 +505,9 @@
 
 <body>
 <div class="admin-layout">
-    <aside class="admin-sidebar">
-        <div class="brand-box">
-            <div class="brand-logo">AD</div>
-            <h2>WonderVN</h2>
-            <p>Trung tâm quản trị</p>
-        </div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/home">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang quản trị</span>
-        </a>
-
-        <div class="nav-section-title">Quản trị hệ thống</div>
-
-        <a class="sidebar-link active" href="${pageContext.request.contextPath}/admin/dashboard">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>Báo cáo tổng quan</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/user">
-            <i class="fa-solid fa-users-gear"></i>
-            <span>Quản lý người dùng</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/booking">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Xem Booking</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
-            <i class="fa-solid fa-comments"></i>
-            <span>Xem đánh giá</span>
-        </a>
-
-        <div class="nav-section-title">Khu vực vận hành</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/home">
-            <i class="fa-solid fa-user-tie"></i>
-            <span>Trang nhân viên</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/booking">
-            <i class="fa-solid fa-pen-to-square"></i>
-            <span>Quản lý booking</span>
-        </a>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/payment">
-            <i class="fa-solid fa-credit-card"></i>
-            <span>Quản lý thanh toán</span>
-        </a>
-
-        <div class="admin-user">
-            <div class="avatar">AD</div>
-            <div>
-                <div class="fw-bold">Quản trị viên</div>
-                <small>Quản trị</small>
-            </div>
-        </div>
-    </aside>
+    <jsp:include page="/views/common/admin-sidebar.jsp">
+        <jsp:param name="activeAdminMenu" value="dashboard"/>
+    </jsp:include>
 
     <main class="main-content">
         <div class="topbar">

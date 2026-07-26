@@ -44,6 +44,11 @@
             padding: 28px;
         }
 
+        .admin-readonly-main {
+            margin-left: 292px;
+            width: calc(100% - 292px);
+        }
+
         .back-btn {
             border: 1px solid var(--border);
             background: white;
@@ -389,18 +394,33 @@
                 grid-template-columns: 1fr;
             }
         }
+        @media (max-width: 992px) {
+            .admin-readonly-main {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
 <body>
 
 <div class="admin-layout">
-    <jsp:include page="/views/common/staff-sidebar.jsp"/>
+    <c:choose>
+        <c:when test="${adminReadOnly}">
+            <jsp:include page="/views/common/admin-sidebar.jsp">
+                <jsp:param name="activeAdminMenu" value="accommodation"/>
+            </jsp:include>
+        </c:when>
+        <c:otherwise>
+            <jsp:include page="/views/common/staff-sidebar.jsp"/>
+        </c:otherwise>
+    </c:choose>
 
-    <main class="admin-main">
+    <main class="admin-main${adminReadOnly ? ' admin-readonly-main' : ''}">
         <jsp:include page="/views/common/admin-header.jsp"/>
 
-        <a class="back-btn" href="${pageContext.request.contextPath}/staff/accommodation?action=list">
+        <a class="back-btn" href="${accommodationPath}?action=list">
             <i class="fa-solid fa-arrow-left"></i>
             Quay lại danh sách
         </a>
@@ -475,7 +495,10 @@
                     <div class="info-card">
                         <i class="fa-solid fa-star"></i>
                         <div class="info-label">Đánh giá</div>
-                        <div class="info-value">${accommodation.rate}/5</div>
+                        <div class="info-value">
+                            <fmt:formatNumber value="${accommodation.averageRate}" pattern="0.0"/>/5
+                            <div class="small text-muted">${accommodation.reviewCount} đánh giá</div>
+                        </div>
                     </div>
 
                     <div class="info-card">
@@ -497,10 +520,12 @@
             <div class="section-head">
                 <h2>Tiện ích nơi lưu trú</h2>
 
-                <button class="btn-main" type="button" data-bs-toggle="modal" data-bs-target="#accommodationFacilityModal">
-                    <i class="fa-solid fa-pen"></i>
-                    Cập nhật tiện ích
-                </button>
+                <c:if test="${!adminReadOnly}">
+                    <button class="btn-main" type="button" data-bs-toggle="modal" data-bs-target="#accommodationFacilityModal">
+                        <i class="fa-solid fa-pen"></i>
+                        Cập nhật tiện ích
+                    </button>
+                </c:if>
             </div>
 
             <div class="facility-wrap">
@@ -525,11 +550,13 @@
             <div class="section-head">
                 <h2>Danh sách phòng</h2>
 
-                <button class="btn-main" type="button"
-                        data-bs-toggle="modal" data-bs-target="#addRoomModal">
-                    <i class="fa-solid fa-plus"></i>
-                    Thêm phòng
-                </button>
+                <c:if test="${!adminReadOnly}">
+                    <button class="btn-main" type="button"
+                            data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                        <i class="fa-solid fa-plus"></i>
+                        Thêm phòng
+                    </button>
+                </c:if>
             </div>
 
             <div class="row g-4">
@@ -553,6 +580,12 @@
 <div class="text-muted small"><c:out value="${r.description}"/></div>
 
                                         <div class="room-specs">
+                                            <span class="pill">
+                                                <i class="fa-solid fa-star text-warning me-1"></i>
+                                                <fmt:formatNumber value="${r.averageRate}" pattern="0.0"/>
+                                                (${r.reviewCount})
+                                            </span>
+
                                             <span class="pill">
                                                 <i class="fa-solid fa-bed me-1"></i>
                                                 ${r.bedCount} ${r.displayBedType}
@@ -585,26 +618,28 @@
                                                 </div>
                                             </div>
 
-                                            <div class="d-flex gap-2">
-                                                <button class="btn btn-sm btn-outline-primary" type="button"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#editRoomModal${r.roomID}">
-                                                    Sửa
-                                                </button>
-
-                                                <form class="m-0 js-confirm-delete"
-                                                      action="${pageContext.request.contextPath}/staff/accommodation"
-                                                      method="post"
-                                                      data-confirm-message="Bạn có chắc muốn xóa phòng này?">
-                                                    <input type="hidden" name="action" value="deleteRoom">
-                                                    <input type="hidden" name="roomID" value="${r.roomID}">
-                                                    <input type="hidden" name="accommodationID"
-                                                           value="${accommodation.accommodationID}">
-                                                    <button class="btn btn-sm btn-outline-danger" type="submit">
-                                                        Xóa
+                                            <c:if test="${!adminReadOnly}">
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-sm btn-outline-primary" type="button"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editRoomModal${r.roomID}">
+                                                        Sửa
                                                     </button>
-                                                </form>
-                                            </div>
+
+                                                    <form class="m-0 js-confirm-delete"
+                                                          action="${pageContext.request.contextPath}/staff/accommodation"
+                                                          method="post"
+                                                          data-confirm-message="Bạn có chắc muốn xóa phòng này?">
+                                                        <input type="hidden" name="action" value="deleteRoom">
+                                                        <input type="hidden" name="roomID" value="${r.roomID}">
+                                                        <input type="hidden" name="accommodationID"
+                                                               value="${accommodation.accommodationID}">
+                                                        <button class="btn btn-sm btn-outline-danger" type="submit">
+                                                            Xóa
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </c:if>
                                         </div>
                                     </div>
                                 </div>

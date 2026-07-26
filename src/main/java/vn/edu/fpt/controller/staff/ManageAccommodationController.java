@@ -27,7 +27,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet(name = "ManageAccommodationController", urlPatterns = {"/staff/accommodation"})
+@WebServlet(name = "ManageAccommodationController", urlPatterns = {
+        "/staff/accommodation",
+        "/admin/accommodation"
+})
 public class ManageAccommodationController extends HttpServlet {
 
     private final AccommodationDAO accommodationDAO = new AccommodationDAO();
@@ -39,6 +42,10 @@ public class ManageAccommodationController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        boolean adminReadOnly = "/admin/accommodation".equals(request.getServletPath());
+        request.setAttribute("adminReadOnly", adminReadOnly);
+        request.setAttribute("accommodationPath",
+                request.getContextPath() + request.getServletPath());
 
         String action = safeTrim(request.getParameter("action"));
 
@@ -56,7 +63,7 @@ public class ManageAccommodationController extends HttpServlet {
                 break;
 
             default:
-                response.sendRedirect(request.getContextPath() + "/staff/accommodation?action=list");
+                response.sendRedirect(basePath(request) + "?action=list");
                 break;
         }
     }
@@ -65,6 +72,11 @@ public class ManageAccommodationController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+
+        if ("/admin/accommodation".equals(request.getServletPath())) {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
 
         String action = safeTrim(request.getParameter("action"));
 
@@ -146,16 +158,14 @@ public class ManageAccommodationController extends HttpServlet {
         Integer accommodationID = parsePositiveInt(request.getParameter("id"));
 
         if (accommodationID == null) {
-            response.sendRedirect(request.getContextPath()
-                    + "/staff/accommodation?action=list&status=notFound");
+            response.sendRedirect(basePath(request) + "?action=list&status=notFound");
             return;
         }
 
         Accommodation accommodation = accommodationDAO.getAccommodationById(accommodationID);
 
         if (accommodation == null) {
-            response.sendRedirect(request.getContextPath()
-                    + "/staff/accommodation?action=list&status=notFound");
+            response.sendRedirect(basePath(request) + "?action=list&status=notFound");
             return;
         }
 
@@ -431,7 +441,6 @@ public class ManageAccommodationController extends HttpServlet {
         data.address = safeTrim(request.getParameter("address"));
         data.phone = safeTrim(request.getParameter("phone"));
         data.description = safeTrim(request.getParameter("description"));
-        data.rateRaw = request.getParameter("rate");
         data.type = safeTrim(request.getParameter("type"));
         data.status = safeTrim(request.getParameter("status"));
         data.checkInTimeRaw = request.getParameter("checkInTime");
@@ -473,7 +482,6 @@ public class ManageAccommodationController extends HttpServlet {
         accommodation.setAddress(data.address);
         accommodation.setPhone(data.phone);
         accommodation.setDescription(data.description);
-        accommodation.setRate(parseBigDecimal(data.rateRaw));
         accommodation.setType(data.type);
         accommodation.setStatus(data.status);
         accommodation.setCheckInTime(parseTime(data.checkInTimeRaw));
@@ -527,13 +535,6 @@ public class ManageAccommodationController extends HttpServlet {
 
         if (data.description.length() > 1000) {
             errors.put("description", "Mô tả nơi lưu trú không được vượt quá 1000 ký tự.");
-        }
-
-        BigDecimal rate = parseBigDecimal(data.rateRaw);
-        if (!isBlank(data.rateRaw) && (rate == null
-                || rate.compareTo(BigDecimal.ZERO) < 0
-                || rate.compareTo(new BigDecimal("5")) > 0)) {
-            errors.put("rate", "Đánh giá phải từ 0 đến 5.");
         }
 
         if (!isValidAccommodationType(data.type)) {
@@ -745,6 +746,10 @@ public class ManageAccommodationController extends HttpServlet {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
+    private String basePath(HttpServletRequest request) {
+        return request.getContextPath() + request.getServletPath();
+    }
+
     private static class AccommodationData {
         String accommodationIDRaw;
         String name;
@@ -752,7 +757,6 @@ public class ManageAccommodationController extends HttpServlet {
         String address;
         String phone;
         String description;
-        String rateRaw;
         String type;
         String status;
         String checkInTimeRaw;

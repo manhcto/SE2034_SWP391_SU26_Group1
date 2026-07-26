@@ -25,11 +25,6 @@
             min-width: 0;
         }
 
-        .admin-main.with-admin-sidebar {
-            margin-left: 292px;
-            width: calc(100% - 292px);
-        }
-
         .page-banner {
             background: #0f766e;
             border-radius: 14px;
@@ -117,15 +112,6 @@
             color: #475569;
         }
 
-        .status-pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .status-rejected {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
 .table thead th {
             color: #64748b;
             font-size: 12px;
@@ -177,24 +163,11 @@
             color: #dc2626;
         }
 
-        .btn-approve {
-            color: #15803d;
-        }
-
-        .btn-reject {
-            color: #dc2626;
-        }
-
         .action-group {
             display: flex;
             justify-content: flex-end;
             align-items: center;
             gap: 8px;
-        }
-
-        .action-form {
-            display: inline-flex;
-            margin: 0;
         }
 
         .blog-modal {
@@ -218,28 +191,15 @@
                 display: block;
             }
 
-            .admin-main.with-admin-sidebar {
-                margin-left: 0;
-                width: 100%;
-            }
         }
     </style>
 </head>
 <body>
 
 <div class="admin-layout">
-    <c:choose>
-        <c:when test="${blogManagementRole == 'admin'}">
-            <jsp:include page="/views/common/admin-sidebar.jsp">
-                <jsp:param name="activeAdminMenu" value="blog"/>
-            </jsp:include>
-        </c:when>
-        <c:otherwise>
-            <jsp:include page="/views/common/staff-sidebar.jsp"/>
-        </c:otherwise>
-    </c:choose>
+    <jsp:include page="/views/common/staff-sidebar.jsp"/>
 
-    <main class="admin-main${blogManagementRole == 'admin' ? ' with-admin-sidebar' : ''}">
+    <main class="admin-main">
         <jsp:include page="/views/common/admin-header.jsp"/>
 
         <div class="p-4">
@@ -248,14 +208,12 @@
                     <i class="fa-solid fa-newspaper" style="font-size: 2.4rem;"></i>
                     <div>
                         <h1 class="h3 fw-bold m-0">Quản lý Blog</h1>
-                        <p class="m-0 mt-1 text-white-50">Duyệt bài viết khách hàng và xuất bản nội dung WonderVN.</p>
+                        <p class="m-0 mt-1 text-white-50">Tạo và xuất bản nội dung Blog WonderVN.</p>
                     </div>
                 </div>
-                <c:if test="${not blogManagementReadOnly}">
-                    <a class="btn btn-light fw-bold" href="${blogManagementPath}?action=new">
-                        <i class="fa-solid fa-plus me-1"></i>Thêm blog
-                    </a>
-                </c:if>
+                <a class="btn btn-light fw-bold" href="${blogManagementPath}?action=new">
+                    <i class="fa-solid fa-plus me-1"></i>Thêm blog
+                </a>
             </div>
 
             <c:if test="${not empty error}">
@@ -267,7 +225,6 @@
                     <c:choose>
                         <c:when test="${param.message == 'saved'}">Đã lưu bài viết thành công.</c:when>
                         <c:when test="${param.message == 'deleted'}">Đã xóa bài viết.</c:when>
-                        <c:when test="${param.message == 'status_updated'}">Đã cập nhật trạng thái bài viết.</c:when>
                         <c:when test="${param.message == 'not_found'}">Không tìm thấy bài viết cần sửa.</c:when>
                         <c:otherwise>Không thể xử lý yêu cầu. Vui lòng thử lại.</c:otherwise>
                     </c:choose>
@@ -276,19 +233,15 @@
 
             <c:set var="total" value="0"/>
             <c:set var="publishedCount" value="0"/>
-            <c:set var="pendingCount" value="0"/>
             <c:set var="draftCount" value="0"/>
-            <c:set var="rejectedCount" value="0"/>
 
             <c:forEach items="${BLOG_LIST}" var="post">
                 <c:set var="total" value="${total + 1}"/>
                 <c:if test="${post.status == 'Published'}"><c:set var="publishedCount" value="${publishedCount + 1}"/></c:if>
-                <c:if test="${post.status == 'Pending'}"><c:set var="pendingCount" value="${pendingCount + 1}"/></c:if>
                 <c:if test="${post.status == 'Draft'}"><c:set var="draftCount" value="${draftCount + 1}"/></c:if>
-                <c:if test="${post.status == 'Rejected'}"><c:set var="rejectedCount" value="${rejectedCount + 1}"/></c:if>
             </c:forEach>
 
-            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-3 mb-4">
+            <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
                 <div class="col">
                     <div class="stat-card">
                         <div class="stat-icon" style="background:#e0f2fe;color:#0369a1;"><i class="fa-solid fa-layer-group"></i></div>
@@ -303,26 +256,14 @@
                 </div>
                 <div class="col">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background:#fef3c7;color:#92400e;"><i class="fa-solid fa-clock"></i></div>
-                        <div><h3>${pendingCount}</h3><p>Chờ duyệt</p></div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="stat-card">
                         <div class="stat-icon" style="background:#f1f5f9;color:#475569;"><i class="fa-solid fa-pen"></i></div>
                         <div><h3>${draftCount}</h3><p>Bản nháp</p></div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background:#fee2e2;color:#b91c1c;"><i class="fa-solid fa-ban"></i></div>
-                        <div><h3>${rejectedCount}</h3><p>Từ chối</p></div>
                     </div>
                 </div>
             </div>
 
             <div class="row g-4">
-                <c:if test="${not blogManagementReadOnly && showBlogForm}">
+                <c:if test="${showBlogForm}">
                 <div class="blog-modal" role="dialog" aria-modal="true" aria-label="Biểu mẫu blog">
                     <div class="blog-dialog content-card">
                                 <h2 class="h5 fw-bold mb-3">
@@ -421,9 +362,7 @@
                                 <select class="form-select" name="status">
                                     <option value="" ${empty selectedStatus ? 'selected' : ''}>Tất cả trạng thái</option>
                                     <option value="Published" ${selectedStatus == 'Published' ? 'selected' : ''}>Đã đăng</option>
-                                    <option value="Pending" ${selectedStatus == 'Pending' ? 'selected' : ''}>Chờ duyệt</option>
                                     <option value="Draft" ${selectedStatus == 'Draft' ? 'selected' : ''}>Bản nháp</option>
-                                    <option value="Rejected" ${selectedStatus == 'Rejected' ? 'selected' : ''}>Từ chối</option>
                                 </select>
                             </div>
                             <div class="col-lg-2 d-grid">
@@ -490,16 +429,6 @@
                                                                     <i class="fa-solid"></i> Đã đăng
                                                                 </span>
                                                             </c:when>
-                                                            <c:when test="${post.status == 'Pending'}">
-                                                                <span class="badge-status status-pending">
-                                                                    <i class="fa-solid fa-clock"></i> Chờ duyệt
-                                                                </span>
-                                                            </c:when>
-                                                            <c:when test="${post.status == 'Rejected'}">
-                                                                <span class="badge-status status-rejected">
-                                                                    <i class="fa-solid fa-ban"></i> Từ chối
-                                                                </span>
-                                                            </c:when>
                                                             <c:otherwise>
                                                                 <span class="badge-status status-draft">
                                                                     <i class="fa-solid"></i> Bản nháp
@@ -524,44 +453,17 @@
                                                            title="Xem chi tiết">
                                                             <i class="fa-solid fa-eye"></i>
                                                         </a>
-                                                        <c:if test="${not blogManagementReadOnly}">
                                                         <a class="action-btn btn-edit"
                                                            href="${blogManagementPath}?action=edit&id=${post.blogID}"
                                                            title="Sửa">
                                                             <i class="fa-solid fa-pen-to-square"></i>
                                                         </a>
-                                                        </c:if>
-                                                        <c:if test="${post.status == 'Pending' || post.status == 'Rejected'}">
-                                                            <form class="action-form" action="${blogManagementPath}" method="post">
-                                                                <input type="hidden" name="action" value="status">
-                                                                <input type="hidden" name="id" value="${post.blogID}">
-                                                                <input type="hidden" name="status" value="Published">
-                                                                <button class="action-btn btn-approve" type="submit"
-                                                                        title="Duyệt bài" aria-label="Duyệt bài viết">
-                                                                    <i class="fa-solid fa-check"></i>
-                                                                </button>
-                                                            </form>
-                                                        </c:if>
-                                                        <c:if test="${post.status == 'Pending' || post.status == 'Published'}">
-                                                            <form class="action-form" action="${blogManagementPath}" method="post"
-                                                                  onsubmit="return confirm('Bạn có chắc muốn từ chối bài viết này?');">
-                                                                <input type="hidden" name="action" value="status">
-                                                                <input type="hidden" name="id" value="${post.blogID}">
-                                                                <input type="hidden" name="status" value="Rejected">
-                                                                <button class="action-btn btn-reject" type="submit"
-                                                                        title="Từ chối bài" aria-label="Từ chối bài viết">
-                                                                    <i class="fa-solid fa-xmark"></i>
-                                                                </button>
-                                                            </form>
-                                                        </c:if>
-                                                        <c:if test="${not blogManagementReadOnly}">
                                                             <a class="action-btn btn-delete"
                                                                href="${blogManagementPath}?action=delete&id=${post.blogID}"
                                                                onclick="return confirm('Bạn có chắc muốn xóa bài viết này không?');"
                                                                title="Xóa">
                                                                 <i class="fa-solid fa-trash-can"></i>
                                                             </a>
-                                                        </c:if>
                                                         </div>
                                                     </td>
                                                 </tr>
