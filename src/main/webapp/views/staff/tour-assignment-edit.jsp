@@ -14,10 +14,8 @@
     <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
 </head>
 <body>
-<fmt:formatDate value="${assignment.pickupTime}" pattern="yyyy-MM-dd'T'HH:mm" var="pickupTimeValue"/>
-<fmt:formatDate value="${assignment.checkInDeadline}" pattern="yyyy-MM-dd'T'HH:mm" var="checkInDeadlineValue"/>
-<fmt:formatDate value="${assignment.actualStartAt}" pattern="yyyy-MM-dd'T'HH:mm" var="actualStartAtValue"/>
-<fmt:formatDate value="${assignment.actualEndAt}" pattern="yyyy-MM-dd'T'HH:mm" var="actualEndAtValue"/>
+<fmt:formatDate value="${assignment.pickupTime}" pattern="dd/MM/yyyy HH:mm" var="pickupTimeValue"/>
+<fmt:formatDate value="${assignment.checkInDeadline}" pattern="dd/MM/yyyy HH:mm" var="checkInDeadlineValue"/>
 
 <div class="workspace-layout">
     <aside class="workspace-sidebar">
@@ -90,66 +88,19 @@
                                 <option value="Assistant Guide" ${assignment.roleInTour == 'Assistant Guide' ? 'selected' : ''}>Hướng dẫn viên phụ</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Trạng thái</label>
-                            <select name="assignmentStatus" class="form-select" required>
-                                <option value="Assigned" ${assignment.assignmentStatus == 'Assigned' ? 'selected' : ''}>Đã phân công</option>
-                                <option value="Pending" ${assignment.assignmentStatus == 'Pending' ? 'selected' : ''}>Chờ nhận tour</option>
-                                <option value="Accepted" ${assignment.assignmentStatus == 'Accepted' ? 'selected' : ''}>Đã nhận tour</option>
-                                <option value="Confirmed" ${assignment.assignmentStatus == 'Confirmed' ? 'selected' : ''}>Đã xác nhận</option>
-                                <option value="In Progress" ${assignment.assignmentStatus == 'In Progress' ? 'selected' : ''}>Đang diễn ra</option>
-                                <option value="Completed" ${assignment.assignmentStatus == 'Completed' ? 'selected' : ''}>Hoàn thành</option>
-                                <option value="Cancelled" ${assignment.assignmentStatus == 'Cancelled' ? 'selected' : ''}>Đã hủy</option>
-                                <option value="Rejected" ${assignment.assignmentStatus == 'Rejected' ? 'selected' : ''}>Từ chối</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Độ ưu tiên</label>
-                            <select name="priorityLevel" class="form-select" required>
-                                <option value="Normal" ${assignment.priorityLevel == 'Normal' ? 'selected' : ''}>Bình thường</option>
-                                <option value="Low" ${assignment.priorityLevel == 'Low' ? 'selected' : ''}>Thấp</option>
-                                <option value="High" ${assignment.priorityLevel == 'High' ? 'selected' : ''}>Cao</option>
-                                <option value="Urgent" ${assignment.priorityLevel == 'Urgent' ? 'selected' : ''}>Khẩn cấp</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Lý do hủy/từ chối</label>
-                            <input name="rejectionReason" class="form-control" value="${assignment.rejectionReason}">
-                        </div>
-
                         <div class="col-md-6">
                             <label class="form-label">Điểm đón</label>
                             <input name="meetingPoint" class="form-control" value="${assignment.meetingPoint}">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Giờ đón</label>
-                            <input type="datetime-local" name="pickupTime" class="form-control" value="${pickupTimeValue}">
+                            <input type="text" class="form-control" value="${pickupTimeValue}" readonly>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Hạn check-in</label>
-                            <input type="datetime-local" name="checkInDeadline" class="form-control" value="${checkInDeadlineValue}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Bắt đầu thực tế</label>
-                            <input type="datetime-local" name="actualStartAt" class="form-control" value="${actualStartAtValue}">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Kết thúc thực tế</label>
-                            <input type="datetime-local" name="actualEndAt" class="form-control" value="${actualEndAtValue}">
+                            <input type="text" class="form-control" value="${checkInDeadlineValue}" readonly>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label">Ghi chú nhân viên</label>
-                            <textarea name="staffNote" class="form-control" rows="4">${assignment.staffNote}</textarea>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Ghi chú hướng dẫn viên</label>
-                            <textarea name="guideNote" class="form-control" rows="4">${assignment.guideNote}</textarea>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Yêu cầu/ghi chú khách</label>
-                            <textarea name="customerNote" class="form-control" rows="4">${assignment.customerNote}</textarea>
-                        </div>
                     </div>
 
                     <div class="top-actions mt-4">

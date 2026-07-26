@@ -101,6 +101,9 @@ public class TourGuideScheduleController extends HttpServlet {
         }
 
         request.setAttribute("assignment", assignment);
+        request.setAttribute("canConfirmAssignment", canConfirmAssignment(assignment));
+        request.setAttribute("canUseTourActions", canUseTourActions(assignment));
+        request.setAttribute("isCompletedAssignment", isCompletedAssignment(assignment));
         request.setAttribute(
                 "progressLogs",
                 itineraryLogDAO.getLogsByAssignmentForGuide(id, guide.getUserID())
@@ -129,6 +132,11 @@ public class TourGuideScheduleController extends HttpServlet {
 
         if (assignment == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        if (!canUseTourActions(assignment)) {
+            redirectToAssignmentDetail(request, response, id, blockedActionError(assignment));
             return;
         }
 
@@ -164,6 +172,11 @@ public class TourGuideScheduleController extends HttpServlet {
             return;
         }
 
+        if (!canUseTourActions(assignment)) {
+            redirectToAssignmentDetail(request, response, id, blockedActionError(assignment));
+            return;
+        }
+
         request.setAttribute("assignment", assignment);
         request.setAttribute(
                 "progressLogs",
@@ -187,6 +200,20 @@ public class TourGuideScheduleController extends HttpServlet {
         }
 
         int assignmentID = Integer.parseInt(request.getParameter("assignmentID"));
+
+        AssignmentView assignment =
+                assignmentDAO.getAssignmentDetailForGuide(assignmentID, guide.getUserID());
+
+        if (assignment == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        if (!canUseTourActions(assignment)) {
+            redirectToAssignmentDetail(request, response, assignmentID, blockedActionError(assignment));
+            return;
+        }
+
         int travelerID = Integer.parseInt(request.getParameter("travelerID"));
         String travelerStatus = request.getParameter("travelerStatus");
         String fullName = request.getParameter("fullName");
@@ -250,13 +277,28 @@ public class TourGuideScheduleController extends HttpServlet {
         log.setTitle(request.getParameter("title"));
         log.setContent(request.getParameter("content"));
 
+        if (!canUseTourActions(assignment)) {
+            redirectToAssignmentDetail(request, response, assignmentID, blockedActionError(assignment));
+            return;
+        }
+
+        if (!isValidProgressStatus(log.getProgressStatus())) {
+            redirectToAssignmentDetail(request, response, assignmentID, "invalidStatus");
+            return;
+        }
+
         boolean added = itineraryLogDAO.addProgressLog(log);
+        boolean statusUpdated = added && assignmentDAO.updateAssignmentStatusFromProgressForGuide(
+                assignmentID,
+                guide.getUserID(),
+                resolveAssignmentStatusFromProgress(log.getProgressStatus())
+        );
 
         response.sendRedirect(
                 request.getContextPath()
                         + "/guide/assignment?action=detail&id="
                         + assignmentID
-                        + (added ? "&success=progressLog" : "&error=progressLog")
+                        + (added && statusUpdated ? "&success=progressLog" : "&error=progressLog")
         );
     }
 
@@ -279,8 +321,115 @@ public class TourGuideScheduleController extends HttpServlet {
             return;
         }
 
+        if ("confirmAssignment".equals(action)) {
+            confirmAssignment(request, response);
+            return;
+        }
+
         response.sendRedirect(
                 request.getContextPath() + "/guide/assignment");
+    }
+
+    private void confirmAssignment(HttpServletRequest request,
+                                   HttpServletResponse response)
+            throws IOException {
+
+        User guide = getCurrentGuide(request);
+
+        if (guide == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        int assignmentID = Integer.parseInt(request.getParameter("assignmentID"));
+        AssignmentView assignment =
+                assignmentDAO.getAssignmentDetailForGuide(assignmentID, guide.getUserID());
+
+        if (assignment == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        if (isCompletedAssignment(assignment)) {
+            redirectToAssignmentDetail(request, response, assignmentID, "completed");
+            return;
+        }
+
+        if (canUseTourActions(assignment)) {
+            redirectToAssignmentDetail(request, response, assignmentID, "confirmSuccess");
+            return;
+        }
+
+        boolean confirmed = assignmentDAO.confirmAssignmentForGuide(
+                assignmentID,
+                guide.getUserID()
+        );
+
+        redirectToAssignmentDetail(
+                request,
+                response,
+                assignmentID,
+                confirmed ? "confirmSuccess" : "confirmFailed"
+        );
+    }
+
+    private void redirectToAssignmentDetail(HttpServletRequest request,
+                                            HttpServletResponse response,
+                                            int assignmentID,
+                                            String resultCode)
+            throws IOException {
+
+        boolean success = "confirmSuccess".equals(resultCode);
+        String parameterName = success ? "success" : "error";
+        String parameterValue = success ? "confirm" : resultCode;
+
+        response.sendRedirect(
+                request.getContextPath()
+                        + "/guide/assignment?action=detail&id="
+                        + assignmentID
+                        + "&"
+                        + parameterName
+                        + "="
+                        + parameterValue
+        );
+    }
+
+    private boolean canConfirmAssignment(AssignmentView assignment) {
+        String status = normalizeStatus(assignment == null ? null : assignment.getAssignmentStatus());
+
+        return status.isEmpty()
+                || "Pending".equals(status)
+                || "Assigned".equals(status);
+    }
+
+    private boolean canUseTourActions(AssignmentView assignment) {
+        String status = normalizeStatus(assignment == null ? null : assignment.getAssignmentStatus());
+
+        return "Accepted".equals(status)
+                || "Confirmed".equals(status)
+                || "In Progress".equals(status);
+    }
+
+    private boolean isCompletedAssignment(AssignmentView assignment) {
+        return "Completed".equals(normalizeStatus(assignment == null ? null : assignment.getAssignmentStatus()));
+    }
+
+    private String blockedActionError(AssignmentView assignment) {
+        return isCompletedAssignment(assignment) ? "completed" : "notConfirmed";
+    }
+
+    private String resolveAssignmentStatusFromProgress(String progressStatus) {
+        return "Completed".equals(normalizeStatus(progressStatus))
+                ? "Completed"
+                : "In Progress";
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null) {
+            return "";
+        }
+
+        return status.trim();
     }
 
     private User getCurrentGuide(HttpServletRequest request) {
@@ -328,5 +477,14 @@ public class TourGuideScheduleController extends HttpServlet {
                 || "Checked-in".equals(status)
                 || "Absent".equals(status)
                 || "Completed".equals(status);
+    }
+
+    private boolean isValidProgressStatus(String status) {
+        return "Pickup Completed".equals(status)
+                || "Departed".equals(status)
+                || "Arrived".equals(status)
+                || "Returning".equals(status)
+                || "Completed".equals(status)
+                || "Issue".equals(status);
     }
 }

@@ -28,6 +28,12 @@
                 <a class="btn-outline-soft" href="${pageContext.request.contextPath}/staff/tour"><i class="fa-solid fa-list"></i> Danh sách tour</a>
                 <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour/schedule?tourID=${tour.tourID}"><i class="fa-solid fa-calendar-days"></i> Danh sách lịch</a>
                 <c:if test="${canEditSchedule}"><a class="btn-main" href="${pageContext.request.contextPath}/staff/tour/schedule/edit?id=${schedule.tourScheduleID}"><i class="fa-solid fa-pen"></i> Sửa lịch</a></c:if>
+                <c:if test="${canCloseSchedule}">
+                    <form method="post" action="${pageContext.request.contextPath}/staff/tour/schedule/close" class="m-0" onsubmit="return confirm('Bạn đã kiểm tra kỹ và chắc chắn muốn đóng lịch này không? Lịch đã đóng sẽ không hiển thị để khách đặt tour.');">
+                        <input type="hidden" name="id" value="${schedule.tourScheduleID}">
+                        <button type="submit" class="btn-outline-soft"><i class="fa-solid fa-lock"></i> Đóng lịch</button>
+                    </form>
+                </c:if>
             </div>
         </section>
 
@@ -43,6 +49,9 @@
         </c:if>
         <c:if test="${messageCode == 'scheduleUpdateSuccess'}"><div class="alert alert-success fw-bold">Cập nhật lịch khởi hành thành công.</div></c:if>
         <c:if test="${messageCode == 'scheduleUpdateFail'}"><div class="alert alert-danger fw-bold">Cập nhật lịch khởi hành thất bại.</div></c:if>
+        <c:if test="${messageCode == 'scheduleCloseSuccess'}"><div class="alert alert-success fw-bold">Đã đóng lịch khởi hành. Khách sẽ không đặt được lịch này nữa.</div></c:if>
+        <c:if test="${messageCode == 'scheduleCloseFail'}"><div class="alert alert-danger fw-bold">Đóng lịch khởi hành thất bại.</div></c:if>
+        <c:if test="${messageCode == 'noScheduleClosePermission'}"><div class="alert alert-warning fw-bold">Chỉ lịch Chưa mở bán hoặc Mở bán mới được chuyển sang Đóng bán.</div></c:if>
         <c:if test="${messageCode == 'noScheduleEditPermission'}"><div class="alert alert-warning fw-bold">Lịch này không được sửa do tour đã mở bán/ngừng bán hoặc lịch đã hủy/hoàn tất. Staff chỉ được thêm lịch mới khi tour đang mở bán.</div></c:if>
 
         <section class="page-card">
@@ -51,6 +60,7 @@
                 <div class="info-grid">
                     <div class="info-item"><small>Trạng thái lịch</small>
                         <c:choose>
+                            <c:when test="${schedule.upcomingSoon}"><span class="status-badge status-Pending">Sắp khởi hành</span></c:when>
                             <c:when test="${schedule.scheduleStatus == 'Open'}"><span class="status-badge status-Open">Mở bán</span></c:when>
                             <c:when test="${schedule.scheduleStatus == 'Closed'}"><span class="status-badge status-Closed">Đóng bán</span></c:when>
                             <c:when test="${schedule.scheduleStatus == 'Cancelled'}"><span class="status-badge status-Cancelled">Đã hủy</span></c:when>

@@ -141,6 +141,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         if (message.startsWith("Trạng thái tour")) return "status";
         if (message.startsWith("Khu vực")) return "regionID";
         if (message.startsWith("Phương tiện chính")) return "mainTransportType";
+        if (message.startsWith("Giới thiệu tour")) return "tourIntroduce";
         if (message.startsWith("Điểm nổi bật")) return "tourHighlights";
         if (message.startsWith("Số dòng lịch trình")) return "itinerary";
         if (message.startsWith("Ngày xuất phát")) return "scheduleStartDate";
@@ -187,7 +188,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         );
         data.adultPriceRaw = request.getParameter("adultPrice");
         data.singleRoomSurchargeRaw = request.getParameter("singleRoomSurcharge");
-        data.tourIntroduce = "";
+        data.tourIntroduce = safeTrim(request.getParameter("tourIntroduce"));
         data.tourHighlights = safeTrim(request.getParameter("tourHighlights"));
         data.pickupAddress = "";
         data.arriveBeforeMinutesRaw = null;
@@ -622,7 +623,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         data.endPlace = safeTrim(existingTour.getEndPlace());
         data.adultPriceRaw = existingTour.getAdultPrice() == null ? "0" : existingTour.getAdultPrice().toPlainString();
         data.singleRoomSurchargeRaw = existingTour.getSingleRoomSurcharge() == null ? "0" : existingTour.getSingleRoomSurcharge().toPlainString();
-        data.tourIntroduce = safeTrim(existingTour.getTourIntroduce());
+        data.tourIntroduce = firstNonBlank(data.tourIntroduce, existingTour.getTourIntroduce());
         data.pickupAddress = safeTrim(existingTour.getPickupAddress());
         data.arriveBeforeMinutesRaw = existingTour.getArriveBeforeMinutes() == null ? null : String.valueOf(existingTour.getArriveBeforeMinutes());
         data.mainTransportType = safeTrim(existingTour.getMainTransportType());
@@ -694,8 +695,8 @@ public abstract class StaffTourFormSupport extends HttpServlet {
             return;
         }
 
-        if (value.compareTo(new BigDecimal("500000")) <= 0 || value.compareTo(MAX_MONEY) > 0) {
-            errors.add("Giá người lớn phải lớn hơn 500.000 và không vượt quá 1.000.000.000.");
+        if (value.compareTo(new BigDecimal("100000")) <= 0 || value.compareTo(MAX_MONEY) > 0) {
+            errors.add("Giá người lớn phải lớn hơn 100.000 và không vượt quá 1.000.000.000.");
         }
     }
 

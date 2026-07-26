@@ -92,50 +92,17 @@
                             </select>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label">Trạng thái</label>
-                            <select name="assignmentStatus" class="form-select" required>
-                                <option value="Assigned">Đã phân công</option>
-                                <option value="Pending">Chờ nhận tour</option>
-                                <option value="Confirmed">Đã xác nhận</option>
-                                <option value="Accepted">Đã nhận tour</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Độ ưu tiên</label>
-                            <select name="priorityLevel" class="form-select" required>
-                                <option value="Normal">Bình thường</option>
-                                <option value="Low">Thấp</option>
-                                <option value="High">Cao</option>
-                                <option value="Urgent">Khẩn cấp</option>
-                            </select>
-                        </div>
-
                         <div class="col-md-6">
                             <label class="form-label">Điểm đón</label>
                             <input type="text" name="meetingPoint" class="form-control" placeholder="VD: Cổng chính điểm hẹn">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Giờ đón</label>
-                            <input type="datetime-local" name="pickupTime" class="form-control">
+                            <input type="datetime-local" name="pickupTime" class="form-control" readonly>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Hạn check-in</label>
-                            <input type="datetime-local" name="checkInDeadline" class="form-control">
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Ghi chú nhân viên</label>
-                            <textarea name="staffNote" class="form-control" rows="4"></textarea>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Ghi chú cho hướng dẫn viên</label>
-                            <textarea name="guideNote" class="form-control" rows="4"></textarea>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Yêu cầu/ghi chú khách</label>
-                            <textarea name="customerNote" class="form-control" rows="4"></textarea>
+                            <input type="datetime-local" name="checkInDeadline" class="form-control" readonly>
                         </div>
                     </div>
 

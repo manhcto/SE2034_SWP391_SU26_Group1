@@ -136,7 +136,9 @@ public class EditTourController extends StaffTourFormSupport {
             return;
         }
 
-        boolean success = tourDAO.updateTourWithItineraries(tour);
+        boolean success = isActiveTourStatus(existingTour.getStatus())
+                ? tourDAO.updateActiveTourContentOnly(tour)
+                : tourDAO.updateTourWithItineraries(tour);
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/tour/detail?id=" + tour.getTourID()

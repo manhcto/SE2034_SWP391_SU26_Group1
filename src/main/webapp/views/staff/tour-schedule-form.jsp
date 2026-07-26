@@ -11,7 +11,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
         :root{--primary:#2563eb;--primary-dark:#1d4ed8;--dark:#0f172a;--muted:#64748b;--bg:#f3f6fb;--border:#e2e8f0;--shadow:0 16px 36px rgba(15,23,42,.08)}
-        body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#1e293b}.admin-layout{display:flex;min-height:100vh}.admin-main{flex:1;min-width:0;padding:28px}.page-card{background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);margin-bottom:22px;overflow:hidden}.topbar{padding:24px;display:flex;align-items:center;justify-content:space-between;gap:18px}.topbar h1{margin:0;color:var(--dark);font-size:28px;font-weight:900}.topbar p{margin:6px 0 0;color:var(--muted);font-weight:600}.section-title{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}.section-title h5{margin:0;font-weight:900;color:var(--dark)}.section-body{padding:22px}.form-label{font-weight:800;color:#334155}.form-control,.form-select{border-radius:13px;border:1px solid #dbe3ef;min-height:46px}.toolbar{display:flex;gap:10px;flex-wrap:wrap}.btn-main,.btn-soft,.btn-outline-soft{border-radius:14px;padding:11px 16px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px;border:0;white-space:nowrap}.btn-main{background:var(--primary);color:#fff}.btn-main:hover{background:var(--primary-dark);color:#fff}.btn-soft{background:#eff6ff;color:#1d4ed8}.btn-soft:hover{background:#dbeafe;color:#1d4ed8}.btn-outline-soft{background:#fff;color:#475569;border:1px solid var(--border)}.btn-outline-soft:hover{background:#f8fafc;color:#0f172a}.hint-box{background:#f8fafc;border:1px solid var(--border);border-radius:16px;padding:14px 16px;color:#475569;font-weight:600}.locked{background:#f8fafc}.footer-actions{display:flex;justify-content:flex-end;gap:12px;padding:20px 22px;border-top:1px solid var(--border);background:#fbfdff}.field-error{color:#dc2626;font-size:13px;font-weight:700;margin-top:6px}.is-invalid{border-color:#dc2626!important}@media(max-width:992px){.admin-layout{display:block}.admin-main{padding:18px}.topbar{display:block}}
+        body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#1e293b}.admin-layout{display:flex;min-height:100vh}.admin-main{flex:1;min-width:0;padding:28px}.page-card{background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);margin-bottom:22px;overflow:hidden}.topbar{padding:24px;display:flex;align-items:center;justify-content:space-between;gap:18px}.topbar h1{margin:0;color:var(--dark);font-size:28px;font-weight:900}.topbar p{margin:6px 0 0;color:var(--muted);font-weight:600}.section-title{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}.section-title h5{margin:0;font-weight:900;color:var(--dark)}.section-body{padding:22px}.form-label{font-weight:800;color:#334155}.form-control,.form-select{border-radius:13px;border:1px solid #dbe3ef;min-height:46px}.date-control{display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:8px}.calendar-button{width:46px;height:46px;border-radius:13px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;display:grid;place-items:center;cursor:pointer}.calendar-button:hover{background:#dbeafe}.native-date-picker{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}.toolbar{display:flex;gap:10px;flex-wrap:wrap}.btn-main,.btn-soft,.btn-outline-soft{border-radius:14px;padding:11px 16px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:8px;border:0;white-space:nowrap}.btn-main{background:var(--primary);color:#fff}.btn-main:hover{background:var(--primary-dark);color:#fff}.btn-soft{background:#eff6ff;color:#1d4ed8}.btn-soft:hover{background:#dbeafe;color:#1d4ed8}.btn-outline-soft{background:#fff;color:#475569;border:1px solid var(--border)}.btn-outline-soft:hover{background:#f8fafc;color:#0f172a}.hint-box{background:#f8fafc;border:1px solid var(--border);border-radius:16px;padding:14px 16px;color:#475569;font-weight:600}.locked{background:#f8fafc}.footer-actions{display:flex;justify-content:flex-end;gap:12px;padding:20px 22px;border-top:1px solid var(--border);background:#fbfdff}.field-error{color:#dc2626;font-size:13px;font-weight:700;margin-top:6px}.is-invalid{border-color:#dc2626!important}@media(max-width:992px){.admin-layout{display:block}.admin-main{padding:18px}.topbar{display:block}}
     </style>
 </head>
 <body>
@@ -52,6 +52,8 @@
 
         <fmt:formatDate value="${schedule.startDate}" pattern="yyyy-MM-dd" var="startDateValue" />
         <fmt:formatDate value="${schedule.endDate}" pattern="yyyy-MM-dd" var="endDateValue" />
+        <fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy" var="startDateDisplay" />
+        <fmt:formatDate value="${schedule.endDate}" pattern="dd-MM-yyyy" var="endDateDisplay" />
 
         <form method="post" action="${formAction}" id="scheduleForm" novalidate>
             <input type="hidden" name="tourID" value="${tour.tourID}">
@@ -64,12 +66,23 @@
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Ngày xuất phát <span class="text-danger">*</span></label>
-                            <input type="date" name="startDate" id="startDate" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.startDate ? 'is-invalid' : ''}" value="${startDateValue}" min="${todayIso}" required ${lockedCore ? 'readonly' : ''}>
+                            <div class="date-control">
+                                <input type="text" id="startDateText" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.startDate ? 'is-invalid' : ''}" value="${startDateDisplay}" placeholder="DD-MM-YYYY" inputmode="numeric" required ${lockedCore ? 'readonly' : ''}>
+                                <button class="calendar-button" type="button" id="startDateButton" aria-label="Chọn ngày xuất phát" ${lockedCore ? 'disabled' : ''}><i class="fa-regular fa-calendar-days"></i></button>
+                            </div>
+                            <input type="hidden" name="startDate" id="startDate" value="${startDateValue}">
+                            <input type="date" id="startDatePicker" class="native-date-picker" value="${startDateValue}" min="${todayIso}" ${lockedCore ? 'disabled' : ''}>
                             <c:if test="${not empty fieldErrors.startDate}"><div class="field-error">${fieldErrors.startDate}</div></c:if>
+                            <div class="field-error d-none" id="duplicateDateWarning">Tour này đã có lịch khởi hành cùng ngày. Staff nên chọn ngày khác hoặc kiểm tra lại lý do tạo trùng.</div>
+                            <div class="field-error d-none" id="tooCloseDateWarning">Ngày khởi hành trong cùng tour phải cách nhau ít nhất 3 ngày.</div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
-                            <input type="date" name="endDate" id="endDate" class="form-control locked ${not empty fieldErrors.endDate ? 'is-invalid' : ''}" value="${endDateValue}" min="${todayIso}" required readonly>
+                            <div class="date-control">
+                                <input type="text" id="endDateText" class="form-control locked ${not empty fieldErrors.endDate ? 'is-invalid' : ''}" value="${endDateDisplay}" placeholder="DD-MM-YYYY" readonly required>
+                                <button class="calendar-button" type="button" id="endDateButton" aria-label="Ngày kết thúc tự tính" disabled><i class="fa-regular fa-calendar-check"></i></button>
+                            </div>
+                            <input type="hidden" name="endDate" id="endDate" value="${endDateValue}">
                             <c:if test="${not empty fieldErrors.endDate}"><div class="field-error">${fieldErrors.endDate}</div></c:if>
                             <div class="form-text">Tự tính theo thời lượng ${tour.numberOfDay} ngày ${tour.numberOfNights} đêm khi chọn ngày xuất phát.</div>
                         </div>
@@ -134,8 +147,8 @@
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Giá người lớn <span class="text-danger">*</span></label>
-                            <input type="number" name="adultPrice" id="adultPrice" min="500001" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.adultPrice ? 'is-invalid' : ''}" value="${schedule.adultPrice > 0 ? schedule.adultPrice : ''}" placeholder="Ví dụ: 23000000" required ${lockedCore ? 'readonly' : ''}>
-                            <div class="form-text">Nhập số tiền nguyên, lớn hơn 500.000 đ. Ví dụ: 23000000.</div>
+                            <input type="number" name="adultPrice" id="adultPrice" min="100001" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.adultPrice ? 'is-invalid' : ''}" value="${schedule.adultPrice > 0 ? schedule.adultPrice : ''}" placeholder="Ví dụ: 23000000" required ${lockedCore ? 'readonly' : ''}>
+                            <div class="form-text">Nhập số tiền nguyên, lớn hơn 100.000 đ. Ví dụ: 23000000.</div>
                             <c:if test="${not empty fieldErrors.adultPrice}"><div class="field-error">${fieldErrors.adultPrice}</div></c:if>
                         </div>
                         <div class="col-md-3">
@@ -159,11 +172,11 @@
                             <div class="hint-box">
                                 <div class="fw-bold mb-2">Quy định nhập giá</div>
                                 <ul class="mb-0 ps-3">
-                                    <li>Giá người lớn phải lớn hơn 500.000 đ.</li>
+                                    <li>Giá người lớn phải lớn hơn 100.000 đ và không được âm.</li>
                                     <li>Trẻ em 5-10 tuổi = giá người lớn × 50%.</li>
                                     <li>Trẻ em dưới 5 tuổi: miễn phí, hệ thống lưu giá 0 đ.</li>
                                     <li>Trẻ từ 10 tuổi áp dụng giá người lớn.</li>
-                                    <li>Phụ thu phòng đơn phải từ 0 đ trở lên.</li>
+                                    <li>Phụ thu phòng đơn phải lớn hơn hoặc bằng 0 đ.</li>
                                 </ul>
                             </div>
                         </div>
@@ -175,6 +188,11 @@
                 </div>
             </section>
         </form>
+        <div id="existingScheduleDates" class="d-none">
+            <c:forEach var="dateKey" items="${existingScheduleDateKeys}">
+                <span data-date="${dateKey}"></span>
+            </c:forEach>
+        </div>
     </main>
 </div>
 <script>
@@ -190,7 +208,11 @@
     const form = document.getElementById('scheduleForm');
     const transportInput = document.getElementById('scheduleTransportType');
     const startInput = document.getElementById('startDate');
+    const startText = document.getElementById('startDateText');
+    const startPicker = document.getElementById('startDatePicker');
+    const startButton = document.getElementById('startDateButton');
     const endInput = document.getElementById('endDate');
+    const endText = document.getElementById('endDateText');
     const deadlineInput = document.getElementById('bookingDeadline');
     const maxInput = document.getElementById('maxParticipants');
     const minPreview = document.getElementById('minParticipantsPreview');
@@ -200,6 +222,9 @@
     const childInput = document.getElementById('childPrice');
     const infantInput = document.getElementById('infantPrice');
     const adultPreview = document.getElementById('adultPricePreview');
+    const duplicateWarning = document.getElementById('duplicateDateWarning');
+    const tooCloseWarning = document.getElementById('tooCloseDateWarning');
+    const existingDateKeys = new Set(Array.from(document.querySelectorAll('#existingScheduleDates [data-date]')).map(function(node){ return node.dataset.date; }));
 
     function formatMoney(value){
         if (!isFinite(value)) return '';
@@ -215,6 +240,25 @@
         if (!value || value.indexOf('-') < 0) return value || '';
         const parts = value.split('-');
         return parts.length === 3 ? parts[2] + '-' + parts[1] + '-' + parts[0] : value;
+    }
+    function parseDisplayDate(value){
+        const cleaned = (value || '').trim().replace(/\//g, '-');
+        const match = cleaned.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+        if (!match) return '';
+        const day = match[1].padStart(2, '0');
+        const month = match[2].padStart(2, '0');
+        const year = match[3];
+        const iso = year + '-' + month + '-' + day;
+        const date = new Date(iso + 'T00:00:00');
+        if (isNaN(date.getTime())) return '';
+        if (date.getFullYear() !== parseInt(year, 10) || date.getMonth() + 1 !== parseInt(month, 10) || date.getDate() !== parseInt(day, 10)) return '';
+        return iso;
+    }
+    function daysBetweenAbs(firstIso, secondIso){
+        const first = new Date(firstIso + 'T00:00:00');
+        const second = new Date(secondIso + 'T00:00:00');
+        if (isNaN(first.getTime()) || isNaN(second.getTime())) return null;
+        return Math.abs(Math.round((first - second) / 86400000));
     }
     function expectedChildPrice(adult){
         return Math.round(adult * 0.50);
@@ -272,12 +316,48 @@
         if (isNaN(start.getTime())) return;
         start.setDate(start.getDate() + dayCount - 1);
         endInput.value = formatDateInput(start);
+        if (endText) endText.value = formatDisplayDate(endInput.value);
         endInput.min = startInput.value;
         if (deadlineInput && !deadlineInput.value && startInput.value > todayIso) {
             const deadline = new Date(startInput.value + 'T00:00:00');
             deadline.setDate(deadline.getDate() - 1);
             deadlineInput.value = formatDateInput(deadline);
         }
+        updateDuplicateWarning();
+    }
+    function updateDuplicateWarning(){
+        if (!startInput || !startText || !duplicateWarning) return;
+        const duplicated = !!startInput.value && existingDateKeys.has(startInput.value);
+        const tooClose = !!startInput.value && Array.from(existingDateKeys).some(function(dateKey){
+            const gap = daysBetweenAbs(startInput.value, dateKey);
+            return gap !== null && gap > 0 && gap < 3;
+        });
+        duplicateWarning.classList.toggle('d-none', !duplicated);
+        if (tooCloseWarning) tooCloseWarning.classList.toggle('d-none', !tooClose);
+        let message = '';
+        if (!startInput.value && startText.value.trim()) {
+            message = 'Ngày xuất phát phải đúng định dạng DD-MM-YYYY.';
+        } else if (duplicated) {
+            message = 'Tour này đã có lịch khởi hành cùng ngày. Vui lòng chọn ngày khác hoặc sửa lịch đang trùng.';
+        } else if (tooClose) {
+            message = 'Ngày khởi hành trong cùng tour phải cách nhau ít nhất 3 ngày.';
+        }
+        startText.setCustomValidity(message);
+    }
+    function syncStartFromDisplay(){
+        if (!startText || !startInput) return;
+        const iso = parseDisplayDate(startText.value);
+        startInput.value = iso;
+        if (startPicker) startPicker.value = iso;
+        updateEndDate();
+        updateDuplicateWarning();
+    }
+    function syncStartFromPicker(){
+        if (!startPicker || !startInput || !startText) return;
+        startInput.value = startPicker.value;
+        startText.value = formatDisplayDate(startPicker.value);
+        updateEndDate();
+        updateDuplicateWarning();
     }
     function daysBetweenInclusive(startValue, endValue){
         const start = new Date(startValue + 'T00:00:00');
@@ -290,14 +370,25 @@
     if (adultInput) adultInput.addEventListener('input', updatePrices);
     if (childInput) childInput.addEventListener('input', function(){ childInput.dataset.autofilled = 'false'; updatePrices(); });
     if (infantInput) infantInput.addEventListener('input', function(){ infantInput.dataset.autofilled = 'false'; updatePrices(); });
-    if (startInput) startInput.addEventListener('change', function(){ updateEndDate(); updatePrices(); });
-    if (startInput && !startInput.readOnly) startInput.min = todayIso;
+    if (startText) startText.addEventListener('input', function(){ syncStartFromDisplay(); updatePrices(); });
+    if (startText) startText.addEventListener('blur', function(){ if (startInput.value) startText.value = formatDisplayDate(startInput.value); updateDuplicateWarning(); });
+    if (startPicker) startPicker.addEventListener('change', function(){ syncStartFromPicker(); updatePrices(); });
+    if (startButton && startPicker) startButton.addEventListener('click', function(){
+        if (startPicker.showPicker) {
+            startPicker.showPicker();
+        } else {
+            startPicker.focus();
+            startPicker.click();
+        }
+    });
+    if (startPicker) startPicker.min = todayIso;
     if (endInput && !endInput.readOnly) endInput.min = todayIso;
     if (deadlineInput) deadlineInput.min = todayIso;
     if (form) {
         form.addEventListener('submit', function(event){
             updateEndDate();
             updatePrices();
+            updateDuplicateWarning();
             if (!form.checkValidity()) {
                 event.preventDefault();
                 form.reportValidity();
@@ -314,7 +405,12 @@
     }
     updateSeatOptions();
     updateMin();
+    if (startInput && startInput.value && startText) startText.value = formatDisplayDate(startInput.value);
+    if (startPicker && startInput) startPicker.value = startInput.value;
+    if (endInput && endInput.value && endText) endText.value = formatDisplayDate(endInput.value);
+    updateEndDate();
     updatePrices();
+    updateDuplicateWarning();
 })();
 </script>
 </body>

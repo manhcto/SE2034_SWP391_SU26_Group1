@@ -9,6 +9,7 @@ import vn.edu.fpt.model.TourItinerary;
 import vn.edu.fpt.model.TourSchedule;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 
 public class TourDAO {
+
+    private static final BigDecimal MIN_SCHEDULE_ADULT_PRICE = new BigDecimal("100000");
+    private static final BigDecimal CHILD_RATE = new BigDecimal("0.50");
 
     private static final String TOUR_SELECT = """
             SELECT
@@ -496,6 +500,49 @@ public class TourDAO {
             insertItineraries(conn, tour.getTourID(), tour.getItineraryList());
             replaceManagedImages(conn, tour.getTourID(), tour);
             ensureTourCode(conn, tour.getTourID());
+
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            rollbackQuietly(conn);
+            e.printStackTrace();
+        } finally {
+            closeQuietly(conn);
+        }
+
+        return false;
+    }
+
+    public boolean updateActiveTourContentOnly(Tour tour) {
+        String updateTourSql = """
+                UPDATE Tour
+                SET [image] = ?,
+                    tourIntroduce = ?,
+                    tourInclude = ?,
+                    updatedAt = GETDATE()
+                WHERE tourID = ?
+                  AND [status] = N'Active'
+                """;
+
+        Connection conn = null;
+
+        try {
+            conn = new DBConnection().getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement ps = conn.prepareStatement(updateTourSql)) {
+                setNullableString(ps, 1, tour.getImage());
+                setNullableString(ps, 2, tour.getTourIntroduce());
+                setNullableString(ps, 3, tour.getTourInclude());
+                ps.setInt(4, tour.getTourID());
+
+                if (ps.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            replaceManagedImages(conn, tour.getTourID(), tour);
 
             conn.commit();
             return true;
@@ -1036,6 +1083,26 @@ public class TourDAO {
         return false;
     }
 
+    public boolean closeTourSchedule(int tourScheduleID) {
+        String sql = """
+                UPDATE Tour_Scheduler
+                SET scheduleStatus = N'Closed', updatedAt = GETDATE()
+                WHERE tourScheduleID = ?
+                  AND scheduleStatus IN (N'Open', N'Planned')
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, tourScheduleID);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public boolean isDuplicateScheduleStartDate(int tourID, int currentScheduleID, Timestamp startDate) {
         if (startDate == null) {
             return false;
@@ -1065,6 +1132,107 @@ public class TourDAO {
         }
 
         return false;
+    }
+
+    public Map<String, Boolean> getDuplicateScheduleStartDateMap(int tourID) {
+        Map<String, Boolean> duplicateDates = new HashMap<>();
+        String sql = """
+                SELECT CONVERT(date, startDate) AS dateKey
+                FROM Tour_Scheduler
+                WHERE tourID = ?
+                  AND scheduleStatus <> N'Cancelled'
+                GROUP BY CONVERT(date, startDate)
+                HAVING COUNT(*) > 1
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, tourID);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.sql.Date date = rs.getDate("dateKey");
+                    if (date != null) {
+                        duplicateDates.put(date.toLocalDate().toString(), Boolean.TRUE);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return duplicateDates;
+    }
+
+    public boolean isScheduleStartDateTooClose(int tourID, int currentScheduleID, Timestamp startDate, int minGapDays) {
+        if (startDate == null) {
+            return false;
+        }
+
+        String sql = """
+                SELECT 1
+                FROM Tour_Scheduler
+                WHERE tourID = ?
+                  AND tourScheduleID <> ?
+                  AND scheduleStatus <> N'Cancelled'
+                  AND ABS(DATEDIFF(day, CONVERT(date, startDate), CONVERT(date, ?))) < ?
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, tourID);
+            ps.setInt(2, currentScheduleID);
+            ps.setTimestamp(3, startDate);
+            ps.setInt(4, Math.max(1, minGapDays));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public Map<Integer, String> getSchedulePriceWarningMap(int tourID) {
+        Map<Integer, String> warningMap = new HashMap<>();
+        for (TourSchedule schedule : getSchedulesByTourId(tourID)) {
+            String warning = buildSchedulePriceWarning(schedule);
+            if (!isBlank(warning)) {
+                warningMap.put(schedule.getTourScheduleID(), warning);
+            }
+        }
+        return warningMap;
+    }
+
+    private String buildSchedulePriceWarning(TourSchedule schedule) {
+        if (schedule == null || "Cancelled".equals(schedule.getScheduleStatus())) {
+            return "";
+        }
+
+        List<String> warnings = new ArrayList<>();
+        BigDecimal adultPrice = schedule.getAdultPrice();
+        BigDecimal childPrice = schedule.getChildPrice();
+        BigDecimal singleRoom = schedule.getSingleRoomSurcharge();
+
+        if (adultPrice == null || adultPrice.compareTo(MIN_SCHEDULE_ADULT_PRICE) <= 0) {
+            warnings.add("Giá người lớn phải lớn hơn 100.000");
+        }
+
+        if (adultPrice != null && adultPrice.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal expectedChild = adultPrice.multiply(CHILD_RATE).setScale(0, RoundingMode.HALF_UP);
+            if (childPrice == null || childPrice.compareTo(expectedChild) != 0) {
+                warnings.add("Giá trẻ em 5-10 tuổi phải bằng 50% giá người lớn");
+            }
+        }
+
+        if (singleRoom == null || singleRoom.compareTo(BigDecimal.ZERO) < 0) {
+            warnings.add("Phụ thu phòng đơn phải lớn hơn hoặc bằng 0");
+        }
+
+        return String.join("; ", warnings);
     }
 
     private void bindScheduleForInsertOrUpdate(PreparedStatement ps, TourSchedule schedule, boolean updateMode, boolean hasTransportColumn) throws Exception {
@@ -1422,7 +1590,121 @@ public class TourDAO {
             errors.add("Tour cần có ít nhất một lịch khởi hành trong tương lai, còn chỗ và có giá người lớn hợp lệ.");
         }
 
+        if (!getDuplicateScheduleStartDateMap(tourID).isEmpty()) {
+            errors.add("Tour đang có lịch khởi hành bị trùng ngày. Vui lòng sửa hoặc đóng lịch trùng trước khi gửi duyệt.");
+        }
+
+        if (!getSchedulePriceWarningMap(tourID).isEmpty()) {
+            errors.add("Tour đang có lịch có giá bất thường. Giá người lớn phải lớn hơn 100.000, giá trẻ em 5-10 tuổi bằng 50% giá người lớn và phụ thu phòng đơn không được âm.");
+        }
+
         return errors;
+    }
+
+    public List<TourReadinessItem> getTourReadinessChecklist(int tourID) {
+        List<TourReadinessItem> checklist = new ArrayList<>();
+        Tour tour = getTourById(tourID);
+        if (tour == null) {
+            checklist.add(new TourReadinessItem("Hồ sơ tour", false, "Tour không tồn tại."));
+            return checklist;
+        }
+
+        int itineraryCount = countActiveItineraries(tourID);
+        int validScheduleCount = countValidSchedulesForApproval(tourID);
+        boolean hasDuplicateStartDate = !getDuplicateScheduleStartDateMap(tourID).isEmpty();
+        boolean hasPriceWarnings = !getSchedulePriceWarningMap(tourID).isEmpty();
+
+        boolean identityReady = !isBlank(tour.getTourName())
+                && tour.getTourCategoryID() > 0
+                && tour.getNumberOfDay() > 0
+                && tour.getNumberOfDay() <= 15
+                && !isBlank(tour.getStartPlace())
+                && !isBlank(tour.getEndPlace());
+        checklist.add(new TourReadinessItem(
+                "Thông tin định danh",
+                identityReady,
+                identityReady
+                        ? "Tên tour, danh mục, tuyến đi và thời lượng đã hợp lệ."
+                        : "Cần đủ tên tour, danh mục, điểm đi/đến và số ngày hợp lệ."
+        ));
+
+        boolean imageReady = !isBlank(tour.getImage());
+        checklist.add(new TourReadinessItem(
+                "Ảnh đại diện",
+                imageReady,
+                imageReady ? "Tour đã có ảnh đại diện để hiển thị cho khách." : "Cần thêm ảnh đại diện trước khi gửi duyệt."
+        ));
+
+        boolean highlightReady = !isBlank(tour.getTourInclude());
+        checklist.add(new TourReadinessItem(
+                "Điểm nổi bật",
+                highlightReady,
+                highlightReady ? "Đã có nội dung điểm nổi bật/dịch vụ chính." : "Nên thêm điểm nổi bật để Admin và khách dễ kiểm tra tour."
+        ));
+
+        boolean itineraryReady = itineraryCount >= tour.getNumberOfDay();
+        checklist.add(new TourReadinessItem(
+                "Lịch trình từng ngày",
+                itineraryReady,
+                itineraryReady
+                        ? "Đã có đủ lịch trình theo số ngày của tour."
+                        : "Cần ít nhất " + tour.getNumberOfDay() + " ngày lịch trình, hiện có " + itineraryCount + "."
+        ));
+
+        boolean scheduleReady = validScheduleCount > 0;
+        checklist.add(new TourReadinessItem(
+                "Lịch khởi hành và giá",
+                scheduleReady,
+                scheduleReady
+                        ? "Có ít nhất một lịch trong tương lai, còn chỗ và giá người lớn hợp lệ."
+                        : "Cần thêm ít nhất một lịch trong tương lai, còn chỗ và có giá người lớn hợp lệ."
+        ));
+
+        checklist.add(new TourReadinessItem(
+                "Không trùng ngày khởi hành",
+                !hasDuplicateStartDate,
+                hasDuplicateStartDate
+                        ? "Đang có lịch cùng ngày khởi hành trong tour này. Staff nên sửa hoặc đóng lịch trùng trước khi gửi duyệt."
+                        : "Không phát hiện lịch trùng ngày khởi hành."
+        ));
+
+        checklist.add(new TourReadinessItem(
+                "Không có giá bất thường",
+                !hasPriceWarnings,
+                hasPriceWarnings
+                        ? "Có lịch có giá chưa đúng rule: người lớn > 100.000, trẻ em 5-10 tuổi = 50%, phụ thu >= 0."
+                        : "Giá lịch đang đúng rule kiểm tra."
+        ));
+
+        return checklist;
+    }
+
+    public static class TourReadinessItem {
+        private final String title;
+        private final boolean ready;
+        private final String detail;
+
+        public TourReadinessItem(String title, boolean ready, String detail) {
+            this.title = title;
+            this.ready = ready;
+            this.detail = detail;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public boolean isReady() {
+            return ready;
+        }
+
+        public boolean getReady() {
+            return ready;
+        }
+
+        public String getDetail() {
+            return detail;
+        }
     }
 
     private int countActiveItineraries(int tourID) {
@@ -1455,7 +1737,9 @@ public class TourDAO {
                   AND startDate >= CAST(GETDATE() AS DATE)
                   AND maxParticipants > 0
                   AND quantity < maxParticipants
-                  AND adultPrice > 500000
+                  AND adultPrice > 100000
+                  AND childPrice = ROUND(adultPrice * 0.5, 0)
+                  AND ISNULL(singleRoomSurcharge, 0) >= 0
                 """;
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

@@ -48,6 +48,34 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'duplicateCustomer'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                Booking hoặc khách đặt này đã được phân công cho lịch tour này. Vui lòng chọn booking khác.
+            </div>
+        </c:if>
+
+        <c:if test="${param.error == 'duplicateGuide'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                Hướng dẫn viên này đã được phân công cho lịch tour này. Vui lòng chọn hướng dẫn viên khác.
+            </div>
+        </c:if>
+
+        <c:if test="${param.error == 'guideScheduleOverlap'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                Hướng dẫn viên này đã có tour khác bị trùng ngày diễn ra. Vui lòng chọn hướng dẫn viên khác.
+            </div>
+        </c:if>
+
+        <c:if test="${param.error == 'insertFailed'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                Không lưu được phân công. Vui lòng tải lại trang và thử lại.
+            </div>
+        </c:if>
+
         <section class="panel">
             <div class="panel-header">
                 <div>
@@ -66,7 +94,11 @@
                             <select name="bookingID" class="form-select" required>
                                 <option value="">Chọn booking cần phân công</option>
                                 <c:forEach var="b" items="${bookingList}">
-                                    <option value="${b.bookingID}">
+                                    <fmt:formatDate value="${b.pickupTime}" pattern="yyyy-MM-dd'T'HH:mm" var="bookingPickupValue"/>
+                                    <fmt:formatDate value="${b.checkInDeadline}" pattern="yyyy-MM-dd'T'HH:mm" var="bookingCheckInValue"/>
+                                    <option value="${b.bookingID}"
+                                            data-pickup-time="${bookingPickupValue}"
+                                            data-check-in-deadline="${bookingCheckInValue}">
                                         <c:choose>
                                             <c:when test="${not empty b.bookingCode}">${b.bookingCode}</c:when>
                                             <c:otherwise>Booking #${b.bookingID}</c:otherwise>
@@ -88,29 +120,6 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">Trạng thái phân công</label>
-                            <select name="assignmentStatus" class="form-select" required>
-                                <option value="Pending">Chờ nhận tour</option>
-                                <option value="Accepted">Đã nhận tour</option>
-                                <option value="Confirmed">Đã xác nhận</option>
-                                <option value="In Progress">Đang diễn ra</option>
-                                <option value="Completed">Hoàn thành</option>
-                                <option value="Cancelled">Đã hủy</option>
-                                <option value="Rejected">Từ chối</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">Độ ưu tiên</label>
-                            <select name="priorityLevel" class="form-select" required>
-                                <option value="Normal">Bình thường</option>
-                                <option value="Low">Thấp</option>
-                                <option value="High">Cao</option>
-                                <option value="Urgent">Khẩn cấp</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
                             <label class="form-label">Điểm hẹn</label>
                             <input type="text" name="meetingPoint" class="form-control"
                                    placeholder="VD: Cổng chính điểm hẹn">
@@ -118,27 +127,12 @@
 
                         <div class="col-md-3">
                             <label class="form-label">Giờ đón</label>
-                            <input type="datetime-local" name="pickupTime" class="form-control">
+                            <input type="datetime-local" name="pickupTime" id="pickupTime" class="form-control" readonly>
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label">Hạn check-in</label>
-                            <input type="datetime-local" name="checkInDeadline" class="form-control">
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Ghi chú nhân viên</label>
-                            <textarea name="staffNote" class="form-control" rows="4"></textarea>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Ghi chú cho hướng dẫn viên</label>
-                            <textarea name="guideNote" class="form-control" rows="4"></textarea>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Ghi chú cho khách</label>
-                            <textarea name="customerNote" class="form-control" rows="4"></textarea>
+                            <input type="datetime-local" name="checkInDeadline" id="checkInDeadline" class="form-control" readonly>
                         </div>
                     </div>
 
@@ -225,5 +219,21 @@
         </section>
     </main>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const bookingSelect = document.querySelector('select[name="bookingID"]');
+        const pickupTime = document.getElementById('pickupTime');
+        const checkInDeadline = document.getElementById('checkInDeadline');
+
+        function syncAssignmentTimes() {
+            const option = bookingSelect?.selectedOptions?.[0];
+            pickupTime.value = option?.dataset.pickupTime || '';
+            checkInDeadline.value = option?.dataset.checkInDeadline || '';
+        }
+
+        bookingSelect?.addEventListener('change', syncAssignmentTimes);
+        syncAssignmentTimes();
+    });
+</script>
 </body>
 </html>

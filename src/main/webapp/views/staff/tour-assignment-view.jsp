@@ -52,7 +52,6 @@
                     <h2>${empty assignment.assignmentCode ? assignment.assignmentID : assignment.assignmentCode}</h2>
                     <p>${assignment.tourName}</p>
                 </div>
-                <span class="status-pill status-assigned">${assignment.assignmentStatusLabel}</span>
             </div>
             <div class="panel-body">
                 <div class="detail-grid">
@@ -68,10 +67,6 @@
                     <div class="detail-item"><span>Giờ đón / hạn check-in</span><strong><fmt:formatDate value="${assignment.pickupTime}" pattern="dd/MM/yyyy HH:mm"/> / <fmt:formatDate value="${assignment.checkInDeadline}" pattern="dd/MM/yyyy HH:mm"/></strong></div>
                     <div class="detail-item"><span>Tóm tắt booking</span><strong>${assignment.bookingCount} lượt đặt · ${assignment.totalGuests} khách</strong></div>
                     <div class="detail-item"><span>Sức chứa</span><strong>${assignment.bookedQuantity}/${assignment.maxParticipants}</strong></div>
-                    <div class="detail-item"><span>Ghi chú nhân viên</span><strong>${empty assignment.staffNote ? 'Không có' : assignment.staffNote}</strong></div>
-                    <div class="detail-item"><span>Ghi chú hướng dẫn viên</span><strong>${empty assignment.guideNote ? 'Không có' : assignment.guideNote}</strong></div>
-                    <div class="detail-item"><span>Yêu cầu/ghi chú khách</span><strong>${empty assignment.customerNote ? 'Không có' : assignment.customerNote}</strong></div>
-                    <div class="detail-item"><span>Mốc trạng thái</span><strong>Đã nhận: <fmt:formatDate value="${assignment.acceptedAt}" pattern="dd/MM/yyyy HH:mm"/> · Hoàn thành: <fmt:formatDate value="${assignment.completedAt}" pattern="dd/MM/yyyy HH:mm"/></strong></div>
                 </div>
             </div>
         </section>
@@ -93,7 +88,6 @@
                             <th>Loại</th>
                             <th>Liên hệ</th>
                             <th>Trạng thái</th>
-                            <th>Ghi chú</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -104,11 +98,10 @@
                                 <td>${t.travelerType}</td>
                                 <td>${empty t.phone ? 'Không có' : t.phone}</td>
                                 <td><span class="status-pill status-checked">${t.travelerStatusLabel}</span></td>
-                                <td>${empty t.note ? 'Không có' : t.note}</td>
                             </tr>
                         </c:forEach>
                         <c:if test="${empty travelerList}">
-                            <tr><td colspan="6" class="text-center text-muted py-5">Chưa có danh sách khách cho tour này.</td></tr>
+                            <tr><td colspan="5" class="text-center text-muted py-5">Chưa có danh sách khách cho tour này.</td></tr>
                         </c:if>
                         </tbody>
                     </table>

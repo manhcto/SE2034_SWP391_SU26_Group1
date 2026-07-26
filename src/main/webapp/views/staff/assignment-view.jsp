@@ -31,11 +31,13 @@
                     <i class="fa-solid fa-arrow-left"></i>
                     Quay lại
                 </a>
-                <a class="top-action-btn btn-primary-action"
-                   href="${pageContext.request.contextPath}/staff/assignment?action=edit&id=${assignment.assignmentID}">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    Sửa phân công
-                </a>
+                <c:if test="${!staffAssignmentLocked}">
+                    <a class="top-action-btn btn-primary-action"
+                       href="${pageContext.request.contextPath}/staff/assignment?action=edit&id=${assignment.assignmentID}">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        Sửa phân công
+                    </a>
+                </c:if>
             </div>
         </div>
 
@@ -57,14 +59,6 @@
                     <div class="detail-item">
                         <span>Mã phân công</span>
                         <strong>${empty assignment.assignmentCode ? assignment.assignmentID : assignment.assignmentCode}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Trạng thái phân công</span>
-                        <strong>${assignment.assignmentStatusLabel}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Độ ưu tiên</span>
-                        <strong>${assignment.priorityLevelLabel}</strong>
                     </div>
                     <div class="detail-item">
                         <span>Booking</span>
@@ -138,30 +132,6 @@
                         </strong>
                     </div>
                     <div class="detail-item">
-                        <span>Bắt đầu / kết thúc thực tế</span>
-                        <strong>
-                            <c:choose>
-                                <c:when test="${empty assignment.actualStartAt && empty assignment.actualEndAt}">
-                                    Chưa cập nhật
-                                </c:when>
-                                <c:otherwise>
-                                    <fmt:formatDate value="${assignment.actualStartAt}" pattern="dd/MM/yyyy HH:mm"/>
-                                    <c:if test="${not empty assignment.actualEndAt}">
-                                        / <fmt:formatDate value="${assignment.actualEndAt}" pattern="dd/MM/yyyy HH:mm"/>
-                                    </c:if>
-                                </c:otherwise>
-                            </c:choose>
-                        </strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Mốc trạng thái</span>
-                        <strong>
-                            Đã nhận: <fmt:formatDate value="${assignment.acceptedAt}" pattern="dd/MM/yyyy HH:mm"/>
-                            | Đã xác nhận: <fmt:formatDate value="${assignment.confirmedAt}" pattern="dd/MM/yyyy HH:mm"/>
-                            | Hoàn thành: <fmt:formatDate value="${assignment.completedAt}" pattern="dd/MM/yyyy HH:mm"/>
-                        </strong>
-                    </div>
-                    <div class="detail-item">
                         <span>Khách hàng</span>
                         <strong>${empty assignment.customerName ? 'Chưa có booking' : assignment.customerName}</strong>
                     </div>
@@ -184,26 +154,6 @@
                     <div class="detail-item">
                         <span>Ngày đặt</span>
                         <strong><fmt:formatDate value="${assignment.bookDate}" pattern="dd/MM/yyyy HH:mm"/></strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Ghi chú booking</span>
-                        <strong>${empty assignment.note ? 'Không có ghi chú' : assignment.note}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Lý do từ chối/hủy</span>
-                        <strong>${empty assignment.rejectionReason ? 'Không có' : assignment.rejectionReason}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Ghi chú nhân viên</span>
-                        <strong>${empty assignment.staffNote ? 'Không có' : assignment.staffNote}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Ghi chú hướng dẫn viên</span>
-                        <strong>${empty assignment.guideNote ? 'Không có' : assignment.guideNote}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Ghi chú khách</span>
-                        <strong>${empty assignment.customerNote ? 'Không có' : assignment.customerNote}</strong>
                     </div>
                 </div>
             </div>

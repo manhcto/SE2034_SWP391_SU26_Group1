@@ -38,6 +38,9 @@ public class ListTourScheduleController extends StaffTourScheduleSupport {
         request.setAttribute("tour", tour);
         request.setAttribute("scheduleList", tour.getScheduleList());
         request.setAttribute("readinessErrors", tourDAO.getTourReadinessErrors(tourID));
+        request.setAttribute("readinessChecklist", tourDAO.getTourReadinessChecklist(tourID));
+        request.setAttribute("duplicateStartDateMap", tourDAO.getDuplicateScheduleStartDateMap(tourID));
+        request.setAttribute("schedulePriceWarningMap", tourDAO.getSchedulePriceWarningMap(tourID));
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
         request.setAttribute("canManageSchedule", canManageScheduleForTour(tour));
         request.setAttribute("canEditSchedule", canEditScheduleForTour(tour));

@@ -12,39 +12,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/assets/css/assignment-workspace.css?v=guide-sidebar-bottom-20260723" rel="stylesheet">
 </head>
 
 <body>
 <div class="workspace-layout">
-    <aside class="workspace-sidebar">
-        <div class="brand-box">
-            <div class="brand-logo guide">TG</div>
-            <h2>WonderVN</h2>
-            <p>Khu vực hướng dẫn viên</p>
-        </div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/guide/home">
-            <i class="fa-solid fa-house"></i>
-            <span>Trang chủ hướng dẫn viên</span>
-        </a>
-
-        <div class="nav-section-title">Nhiệm vụ tour</div>
-
-        <a class="sidebar-link active guide" href="${pageContext.request.contextPath}/guide/assignment">
-            <i class="fa-solid fa-clipboard-list"></i>
-            <span>Tour được phân công</span>
-        </a>
-
-        <div class="nav-section-title">Tài khoản</div>
-
-        <a class="sidebar-link" href="${pageContext.request.contextPath}/logout">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Đăng xuất</span>
-        </a>
-    </aside>
+    <jsp:include page="/views/common/guide-sidebar.jsp">
+        <jsp:param name="activeGuideMenu" value="assignment"/>
+    </jsp:include>
 
     <main class="main-content">
+        <c:set var="currentAssignmentStatus" value="${empty assignment.assignmentStatus ? 'Pending' : assignment.assignmentStatus}"/>
+        <c:set var="showConfirmButton" value="${currentAssignmentStatus == 'Pending' || currentAssignmentStatus == 'Assigned'}"/>
+        <c:set var="showTourActions" value="${currentAssignmentStatus == 'Accepted' || currentAssignmentStatus == 'Confirmed' || currentAssignmentStatus == 'In Progress'}"/>
         <div class="topbar">
             <div>
                 <h1>Chi tiết tour được phân công</h1>
@@ -57,19 +37,39 @@
                     Quay lại
                 </a>
 
-                <a class="top-action-btn btn-guide-action"
-                   href="${pageContext.request.contextPath}/guide/assignment?action=editPassengerStatus&id=${assignment.assignmentID}">
-                    <i class="fa-solid fa-user-check"></i>
-                    Cập nhật hành khách
-                </a>
+                <c:if test="${showConfirmButton}">
+                    <form method="post" action="${pageContext.request.contextPath}/guide/assignment" class="m-0">
+                        <input type="hidden" name="action" value="confirmAssignment">
+                        <input type="hidden" name="assignmentID" value="${assignment.assignmentID}">
+                        <button class="top-action-btn btn-guide-action" type="submit">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Xác nhận tour
+                        </button>
+                    </form>
+                </c:if>
 
-                <a class="top-action-btn btn-guide-action"
-                   href="${pageContext.request.contextPath}/guide/assignment?action=progressLog&id=${assignment.assignmentID}">
-                    <i class="fa-solid fa-route"></i>
-                    Thêm nhật ký tiến độ
-                </a>
+                <c:if test="${showTourActions}">
+                    <a class="top-action-btn btn-guide-action"
+                       href="${pageContext.request.contextPath}/guide/assignment?action=editPassengerStatus&id=${assignment.assignmentID}">
+                        <i class="fa-solid fa-user-check"></i>
+                        Cập nhật hành khách
+                    </a>
+
+                    <a class="top-action-btn btn-guide-action"
+                       href="${pageContext.request.contextPath}/guide/assignment?action=progressLog&id=${assignment.assignmentID}">
+                        <i class="fa-solid fa-route"></i>
+                        Thêm nhật ký tiến độ
+                    </a>
+                </c:if>
             </div>
         </div>
+
+        <c:if test="${param.success == 'confirm'}">
+            <div class="alert alert-success">
+                <i class="fa-solid fa-circle-check me-2"></i>
+                Đã xác nhận tour. Bạn có thể cập nhật hành khách và nhật ký tiến độ.
+            </div>
+        </c:if>
 
         <c:if test="${param.success == 'passenger'}">
             <div class="alert alert-success">
@@ -89,6 +89,27 @@
             <div class="alert alert-danger">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>
                 Trạng thái không hợp lệ.
+            </div>
+        </c:if>
+
+        <c:if test="${param.error == 'notConfirmed'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                Bạn cần xác nhận tour trước khi cập nhật hành khách hoặc nhật ký tiến độ.
+            </div>
+        </c:if>
+
+        <c:if test="${param.error == 'completed'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                Tour đã hoàn thành, không thể thực hiện thêm thao tác.
+            </div>
+        </c:if>
+
+        <c:if test="${param.error == 'confirmFailed'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                Không xác nhận được tour. Vui lòng tải lại trang và thử lại.
             </div>
         </c:if>
 
@@ -121,14 +142,6 @@
 
             <div class="panel-body">
                 <div class="detail-grid">
-                    <div class="detail-item">
-                        <span>Trạng thái</span>
-                        <strong>${assignment.assignmentStatusLabel}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Độ ưu tiên</span>
-                        <strong>${assignment.priorityLevelLabel}</strong>
-                    </div>
                     <div class="detail-item">
                         <span>Tour</span>
                         <strong>${assignment.tourName}</strong>
@@ -188,34 +201,6 @@
                         <span>Số khách</span>
                         <strong>${assignment.totalGuests} khách</strong>
                     </div>
-                    <div class="detail-item">
-                        <span>Ghi chú nhân viên</span>
-                        <strong>${empty assignment.staffNote ? 'Không có' : assignment.staffNote}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Ghi chú hướng dẫn viên</span>
-                        <strong>${empty assignment.guideNote ? 'Không có' : assignment.guideNote}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Ghi chú khách</span>
-                        <strong>${empty assignment.customerNote ? 'Không có' : assignment.customerNote}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Bắt đầu / kết thúc thực tế</span>
-                        <strong>
-                            <c:choose>
-                                <c:when test="${empty assignment.actualStartAt && empty assignment.actualEndAt}">
-                                    Chưa cập nhật
-                                </c:when>
-                                <c:otherwise>
-                                    <fmt:formatDate value="${assignment.actualStartAt}" pattern="dd/MM/yyyy HH:mm"/>
-                                    <c:if test="${not empty assignment.actualEndAt}">
-                                        / <fmt:formatDate value="${assignment.actualEndAt}" pattern="dd/MM/yyyy HH:mm"/>
-                                    </c:if>
-                                </c:otherwise>
-                            </c:choose>
-                        </strong>
-                    </div>
                 </div>
             </div>
         </section>
@@ -241,9 +226,26 @@
                         </thead>
                         <tbody>
                         <c:forEach var="log" items="${progressLogs}">
+                            <c:choose>
+                                <c:when test="${log.progressStatus == 'Completed'}">
+                                    <c:set var="progressStatusClass" value="status-completed"/>
+                                </c:when>
+                                <c:when test="${log.progressStatus == 'Issue'}">
+                                    <c:set var="progressStatusClass" value="status-issue"/>
+                                </c:when>
+                                <c:when test="${log.progressStatus == 'Pickup Completed' || log.progressStatus == 'At Pickup Point'}">
+                                    <c:set var="progressStatusClass" value="status-checked"/>
+                                </c:when>
+                                <c:when test="${log.progressStatus == 'Departed' || log.progressStatus == 'Arrived' || log.progressStatus == 'Arrived Destination' || log.progressStatus == 'Returning' || log.progressStatus == 'Lunch Break' || log.progressStatus == 'Activity Completed' || log.progressStatus == 'Completed Visit'}">
+                                    <c:set var="progressStatusClass" value="status-progress"/>
+                                </c:when>
+                                <c:otherwise>
+                                    <c:set var="progressStatusClass" value="status-assigned"/>
+                                </c:otherwise>
+                            </c:choose>
                             <tr>
                                 <td><fmt:formatDate value="${log.logTime}" pattern="dd/MM/yyyy HH:mm"/></td>
-                                <td><span class="status-pill status-progress">${log.progressStatusLabel}</span></td>
+                                <td><span class="status-pill ${progressStatusClass}">${log.progressStatusLabel}</span></td>
                                 <td>${empty log.title ? 'Cập nhật tour' : log.title}</td>
                                 <td>${empty log.content ? 'Không có nội dung' : log.content}</td>
                             </tr>
