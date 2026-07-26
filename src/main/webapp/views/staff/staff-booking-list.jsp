@@ -86,16 +86,32 @@
             border-radius: 22px;
             padding: 20px;
             box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            flex: 0 0 48px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
         }
 
         .stat-card .label {
             color: var(--muted);
+            font-size: 13px;
             font-weight: 800;
-            margin-bottom: 8px;
+            margin-bottom: 3px;
         }
 
         .stat-card .value {
-            font-size: 30px;
+            font-size: 26px;
+            line-height: 1;
             font-weight: 900;
             color: var(--dark);
         }
@@ -206,7 +222,15 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            min-width: max-content;
+        }
+
+        .table th:last-child,
+        .table td:last-child {
+            min-width: 148px;
+            white-space: nowrap;
         }
 
         .icon-btn {
@@ -311,20 +335,40 @@
 
         <div class="stat-grid">
             <div class="stat-card">
-                <div class="label">Đang thanh toán</div>
-                <div class="value">${pendingCount}</div>
+                <div class="stat-icon" style="background: #fffbeb; color: #d97706;">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div>
+                    <div class="label">Đang thanh toán</div>
+                    <div class="value">${pendingCount}</div>
+                </div>
             </div>
             <div class="stat-card">
-                <div class="label">Thanh toán thành công</div>
-                <div class="value">${completedCount}</div>
+                <div class="stat-icon" style="background: #dcfce7; color: #166534;">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <div class="label">Thanh toán thành công</div>
+                    <div class="value">${completedCount}</div>
+                </div>
             </div>
             <div class="stat-card">
-                <div class="label">Đã hủy</div>
-                <div class="value">${cancelledCount}</div>
+                <div class="stat-icon" style="background: #fee2e2; color: #991b1b;">
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+                <div>
+                    <div class="label">Đã hủy</div>
+                    <div class="value">${cancelledCount}</div>
+                </div>
             </div>
             <div class="stat-card">
-                <div class="label">Tour kết thúc</div>
-                <div class="value">${endedCount}</div>
+                <div class="stat-icon" style="background: #ede9fe; color: #6d28d9;">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                </div>
+                <div>
+                    <div class="label">Tour kết thúc</div>
+                    <div class="value">${endedCount}</div>
+                </div>
             </div>
         </div>
 
