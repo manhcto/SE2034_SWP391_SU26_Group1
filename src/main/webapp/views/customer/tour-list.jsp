@@ -59,6 +59,126 @@
             .tour-result-image { height: 210px; }
             .tour-result-footer { align-items: flex-start; flex-direction: column; }
         }
+        .tour-intro { display: none; }
+        .tour-list-page { padding-top: 28px; background: var(--canvas); }
+        .tour-list-layout { display: flex; flex-direction: column; gap: 24px; padding-top: 0; }
+        .tour-filter-side { position: static; width: 100%; padding: 22px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
+        .tour-filter-side h2 { margin-bottom: 16px; text-align: left; color: var(--ink); }
+        .filter-form { grid-template-columns: repeat(6, minmax(135px, 1fr)); align-items: end; gap: 14px; }
+        .filter-form label { min-width: 0; }
+        .filter-form input, .filter-form select { height: 48px; border-color: #d0d5dd; border-radius: 7px; color: var(--ink); }
+        .filter-form button { height: 48px; border-radius: 7px; background: var(--blue); }
+        .price-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .tour-list-title { margin-top: 4px; color: var(--blue); border-bottom-color: var(--line); }
+        .tour-count-title { color: var(--ink); border-bottom-color: var(--line); text-transform: none; }
+        .tour-result-list { gap: 18px; }
+        .tour-result-card { grid-template-columns: 300px minmax(0, 1fr); gap: 18px; padding: 14px; border-color: var(--line); border-radius: 8px; box-shadow: 0 10px 24px rgba(16,24,40,.06); transition: transform .22s ease, box-shadow .22s ease; }
+        .tour-result-card:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(16,24,40,.1); }
+        .tour-result-image { height: 190px; border-radius: 6px; }
+        .tour-result-body h3 { font-size: 18px; color: var(--ink); }
+        .tour-category-line { color: var(--green); }
+        .departure-chip { border-color: #b2ccff; background: #eff4ff; color: var(--blue); }
+        .tour-result-price { color: var(--blue); font-weight: 900; }
+        .detail-button { border-radius: 7px; background: var(--blue); }
+        @media (max-width: 1100px) {
+            .filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 760px) {
+            .filter-form { grid-template-columns: 1fr; }
+            .tour-result-card { grid-template-columns: 1fr; }
+        }
+        .tour-results-head { margin-top: 4px; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+        .tour-results-head h2 { margin-bottom: 8px; padding-bottom: 0; border: 0; font-size: 36px; line-height: 1.15; color: var(--ink); text-transform: none; }
+        .tour-results-head p { margin: 0 0 22px; color: #52637f; font-size: 16px; line-height: 1.6; }
+        .tour-total-badge { margin-top: 6px; min-height: 46px; padding: 0 18px; border: 1px solid #dbe3ef; border-radius: 7px; background: #ffffff; color: var(--ink); box-shadow: 0 10px 22px rgba(16,24,40,.06); display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-weight: 900; }
+        .tour-total-badge i { color: var(--blue); }
+        .tour-count-title { display: none; }
+        .tour-result-list { grid-template-columns: repeat(auto-fill, minmax(286px, 1fr)); align-items: stretch; gap: 22px; }
+        .tour-result-card { display: flex; flex-direction: column; min-height: 560px; padding: 0; overflow: hidden; border: 0; border-radius: 8px; background: #ffffff; box-shadow: 0 18px 34px rgba(16,24,40,.08); }
+        .tour-result-image { position: relative; width: 100%; height: 230px; border-radius: 0; }
+        .tour-result-image::after { content: ""; position: absolute; inset: auto 0 0; height: 54%; background: linear-gradient(180deg, rgba(15,23,42,0), rgba(15,23,42,.68)); pointer-events: none; }
+        .tour-result-body { flex: 1; padding: 20px; }
+        .tour-result-body h3 { min-height: 74px; margin-bottom: 12px; font-size: 18px; line-height: 1.35; }
+        .tour-category-line { margin-bottom: 13px; font-size: 13px; }
+        .tour-info-grid { grid-template-columns: 1fr; gap: 8px; font-size: 13px; }
+        .tour-info-grid div { display: flex; align-items: flex-start; gap: 8px; }
+        .tour-info-grid i { flex: 0 0 18px; margin-top: 2px; color: var(--blue); }
+        .departures { margin-top: 15px; gap: 8px; }
+        .departures > span:first-child { flex-basis: 100%; color: var(--ink); }
+        .departure-chip { border-radius: 999px; }
+        .tour-result-footer { padding-top: 18px; align-items: center; }
+        .detail-button { min-height: 46px; padding: 0 18px; border-radius: 8px; box-shadow: 0 10px 20px rgba(23,92,211,.18); }
+        .pagination-bar { margin-top: 28px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .page-link-soft { min-width: 40px; height: 40px; padding: 0 13px; border: 1px solid #dbe3ef; border-radius: 8px; background: #ffffff; color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-weight: 800; }
+        .page-link-soft:hover, .page-link-soft.active { background: var(--blue); border-color: var(--blue); color: #ffffff; }
+        .page-link-soft.disabled { pointer-events: none; opacity: .45; background: #f2f4f7; }
+        @media (max-width: 760px) {
+            .tour-results-head { display: block; }
+            .tour-results-head h2 { font-size: 28px; }
+            .tour-total-badge { margin-bottom: 18px; }
+            .tour-result-card { min-height: 0; }
+        }
+        .tour-list-page .home-shell { width: min(1440px, calc(100% - 48px)); }
+        .tour-result-list { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+        .tour-result-card { min-height: 0; border-radius: 8px; }
+        .tour-result-image { height: 176px; }
+        .tour-result-body { padding: 15px 16px 16px; }
+        .tour-result-body h3 {
+            min-height: 0;
+            margin: 0 0 7px;
+            font-size: 16px;
+            line-height: 1.35;
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        .tour-category-line { margin: 0 0 8px; font-size: 13px; }
+        .tour-info-grid { gap: 6px; font-size: 13px; line-height: 1.42; }
+        .tour-info-grid i { flex-basis: 16px; width: 16px; }
+        .departures { margin-top: 10px; gap: 6px; font-size: 13px; }
+        .departure-chip { padding: 5px 7px; font-size: 11.5px; }
+        .departures:not(.expanded) .departure-chip.is-extra { display: none; }
+        .departure-toggle {
+            width: 27px;
+            height: 27px;
+            border: 1px solid #b2ccff;
+            border-radius: 999px;
+            background: #ffffff;
+            color: var(--blue);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background .2s ease, color .2s ease, transform .2s ease;
+        }
+        .departure-toggle:hover { background: var(--blue); color: #ffffff; }
+        .departure-toggle i { font-size: 11px; transition: transform .2s ease; }
+        .departures.expanded .departure-toggle i { transform: rotate(180deg); }
+        .tour-result-footer { padding-top: 12px; gap: 10px; }
+        .tour-price-label { font-size: 13px; }
+        .tour-result-price { font-size: 19px; }
+        .detail-button { min-width: 96px; min-height: 40px; padding: 0 13px; font-size: 12.5px; }
+        @media (min-width: 1380px) {
+            .tour-result-list { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+            .tour-result-image { height: 154px; }
+            .tour-result-body { padding: 14px; }
+            .tour-result-body h3 { font-size: 14px; }
+            .tour-info-grid, .departures, .tour-price-label { font-size: 12px; }
+            .detail-button { min-width: 90px; padding: 0 11px; }
+        }
+        @media (max-width: 1180px) {
+            .tour-result-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 900px) {
+            .tour-result-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 640px) {
+            .tour-list-page .home-shell { width: min(100% - 32px, 520px); }
+            .tour-result-list { grid-template-columns: 1fr; }
+            .tour-result-image { height: 210px; }
+            .tour-result-body h3 { font-size: 16px; }
+        }
     </style>
 </head>
 <body>
@@ -108,6 +228,14 @@
                             </c:forEach>
                         </select>
                     </label>
+                    <label>Loại tour
+                        <select name="categoryID">
+                            <option value="0">Tất cả loại tour</option>
+                            <c:forEach var="category" items="${categoryList}">
+                                <option value="${category.tourCategoryID}" ${selectedCategoryID == category.tourCategoryID ? 'selected' : ''}>${category.categoryName}</option>
+                            </c:forEach>
+                        </select>
+                    </label>
                     <label>Khu vực
                         <select name="regionID">
                             <option value="0">Tất cả khu vực</option>
@@ -116,23 +244,22 @@
                             </c:forEach>
                         </select>
                     </label>
-                    <label>Khoảng giá người lớn
-                        <div class="price-filter-grid">
-                            <input type="number" name="minPrice" min="0" step="1000" value="${selectedMinPrice}" placeholder="Từ">
-                            <input type="number" name="maxPrice" min="0" step="1000" value="${selectedMaxPrice}" placeholder="Đến">
-                        </div>
-                    </label>
                     <label>Ngày khởi hành
                         <input type="date" name="startDate" value="${selectedStartDate}">
                     </label>
-                    <input type="hidden" name="keyword" value="${fn:escapeXml(keyword)}">
-                    <button type="submit">Tìm kiếm</button>
+                    <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm</button>
                 </form>
             </aside>
 
             <section>
-                <h2 class="tour-list-title">Danh sách các tour du lịch trong nước - Tour trong nước</h2>
-                <h3 class="tour-count-title">Các tour còn lịch khởi hành (${fn:length(tourList)})</h3>
+                <div class="tour-results-head">
+                    <div>
+                        <h2 class="tour-list-title">Danh sách tour đang bán</h2>
+                        <p>Khám phá các tour trọn gói có lịch khởi hành, giá bán và số chỗ rõ ràng.</p>
+                    </div>
+                    <span class="tour-total-badge"><i class="fa-solid fa-layer-group"></i> Tìm thấy ${totalTourCount} tour</span>
+                </div>
+                <h3 class="tour-count-title">Các tour còn lịch khởi hành (${totalTourCount})</h3>
                 <c:choose>
                     <c:when test="${empty tourList}">
                         <div class="empty-box">Chưa có tour phù hợp với điều kiện tìm kiếm.</div>
@@ -161,13 +288,18 @@
                                             <div><i class="fa-solid fa-ticket"></i> Mã tour: <strong><c:out value="${tour.tourCode}" /></strong></div>
                                             <div><i class="fa-solid fa-location-dot"></i> Khởi hành: <a href="${pageContext.request.contextPath}/tour?from=${fn:escapeXml(tour.startPlace)}"><c:out value="${tour.startPlace}" /></a></div>
                                             <div><i class="fa-regular fa-clock"></i> Thời gian: <strong>${tour.numberOfDay}N${tour.numberOfNights}Đ</strong></div>
-                                            <div><i class="fa-solid fa-plane-departure"></i> Phương tiện: <strong><c:out value="${empty firstSchedule.scheduleTransportType ? tour.mainTransportType : firstSchedule.scheduleTransportType}" /></strong></div>
+                                            <div><i class="fa-solid fa-bus"></i> Phương tiện: <strong><c:out value="${empty firstSchedule.scheduleTransportType ? tour.mainTransportType : firstSchedule.scheduleTransportType}" /></strong></div>
                                         </div>
                                         <div class="departures">
-                                            <span><i class="fa-solid fa-plane"></i> Ngày khởi hành:</span>
+                                            <span><i class="fa-solid fa-bus"></i> Ngày khởi hành:</span>
                                             <c:forEach var="schedule" items="${tour.scheduleList}" varStatus="loop">
-                                                <span class="departure-chip"><fmt:formatDate value="${schedule.startDate}" pattern="dd-MM" /></span>
+                                                <span class="departure-chip ${loop.index >= 4 ? 'is-extra' : ''}"><fmt:formatDate value="${schedule.startDate}" pattern="dd-MM" /></span>
                                             </c:forEach>
+                                            <c:if test="${fn:length(tour.scheduleList) > 4}">
+                                                <button class="departure-toggle" type="button" aria-expanded="false" aria-label="Xem thêm ngày khởi hành">
+                                                    <i class="fa-solid fa-chevron-down"></i>
+                                                </button>
+                                            </c:if>
                                         </div>
                                         <div class="tour-result-footer">
                                             <div>
@@ -180,6 +312,19 @@
                                 </article>
                             </c:forEach>
                         </div>
+                        <c:if test="${totalPages > 1}">
+                            <nav class="pagination-bar" aria-label="Phân trang tour">
+                                <a class="page-link-soft ${hasPreviousPage ? '' : 'disabled'}" href="${pageContext.request.contextPath}/tour?page=${previousPage}${paginationQuery}">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </a>
+                                <c:forEach begin="1" end="${totalPages}" var="pageNo">
+                                    <a class="page-link-soft ${pageNo == currentPage ? 'active' : ''}" href="${pageContext.request.contextPath}/tour?page=${pageNo}${paginationQuery}">${pageNo}</a>
+                                </c:forEach>
+                                <a class="page-link-soft ${hasNextPage ? '' : 'disabled'}" href="${pageContext.request.contextPath}/tour?page=${nextPage}${paginationQuery}">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </a>
+                            </nav>
+                        </c:if>
                     </c:otherwise>
                 </c:choose>
             </section>
@@ -189,5 +334,15 @@
 
 <jsp:include page="/views/common/client-footer.jsp" />
 <script src="${pageContext.request.contextPath}/assets/js/home.js?v=20260721"></script>
+<script>
+document.querySelectorAll('.departure-toggle').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var departureList = button.closest('.departures');
+        if (!departureList) return;
+        var expanded = departureList.classList.toggle('expanded');
+        button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    });
+});
+</script>
 </body>
 </html>

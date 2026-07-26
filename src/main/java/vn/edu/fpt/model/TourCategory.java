@@ -10,8 +10,16 @@ public class TourCategory {
         return tourCategoryID;
     }
 
+    public int getCategoryID() {
+        return tourCategoryID;
+    }
+
     public void setTourCategoryID(int tourCategoryID) {
         this.tourCategoryID = tourCategoryID;
+    }
+
+    public void setCategoryID(int categoryID) {
+        this.tourCategoryID = categoryID;
     }
 
     public String getCategoryName() {

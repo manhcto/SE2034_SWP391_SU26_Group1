@@ -8,6 +8,8 @@ import vn.edu.fpt.model.Tour;
 import vn.edu.fpt.model.TourSchedule;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 
 @WebServlet(name = "AddTourScheduleController", urlPatterns = {"/staff/tour/schedule/add"})
@@ -100,10 +102,36 @@ public class AddTourScheduleController extends StaffTourScheduleSupport {
         schedule.setCancellationPolicy(DEFAULT_CANCELLATION_POLICY);
         schedule.setScheduleStatus(canOpenScheduleForTour(tour) ? "Open" : "Planned");
         schedule.setScheduleTransportType(resolveScheduleTransportType(tour, null));
+        LocalDate nextStartDate = resolveNextStartDate(tour);
+        schedule.setStartDate(Timestamp.valueOf(nextStartDate.atStartOfDay()));
+        schedule.setEndDate(Timestamp.valueOf(nextStartDate.plusDays(Math.max(1, tour.getNumberOfDay()) - 1L).atStartOfDay()));
         int defaultSeat = getSeatOptions(schedule.getScheduleTransportType()).isEmpty() ? 0 : getSeatOptions(schedule.getScheduleTransportType()).get(0);
         schedule.setMaxParticipants(defaultSeat);
         schedule.setMinParticipants((int) Math.ceil(defaultSeat * 0.5));
         schedule.setMaxParticipantsPerBooking(Math.min(10, Math.max(1, defaultSeat)));
         return schedule;
+    }
+
+    private LocalDate resolveNextStartDate(Tour tour) {
+        LocalDate today = LocalDate.now();
+        LocalDate latestStartDate = null;
+        if (tour != null && tour.getScheduleList() != null) {
+            for (TourSchedule schedule : tour.getScheduleList()) {
+                if (schedule == null || schedule.getStartDate() == null || isFinalScheduleStatus(schedule.getScheduleStatus())) {
+                    continue;
+                }
+                LocalDate startDate = schedule.getStartDate().toLocalDateTime().toLocalDate();
+                if (latestStartDate == null || startDate.isAfter(latestStartDate)) {
+                    latestStartDate = startDate;
+                }
+            }
+        }
+
+        if (latestStartDate == null) {
+            return today;
+        }
+
+        LocalDate candidate = latestStartDate.plusDays(4);
+        return candidate.isBefore(today) ? today : candidate;
     }
 }

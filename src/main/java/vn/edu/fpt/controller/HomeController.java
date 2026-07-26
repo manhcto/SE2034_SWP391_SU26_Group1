@@ -87,7 +87,7 @@ public class HomeController extends HttpServlet {
         request.setAttribute("startPlaces", tourDAO.getPublishedStartPlaces());
         request.setAttribute("destinations", tourDAO.getPublishedDestinations());
         request.setAttribute("provinceList", administrativeUnitDAO.getActiveProvinceNames());
-        request.setAttribute("activeTourCount", packageTours.size());
+        request.setAttribute("activeTourCount", tourDAO.countPublishedToursForCustomer());
         request.setAttribute("accommodationCount", availableAccommodations.size());
         request.setAttribute("publishedBlogCount", publishedBlogs.size());
 

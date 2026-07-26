@@ -1288,7 +1288,7 @@ public class TourDAO {
                                                    BigDecimal minPrice, BigDecimal maxPrice, int limit) {
         List<Tour> tours = new ArrayList<>();
         List<Object> params = new ArrayList<>();
-        int safeLimit = limit <= 0 ? 100 : Math.min(limit, 100);
+        int safeLimit = limit <= 0 ? 100 : Math.min(limit, 1000);
 
         StringBuilder sql = new StringBuilder(TOUR_SELECT)
                 .append(" WHERE t.[status] = N'Active' ")
@@ -1382,6 +1382,33 @@ public class TourDAO {
             return featuredTours.size() > limit ? featuredTours.subList(0, limit) : featuredTours;
         }
         return tours;
+    }
+
+    public int countPublishedToursForCustomer() {
+        String sql = """
+                SELECT COUNT(DISTINCT t.tourID)
+                FROM Tour t
+                WHERE t.[status] = N'Active'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM Tour_Scheduler ts
+                      WHERE ts.tourID = t.tourID
+                        AND ts.scheduleStatus = N'Open'
+                        AND ts.startDate >= CAST(GETDATE() AS date)
+                        AND ISNULL(ts.quantity, 0) < ISNULL(ts.maxParticipants, 0)
+                  )
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public List<Tour> getPublishedToursForHomeByRegionName(String regionName, int limit) {

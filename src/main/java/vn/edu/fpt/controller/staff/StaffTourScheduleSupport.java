@@ -15,6 +15,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -28,6 +30,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
     private static final BigDecimal MIN_ADULT_PRICE = new BigDecimal("100000");
     private static final BigDecimal MAX_MONEY = new BigDecimal("1000000000");
     private static final BigDecimal CHILD_RATE = new BigDecimal("0.50");
+    private static final DateTimeFormatter DISPLAY_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
     protected static final int NO_VAT_PERCENT = 0;
     protected static final String DEFAULT_CANCELLATION_POLICY = "Thanh toán đủ 100% khi đặt tour. Chính sách hủy/hoàn tiền áp dụng theo trang quy định chung của công ty.";
 
@@ -515,10 +519,17 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
             if (isBlank(value)) {
                 return null;
             }
-            return LocalDate.parse(value.trim());
+            String normalized = value.trim();
+            if (normalized.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                return LocalDate.parse(normalized);
+            }
+            if (normalized.matches("\\d{1,2}[-/]\\d{1,2}[-/]\\d{4}")) {
+                return LocalDate.parse(normalized.replace('/', '-'), DISPLAY_DATE_FORMATTER);
+            }
         } catch (Exception e) {
-            return null;
+            // Fall through to null for a clear validation message.
         }
+        return null;
     }
 
     private LocalTime parseLocalTime(String value) {

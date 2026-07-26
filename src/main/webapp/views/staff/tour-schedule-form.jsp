@@ -67,7 +67,7 @@
                         <div class="col-md-3">
                             <label class="form-label">Ngày xuất phát <span class="text-danger">*</span></label>
                             <div class="date-control">
-                                <input type="text" id="startDateText" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.startDate ? 'is-invalid' : ''}" value="${startDateDisplay}" placeholder="DD-MM-YYYY" inputmode="numeric" required ${lockedCore ? 'readonly' : ''}>
+                                <input type="text" id="startDateText" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.startDate ? 'is-invalid' : ''}" value="${startDateDisplay}" placeholder="DD-MM-YYYY" inputmode="numeric" maxlength="10" pattern="\d{2}-\d{2}-\d{4}" autocomplete="off" required ${lockedCore ? 'readonly' : ''}>
                                 <button class="calendar-button" type="button" id="startDateButton" aria-label="Chọn ngày xuất phát" ${lockedCore ? 'disabled' : ''}><i class="fa-regular fa-calendar-days"></i></button>
                             </div>
                             <input type="hidden" name="startDate" id="startDate" value="${startDateValue}">
@@ -79,7 +79,7 @@
                         <div class="col-md-3">
                             <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
                             <div class="date-control">
-                                <input type="text" id="endDateText" class="form-control locked ${not empty fieldErrors.endDate ? 'is-invalid' : ''}" value="${endDateDisplay}" placeholder="DD-MM-YYYY" readonly required>
+                                <input type="text" id="endDateText" class="form-control locked ${not empty fieldErrors.endDate ? 'is-invalid' : ''}" value="${endDateDisplay}" placeholder="DD-MM-YYYY" maxlength="10" readonly required>
                                 <button class="calendar-button" type="button" id="endDateButton" aria-label="Ngày kết thúc tự tính" disabled><i class="fa-regular fa-calendar-check"></i></button>
                             </div>
                             <input type="hidden" name="endDate" id="endDate" value="${endDateValue}">
@@ -145,25 +145,21 @@
                 <div class="section-title"><i class="fa-solid fa-money-bill-wave text-primary"></i><h5>Giá theo lịch</h5></div>
                 <div class="section-body">
                     <div class="row g-3">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label">Giá người lớn <span class="text-danger">*</span></label>
                             <input type="number" name="adultPrice" id="adultPrice" min="100001" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.adultPrice ? 'is-invalid' : ''}" value="${schedule.adultPrice > 0 ? schedule.adultPrice : ''}" placeholder="Ví dụ: 23000000" required ${lockedCore ? 'readonly' : ''}>
                             <div class="form-text">Nhập số tiền nguyên, lớn hơn 100.000 đ. Ví dụ: 23000000.</div>
                             <c:if test="${not empty fieldErrors.adultPrice}"><div class="field-error">${fieldErrors.adultPrice}</div></c:if>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Trẻ em 5–10 tuổi</label>
-                            <input type="number" name="childPrice" id="childPrice" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.childPrice ? 'is-invalid' : ''}" value="${schedule.childPrice > 0 ? schedule.childPrice : ''}" placeholder="Tự tính theo công thức" required ${lockedCore ? 'readonly' : ''}>
+                        <div class="col-md-4">
+                            <label class="form-label">Trẻ em 5-10 tuổi</label>
+                            <input type="number" name="childPrice" id="childPrice" min="0" step="1" inputmode="numeric" class="form-control locked ${not empty fieldErrors.childPrice ? 'is-invalid' : ''}" value="${schedule.childPrice > 0 ? schedule.childPrice : ''}" placeholder="Tự tính 50% giá người lớn" readonly required>
+                            <div class="form-text">Hệ thống tự tính bằng 50% giá người lớn.</div>
                             <c:if test="${not empty fieldErrors.childPrice}"><div class="field-error">${fieldErrors.childPrice}</div></c:if>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Trẻ em dưới 5 tuổi</label>
-                            <input type="number" name="infantPrice" id="infantPrice" min="0" step="1" inputmode="numeric" class="form-control locked ${not empty fieldErrors.infantPrice ? 'is-invalid' : ''}" value="0" readonly required>
-                            <div class="form-text">Miễn phí, hệ thống luôn lưu 0 đ.</div>
-                            <c:if test="${not empty fieldErrors.infantPrice}"><div class="field-error">${fieldErrors.infantPrice}</div></c:if>
-                        </div>
+                        <input type="hidden" name="infantPrice" id="infantPrice" value="0">
 
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label">Phụ thu phòng đơn <span class="text-danger">*</span></label>
                             <input type="number" name="singleRoomSurcharge" id="singleRoomSurcharge" min="0" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.singleRoomSurcharge ? 'is-invalid' : ''}" value="${empty schedule.singleRoomSurcharge ? 0 : schedule.singleRoomSurcharge}" placeholder="Ví dụ: 1500000" required ${lockedCore ? 'readonly' : ''}>
                             <c:if test="${not empty fieldErrors.singleRoomSurcharge}"><div class="field-error">${fieldErrors.singleRoomSurcharge}</div></c:if>
@@ -173,8 +169,7 @@
                                 <div class="fw-bold mb-2">Quy định nhập giá</div>
                                 <ul class="mb-0 ps-3">
                                     <li>Giá người lớn phải lớn hơn 100.000 đ và không được âm.</li>
-                                    <li>Trẻ em 5-10 tuổi = giá người lớn × 50%.</li>
-                                    <li>Trẻ em dưới 5 tuổi: miễn phí, hệ thống lưu giá 0 đ.</li>
+                                    <li>Trẻ em 5-10 tuổi = giá người lớn × 50%, hệ thống tự tính để tránh nhập sai.</li>
                                     <li>Trẻ từ 10 tuổi áp dụng giá người lớn.</li>
                                     <li>Phụ thu phòng đơn phải lớn hơn hoặc bằng 0 đ.</li>
                                 </ul>
@@ -241,13 +236,22 @@
         const parts = value.split('-');
         return parts.length === 3 ? parts[2] + '-' + parts[1] + '-' + parts[0] : value;
     }
+    function maskDisplayDate(value){
+        const digits = (value || '').replace(/\D/g, '').slice(0, 8);
+        if (digits.length <= 2) return digits;
+        if (digits.length <= 4) return digits.slice(0, 2) + '-' + digits.slice(2);
+        return digits.slice(0, 2) + '-' + digits.slice(2, 4) + '-' + digits.slice(4);
+    }
     function parseDisplayDate(value){
-        const cleaned = (value || '').trim().replace(/\//g, '-');
+        const raw = (value || '').trim();
+        const cleaned = raw.replace(/\//g, '-');
         const match = cleaned.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
         if (!match) return '';
         const day = match[1].padStart(2, '0');
         const month = match[2].padStart(2, '0');
         const year = match[3];
+        const currentYear = new Date().getFullYear();
+        if (parseInt(year, 10) < currentYear) return '';
         const iso = year + '-' + month + '-' + day;
         const date = new Date(iso + 'T00:00:00');
         if (isNaN(date.getTime())) return '';
@@ -370,7 +374,39 @@
     if (adultInput) adultInput.addEventListener('input', updatePrices);
     if (childInput) childInput.addEventListener('input', function(){ childInput.dataset.autofilled = 'false'; updatePrices(); });
     if (infantInput) infantInput.addEventListener('input', function(){ infantInput.dataset.autofilled = 'false'; updatePrices(); });
-    if (startText) startText.addEventListener('input', function(){ syncStartFromDisplay(); updatePrices(); });
+    function polishPriceRules(){
+        const priceSection = document.querySelector('.fa-money-bill-wave')?.closest('.page-card');
+        if (!priceSection) return;
+
+        [adultInput, childInput, singleRoomInput].forEach(function(input){
+            const column = input ? input.closest('[class*="col-md-"]') : null;
+            if (column) column.className = column.className.replace(/col-md-\d+/g, 'col-md-4');
+        });
+
+        if (infantInput) {
+            infantInput.value = '0';
+            infantInput.type = 'hidden';
+            const infantColumn = infantInput.closest('[class*="col-md-"]');
+            if (infantColumn && infantColumn.parentNode) {
+                priceSection.querySelector('.section-body .row')?.appendChild(infantInput);
+                infantColumn.remove();
+            }
+        }
+
+        const ruleList = priceSection.querySelector('.hint-box ul');
+        if (ruleList) {
+            ruleList.innerHTML =
+                '<li>Giá người lớn phải lớn hơn 100.000 đ và không được âm.</li>' +
+                '<li>Trẻ em 5-10 tuổi = giá người lớn x 50%, hệ thống tự tính để tránh nhập sai.</li>' +
+                '<li>Trẻ từ 10 tuổi áp dụng giá người lớn.</li>' +
+                '<li>Phụ thu phòng đơn phải lớn hơn hoặc bằng 0 đ.</li>';
+        }
+    }
+    if (startText) startText.addEventListener('input', function(){
+        startText.value = maskDisplayDate(startText.value);
+        syncStartFromDisplay();
+        updatePrices();
+    });
     if (startText) startText.addEventListener('blur', function(){ if (startInput.value) startText.value = formatDisplayDate(startInput.value); updateDuplicateWarning(); });
     if (startPicker) startPicker.addEventListener('change', function(){ syncStartFromPicker(); updatePrices(); });
     if (startButton && startPicker) startButton.addEventListener('click', function(){
@@ -404,6 +440,7 @@
         });
     }
     updateSeatOptions();
+    polishPriceRules();
     updateMin();
     if (startInput && startInput.value && startText) startText.value = formatDisplayDate(startInput.value);
     if (startPicker && startInput) startPicker.value = startInput.value;

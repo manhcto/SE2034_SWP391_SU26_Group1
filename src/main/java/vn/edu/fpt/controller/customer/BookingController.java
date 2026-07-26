@@ -74,28 +74,24 @@ public class BookingController extends HttpServlet {
         request.setAttribute("selectedTour", tour);
         request.setAttribute("selectedSchedule", schedule);
 
-        if ("1".equals(request.getParameter("checkout"))) {
-            HttpSession session = request.getSession(false);
-            User user = session == null ? null : (User) session.getAttribute("user");
+        HttpSession session = request.getSession(false);
+        User user = session == null ? null : (User) session.getAttribute("user");
 
-            if (user == null) {
-                request.getSession().setAttribute("redirectAfterLogin",
-                        request.getRequestURI() + (request.getQueryString() == null ? "" : "?" + request.getQueryString()));
-                response.sendRedirect(request.getContextPath() + "/login");
-                return;
-            }
-
-            // Prefill contact info from the user's profile (still editable on the form)
-            request.setAttribute("firstName", user.getFirstName());
-            request.setAttribute("lastName", user.getLastName());
-            request.setAttribute("email", user.getEmail());
-            request.setAttribute("phone", user.getPhone());
-
-            prepareCheckoutAttributes(request, user, tour, schedule);
-            request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
-        } else {
-            request.getRequestDispatcher("/views/customer/booking.jsp").forward(request, response);
+        if (user == null) {
+            request.getSession().setAttribute("redirectAfterLogin",
+                    request.getRequestURI() + (request.getQueryString() == null ? "" : "?" + request.getQueryString()));
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
         }
+
+        // Prefill contact info from the user's profile (still editable on the form)
+        request.setAttribute("firstName", user.getFirstName());
+        request.setAttribute("lastName", user.getLastName());
+        request.setAttribute("email", user.getEmail());
+        request.setAttribute("phone", user.getPhone());
+
+        prepareCheckoutAttributes(request, user, tour, schedule);
+        request.getRequestDispatcher("/views/customer/checkout.jsp").forward(request, response);
     }
 
     @Override
