@@ -185,7 +185,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
 
         data.tourIDRaw = request.getParameter("tourID");
         data.tourCategoryIDRaw = request.getParameter("tourCategoryID");
-        data.tourNameRaw = request.getParameter("tourName");
+        data.tourNameRaw = trimTrailingWhitespace(request.getParameter("tourName"));
         data.tourName = safeTrim(data.tourNameRaw);
         data.tourType = "Package";
         data.numberOfDayRaw = request.getParameter("numberOfDay");
@@ -202,8 +202,8 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         );
         data.adultPriceRaw = request.getParameter("adultPrice");
         data.singleRoomSurchargeRaw = request.getParameter("singleRoomSurcharge");
-        data.tourIntroduceRaw = request.getParameter("tourIntroduce");
-        data.tourHighlightsRaw = request.getParameter("tourHighlights");
+        data.tourIntroduceRaw = trimTrailingWhitespace(request.getParameter("tourIntroduce"));
+        data.tourHighlightsRaw = trimTrailingWhitespace(request.getParameter("tourHighlights"));
         data.tourIntroduce = safeTrim(data.tourIntroduceRaw);
         data.tourHighlights = safeTrim(data.tourHighlightsRaw);
         data.pickupAddress = "";
@@ -229,8 +229,8 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         for (int day = 1; day <= dayCount; day++) {
             TourItinerary itinerary = new TourItinerary();
             itinerary.setDayNumber(day);
-            String titleRaw = request.getParameter("itineraryTitle_" + day);
-            String descriptionRaw = request.getParameter("itineraryDescription_" + day);
+            String titleRaw = trimTrailingWhitespace(request.getParameter("itineraryTitle_" + day));
+            String descriptionRaw = trimTrailingWhitespace(request.getParameter("itineraryDescription_" + day));
             data.itineraryTitleRaw.put(day, titleRaw);
             data.itineraryDescriptionRaw.put(day, descriptionRaw);
             itinerary.setTitle(safeTrim(titleRaw));
@@ -770,10 +770,10 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         if (trimmedValue.length() > max) {
             errors.add(displayLabel + " không được vượt quá " + max + " ký tự.");
         }
-        if (hasLeadingOrTrailingWhitespace(rawValue)) {
-            errors.add(displayLabel + " không được bắt đầu hoặc kết thúc bằng khoảng trắng.");
+        if (hasLeadingWhitespace(rawValue)) {
+            errors.add(displayLabel + " không được bắt đầu bằng khoảng trắng.");
         }
-        if (startsWithInvalidTextCharacter(rawValue)) {
+        else if (startsWithInvalidTextCharacter(rawValue)) {
             errors.add(displayLabel + " không được bắt đầu bằng chữ số hoặc ký tự đặc biệt.");
         }
         if (rejectRepeatedSpaces && hasRepeatedWhitespace(trimmedValue)) {
@@ -823,8 +823,19 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         return label == null ? "" : label;
     }
 
-    private boolean hasLeadingOrTrailingWhitespace(String value) {
-        return value != null && !value.equals(value.trim());
+    private boolean hasLeadingWhitespace(String value) {
+        return value != null && !value.isEmpty() && Character.isWhitespace(value.charAt(0));
+    }
+
+    private String trimTrailingWhitespace(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        int end = value.length();
+        while (end > 0 && Character.isWhitespace(value.charAt(end - 1))) {
+            end--;
+        }
+        return end == value.length() ? value : value.substring(0, end);
     }
 
     private boolean startsWithInvalidTextCharacter(String value) {

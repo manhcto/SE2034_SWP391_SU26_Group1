@@ -547,10 +547,23 @@
         return /\s/.test(first) || /\d/.test(first) || !/[\p{L}]/u.test(first);
     }
 
+    function trimTrailingWhitespace(value) {
+        return String(value || '').replace(/\s+$/u, '');
+    }
+
+    function trimTourFormTrailingSpaces() {
+        if (!tourForm) return;
+        tourForm.querySelectorAll('input[type="text"], textarea').forEach(function (field) {
+            if (field.disabled || field.readOnly) return;
+            field.value = trimTrailingWhitespace(field.value);
+        });
+    }
+
     function validateCleanTextField(field, label, options) {
         if (!field || field.disabled || field.readOnly) return true;
         options = options || {};
         removeClientError(field);
+        field.value = trimTrailingWhitespace(field.value);
         const raw = field.value || '';
         const trimmed = raw.trim();
         const required = !!options.required;
@@ -564,7 +577,7 @@
             return showClientError(field, label + ' phải từ ' + min + ' đến ' + max + ' ký tự.');
         }
         if (raw !== trimmed) {
-            return showClientError(field, label + ' không được bắt đầu hoặc kết thúc bằng khoảng trắng.');
+            return showClientError(field, label + ' không được bắt đầu bằng khoảng trắng.');
         }
         if (startsWithInvalidText(raw)) {
             return showClientError(field, label + ' không được bắt đầu bằng chữ số hoặc ký tự đặc biệt.');
@@ -584,6 +597,7 @@
 
     function validateTourFormFields() {
         let valid = true;
+        trimTourFormTrailingSpaces();
         tourForm.querySelectorAll('.client-field-error').forEach(function (node) { node.remove(); });
         tourForm.querySelectorAll('.is-invalid').forEach(function (field) { field.classList.remove('is-invalid'); });
 
@@ -664,7 +678,16 @@
     }
 
     if (tourForm) {
+        tourForm.addEventListener('blur', function (event) {
+            const field = event.target;
+            if (!field || field.disabled || field.readOnly) return;
+            if (field.matches('input[type="text"], textarea')) {
+                field.value = trimTrailingWhitespace(field.value);
+            }
+        }, true);
+
         tourForm.addEventListener('submit', function (event) {
+            trimTourFormTrailingSpaces();
             syncNightLimit();
             if (!validateTourFormFields()) {
                 event.preventDefault();

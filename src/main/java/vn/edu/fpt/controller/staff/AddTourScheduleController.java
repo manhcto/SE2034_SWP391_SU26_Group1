@@ -78,7 +78,13 @@ public class AddTourScheduleController extends StaffTourScheduleSupport {
             return;
         }
 
+        boolean firstSchedule = tour.getScheduleList() == null || tour.getScheduleList().isEmpty();
         boolean success = tourDAO.insertTourSchedule(schedule);
+        if (firstSchedule) {
+            response.sendRedirect(request.getContextPath()
+                    + "/staff/tour?message=" + (success ? "scheduleAddSuccess" : "scheduleAddFail"));
+            return;
+        }
         response.sendRedirect(request.getContextPath()
                 + "/staff/tour/detail?id=" + tour.getTourID()
                 + "&message=" + (success ? "scheduleAddSuccess" : "scheduleAddFail"));

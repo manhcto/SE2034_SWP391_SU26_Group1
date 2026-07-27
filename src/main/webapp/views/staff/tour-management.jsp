@@ -84,6 +84,12 @@
         <c:if test="${messageCode == 'updateFail'}">
             <div class="alert alert-danger fw-bold">Cập nhật tour thất bại.</div>
         </c:if>
+        <c:if test="${messageCode == 'scheduleAddSuccess'}">
+            <div class="alert alert-success fw-bold">Đã lưu lịch khởi hành đầu tiên. Hãy mở chi tiết tour để kiểm tra rồi gửi Admin duyệt.</div>
+        </c:if>
+        <c:if test="${messageCode == 'scheduleAddFail'}">
+            <div class="alert alert-danger fw-bold">Lưu lịch khởi hành thất bại. Vui lòng mở tour và kiểm tra lại lịch.</div>
+        </c:if>
         <c:if test="${messageCode == 'notFound'}">
             <div class="alert alert-warning fw-bold">Không tìm thấy tour cần xử lý.</div>
         </c:if>
