@@ -98,6 +98,10 @@ public class ManageAssignmentTourController extends HttpServlet {
             return;
         }
 
+        request.setAttribute(
+                "staffAssignmentLocked",
+                isStaffLockedAssignmentStatus(assignment.getAssignmentStatus())
+        );
         request.setAttribute("assignment", assignment);
         request.getRequestDispatcher("/views/staff/assignment-view.jsp")
                 .forward(request, response);
@@ -130,10 +134,42 @@ public class ManageAssignmentTourController extends HttpServlet {
             return;
         }
 
-        if (!assignmentDAO.isConfirmedTourBookingForAssignment(bookingID)) {
+        if (!assignmentDAO.isCompletedTourBookingForAssignment(bookingID)) {
             response.sendRedirect(
                     request.getContextPath()
-                            + "/staff/assignment?action=create&error=notConfirmedBooking"
+                            + "/staff/assignment?action=create&error=notCompletedBooking"
+            );
+            return;
+        }
+
+        if (!assignmentDAO.isGuideAvailableForAssignment(guideID, 0)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=create&error=guideUnavailable"
+            );
+            return;
+        }
+
+        if (assignmentDAO.hasAssignmentForSameTourCustomer(tourScheduleID, bookingID, 0)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=create&error=duplicateCustomer"
+            );
+            return;
+        }
+
+        if (assignmentDAO.hasAssignmentForSameTourGuide(tourScheduleID, guideID, 0)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=create&error=duplicateGuide"
+            );
+            return;
+        }
+
+        if (assignmentDAO.hasOverlappingAssignmentForGuide(tourScheduleID, guideID, 0)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=create&error=guideScheduleOverlap"
             );
             return;
         }
@@ -143,8 +179,15 @@ public class ManageAssignmentTourController extends HttpServlet {
         assignment.setTourScheduleID(tourScheduleID);
         assignment.setBookingID(bookingID);
         assignment.setUserID(guideID);
+        applyScheduledCheckpoints(assignment, tourScheduleID);
 
-        assignmentDAO.addAssignment(assignment);
+        if (!assignmentDAO.addAssignment(assignment)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=create&error=insertFailed"
+            );
+            return;
+        }
 
         response.sendRedirect(request.getContextPath() + "/staff/assignment?success=insert");
     }
@@ -180,7 +223,7 @@ public class ManageAssignmentTourController extends HttpServlet {
 
         request.setAttribute("assignment", assignment);
         request.setAttribute("assignmentDetail", assignmentDetail);
-        request.setAttribute("guideList", assignmentDAO.getAllGuides());
+        request.setAttribute("guideList", assignmentDAO.getAllGuides(assignment.getAssignmentID()));
 
         request.getRequestDispatcher("/views/staff/assignment-edit.jsp")
                 .forward(request, response);
@@ -194,17 +237,77 @@ public class ManageAssignmentTourController extends HttpServlet {
         int tourScheduleID = Integer.parseInt(request.getParameter("tourScheduleID"));
         int userID = Integer.parseInt(request.getParameter("userID"));
 
-        TourAssignments assignment = buildAssignmentFromRequest(request);
+        TourAssignments existing = assignmentDAO.getAssignmentById(assignmentID);
+
+        if (existing == null) {
+            response.sendRedirect(request.getContextPath() + "/staff/assignment?error=notFound");
+            return;
+        }
+
+        if (isStaffLockedAssignmentStatus(existing.getAssignmentStatus())) {
+            response.sendRedirect(request.getContextPath() + "/staff/assignment?error=assignmentLocked");
+            return;
+        }
+
+        int bookingID = parseOptionalInt(request.getParameter("bookingID"));
+
+        if (!assignmentDAO.isGuideAvailableForAssignment(userID, assignmentID)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=edit&id=" + assignmentID + "&error=guideUnavailable"
+            );
+            return;
+        }
+
+        if (assignmentDAO.hasAssignmentForSameTourCustomer(tourScheduleID, bookingID, assignmentID)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=edit&id=" + assignmentID + "&error=duplicateCustomer"
+            );
+            return;
+        }
+
+        if (assignmentDAO.hasAssignmentForSameTourGuide(tourScheduleID, userID, assignmentID)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=edit&id=" + assignmentID + "&error=duplicateGuide"
+            );
+            return;
+        }
+
+        if (assignmentDAO.hasOverlappingAssignmentForGuide(tourScheduleID, userID, assignmentID)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=edit&id=" + assignmentID + "&error=guideScheduleOverlap"
+            );
+            return;
+        }
+
+        TourAssignments assignment = buildAssignmentFromRequest(request, existing);
 
         assignment.setAssignmentID(assignmentID);
         assignment.setTourScheduleID(tourScheduleID);
         assignment.setUserID(userID);
-        assignment.setBookingID(parseOptionalInt(request.getParameter("bookingID")));
-        assignment.setActualStartAt(parseDateTime(request.getParameter("actualStartAt")));
-        assignment.setActualEndAt(parseDateTime(request.getParameter("actualEndAt")));
-        assignment.setRejectionReason(trimToNull(request.getParameter("rejectionReason")));
+        assignment.setBookingID(bookingID);
+        assignment.setActualStartAt(existing.getActualStartAt());
+        assignment.setActualEndAt(existing.getActualEndAt());
+        assignment.setRejectionReason(existing.getRejectionReason());
 
-        assignmentDAO.updateAssignment(assignment);
+        if (isRejectedAssignmentStatus(existing.getAssignmentStatus())) {
+            assignment.setAssignmentStatus("Pending");
+            assignment.setRejectionReason(null);
+            assignment.setGuideNote(null);
+        }
+
+        applyScheduledCheckpoints(assignment, tourScheduleID);
+
+        if (!assignmentDAO.updateAssignment(assignment)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=edit&id=" + assignmentID + "&error=updateFailed"
+            );
+            return;
+        }
 
         response.sendRedirect(request.getContextPath() + "/staff/assignment?success=update");
     }
@@ -224,6 +327,103 @@ public class ManageAssignmentTourController extends HttpServlet {
         assignment.setCustomerNote(trimToNull(request.getParameter("customerNote")));
 
         return assignment;
+    }
+
+    private TourAssignments buildAssignmentFromRequest(HttpServletRequest request,
+                                                       TourAssignments existing) {
+        TourAssignments assignment = new TourAssignments();
+
+        assignment.setRoleInTour(resolveRoleInTour(request, existing));
+        assignment.setAssignedBy(existing == null ? getCurrentUserID(request) : existing.getAssignedBy());
+        assignment.setAssignmentStatus(resolveAssignmentStatus(request, existing));
+        assignment.setPriorityLevel(resolvePriorityLevel(request, existing));
+        assignment.setMeetingPoint(resolveTextField(
+                request, "meetingPoint", existing == null ? null : existing.getMeetingPoint()
+        ));
+        assignment.setPickupTime(existing == null ? null : existing.getPickupTime());
+        assignment.setCheckInDeadline(existing == null ? null : existing.getCheckInDeadline());
+        assignment.setStaffNote(resolveTextField(
+                request, "staffNote", existing == null ? null : existing.getStaffNote()
+        ));
+        assignment.setGuideNote(resolveTextField(
+                request, "guideNote", existing == null ? null : existing.getGuideNote()
+        ));
+        assignment.setCustomerNote(resolveTextField(
+                request, "customerNote", existing == null ? null : existing.getCustomerNote()
+        ));
+
+        return assignment;
+    }
+
+    private void applyScheduledCheckpoints(TourAssignments assignment, int tourScheduleID) {
+        Timestamp departureAt = assignmentDAO.getScheduleDepartureAt(tourScheduleID);
+
+        if (departureAt == null) {
+            assignment.setPickupTime(null);
+            assignment.setCheckInDeadline(null);
+            return;
+        }
+
+        LocalDateTime departureTime = departureAt.toLocalDateTime();
+        assignment.setPickupTime(Timestamp.valueOf(departureTime.minusMinutes(30)));
+        assignment.setCheckInDeadline(Timestamp.valueOf(departureTime.minusMinutes(10)));
+    }
+
+    private String resolveRoleInTour(HttpServletRequest request, TourAssignments existing) {
+        if (!hasParameter(request, "roleInTour") && existing != null) {
+            return normalizeRoleInTour(existing.getRoleInTour());
+        }
+
+        return normalizeRoleInTour(request.getParameter("roleInTour"));
+    }
+
+    private String resolveAssignmentStatus(HttpServletRequest request, TourAssignments existing) {
+        if (!hasParameter(request, "assignmentStatus") && existing != null) {
+            return normalizeAssignmentStatus(existing.getAssignmentStatus());
+        }
+
+        return normalizeAssignmentStatus(request.getParameter("assignmentStatus"));
+    }
+
+    private String resolvePriorityLevel(HttpServletRequest request, TourAssignments existing) {
+        if (!hasParameter(request, "priorityLevel") && existing != null) {
+            return normalizePriorityLevel(existing.getPriorityLevel());
+        }
+
+        return normalizePriorityLevel(request.getParameter("priorityLevel"));
+    }
+
+    private String resolveTextField(HttpServletRequest request, String parameterName, String existingValue) {
+        if (!hasParameter(request, parameterName)) {
+            return existingValue;
+        }
+
+        return trimToNull(request.getParameter(parameterName));
+    }
+
+    private boolean hasParameter(HttpServletRequest request, String parameterName) {
+        return request.getParameterMap().containsKey(parameterName);
+    }
+
+    private boolean isStaffLockedAssignmentStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+
+        return switch (status.trim()) {
+            case "Accepted", "Confirmed", "In Progress", "Completed" -> true;
+            default -> false;
+        };
+    }
+
+    private boolean isRejectedAssignmentStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+
+        String normalizedStatus = status.trim();
+        return "Rejected".equalsIgnoreCase(normalizedStatus)
+                || "Từ chối".equalsIgnoreCase(normalizedStatus);
     }
 
     private String normalizeRoleInTour(String roleInTour) {

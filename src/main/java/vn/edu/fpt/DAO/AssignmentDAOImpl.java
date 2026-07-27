@@ -22,7 +22,19 @@ import java.util.List;
 public class AssignmentDAOImpl {
 
     private static final String ASSIGNABLE_TOUR_BOOKING_STATUS_CONDITION =
-            "LTRIM(RTRIM(ISNULL(b.[status], N''))) IN (N'Confirmed', N'Đã xác nhận', N'Đã duyệt')";
+            "LTRIM(RTRIM(ISNULL(b.[status], N''))) IN (N'Completed', N'Hoàn thành', N'Confirmed', N'Đã xác nhận', N'Đã duyệt')";
+
+    private static final String ASSIGNABLE_TOUR_PAYMENT_CONDITION = """
+            EXISTS (
+                SELECT 1
+                FROM [Payment] p
+                WHERE p.bookingID = b.bookingID
+                  AND LTRIM(RTRIM(ISNULL(p.[status], N''))) IN (N'Paid', N'Completed', N'Đã thanh toán')
+            )
+            """;
+
+    private static final String CLOSED_ASSIGNMENT_STATUSES =
+            "N'Completed', N'Cancelled', N'Rejected', N'Hoàn thành', N'Đã hủy', N'Từ chối'";
 
     private static final String ASSIGNMENT_SELECT = """
         SELECT
@@ -102,6 +114,14 @@ public class AssignmentDAOImpl {
         List<AssignmentView> list = new ArrayList<>();
 
         String sql = ASSIGNMENT_SELECT + """
+            WHERE LTRIM(RTRIM(ISNULL(ta.assignmentStatus, N'Pending')))
+                      NOT IN (N'Rejected', N'Từ chối')
+               OR NOT EXISTS (
+                    SELECT 1
+                    FROM Tour_Assignments replacement
+                    WHERE replacement.bookingID = ta.bookingID
+                      AND replacement.assignmentID > ta.assignmentID
+               )
             ORDER BY ta.assignedAt DESC, ta.assignmentID DESC
             """;
 
@@ -174,41 +194,60 @@ public class AssignmentDAOImpl {
                 LTRIM(RTRIM(ISNULL(u.firstName, N'') + N' ' + ISNULL(u.lastName, N''))),
                 u.phone
             FROM [User] u
+            JOIN [Role] r
+                ON u.roleID = r.roleID
             WHERE u.userID = ?
+              AND r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
+              AND u.[status] = N'Active'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM Tour_Assignments activeAssignment
+                  WHERE activeAssignment.userID = u.userID
+                    AND LTRIM(RTRIM(ISNULL(activeAssignment.assignmentStatus, N'Pending'))) NOT IN (
+                        """ + CLOSED_ASSIGNMENT_STATUSES + """
+                    )
+              )
             """;
 
         DBConnection db = new DBConnection();
 
-        try (
-                Connection conn = db.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
-        ) {
-            int index = 1;
-            ps.setInt(index++, assignment.getTourScheduleID());
-            ps.setInt(index++, assignment.getUserID());
-            ps.setString(index++, normalize(assignment.getRoleInTour(), "Hướng dẫn viên"));
-            setNullableInt(ps, index++, assignment.getBookingID());
-            setNullableInt(ps, index++, assignment.getAssignedBy());
-            ps.setString(index++, normalize(assignment.getAssignmentStatus(), "Pending"));
-            ps.setString(index++, normalize(assignment.getPriorityLevel(), "Normal"));
-            ps.setString(index++, blankToNull(assignment.getMeetingPoint()));
-            setNullableTimestamp(ps, index++, assignment.getPickupTime());
-            setNullableTimestamp(ps, index++, assignment.getCheckInDeadline());
-            ps.setString(index++, blankToNull(assignment.getStaffNote()));
-            ps.setString(index++, blankToNull(assignment.getGuideNote()));
-            ps.setString(index++, blankToNull(assignment.getCustomerNote()));
-            ps.setInt(index, assignment.getUserID());
+        try (Connection conn = db.getConnection()) {
+            conn.setAutoCommit(false);
 
-            int affectedRows = ps.executeUpdate();
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                int index = 1;
+                ps.setInt(index++, assignment.getTourScheduleID());
+                ps.setInt(index++, assignment.getUserID());
+                ps.setString(index++, normalize(assignment.getRoleInTour(), "Hướng dẫn viên"));
+                setNullableInt(ps, index++, assignment.getBookingID());
+                setNullableInt(ps, index++, assignment.getAssignedBy());
+                ps.setString(index++, normalize(assignment.getAssignmentStatus(), "Pending"));
+                ps.setString(index++, normalize(assignment.getPriorityLevel(), "Normal"));
+                ps.setString(index++, blankToNull(assignment.getMeetingPoint()));
+                setNullableTimestamp(ps, index++, assignment.getPickupTime());
+                setNullableTimestamp(ps, index++, assignment.getCheckInDeadline());
+                ps.setString(index++, blankToNull(assignment.getStaffNote()));
+                ps.setString(index++, blankToNull(assignment.getGuideNote()));
+                ps.setString(index++, blankToNull(assignment.getCustomerNote()));
+                ps.setInt(index, assignment.getUserID());
 
-            if (affectedRows > 0) {
-                try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        updateAssignmentCode(conn, keys.getInt(1));
+                int affectedRows = ps.executeUpdate();
+
+                if (affectedRows > 0) {
+                    try (ResultSet keys = ps.getGeneratedKeys()) {
+                        if (keys.next()) {
+                            updateAssignmentCode(conn, keys.getInt(1));
+                        }
                     }
+
+                    conn.commit();
+                    return true;
                 }
 
-                return true;
+                conn.rollback();
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -243,48 +282,76 @@ public class AssignmentDAOImpl {
                 ta.confirmedAt = CASE WHEN ? = N'Confirmed' AND ta.confirmedAt IS NULL THEN GETDATE() ELSE ta.confirmedAt END,
                 ta.completedAt = CASE WHEN ? = N'Completed' AND ta.completedAt IS NULL THEN GETDATE() ELSE ta.completedAt END,
                 ta.cancelledAt = CASE WHEN ? = N'Cancelled' AND ta.cancelledAt IS NULL THEN GETDATE() ELSE ta.cancelledAt END,
-                ta.rejectedAt = CASE WHEN ? = N'Rejected' AND ta.rejectedAt IS NULL THEN GETDATE() ELSE ta.rejectedAt END,
+                ta.rejectedAt = CASE
+                    WHEN ? = N'Rejected' AND ta.rejectedAt IS NULL THEN GETDATE()
+                    WHEN ? <> N'Rejected' THEN NULL
+                    ELSE ta.rejectedAt
+                END,
                 ta.updatedAt = GETDATE()
             FROM Tour_Assignments ta
             JOIN [User] u
                 ON u.userID = ?
+            JOIN [Role] r
+                ON u.roleID = r.roleID
             WHERE ta.assignmentID = ?
+              AND r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
+              AND u.[status] = N'Active'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM Tour_Assignments activeAssignment
+                  WHERE activeAssignment.userID = u.userID
+                    AND activeAssignment.assignmentID <> ta.assignmentID
+                    AND LTRIM(RTRIM(ISNULL(activeAssignment.assignmentStatus, N'Pending'))) NOT IN (
+                        """ + CLOSED_ASSIGNMENT_STATUSES + """
+                    )
+              )
             """;
 
         DBConnection db = new DBConnection();
 
-        try (
-                Connection conn = db.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            String status = normalize(assignment.getAssignmentStatus(), "Pending");
+        try (Connection conn = db.getConnection()) {
+            conn.setAutoCommit(false);
 
-            int index = 1;
-            ps.setInt(index++, assignment.getTourScheduleID());
-            ps.setInt(index++, assignment.getUserID());
-            ps.setString(index++, normalize(assignment.getRoleInTour(), "Hướng dẫn viên"));
-            setNullableInt(ps, index++, assignment.getBookingID());
-            setNullableInt(ps, index++, assignment.getAssignedBy());
-            ps.setString(index++, status);
-            ps.setString(index++, normalize(assignment.getPriorityLevel(), "Normal"));
-            ps.setString(index++, blankToNull(assignment.getMeetingPoint()));
-            setNullableTimestamp(ps, index++, assignment.getPickupTime());
-            setNullableTimestamp(ps, index++, assignment.getCheckInDeadline());
-            setNullableTimestamp(ps, index++, assignment.getActualStartAt());
-            setNullableTimestamp(ps, index++, assignment.getActualEndAt());
-            ps.setString(index++, blankToNull(assignment.getRejectionReason()));
-            ps.setString(index++, blankToNull(assignment.getStaffNote()));
-            ps.setString(index++, blankToNull(assignment.getGuideNote()));
-            ps.setString(index++, blankToNull(assignment.getCustomerNote()));
-            ps.setString(index++, status);
-            ps.setString(index++, status);
-            ps.setString(index++, status);
-            ps.setString(index++, status);
-            ps.setString(index++, status);
-            ps.setInt(index++, assignment.getUserID());
-            ps.setInt(index, assignment.getAssignmentID());
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                String status = normalize(assignment.getAssignmentStatus(), "Pending");
 
-            return ps.executeUpdate() > 0;
+                int index = 1;
+                ps.setInt(index++, assignment.getTourScheduleID());
+                ps.setInt(index++, assignment.getUserID());
+                ps.setString(index++, normalize(assignment.getRoleInTour(), "Hướng dẫn viên"));
+                setNullableInt(ps, index++, assignment.getBookingID());
+                setNullableInt(ps, index++, assignment.getAssignedBy());
+                ps.setString(index++, status);
+                ps.setString(index++, normalize(assignment.getPriorityLevel(), "Normal"));
+                ps.setString(index++, blankToNull(assignment.getMeetingPoint()));
+                setNullableTimestamp(ps, index++, assignment.getPickupTime());
+                setNullableTimestamp(ps, index++, assignment.getCheckInDeadline());
+                setNullableTimestamp(ps, index++, assignment.getActualStartAt());
+                setNullableTimestamp(ps, index++, assignment.getActualEndAt());
+                ps.setString(index++, blankToNull(assignment.getRejectionReason()));
+                ps.setString(index++, blankToNull(assignment.getStaffNote()));
+                ps.setString(index++, blankToNull(assignment.getGuideNote()));
+                ps.setString(index++, blankToNull(assignment.getCustomerNote()));
+                ps.setString(index++, status);
+                ps.setString(index++, status);
+                ps.setString(index++, status);
+                ps.setString(index++, status);
+                ps.setString(index++, status);
+                ps.setString(index++, status);
+                ps.setInt(index++, assignment.getUserID());
+                ps.setInt(index, assignment.getAssignmentID());
+
+                if (ps.executeUpdate() <= 0) {
+                    conn.rollback();
+                    return false;
+                }
+
+                conn.commit();
+                return true;
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -429,12 +496,18 @@ public class AssignmentDAOImpl {
               AND (
                   """ + ASSIGNABLE_TOUR_BOOKING_STATUS_CONDITION + """
               )
+              AND (
+                  """ + ASSIGNABLE_TOUR_PAYMENT_CONDITION + """
+              )
               AND NOT EXISTS (
                   SELECT 1
                   FROM Tour_Assignments assignedTour
                   JOIN Booking assignedBooking
                       ON assignedTour.bookingID = assignedBooking.bookingID
                   WHERE assignedTour.tourScheduleID = bd.tourScheduleID
+                    AND LTRIM(RTRIM(ISNULL(assignedTour.assignmentStatus, N'Pending'))) NOT IN
+                        (""" + CLOSED_ASSIGNMENT_STATUSES + """
+                        )
                     AND (
                         assignedTour.bookingID = b.bookingID
                         OR (
@@ -538,6 +611,10 @@ public class AssignmentDAOImpl {
     }
 
     public List<User> getAllGuides() {
+        return getAllGuides(0);
+    }
+
+    public List<User> getAllGuides(int excludedAssignmentID) {
         List<User> list = new ArrayList<>();
 
         String sql = """
@@ -554,6 +631,15 @@ public class AssignmentDAOImpl {
                 ON u.roleID = r.roleID
             WHERE r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
               AND u.[status] = N'Active'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM Tour_Assignments activeAssignment
+                  WHERE activeAssignment.userID = u.userID
+                    AND (? <= 0 OR activeAssignment.assignmentID <> ?)
+                    AND LTRIM(RTRIM(ISNULL(activeAssignment.assignmentStatus, N'Pending'))) NOT IN (
+                        """ + CLOSED_ASSIGNMENT_STATUSES + """
+                    )
+              )
             ORDER BY u.userID DESC
             """;
 
@@ -561,26 +647,75 @@ public class AssignmentDAOImpl {
 
         try (
                 Connection conn = db.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()
+                PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-            while (rs.next()) {
-                User u = new User();
+            ps.setInt(1, excludedAssignmentID);
+            ps.setInt(2, excludedAssignmentID);
 
-                u.setUserID(rs.getInt("userID"));
-                u.setFirstName(rs.getString("firstName"));
-                u.setLastName(rs.getString("lastName"));
-                u.setEmail(rs.getString("email"));
-                u.setPhone(rs.getString("phone"));
-                u.setRoleID(rs.getInt("roleID"));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User u = new User();
 
-                list.add(u);
+                    u.setUserID(rs.getInt("userID"));
+                    u.setFirstName(rs.getString("firstName"));
+                    u.setLastName(rs.getString("lastName"));
+                    u.setEmail(rs.getString("email"));
+                    u.setPhone(rs.getString("phone"));
+                    u.setStatus(rs.getString("status"));
+                    u.setRoleID(rs.getInt("roleID"));
+
+                    list.add(u);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return list;
+    }
+
+    public boolean isGuideAvailableForAssignment(int guideID, int excludedAssignmentID) {
+        if (guideID <= 0) {
+            return false;
+        }
+
+        String sql = """
+            SELECT TOP 1 1
+            FROM [User] u
+            JOIN [Role] r
+                ON u.roleID = r.roleID
+            WHERE u.userID = ?
+              AND r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
+              AND u.[status] = N'Active'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM Tour_Assignments activeAssignment
+                  WHERE activeAssignment.userID = u.userID
+                    AND (? <= 0 OR activeAssignment.assignmentID <> ?)
+                    AND LTRIM(RTRIM(ISNULL(activeAssignment.assignmentStatus, N'Pending'))) NOT IN (
+                        """ + CLOSED_ASSIGNMENT_STATUSES + """
+                    )
+              )
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, guideID);
+            ps.setInt(2, excludedAssignmentID);
+            ps.setInt(3, excludedAssignmentID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public int getTourScheduleIDByBookingID(int bookingID) {
@@ -612,7 +747,7 @@ public class AssignmentDAOImpl {
         return -1;
     }
 
-    public boolean isConfirmedTourBookingForAssignment(int bookingID) {
+    public boolean isCompletedTourBookingForAssignment(int bookingID) {
         String sql = """
             SELECT TOP 1 1
             FROM Booking b
@@ -627,6 +762,9 @@ public class AssignmentDAOImpl {
               AND UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
               AND (
                   """ + ASSIGNABLE_TOUR_BOOKING_STATUS_CONDITION + """
+              )
+              AND (
+                  """ + ASSIGNABLE_TOUR_PAYMENT_CONDITION + """
               )
             """;
 
@@ -659,6 +797,9 @@ public class AssignmentDAOImpl {
             WHERE tourScheduleID = ?
               AND userID = ?
               AND (? <= 0 OR assignmentID <> ?)
+              AND LTRIM(RTRIM(ISNULL(assignmentStatus, N'Pending'))) NOT IN
+                  (""" + CLOSED_ASSIGNMENT_STATUSES + """
+                  )
             """;
 
         DBConnection db = new DBConnection();
@@ -696,6 +837,9 @@ public class AssignmentDAOImpl {
                 ON assignedTour.bookingID = assignedBooking.bookingID
             WHERE candidateBooking.bookingID = ?
               AND (? <= 0 OR assignedTour.assignmentID <> ?)
+              AND LTRIM(RTRIM(ISNULL(assignedTour.assignmentStatus, N'Pending'))) NOT IN
+                  (""" + CLOSED_ASSIGNMENT_STATUSES + """
+                  )
               AND (
                   assignedTour.bookingID = candidateBooking.bookingID
                   OR (
@@ -751,7 +895,8 @@ public class AssignmentDAOImpl {
                 ON assignedTour.tourScheduleID = assignedSchedule.tourScheduleID
             WHERE candidateSchedule.tourScheduleID = ?
               AND LTRIM(RTRIM(ISNULL(assignedTour.assignmentStatus, N''))) NOT IN
-                  (N'Cancelled', N'Rejected', N'Đã hủy', N'Từ chối')
+                  (""" + CLOSED_ASSIGNMENT_STATUSES + """
+                  )
               AND CONVERT(date, candidateSchedule.startDate) <=
                   CONVERT(date, ISNULL(assignedSchedule.endDate, assignedSchedule.startDate))
               AND CONVERT(date, ISNULL(candidateSchedule.endDate, candidateSchedule.startDate)) >=
@@ -784,6 +929,8 @@ public class AssignmentDAOImpl {
 
         String sql = ASSIGNMENT_SELECT + """
             WHERE ta.userID = ?
+              AND LTRIM(RTRIM(ISNULL(ta.assignmentStatus, N'Pending')))
+                  NOT IN (N'Cancelled', N'Canceled', N'Rejected', N'Đã hủy', N'Từ chối')
             ORDER BY ts.startDate ASC, ta.assignedAt DESC, ta.assignmentID DESC
             """;
 

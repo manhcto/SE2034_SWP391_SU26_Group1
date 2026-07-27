@@ -27,9 +27,9 @@
             </div>
 
             <div class="top-actions">
-                <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/staff/tour">
+                <a class="top-action-btn btn-light-action" href="${pageContext.request.contextPath}/staff/home">
                     <i class="fa-solid fa-house"></i>
-                    Quản lý tour
+                    Trang nhân viên
                 </a>
                 <a class="top-action-btn btn-primary-action" href="${pageContext.request.contextPath}/staff/assignment?action=create">
                     <i class="fa-solid fa-plus"></i>
@@ -73,11 +73,18 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'assignmentLocked'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                Phân công đã được hướng dẫn viên xác nhận hoặc đã hoàn thành, nhân viên không thể sửa/xóa.
+            </div>
+        </c:if>
+
         <section class="panel">
             <div class="panel-header">
                 <div>
                     <h2>Danh sách phân công</h2>
-                    <p>Theo dõi tour, hướng dẫn viên, lịch đón và trạng thái phân công.</p>
+                    <p>Theo dõi tour, hướng dẫn viên, lịch đón và ngày phân công.</p>
                 </div>
             </div>
 
@@ -91,8 +98,6 @@
                             <th>Tour</th>
                             <th>Hướng dẫn viên</th>
                             <th>Điểm hẹn</th>
-                            <th>Ưu tiên</th>
-                            <th>Trạng thái</th>
                             <th>Ngày phân công</th>
                             <th>Thao tác</th>
                         </tr>
@@ -100,6 +105,8 @@
 
                         <tbody>
                         <c:forEach items="${assignmentList}" var="a">
+                            <c:set var="staffAssignmentLocked" value="${a.assignmentStatus == 'Accepted' || a.assignmentStatus == 'Confirmed' || a.assignmentStatus == 'In Progress' || a.assignmentStatus == 'Completed'}"/>
+                            <c:set var="assignmentRejected" value="${a.assignmentStatus == 'Rejected' || a.assignmentStatus == 'Từ chối'}"/>
                             <tr>
                                 <td>
                                     <strong>
@@ -108,6 +115,12 @@
                                             <c:otherwise>#${a.assignmentID}</c:otherwise>
                                         </c:choose>
                                     </strong>
+                                    <c:if test="${assignmentRejected}">
+                                        <div class="text-danger small mt-1">
+                                            <i class="fa-solid fa-circle-xmark me-1"></i>
+                                            Bị từ chối
+                                        </div>
+                                    </c:if>
                                 </td>
                                 <td>
                                     <c:choose>
@@ -125,6 +138,19 @@
                                 <td>
                                     ${a.guideName}
                                     <div class="text-muted small">${a.guidePhone}</div>
+                                    <c:if test="${assignmentRejected}">
+                                        <div class="text-danger small mt-1">
+                                            <c:choose>
+                                                <c:when test="${not empty a.rejectionReason}">
+                                                    ${a.rejectionReason}
+                                                </c:when>
+                                                <c:when test="${not empty a.guideNote}">
+                                                    ${a.guideNote}
+                                                </c:when>
+                                                <c:otherwise>Hướng dẫn viên đã từ chối nhận tour.</c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </c:if>
                                 </td>
                                 <td>
                                     ${empty a.meetingPoint ? 'Chưa nhập' : a.meetingPoint}
@@ -134,35 +160,6 @@
                                         </div>
                                     </c:if>
                                 </td>
-                                <td>${a.priorityLevelLabel}</td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${a.assignmentStatus == 'Pending'}">
-                                            <span class="status-pill status-pending">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'Accepted'}">
-                                            <span class="status-pill status-checked">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'Confirmed'}">
-                                            <span class="status-pill status-assigned">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'In Progress'}">
-                                            <span class="status-pill status-progress">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'Completed'}">
-                                            <span class="status-pill status-completed">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'Cancelled'}">
-                                            <span class="status-pill status-cancelled">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:when test="${a.assignmentStatus == 'Rejected'}">
-                                            <span class="status-pill status-cancelled">${a.assignmentStatusLabel}</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="status-pill status-assigned">${a.assignmentStatusLabel}</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
                                 <td><fmt:formatDate value="${a.assignedAt}" pattern="dd/MM/yyyy HH:mm"/></td>
                                 <td>
                                     <div class="row-actions">
@@ -171,20 +168,25 @@
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
 
-                                        <a class="btn btn-sm btn-outline-warning"
-                                           href="${pageContext.request.contextPath}/staff/assignment?action=edit&id=${a.assignmentID}">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </a>
+                                        <c:if test="${!staffAssignmentLocked}">
+                                            <a class="btn btn-sm btn-outline-warning"
+                                               href="${pageContext.request.contextPath}/staff/assignment?action=edit&id=${a.assignmentID}">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </a>
 
-                                        <form method="post"
-                                              action="${pageContext.request.contextPath}/staff/assignment"
-                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa phân công này không?');">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="id" value="${a.assignmentID}">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </form>
+                                            <form method="post"
+                                                  action="${pageContext.request.contextPath}/staff/assignment"
+                                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa phân công này không?');">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="${a.assignmentID}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </c:if>
+                                        <c:if test="${staffAssignmentLocked}">
+                                            <span class="text-muted small">Đã khóa</span>
+                                        </c:if>
                                     </div>
                                 </td>
                             </tr>
@@ -192,7 +194,7 @@
 
                         <c:if test="${empty assignmentList}">
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-5">
+                                <td colspan="7" class="text-center text-muted py-5">
                                     Chưa có dữ liệu phân công tour.
                                 </td>
                             </tr>
