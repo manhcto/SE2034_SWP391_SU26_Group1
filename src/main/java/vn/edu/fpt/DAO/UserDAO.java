@@ -435,4 +435,21 @@ public class UserDAO {
     private String trimValue(String value) {
         return value == null ? "" : value.trim();
     }
+    // Khôi phục tài khoản bị xóa (chuyển trạng thái về Active)
+    public boolean restoreAccount(int userID) {
+        String sql = """
+            UPDATE [User]
+            SET status = 'Active', updateAt = GETDATE()
+            WHERE userID = ?
+            """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userID);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

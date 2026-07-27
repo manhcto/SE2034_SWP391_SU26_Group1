@@ -220,7 +220,7 @@
                                 <div class="mb-2">
                                     <span class="category-pill">
                                         <i class="fa-solid fa-newspaper"></i>
-                                        Blog WonderVN
+                                        <c:out value="${empty post.category ? 'Blog WonderVN' : post.category}"/>
                                     </span>
                                 </div>
 

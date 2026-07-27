@@ -104,19 +104,12 @@
                     </select>
                 </div>
                 <div class="col-lg-2 col-md-6">
-                    <label class="form-label fw-bold">Độ sẵn sàng</label>
-                    <select name="readiness" class="form-select">
-                        <option value="">Tất cả</option>
-                        <option value="notReady" ${selectedReadiness == 'notReady' ? 'selected' : ''}>Chưa đủ điều kiện bán</option>
-                    </select>
-                </div>
-                <div class="col-lg-2 col-md-6">
                     <label class="form-label fw-bold">Danh mục</label>
                     <select name="categoryID" class="form-select">
                         <option value="">Tất cả</option>
                         <c:forEach var="category" items="${categoryList}">
                             <option value="${category.tourCategoryID}" ${selectedCategoryID == category.tourCategoryID ? 'selected' : ''}>
-                                ${category.categoryName}
+                                    ${category.categoryName}
                             </option>
                         </c:forEach>
                     </select>
@@ -127,7 +120,7 @@
                         <option value="">Tất cả</option>
                         <c:forEach var="region" items="${regionList}">
                             <option value="${region.regionID}" ${selectedRegionID == region.regionID ? 'selected' : ''}>
-                                ${region.regionName}
+                                    ${region.regionName}
                             </option>
                         </c:forEach>
                     </select>
@@ -155,6 +148,7 @@
                         <table class="table align-middle">
                             <thead>
                             <tr>
+                                <th style="width: 72px;">STT</th>
                                 <th style="width: 126px;">Mã tour</th>
                                 <th>Tour</th>
                                 <th>Danh mục</th>
@@ -167,8 +161,9 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <c:forEach var="tour" items="${tourList}">
+                            <c:forEach var="tour" items="${tourList}" varStatus="loop">
                                 <tr>
+                                    <td class="fw-bold text-muted">${loop.count}</td>
                                     <td><span class="tour-code">${empty tour.tourCode ? 'Chưa sinh mã' : tour.tourCode}</span></td>
                                     <td>
                                         <div class="tour-name">${tour.tourName}</div>

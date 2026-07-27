@@ -3,6 +3,7 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -10,15 +11,18 @@
     <title>WonderVN | Khách sạn & Lưu trú</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 
+
     <style>
         * {
             box-sizing: border-box;
         }
+
 
         body {
             margin: 0;
@@ -27,15 +31,18 @@
             color: #0f172a;
         }
 
+
         a {
             text-decoration: none;
             color: inherit;
         }
 
+
         .page-shell {
             width: 100%;
             margin: 0 auto;
         }
+
 
         .hero {
             position: relative;
@@ -49,13 +56,16 @@
             border-bottom: 1px solid #dce5f0;
         }
 
+
         .hero::before {
             display: none;
         }
 
+
         .hero::after {
             display: none;
         }
+
 
         .hero-content {
             position: relative;
@@ -64,6 +74,7 @@
             margin: 0 auto;
             padding: 34px 0 30px;
         }
+
 
         .hero-badge {
             display: inline-flex;
@@ -79,9 +90,11 @@
             margin-bottom: 10px;
         }
 
+
         .hero-badge i {
             color: #facc15;
         }
+
 
         .hero h1 {
             margin: 0 0 8px;
@@ -94,6 +107,7 @@
             text-shadow: none;
         }
 
+
         .hero p {
             margin: 0;
             max-width: 760px;
@@ -103,6 +117,7 @@
             color: #667085;
             text-shadow: none;
         }
+
 
         .filter-panel {
             width: min(1180px, calc(100% - 40px));
@@ -117,12 +132,14 @@
             backdrop-filter: blur(18px);
         }
 
+
         .filter-form {
             display: grid;
             grid-template-columns: 1.4fr 1fr 1fr 0.9fr 0.9fr;
             gap: 16px;
             align-items: end;
         }
+
 
         .filter-form-row-2 {
             margin-top: 16px;
@@ -132,17 +149,20 @@
             align-items: end;
         }
 
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
 
+
         .form-group label {
             font-size: 14px;
             font-weight: 800;
             color: #1e293b;
         }
+
 
         .form-control {
             width: 100%;
@@ -158,10 +178,12 @@
             transition: all .2s ease;
         }
 
+
         .form-control:focus {
             border-color: #2563eb;
             box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
         }
+
 
         .required-note {
             margin-top: 12px;
@@ -170,9 +192,11 @@
             font-weight: 700;
         }
 
+
         .required-note i {
             color: #2563eb;
         }
+
 
         .search-btn {
             height: 58px;
@@ -192,10 +216,12 @@
             gap: 10px;
         }
 
+
         .search-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
         }
+
 
         .facility-strip {
             display: flex;
@@ -207,14 +233,17 @@
             scrollbar-width: thin;
         }
 
+
         .facility-strip::-webkit-scrollbar {
             height: 8px;
         }
+
 
         .facility-strip::-webkit-scrollbar-thumb {
             background: #d7deea;
             border-radius: 999px;
         }
+
 
         .facility-chip {
             flex: 0 0 auto;
@@ -232,11 +261,13 @@
             box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
         }
 
+
         .facility-chip i {
             width: 18px;
             text-align: center;
             color: #1d4ed8;
         }
+
 
         .facility-chip:hover,
         .facility-chip.active {
@@ -245,6 +276,7 @@
             color: #1d4ed8;
             transform: translateY(-1px);
         }
+
 
         .section-head {
             display: flex;
@@ -255,6 +287,7 @@
             margin: 8px auto 22px;
         }
 
+
         .section-head h2 {
             margin: 0 0 6px;
             font-size: 40px;
@@ -263,12 +296,14 @@
             letter-spacing: 0;
         }
 
+
         .section-head p {
             margin: 0;
             color: #64748b;
             font-size: 18px;
             line-height: 1.65;
         }
+
 
         .result-badge {
             background: #fff;
@@ -281,9 +316,11 @@
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
         }
 
+
         .result-badge i {
             color: #2563eb;
         }
+
 
         .selected-trip-box {
             background: #eff6ff;
@@ -300,15 +337,18 @@
             font-weight: 800;
         }
 
+
         .selected-trip-box span {
             display: inline-flex;
             align-items: center;
             gap: 7px;
         }
 
+
         .selected-trip-box i {
             color: #2563eb;
         }
+
 
         .accommodation-grid {
             display: grid;
@@ -317,6 +357,7 @@
             width: min(1180px, calc(100% - 40px));
             margin: 0 auto 44px;
         }
+
 
         .accommodation-card {
             background: #fff;
@@ -330,10 +371,12 @@
             min-height: 100%;
         }
 
+
         .accommodation-card:hover {
             transform: translateY(-6px);
             box-shadow: 0 20px 44px rgba(15, 23, 42, 0.12);
         }
+
 
         .card-media {
             position: relative;
@@ -341,6 +384,7 @@
             overflow: hidden;
             background: #e2e8f0;
         }
+
 
         .card-media img {
             width: 100%;
@@ -350,15 +394,18 @@
             transition: transform .35s ease;
         }
 
+
         .accommodation-card:hover .card-media img {
             transform: scale(1.05);
         }
+
 
         .media-overlay {
             position: absolute;
             inset: 0;
             background: linear-gradient(to top, rgba(2, 6, 23, 0.78), rgba(2, 6, 23, 0.05) 55%);
         }
+
 
         .type-badge {
             position: absolute;
@@ -377,6 +424,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.18);
         }
 
+
         .rating-badge {
             position: absolute;
             top: 18px;
@@ -394,6 +442,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.10);
         }
 
+
         .price-highlight {
             position: absolute;
             left: 22px;
@@ -401,6 +450,7 @@
             z-index: 2;
             color: #fff;
         }
+
 
         .price-highlight .price-label {
             display: block;
@@ -410,12 +460,14 @@
             opacity: .95;
         }
 
+
         .price-highlight .price-value {
             font-size: 24px;
             font-weight: 900;
             line-height: 1.15;
             text-shadow: 0 3px 12px rgba(0,0,0,0.24);
         }
+
 
         .price-highlight .price-night {
             font-size: 15px;
@@ -424,12 +476,14 @@
             opacity: .95;
         }
 
+
         .card-body {
             padding: 22px 22px 20px;
             display: flex;
             flex-direction: column;
             flex: 1;
         }
+
 
         .card-title {
             margin: 0 0 14px;
@@ -439,6 +493,7 @@
             color: #0f172a;
             min-height: 60px;
         }
+
 
         .location-primary {
             display: flex;
@@ -450,6 +505,7 @@
             margin-bottom: 8px;
         }
 
+
         .location-secondary {
             font-size: 15px;
             line-height: 1.7;
@@ -458,12 +514,14 @@
             min-height: 52px;
         }
 
+
         .meta-row {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 16px;
         }
+
 
         .meta-pill {
             display: inline-flex;
@@ -477,6 +535,7 @@
             font-weight: 800;
         }
 
+
         .facility-list {
             display: flex;
             flex-wrap: wrap;
@@ -484,6 +543,7 @@
             margin-bottom: 20px;
             min-height: 48px;
         }
+
 
         .facility-pill {
             display: inline-flex;
@@ -498,11 +558,13 @@
             font-weight: 700;
         }
 
+
         .facility-pill i,
         .facility-empty i {
             width: 18px;
             text-align: center;
         }
+
 
         .facility-empty {
             display: inline-flex;
@@ -517,11 +579,13 @@
             font-weight: 700;
         }
 
+
         .card-actions {
             margin-top: auto;
             display: flex;
             gap: 10px;
         }
+
 
         .feedback-btn {
             flex: 0 0 auto;
@@ -542,9 +606,11 @@
             transition: background .2s ease;
         }
 
+
         .feedback-btn:hover {
             background: #eff6ff;
         }
+
 
         .detail-btn {
             flex: 1;
@@ -563,11 +629,13 @@
             transition: transform .18s ease, box-shadow .18s ease;
         }
 
+
         .detail-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 18px 30px rgba(37, 99, 235, 0.24);
             color: #fff;
         }
+
 
         .empty-box {
             background: #fff;
@@ -581,11 +649,13 @@
             margin: 0 auto 40px;
         }
 
+
         .empty-box i {
             font-size: 44px;
             color: #94a3b8;
             margin-bottom: 14px;
         }
+
 
         .empty-box h3 {
             margin: 0 0 10px;
@@ -593,10 +663,12 @@
             color: #0f172a;
         }
 
+
         .empty-box p {
             margin: 0;
             font-size: 16px;
         }
+
 
         .pagination-wrap {
             display: flex;
@@ -606,6 +678,7 @@
             gap: 8px;
             margin: 32px auto 8px;
         }
+
 
         .page-link-custom {
             min-width: 42px;
@@ -622,6 +695,7 @@
             font-weight: 800;
         }
 
+
         .page-link-custom:hover,
         .page-link-custom.active {
             border-color: #2563eb;
@@ -629,11 +703,13 @@
             color: #fff;
         }
 
+
         @media (max-width: 1280px) {
             .accommodation-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
+
 
         @media (max-width: 1080px) {
             .filter-form,
@@ -641,23 +717,28 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
+
             .accommodation-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
+
             .search-btn {
                 width: 100%;
             }
+
 
             .accommodation-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
+
         @media (max-width: 768px) {
             .page-shell {
                 width: 100%;
             }
+
 
             .hero {
                 min-height: auto;
@@ -665,19 +746,23 @@
                 border-radius: 0;
             }
 
+
             .hero-content {
                 width: calc(100% - 32px);
                 padding: 28px 0 24px;
             }
+
 
             .hero h1 {
                 font-size: 36px;
                 letter-spacing: 0;
             }
 
+
             .hero p {
                 font-size: 16px;
             }
+
 
             .filter-panel {
                 width: calc(100% - 32px);
@@ -686,28 +771,34 @@
                 border-radius: 8px;
             }
 
+
             .filter-form,
             .filter-form-row-2 {
                 grid-template-columns: 1fr;
             }
+
 
             .section-head {
                 flex-direction: column;
                 align-items: flex-start;
             }
 
+
             .accommodation-grid {
                 grid-template-columns: 1fr;
                 gap: 22px;
             }
 
+
             .card-media {
                 height: 240px;
             }
 
+
             .card-title {
                 min-height: auto;
             }
+
 
             .location-secondary {
                 min-height: auto;
@@ -717,7 +808,9 @@
 </head>
 <body>
 
+
 <jsp:include page="/views/common/client-header.jsp" />
+
 
 <main class="page-shell">
     <section class="hero">
@@ -727,16 +820,20 @@
                 <span>Khám phá Việt Nam cùng WonderVN</span>
             </div>
 
+
             <h1>
                 Tìm homestay, khách sạn và resort phù hợp cho chuyến đi của bạn
             </h1>
+
 
             <p>
                 Chọn ngày nhận phòng, ngày trả phòng, số khách và số phòng để hệ thống hiển thị các nơi lưu trú phù hợp.
             </p>
 
+
         </div>
     </section>
+
 
     <section class="filter-panel" aria-label="Bộ lọc nơi lưu trú">
         <form action="${pageContext.request.contextPath}/accommodation" method="get" id="accommodationSearchForm">
@@ -751,6 +848,7 @@
                            placeholder="VD: Hạ Long, Cao Bằng, homestay view biển...">
                 </div>
 
+
                 <div class="form-group">
                     <label for="accommodationProvince">Tỉnh/thành</label>
                     <select class="form-control" id="accommodationProvince" name="province">
@@ -763,6 +861,7 @@
                         </c:forEach>
                     </select>
                 </div>
+
 
                 <div class="form-group">
                     <label for="accommodationType">Loại lưu trú</label>
@@ -778,6 +877,7 @@
                     </select>
                 </div>
 
+
                 <div class="form-group">
                     <label for="accommodationAdults">Người lớn</label>
                     <input type="number"
@@ -788,6 +888,7 @@
                            value="${empty selectedAdults ? 2 : selectedAdults}"
                            required>
                 </div>
+
 
                 <div class="form-group">
                     <label for="accommodationChildren">Trẻ em</label>
@@ -801,6 +902,7 @@
                 </div>
             </div>
 
+
             <div class="filter-form-row-2">
                 <div class="form-group">
                     <label for="checkInInput">Ngày nhận phòng</label>
@@ -812,6 +914,7 @@
                            required>
                 </div>
 
+
                 <div class="form-group">
                     <label for="checkOutInput">Ngày trả phòng</label>
                     <input type="date"
@@ -821,6 +924,7 @@
                            value="${selectedCheckOut}"
                            required>
                 </div>
+
 
                 <div class="form-group">
                     <label for="accommodationRooms">Số phòng</label>
@@ -832,6 +936,7 @@
                            value="${empty selectedRooms ? 1 : selectedRooms}"
                            required>
                 </div>
+
 
                 <div class="form-group">
                     <label for="accommodationGuests">Số khách tổng</label>
@@ -845,11 +950,13 @@
                            aria-readonly="true">
                 </div>
 
+
                 <button type="submit" class="search-btn">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     Tìm phòng
                 </button>
             </div>
+
 
             <div class="required-note">
                 <i class="fa-solid fa-circle-info"></i>
@@ -858,29 +965,34 @@
         </form>
     </section>
 
+
     <c:if test="${not empty selectedCheckIn && not empty selectedCheckOut}">
         <div class="selected-trip-box">
-            <span>
-                <i class="fa-solid fa-calendar-check"></i>
-                Nhận phòng: ${selectedCheckIn}
-            </span>
+           <span>
+               <i class="fa-solid fa-calendar-check"></i>
+               Nhận phòng: ${selectedCheckIn}
+           </span>
+
 
             <span>
-                <i class="fa-solid fa-calendar-xmark"></i>
-                Trả phòng: ${selectedCheckOut}
-            </span>
+               <i class="fa-solid fa-calendar-xmark"></i>
+               Trả phòng: ${selectedCheckOut}
+           </span>
+
 
             <span>
-                <i class="fa-solid fa-user-group"></i>
-                ${selectedAdults} người lớn, ${selectedChildren} trẻ em
-            </span>
+               <i class="fa-solid fa-user-group"></i>
+               ${selectedAdults} người lớn, ${selectedChildren} trẻ em
+           </span>
+
 
             <span>
-                <i class="fa-solid fa-bed"></i>
-                ${selectedRooms} phòng
-            </span>
+               <i class="fa-solid fa-bed"></i>
+               ${selectedRooms} phòng
+           </span>
         </div>
     </c:if>
+
 
     <c:if test="${not empty accommodationFacilityOptions}">
         <div class="facility-strip">
@@ -890,9 +1002,11 @@
                 <span>Tất cả</span>
             </a>
 
+
             <c:forEach var="facility" items="${accommodationFacilityOptions}">
                 <a class="facility-chip ${selectedFacilityId == facility.facilityID ? 'active' : ''}"
                    href="${pageContext.request.contextPath}/accommodation?keyword=${fn:escapeXml(keyword)}&province=${fn:escapeXml(selectedProvince)}&district=${fn:escapeXml(selectedDistrict)}&type=${fn:escapeXml(selectedType)}&guests=${selectedGuests}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&minRate=${selectedMinRate}&minPrice=${selectedMinPrice}&maxPrice=${selectedMaxPrice}&facilityId=${facility.facilityID}">
+
 
                     <c:choose>
                         <c:when test="${empty facility.icon}">
@@ -906,11 +1020,13 @@
                         </c:otherwise>
                     </c:choose>
 
+
                     <span><c:out value="${facility.facilityName}"/></span>
                 </a>
             </c:forEach>
         </div>
     </c:if>
+
 
     <div class="section-head">
         <div>
@@ -918,11 +1034,13 @@
             <p>Khám phá những homestay, khách sạn và resort phù hợp nhất với nhu cầu của bạn.</p>
         </div>
 
+
         <div class="result-badge">
             <i class="fa-solid fa-layer-group"></i>
             Tìm thấy <strong>${totalResults}</strong> nơi lưu trú
         </div>
     </div>
+
 
     <c:choose>
         <c:when test="${not empty accommodationList}">
@@ -934,63 +1052,87 @@
                                  alt="${fn:escapeXml(acc.name)}"
                                  onerror="this.src='https://placehold.co/900x600?text=WonderVN+Accommodation';">
 
+
                             <div class="media-overlay"></div>
+
 
                             <div class="type-badge">
                                 <i class="fa-solid fa-hotel"></i>
                                 <span><c:out value="${empty acc.displayType ? acc.type : acc.displayType}"/></span>
                             </div>
 
+
                             <div class="rating-badge">
                                 <i class="fa-solid fa-star" style="color:#facc15;"></i>
                                 <span>
-                                    <fmt:formatNumber value="${acc.averageRate}" pattern="0.0"/>
-                                    (${acc.reviewCount})
-                                </span>
+                                   <fmt:formatNumber value="${acc.averageRate}" pattern="0.0"/>
+                                   (${acc.reviewCount})
+                               </span>
                             </div>
 
+
                             <div class="price-highlight">
-                                <span class="price-label">Giá phòng từ</span>
-                                <span class="price-value">
-                                    <fmt:formatNumber value="${acc.minRoomPrice}" pattern="#,##0"/>
-                                </span>
-                                <span class="price-night">đ / đêm</span>
+                                <c:choose>
+                                    <c:when test="${not empty acc.roomList}">
+                                        <span class="price-label">Giá phòng từ</span>
+                                        <span class="price-value">
+                                           <fmt:formatNumber value="${acc.minRoomPrice}" pattern="#,##0"/>
+                                       </span>
+                                        <span class="price-night">đ / đêm</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="price-value">Chưa có phòng</span>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
 
+
                         <div class="card-body">
                             <h3 class="card-title"><c:out value="${acc.name}"/></h3>
+
 
                             <div class="location-primary">
                                 <i class="fa-solid fa-location-dot"></i>
                                 <span><c:out value="${acc.province}"/></span>
                             </div>
 
+
                             <div class="location-secondary">
                                 <c:out value="${acc.fullAddress}"/>
                             </div>
 
+
                             <div class="meta-row">
                                 <div class="meta-pill">
                                     <i class="fa-solid fa-bed"></i>
-                                    <span>${acc.totalAvailableRooms} phòng trống</span>
+                                    <span>
+                                       <c:choose>
+                                           <c:when test="${not empty acc.roomList}">
+                                               ${acc.totalAvailableRooms} phòng trống
+                                           </c:when>
+                                           <c:otherwise>Chưa cập nhật phòng</c:otherwise>
+                                       </c:choose>
+                                   </span>
                                 </div>
+
 
                                 <div class="meta-pill">
                                     <i class="fa-solid fa-clock"></i>
                                     <span>
-                                        <c:choose>
-                                            <c:when test="${not empty acc.checkInText}">
-                                                ${acc.checkInText}
-                                            </c:when>
-                                            <c:otherwise>
-                                                ${acc.checkInTime}
-                                            </c:otherwise>
-                                        </c:choose>
-                                        nhận
-                                    </span>
+                                       <c:choose>
+                                           <c:when test="${not empty acc.checkInText}">
+                                               ${acc.checkInText}
+                                           </c:when>
+                                           <c:otherwise>
+                                               ${acc.checkInTime}
+                                           </c:otherwise>
+                                       </c:choose>
+                                       nhận
+                                   </span>
                                 </div>
                             </div>
+
 
                             <div class="facility-list">
                                 <c:choose>
@@ -1010,10 +1152,12 @@
                                                         </c:otherwise>
                                                     </c:choose>
 
+
                                                     <span><c:out value="${facility.facilityName}"/></span>
                                                 </div>
                                             </c:if>
                                         </c:forEach>
+
 
                                         <c:if test="${fn:length(acc.facilityList) > 4}">
                                             <div class="facility-pill">
@@ -1023,6 +1167,7 @@
                                         </c:if>
                                     </c:when>
 
+
                                     <c:otherwise>
                                         <div class="facility-empty">
                                             <i class="fa-solid fa-circle-info"></i>
@@ -1031,6 +1176,7 @@
                                     </c:otherwise>
                                 </c:choose>
                             </div>
+
 
                             <div class="card-actions">
                                 <a class="feedback-btn"
@@ -1048,6 +1194,7 @@
                     </article>
                 </c:forEach>
             </section>
+
 
             <c:if test="${totalPages > 1}">
                 <nav class="pagination-wrap" aria-label="Phân trang nơi lưu trú">
@@ -1073,12 +1220,13 @@
                         <a class="page-link-custom${pageNumber == currentPage ? ' active' : ''}"
                            href="${pageUrl}"
                            aria-current="${pageNumber == currentPage ? 'page' : ''}">
-                            ${pageNumber}
+                                ${pageNumber}
                         </a>
                     </c:forEach>
                 </nav>
             </c:if>
         </c:when>
+
 
         <c:otherwise>
             <div class="empty-box">
@@ -1090,7 +1238,9 @@
     </c:choose>
 </main>
 
+
 <jsp:include page="/views/common/client-footer.jsp" />
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -1101,25 +1251,31 @@
         const childrenInput = form ? form.querySelector("[name='children']") : null;
         const guestsInput = form ? form.querySelector("[name='guests']") : null;
 
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
 
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, "0");
         const dd = String(today.getDate()).padStart(2, "0");
         const todayText = yyyy + "-" + mm + "-" + dd;
 
+
         if (checkInInput) {
             checkInInput.min = todayText;
         }
+
 
         if (checkOutInput) {
             checkOutInput.min = todayText;
         }
 
+
         if (checkInInput && checkOutInput) {
             checkInInput.addEventListener("change", function () {
                 checkOutInput.min = checkInInput.value;
+
 
                 if (checkOutInput.value && checkOutInput.value <= checkInInput.value) {
                     checkOutInput.value = "";
@@ -1127,30 +1283,36 @@
             });
         }
 
+
         function syncGuests() {
             if (!adultsInput || !childrenInput || !guestsInput) {
                 return;
             }
+
 
             const adults = parseInt(adultsInput.value || "0", 10);
             const children = parseInt(childrenInput.value || "0", 10);
             guestsInput.value = Math.max(1, adults + children);
         }
 
+
         if (adultsInput && childrenInput && guestsInput) {
             adultsInput.addEventListener("input", syncGuests);
             childrenInput.addEventListener("input", syncGuests);
         }
 
+
         if (form) {
             form.addEventListener("submit", function (event) {
                 syncGuests();
+
 
                 if (!checkInInput.value || !checkOutInput.value) {
                     event.preventDefault();
                     alert("Vui lòng chọn ngày nhận phòng và ngày trả phòng trước khi tìm kiếm.");
                     return;
                 }
+
 
                 if (checkOutInput.value <= checkInInput.value) {
                     event.preventDefault();
@@ -1160,6 +1322,7 @@
         }
     });
 </script>
+
 
 </body>
 </html>

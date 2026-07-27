@@ -79,6 +79,7 @@ public class PaymentDAO {
             return false;
         }
     }
+
     public boolean markPaidByBookingID(int bookingID, String transactionCode) {
         String sql = """
                 UPDATE [dbo].[Payment]
@@ -159,7 +160,7 @@ public class PaymentDAO {
         }
 
         if (payment.isPaid() && isBeforeExpiryOrUnknown(payment)) {
-            return bookingDAO.syncPendingBookingFromPaidPayment(bookingID);
+            return bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
         }
 
         if (payment.isReservationReleased()
@@ -187,7 +188,7 @@ public class PaymentDAO {
 
         Payment paidPayment = findByBookingID(bookingID);
         if (paidPayment != null && paidPayment.isPaid() && isBeforeExpiryOrUnknown(paidPayment)) {
-            return bookingDAO.syncPendingBookingFromPaidPayment(bookingID);
+            return bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
         }
 
         return false;
@@ -214,7 +215,7 @@ public class PaymentDAO {
         }
 
         for (int bookingID : findPaidBookingIDs()) {
-            bookingDAO.syncPendingBookingFromPaidPayment(bookingID);
+            bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
         }
     }
 

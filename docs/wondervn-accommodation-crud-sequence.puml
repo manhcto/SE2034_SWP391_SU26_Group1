@@ -1,0 +1,285 @@
+@startuml
+title WonderVN — UML Sequence Diagram tổng hợp CRUD Accommodation
+
+skinparam backgroundColor #F7F9FC
+skinparam shadowing false
+skinparam dpi 170
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam sequence {
+  ArrowColor #30455F
+  LifeLineBorderColor #9AA9BC
+  LifeLineBackgroundColor #FFFFFF
+  ParticipantBorderColor #30455F
+  ParticipantBackgroundColor #FFFFFF
+  GroupBorderColor #94A3B8
+  GroupBackgroundColor #EEF2FF
+  DividerBackgroundColor #DBEAFE
+  DividerBorderColor #60A5FA
+  NoteBackgroundColor #FFF7D6
+  NoteBorderColor #EAB308
+}
+
+actor Staff
+boundary Browser
+participant "StaffAuthenticationFilter /\nAdminAuthenticationFilter" as Auth
+control ManageAccommodationController as Controller
+entity AdministrativeUnitDAO as AdminUnitDAO
+entity AccommodationDAO as DAO
+database "SQL Server\nWonderVn" as DB
+boundary "accommodation-management.jsp" as ListJSP
+boundary "accommodation-detail.jsp" as DetailJSP
+
+note over Browser,Auth
+Mọi request /staff/* hoặc /admin/*:
+• Không có session user → 302 /login
+• Sai role → HTTP 403
+• Đúng role → chain.doFilter(...)
+Admin chỉ được List/Detail qua /admin/accommodation.
+POST vào endpoint Admin → HTTP 405.
+end note
+
+== 1. LIST — Danh sách nơi lưu trú ==
+
+Staff -> Browser: Mở màn quản lý lưu trú
+Browser -> Auth: GET /staff/accommodation?action=list
+Auth -> Controller: chain.doFilter(...) / doGet()
+activate Controller
+Controller -> DAO: getAllAccommodations()
+activate DAO
+DAO -> DB: SELECT Accommodation ...\nORDER BY accommodationID DESC
+alt Truy vấn thành công
+  DB --> DAO: ResultSet
+  loop Mỗi bản ghi
+    DAO -> DAO: mapAccommodation(rs)
+  end
+  DAO --> Controller: List<Accommodation>
+else SQLException
+  DB --> DAO: SQLException
+  DAO -> DAO: log lỗi
+  DAO --> Controller: empty List
+end
+deactivate DAO
+Controller -> AdminUnitDAO: getActiveUnits()
+AdminUnitDAO -> DB: SELECT Administrative_Unit\nWHERE isActive = 1
+DB --> AdminUnitDAO: Danh sách tỉnh/phường-xã
+AdminUnitDAO --> Controller: List<AdministrativeUnit>
+Controller -> Controller: setAttribute("accommodationList", list)\nsetAttribute("administrativeUnitList", units)
+Controller -> ListJSP: forward("/views/staff/accommodation-management.jsp")
+ListJSP --> Browser: HTML danh sách + modal Add/Edit
+Browser --> Staff: Hiển thị danh sách
+deactivate Controller
+
+note over Controller,ListJSP
+Controller còn nạp phòng/tiện ích để hiển thị.
+Các luồng đó được lược bỏ vì ngoài phạm vi Accommodation CRUD.
+end note
+
+== 2. VIEW DETAIL — Xem chi tiết ==
+
+Staff -> Browser: Click tên / nút xem
+Browser -> Auth: GET /staff/accommodation?action=detail&id={id}
+Auth -> Controller: chain.doFilter(...) / doGet()
+activate Controller
+Controller -> Controller: parsePositiveInt(id)
+alt id thiếu hoặc không phải số dương
+  Controller --> Browser: 302 ?action=list&status=notFound
+else id hợp lệ
+  Controller -> DAO: getAccommodationById(id)
+  activate DAO
+  DAO -> DB: SELECT Accommodation ...\nWHERE accommodationID = ?
+  alt SQLException
+    DB --> DAO: SQLException
+    DAO -> DAO: log lỗi
+    DAO --> Controller: null
+  else Không có bản ghi
+    DB --> DAO: empty ResultSet
+    DAO --> Controller: null
+  else Tìm thấy
+    DB --> DAO: ResultSet
+    DAO -> DAO: mapAccommodation(rs)
+    DAO --> Controller: Accommodation
+  end
+  deactivate DAO
+  alt accommodation == null
+    Controller --> Browser: 302 ?action=list&status=notFound
+  else Tồn tại
+    Controller -> Controller: setAttribute("accommodation", accommodation)
+    Controller -> DetailJSP: forward("/views/staff/accommodation-detail.jsp")
+    DetailJSP --> Browser: HTML chi tiết
+    Browser --> Staff: Hiển thị nơi lưu trú
+  end
+end
+deactivate Controller
+
+== 3. ADD — Thêm nơi lưu trú ==
+
+Staff -> Browser: Click "Thêm nơi lưu trú"
+Browser -> Browser: Mở modal Add trên trang danh sách\n(không có GET form riêng)
+Staff -> Browser: Nhập dữ liệu và Submit
+Browser -> Auth: POST /staff/accommodation\naction=add + fields + facilityIDs
+Auth -> Controller: chain.doFilter(...) / doPost()
+activate Controller
+Controller -> Controller: readAccommodationData(request)\nvalidateAccommodationInput(data)
+Controller -> AdminUnitDAO: isValidProvinceWard(province, ward)
+AdminUnitDAO -> DB: SELECT 1 FROM Administrative_Unit\nWHERE isActive=1 AND provinceName=? AND wardName=?
+DB --> AdminUnitDAO: Có / không có bản ghi
+AdminUnitDAO --> Controller: boolean
+
+note right of Controller
+Validation server:
+• name bắt buộc, 2–255
+• image tùy chọn, URL http(s)
+• address bắt buộc, 3–255
+• phone tùy chọn, 10–11 chữ số
+• description tối đa 1000
+• type/status thuộc whitelist
+• checkIn/Out: Time.valueOf nếu có
+• province + ward phải active
+end note
+
+alt Có lỗi validation
+  Controller -> Controller: saveErrors(errors, fieldErrors, formValues)\nvào session
+  Controller --> Browser: 302 ?action=list&status=validationFail
+  Browser --> Staff: Mở lại modal và hiển thị lỗi
+else Hợp lệ
+  Controller -> Controller: buildAccommodation(0, data)\nsetCreatedByUserID(session.user)
+  Controller -> DAO: addAccommodationWithFacilities(accommodation, facilityIDs)
+  activate DAO
+  DAO -> DB: BEGIN TRANSACTION\nINSERT INTO Accommodation (...)
+  alt INSERT/cập nhật tiện ích lỗi
+    DB --> DAO: SQLException / affected = 0
+    DAO -> DB: ROLLBACK
+    DAO --> Controller: 0
+  else Thành công
+    DB --> DAO: generated accommodationID
+    DAO -> DB: COMMIT
+    DAO --> Controller: accommodationID > 0
+  end
+  deactivate DAO
+  alt accommodationID > 0
+    Controller --> Browser: 302 ?action=list&status=addSuccess
+  else Thất bại
+    Controller --> Browser: 302 ?action=list&status=addFail
+  end
+end
+deactivate Controller
+
+note over DAO,DB
+FacilityDAO.replaceAccommodationFacilities(...) chạy cùng transaction,
+nhưng participant FacilityDAO được lược bỏ theo phạm vi.
+end note
+
+== 4. EDIT — Sửa nơi lưu trú ==
+
+Staff -> Browser: Click "Sửa"
+Browser -> Browser: Mở modal Edit với dữ liệu có sẵn\n(không có GET form riêng)
+Staff -> Browser: Chỉnh sửa và Submit
+Browser -> Auth: POST /staff/accommodation\naction=update + accommodationID + fields + facilityIDs
+Auth -> Controller: chain.doFilter(...) / doPost()
+activate Controller
+Controller -> Controller: readAccommodationData(request)\nvalidateAccommodationInput(data)\nparsePositiveInt(accommodationID)
+Controller -> AdminUnitDAO: isValidProvinceWard(province, ward)
+AdminUnitDAO -> DB: SELECT 1 FROM Administrative_Unit\nWHERE isActive=1 AND provinceName=? AND wardName=?
+DB --> AdminUnitDAO: Có / không có bản ghi
+AdminUnitDAO --> Controller: boolean
+Controller -> DAO: getAccommodationById(accommodationID)
+DAO -> DB: SELECT ... WHERE accommodationID=?
+DB --> DAO: Accommodation / null
+DAO --> Controller: Accommodation / null
+
+alt Validation lỗi, id sai hoặc không tồn tại
+  Controller -> Controller: saveErrors(...) vào session
+  Controller --> Browser: 302 ?action=list&status=validationFail
+  Browser --> Staff: Mở lại modal Edit và hiển thị lỗi
+else Hợp lệ và tồn tại
+  Controller -> Controller: buildAccommodation(accommodationID, data)
+  Controller -> DAO: updateAccommodationWithFacilities(accommodation, facilityIDs)
+  activate DAO
+  DAO -> DB: BEGIN TRANSACTION\nUPDATE Accommodation SET name=?, image=?, address=?,\nphone=?, description=?, type=?, status=?, checkInTime=?,\ncheckOutTime=?, province=?, district=?, ward=?, updatedAt=GETDATE()\nWHERE accommodationID=?
+  alt affected != 1 hoặc SQLException
+    DB --> DAO: Thất bại
+    DAO -> DB: ROLLBACK
+    DAO --> Controller: false
+  else UPDATE + tiện ích thành công
+    DB --> DAO: affected = 1
+    DAO -> DB: COMMIT
+    DAO --> Controller: true
+  end
+  deactivate DAO
+  alt true
+    Controller --> Browser: 302 ?action=list&status=updateSuccess
+  else false
+    Controller --> Browser: 302 ?action=list&status=updateFail
+  end
+end
+deactivate Controller
+
+== 5. DELETE — Xóa / ngừng hoạt động ==
+
+Staff -> Browser: Click "Xóa"
+Browser -> Staff: window.confirm("Bạn có chắc muốn xóa...")
+alt Hủy xác nhận
+  Staff -> Browser: Cancel
+  Browser -> Browser: Không gửi request
+else Xác nhận
+  Staff -> Browser: Confirm
+  Browser -> Auth: POST /staff/accommodation\naction=delete&id={accommodationID}
+  Auth -> Controller: chain.doFilter(...) / doPost()
+  activate Controller
+  Controller -> Controller: parsePositiveInt(id)
+  alt id không hợp lệ
+    Controller --> Browser: 302 ?action=list&status=deleteFail
+  else id hợp lệ
+    Controller -> DAO: getAccommodationById(id)
+    DAO -> DB: SELECT ... WHERE accommodationID=?
+    DB --> DAO: Accommodation / null
+    DAO --> Controller: Accommodation / null
+    alt Không tồn tại
+      Controller --> Browser: 302 ?action=list&status=notFound
+    else Tồn tại
+      Controller -> DAO: hasBookingReferences(id)
+      DAO -> DB: SELECT TOP 1 1 FROM Booking_Detail\nWHERE accommodationID=? OR roomID IN\n(SELECT roomID FROM Room WHERE accommodationID=?)
+      alt SQLException
+        DB --> DAO: SQLException
+        DAO --> Controller: true (fallback an toàn)
+      else Có / không có tham chiếu
+        DB --> DAO: Result
+        DAO --> Controller: boolean
+      end
+      alt Đã có booking tham chiếu
+        Controller -> DAO: deactivateAccommodation(id)
+        DAO -> DB: UPDATE Accommodation SET status=N'Unavailable',\nupdatedAt=GETDATE() WHERE accommodationID=?
+        DB --> DAO: affected count / SQLException
+        DAO --> Controller: boolean
+        alt true
+          Controller --> Browser: 302 ?action=list&status=deactivateSuccess
+        else false
+          Controller --> Browser: 302 ?action=list&status=deleteFail
+        end
+      else Chưa có booking tham chiếu
+        Controller -> DAO: deleteAccommodation(id)
+        DAO -> DB: BEGIN TRANSACTION\nDELETE FROM Accommodation WHERE accommodationID=?
+        alt affected = 1
+          DB --> DAO: Thành công
+          DAO -> DB: COMMIT
+          DAO --> Controller: true
+          Controller --> Browser: 302 ?action=list&status=deleteSuccess
+        else affected != 1 / SQLException
+          DB --> DAO: Thất bại
+          DAO -> DB: ROLLBACK
+          DAO --> Controller: false
+          Controller --> Browser: 302 ?action=list&status=deleteFail
+        end
+      end
+    end
+  end
+  deactivate Controller
+end
+
+legend left
+Đã đối chiếu servlet/filter annotations, controller, DAO, model,
+hai JSP quản lý/chi tiết và migration seed liên quan.
+endlegend
+
+@enduml

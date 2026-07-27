@@ -186,20 +186,20 @@
                     </c:if>
                 </div>
             </div>
-                <c:choose>
-                    <c:when test="${empty post.image}">
-                        <img class="hero-image"
-                             src="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"
-                             alt="WonderVN Blog">
-                    </c:when>
-                    <c:otherwise>
-                        <c:set var="heroImageUrl" value="${post.image}"/>
-                        <c:if test="${not fn:startsWith(post.image, 'http')}">
-                            <c:set var="heroImageUrl" value="${pageContext.request.contextPath}/${post.image}"/>
-                        </c:if>
-                        <img class="hero-image" src="${heroImageUrl}" alt="${post.title}">
-                    </c:otherwise>
-                </c:choose>
+            <c:choose>
+                <c:when test="${empty post.image}">
+                    <img class="hero-image"
+                         src="${pageContext.request.contextPath}/assets/images/home/hero-bana.png"
+                         alt="WonderVN Blog">
+                </c:when>
+                <c:otherwise>
+                    <c:set var="heroImageUrl" value="${post.image}"/>
+                    <c:if test="${not fn:startsWith(post.image, 'http')}">
+                        <c:set var="heroImageUrl" value="${pageContext.request.contextPath}/${post.image}"/>
+                    </c:if>
+                    <img class="hero-image" src="${heroImageUrl}" alt="${post.title}">
+                </c:otherwise>
+            </c:choose>
         </article>
 
         <div class="row g-4">

@@ -18,6 +18,14 @@ public class PayOSService {
     private static final Properties LOCAL_CONFIG = loadLocalConfig();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // =====================================================================
+    // CẤU HÌNH THÔNG TIN NGÂN HÀNG CỐ ĐỊNH (SET CỨNG)
+    // =====================================================================
+    private static final String BANK_NAME = "Ngân hàng TMCP Quân đội (MBBank)"; // Thay bằng Tên Ngân Hàng
+    private static final String ACCOUNT_NUMBER = "228315696688";                  // Thay bằng Số Tài Khoản
+    private static final String ACCOUNT_NAME = "NGUYEN LE NGOC HA";        // Thay bằng Tên Người Nhận
+    // =====================================================================
+
     public boolean isConfigured() {
         return !isBlank(getConfig("PAYOS_CLIENT_ID"))
                 && !isBlank(getConfig("PAYOS_API_KEY"))
@@ -46,12 +54,13 @@ public class PayOSService {
                     .build();
 
             var response = payOS.paymentRequests().create(paymentRequest);
+
             return PaymentResult.success(
                     response.getCheckoutUrl(),
                     response.getQrCode(),
-                    resolveBankName(response.getBin()),
-                    response.getAccountNumber(),
-                    response.getAccountName(),
+                    BANK_NAME,
+                    ACCOUNT_NUMBER,
+                    ACCOUNT_NAME,
                     response.getAmount(),
                     response.getDescription()
             );
@@ -131,13 +140,6 @@ public class PayOSService {
     private String normalizeDescription(String description) {
         String value = isBlank(description) ? "WonderVN booking" : description.trim();
         return value.length() > 25 ? value.substring(0, 25) : value;
-    }
-
-    private String resolveBankName(String bin) {
-        if ("970418".equals(bin)) {
-            return "Ngân hàng TMCP Đầu tư và Phát triển Việt Nam (BIDV)";
-        }
-        return isBlank(bin) ? "Ngân hàng nhận thanh toán" : "Ngân hàng (BIN " + bin + ")";
     }
 
     private String trimTrailingSlash(String value) {

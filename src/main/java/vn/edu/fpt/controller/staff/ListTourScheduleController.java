@@ -4,9 +4,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.model.Tour;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet(name = "ListTourScheduleController", urlPatterns = {"/staff/tour/schedule"})
 public class ListTourScheduleController extends StaffTourScheduleSupport {
@@ -16,6 +18,7 @@ public class ListTourScheduleController extends StaffTourScheduleSupport {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        attachImportFlash(request);
         Integer tourID = parsePositiveInt(request.getParameter("tourID"));
 
         if (tourID == null) {
@@ -48,5 +51,26 @@ public class ListTourScheduleController extends StaffTourScheduleSupport {
         request.setAttribute("allSchedules", false);
         request.getRequestDispatcher("/views/staff/tour-schedule-list.jsp")
                 .forward(request, response);
+    }
+
+    private void attachImportFlash(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return;
+        }
+
+        Object insertedCount = session.getAttribute("scheduleImportInsertedCount");
+        Object updatedCount = session.getAttribute("scheduleImportUpdatedCount");
+        Object errorList = session.getAttribute("scheduleImportErrors");
+
+        if (insertedCount != null || updatedCount != null || errorList != null) {
+            request.setAttribute("scheduleImportInsertedCount", insertedCount == null ? 0 : insertedCount);
+            request.setAttribute("scheduleImportUpdatedCount", updatedCount == null ? 0 : updatedCount);
+            request.setAttribute("scheduleImportErrors", errorList);
+        }
+
+        session.removeAttribute("scheduleImportInsertedCount");
+        session.removeAttribute("scheduleImportUpdatedCount");
+        session.removeAttribute("scheduleImportErrors");
     }
 }
