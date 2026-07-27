@@ -125,6 +125,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
     private String resolveTourFieldErrorKey(String error) {
         if (error == null) return null;
         String message = error.trim();
+        if (message.startsWith("Ten tour")) return "tourName";
 
         if (message.startsWith("Mã tour")) return "tourID";
         if (message.startsWith("Danh mục")) return "tourCategoryID";
@@ -141,8 +142,12 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         if (message.startsWith("Trạng thái tour")) return "status";
         if (message.startsWith("Khu vực")) return "regionID";
         if (message.startsWith("Phương tiện chính")) return "mainTransportType";
+        if (message.startsWith("Mô tả ngắn")) return "tourIntroduce";
+        if (message.startsWith("Mo ta ngan")) return "tourIntroduce";
         if (message.startsWith("Giới thiệu tour")) return "tourIntroduce";
+        if (message.startsWith("Gioi thieu tour")) return "tourIntroduce";
         if (message.startsWith("Điểm nổi bật")) return "tourHighlights";
+        if (message.startsWith("Diem noi bat")) return "tourHighlights";
         if (message.startsWith("Số dòng lịch trình")) return "itinerary";
         if (message.startsWith("Ngày xuất phát")) return "scheduleStartDate";
         if (message.startsWith("Ngày kết thúc")) return "scheduleEndDate";
@@ -161,6 +166,16 @@ public abstract class StaffTourFormSupport extends HttpServlet {
             if (detail.startsWith("ảnh")) return "itineraryImage_" + day;
         }
 
+        matcher = java.util.regex.Pattern
+                .compile("^Ngay\\s+(\\d+):\\s+(.+)$")
+                .matcher(message);
+        if (matcher.matches()) {
+            String day = matcher.group(1);
+            String detail = matcher.group(2);
+            if (detail.startsWith("tieu de")) return "itineraryTitle_" + day;
+            if (detail.startsWith("mo ta")) return "itineraryDescription_" + day;
+        }
+
         return null;
     }
 
@@ -170,7 +185,8 @@ public abstract class StaffTourFormSupport extends HttpServlet {
 
         data.tourIDRaw = request.getParameter("tourID");
         data.tourCategoryIDRaw = request.getParameter("tourCategoryID");
-        data.tourName = safeTrim(request.getParameter("tourName"));
+        data.tourNameRaw = request.getParameter("tourName");
+        data.tourName = safeTrim(data.tourNameRaw);
         data.tourType = "Package";
         data.numberOfDayRaw = request.getParameter("numberOfDay");
         data.numberOfNightsRaw = request.getParameter("numberOfNights");
@@ -178,18 +194,18 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         data.endPlace = safeTrim(request.getParameter("endPlace"));
         data.image = firstNonBlank(
                 saveImageFile(request, "coverImageFile", "Ảnh bìa", uploadErrors),
-                request.getParameter("coverImageUrl"),
                 request.getParameter("existingImage")
         );
         data.introImage = firstNonBlank(
                 saveImageFile(request, "introImageFile", "Ảnh giới thiệu", uploadErrors),
-                request.getParameter("introImageUrl"),
                 request.getParameter("existingIntroImage")
         );
         data.adultPriceRaw = request.getParameter("adultPrice");
         data.singleRoomSurchargeRaw = request.getParameter("singleRoomSurcharge");
-        data.tourIntroduce = safeTrim(request.getParameter("tourIntroduce"));
-        data.tourHighlights = safeTrim(request.getParameter("tourHighlights"));
+        data.tourIntroduceRaw = request.getParameter("tourIntroduce");
+        data.tourHighlightsRaw = request.getParameter("tourHighlights");
+        data.tourIntroduce = safeTrim(data.tourIntroduceRaw);
+        data.tourHighlights = safeTrim(data.tourHighlightsRaw);
         data.pickupAddress = "";
         data.arriveBeforeMinutesRaw = null;
         data.mainTransportType = safeTrim(request.getParameter("mainTransportType"));
@@ -213,13 +229,16 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         for (int day = 1; day <= dayCount; day++) {
             TourItinerary itinerary = new TourItinerary();
             itinerary.setDayNumber(day);
-            itinerary.setTitle(safeTrim(request.getParameter("itineraryTitle_" + day)));
-            itinerary.setDescription(safeTrim(request.getParameter("itineraryDescription_" + day)));
+            String titleRaw = request.getParameter("itineraryTitle_" + day);
+            String descriptionRaw = request.getParameter("itineraryDescription_" + day);
+            data.itineraryTitleRaw.put(day, titleRaw);
+            data.itineraryDescriptionRaw.put(day, descriptionRaw);
+            itinerary.setTitle(safeTrim(titleRaw));
+            itinerary.setDescription(safeTrim(descriptionRaw));
             itinerary.setMealPlan("");
             itinerary.setTransportNote("");
             itinerary.setImageUrl(firstNonBlank(
                     saveImageFile(request, "itineraryImageFile_" + day, "Ngày " + day + ": ảnh lịch trình", uploadErrors),
-                    request.getParameter("itineraryImageUrl_" + day),
                     request.getParameter("existingItineraryImage_" + day)
             ));
             itinerary.setStatus("Active");
@@ -243,9 +262,11 @@ public abstract class StaffTourFormSupport extends HttpServlet {
             errors.add("Danh mục tour không hợp lệ hoặc đã ngừng hoạt động.");
         }
 
-        if (isBlank(data.tourName) || data.tourName.length() < 5 || data.tourName.length() > 255) {
-            errors.add("Tên tour phải từ 5 đến 255 ký tự.");
+        if (isBlank(data.tourName) || data.tourName.length() < 5 || data.tourName.length() > 100) {
+            errors.add("Tên tour phải từ 5 đến 100 ký tự.");
         }
+
+        validateCleanTextFormat(data.tourNameRaw, data.tourName, "Ten tour", 100, true, errors);
 
         if (!isValidTourType(data.tourType)) {
             errors.add("Loại tour không hợp lệ.");
@@ -256,12 +277,22 @@ public abstract class StaffTourFormSupport extends HttpServlet {
             errors.add("Số ngày tour phải là số từ 1 đến 15.");
         }
 
+        String nightsRaw = safeTrim(data.numberOfNightsRaw);
+        boolean negativeNights = nightsRaw.startsWith("-");
         Integer numberOfNights = parseNonNegativeInt(data.numberOfNightsRaw);
-        if (numberOfNights == null || numberOfNights > 15) {
+        if (negativeNights) {
+            errors.add("Số đêm không được âm.");
+        }
+        if ((!negativeNights && numberOfNights == null) || numberOfNights != null && numberOfNights > 15) {
             errors.add("Số đêm phải là số từ 0 đến 15.");
         }
-        if (numberOfDay != null && numberOfNights != null && numberOfNights > numberOfDay) {
-            errors.add("Số đêm không được lớn hơn số ngày của tour.");
+        if (numberOfDay != null && numberOfNights != null) {
+            int expectedNights = Math.max(0, numberOfDay - 1);
+            if (numberOfNights > numberOfDay) {
+                errors.add("Số đêm không được lớn hơn số ngày của tour.");
+            } else if (numberOfNights != expectedNights) {
+                errors.add("Số đêm phải bằng số ngày trừ 1. Ví dụ tour 3 ngày thì là 2 đêm.");
+            }
         }
 
         if (isBlank(data.startPlace) || data.startPlace.length() < 2 || data.startPlace.length() > 255) {
@@ -277,11 +308,11 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         }
 
         if (!isBlank(data.image) && !isValidImagePath(data.image)) {
-            errors.add("Ảnh bìa không hợp lệ. Hãy upload ảnh hoặc dùng URL bắt đầu bằng http:// hoặc https://.");
+            errors.add("Ảnh bìa không hợp lệ. Hãy upload ảnh đúng định dạng.");
         }
 
         if (!isBlank(data.introImage) && !isValidImagePath(data.introImage)) {
-            errors.add("Ảnh giới thiệu không hợp lệ. Hãy upload ảnh hoặc dùng URL bắt đầu bằng http:// hoặc https://.");
+            errors.add("Ảnh giới thiệu không hợp lệ. Hãy upload ảnh đúng định dạng.");
         }
 
         if (!isValidStatus(data.status)) {
@@ -297,8 +328,10 @@ public abstract class StaffTourFormSupport extends HttpServlet {
             errors.add("Phương tiện chính không hợp lệ.");
         }
 
-        validateLength(data.tourIntroduce, "Giới thiệu tour", 0, 5000, errors);
+        validateLength(data.tourIntroduce, "Mô tả ngắn", 0, 5000, errors);
         validateLength(data.tourHighlights, "Điểm nổi bật của tour", 0, 5000, errors);
+        validateCleanTextFormat(data.tourIntroduceRaw, data.tourIntroduce, "Mo ta ngan", 5000, true, errors);
+        validateCleanTextFormat(data.tourHighlightsRaw, data.tourHighlights, "Diem noi bat cua tour", 5000, true, errors);
         validateLength(data.mainTransportType, "Phương tiện chính", 1, 50, errors);
 
         if (numberOfDay != null) {
@@ -307,14 +340,20 @@ public abstract class StaffTourFormSupport extends HttpServlet {
             }
 
             for (TourItinerary itinerary : data.itineraries) {
-                if (isBlank(itinerary.getTitle()) || itinerary.getTitle().length() < 2 || itinerary.getTitle().length() > 255) {
-                    errors.add("Ngày " + itinerary.getDayNumber() + ": tiêu đề lịch trình phải từ 2 đến 255 ký tự.");
+                if (isBlank(itinerary.getTitle()) || itinerary.getTitle().length() < 2 || itinerary.getTitle().length() > 200) {
+                    errors.add("Ngày " + itinerary.getDayNumber() + ": tiêu đề lịch trình phải từ 2 đến 200 ký tự.");
                 }
 
-                validateLength(itinerary.getDescription(), "Ngày " + itinerary.getDayNumber() + ": mô tả lịch trình", 0, 5000, errors);
+                validateLength(itinerary.getDescription(), "Ngày " + itinerary.getDayNumber() + ": mô tả lịch trình", 1, 500, errors);
+
+                int dayNumber = itinerary.getDayNumber();
+                validateCleanTextFormat(data.itineraryTitleRaw.get(dayNumber), itinerary.getTitle(),
+                        "Ngay " + dayNumber + ": tieu de lich trinh", 200, true, errors);
+                validateRequiredCleanText(data.itineraryDescriptionRaw.get(dayNumber), itinerary.getDescription(),
+                        "Ngay " + dayNumber + ": mo ta lich trinh", 500, false, errors);
 
                 if (!isBlank(itinerary.getImageUrl()) && !isValidImagePath(itinerary.getImageUrl())) {
-                    errors.add("Ngày " + itinerary.getDayNumber() + ": ảnh lịch trình không hợp lệ.");
+                    errors.add("Ngày " + itinerary.getDayNumber() + ": ảnh lịch trình không hợp lệ. Hãy upload ảnh đúng định dạng.");
                 }
             }
         }
@@ -384,8 +423,10 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         tour.setTourCategoryID(defaultInt(parsePositiveInt(data.tourCategoryIDRaw), 0));
         tour.setTourName(data.tourName);
         tour.setTourType(data.tourType);
-        tour.setNumberOfDay(defaultInt(parsePositiveInt(data.numberOfDayRaw), 1));
-        tour.setNumberOfNights(parseNonNegativeInt(data.numberOfNightsRaw));
+        Integer parsedDays = parsePositiveInt(data.numberOfDayRaw);
+        Integer parsedNights = parseNonNegativeInt(data.numberOfNightsRaw);
+        tour.setNumberOfDay(defaultInt(parsedDays, 1));
+        tour.setNumberOfNights(parsedNights == null && parsedDays != null ? Math.max(0, parsedDays - 1) : parsedNights);
         tour.setStartPlace(data.startPlace);
         tour.setEndPlace(data.endPlace);
         tour.setImage(data.image);
@@ -458,7 +499,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         Tour tour = new Tour();
         tour.setTourType("Package");
         tour.setNumberOfDay(dayCount);
-        tour.setNumberOfNights(0);
+        tour.setNumberOfNights(Math.max(0, dayCount - 1));
         tour.setDepositPercent(0);
         tour.setVatPercent(NO_VAT_PERCENT);
         tour.setArriveBeforeMinutes(null);
@@ -716,6 +757,88 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         }
     }
 
+    private void validateCleanTextFormat(String rawValue,
+                                         String trimmedValue,
+                                         String label,
+                                         int max,
+                                         boolean rejectRepeatedSpaces,
+                                         List<String> errors) {
+        if (isBlank(trimmedValue)) {
+            return;
+        }
+        String displayLabel = toDisplayValidationLabel(label);
+        if (trimmedValue.length() > max) {
+            errors.add(displayLabel + " không được vượt quá " + max + " ký tự.");
+        }
+        if (hasLeadingOrTrailingWhitespace(rawValue)) {
+            errors.add(displayLabel + " không được bắt đầu hoặc kết thúc bằng khoảng trắng.");
+        }
+        if (startsWithInvalidTextCharacter(rawValue)) {
+            errors.add(displayLabel + " không được bắt đầu bằng chữ số hoặc ký tự đặc biệt.");
+        }
+        if (rejectRepeatedSpaces && hasRepeatedWhitespace(trimmedValue)) {
+            errors.add(displayLabel + " không được chứa nhiều khoảng trắng liên tiếp.");
+        }
+    }
+
+    private void validateRequiredCleanText(String rawValue,
+                                           String trimmedValue,
+                                           String label,
+                                           int max,
+                                           boolean rejectRepeatedSpaces,
+                                           List<String> errors) {
+        if (isBlank(trimmedValue)) {
+            errors.add(toDisplayValidationLabel(label) + " là bắt buộc.");
+            return;
+        }
+        validateCleanTextFormat(rawValue, trimmedValue, label, max, rejectRepeatedSpaces, errors);
+    }
+
+    private String toDisplayValidationLabel(String label) {
+        if ("Ten tour".equals(label)) {
+            return "Tên tour";
+        }
+        if ("Gioi thieu tour".equals(label)) {
+            return "Giới thiệu tour";
+        }
+        if ("Mo ta ngan".equals(label)) {
+            return "Mô tả ngắn";
+        }
+        if ("Diem noi bat cua tour".equals(label)) {
+            return "Điểm nổi bật của tour";
+        }
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile("^Ngay\\s+(\\d+):\\s+(.+)$")
+                .matcher(label == null ? "" : label);
+        if (matcher.matches()) {
+            String day = matcher.group(1);
+            String detail = matcher.group(2);
+            if (detail.startsWith("tieu de")) {
+                return "Ngày " + day + ": tiêu đề lịch trình";
+            }
+            if (detail.startsWith("mo ta")) {
+                return "Ngày " + day + ": mô tả lịch trình";
+            }
+        }
+        return label == null ? "" : label;
+    }
+
+    private boolean hasLeadingOrTrailingWhitespace(String value) {
+        return value != null && !value.equals(value.trim());
+    }
+
+    private boolean startsWithInvalidTextCharacter(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        char first = value.charAt(0);
+        return Character.isWhitespace(first) || Character.isDigit(first) || !Character.isLetter(first);
+    }
+
+    private boolean hasRepeatedWhitespace(String value) {
+        return value != null && value.matches(".*\\s{2,}.*");
+    }
+
     private boolean isValidTourType(String value) {
         return "Package".equals(value);
     }
@@ -852,6 +975,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
     protected static class TourFormData {
         String tourIDRaw;
         String tourCategoryIDRaw;
+        String tourNameRaw;
         String tourName;
         String tourType;
         String numberOfDayRaw;
@@ -862,7 +986,9 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         String introImage;
         String adultPriceRaw;
         String singleRoomSurchargeRaw;
+        String tourIntroduceRaw;
         String tourIntroduce;
+        String tourHighlightsRaw;
         String tourHighlights;
         String pickupAddress;
         String arriveBeforeMinutesRaw;
@@ -878,5 +1004,7 @@ public abstract class StaffTourFormSupport extends HttpServlet {
         String maxParticipantsRaw;
         String scheduleAdultPriceRaw;
         List<TourItinerary> itineraries = new ArrayList<>();
+        Map<Integer, String> itineraryTitleRaw = new HashMap<>();
+        Map<Integer, String> itineraryDescriptionRaw = new HashMap<>();
     }
 }

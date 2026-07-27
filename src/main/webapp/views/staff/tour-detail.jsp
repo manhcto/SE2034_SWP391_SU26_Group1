@@ -21,8 +21,11 @@
         .topbar p { margin:6px 0 0; color:var(--muted); font-weight:600; }
         .btn-main { border:none; border-radius:14px; background:var(--primary); color:#fff; padding:12px 18px; font-weight:800; display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
         .btn-main:hover { background:var(--primary-dark); color:#fff; }
+        .btn-main:disabled { background:#94a3b8; cursor:not-allowed; }
         .btn-soft { border:1px solid var(--border); border-radius:14px; background:#fff; color:#334155; padding:12px 18px; font-weight:800; display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
         .btn-soft:hover { background:#f8fafc; color:#0f172a; }
+        .approval-actions { display:flex; gap:12px; flex-wrap:wrap; justify-content:flex-end; }
+        .approval-actions .btn-main,.approval-actions .btn-soft { min-height:54px; padding:14px 24px; font-size:15px; }
         .section-title { padding:20px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
         .section-title h5 { margin:0; font-weight:900; color:var(--dark); }
         .section-body { padding:22px; }
@@ -38,29 +41,28 @@
         .status-Active { background:#dcfce7; color:#166534; }
         .status-Inactive { background:#fee2e2; color:#991b1b; }
         .status-Rejected { background:#ffe4e6; color:#9f1239; }
+        .status-Open { background:#dcfce7; color:#166534; }
+        .status-Planned { background:#e0f2fe; color:#0369a1; }
+        .status-Closed { background:#fef3c7; color:#92400e; }
+        .status-Cancelled { background:#fee2e2; color:#991b1b; }
+        .status-Completed { background:#ede9fe; color:#5b21b6; }
         .day-item { border-left:4px solid var(--primary); background:#fbfdff; border-radius:14px; padding:18px; margin-bottom:14px; }
         .day-title { font-weight:900; color:var(--dark); margin-bottom:8px; }
         .day-img { width:100%; max-height:220px; object-fit:cover; border-radius:14px; border:1px solid var(--border); margin-bottom:12px; }
         .muted { color:var(--muted); }
         .policy-box { background:#f8fafc; border:1px solid var(--border); border-radius:16px; padding:16px; color:#475569; line-height:1.6; }
+        .review-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+        .review-item { border:1px solid var(--border); border-radius:14px; padding:14px 16px; background:#fbfdff; font-weight:800; color:#334155; display:flex; gap:10px; align-items:flex-start; }
+        .review-item i { color:var(--primary); margin-top:2px; }
         .table { margin-bottom:0; }
         .table thead th { background:#f8fafc; color:#475569; font-size:13px; text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--border); }
         .table td,.table th { vertical-align:middle; padding:14px 16px; }
         .icon-action { width:38px; height:38px; border-radius:12px; border:1px solid var(--border); background:#eff6ff; color:#2563eb; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
         .icon-action:hover { background:#dbeafe; color:#1d4ed8; }
-        .checklist-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-        .check-item { border:1px solid var(--border); border-radius:16px; padding:15px; display:flex; gap:12px; align-items:flex-start; background:#fff; }
-        .check-item i { width:32px; height:32px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; flex:0 0 32px; }
-        .check-item.ready { border-color:#bbf7d0; background:#f0fdf4; }
-        .check-item.ready i { background:#dcfce7; color:#166534; }
-        .check-item.missing { border-color:#fed7aa; background:#fff7ed; }
-        .check-item.missing i { background:#ffedd5; color:#c2410c; }
-        .check-item strong { display:block; color:var(--dark); }
-        .check-item small { display:block; margin-top:4px; color:var(--muted); font-weight:700; line-height:1.45; }
-        .duplicate-row,.warning-row { background:#fff7ed; }
-        .duplicate-chip,.price-warning-chip { display:inline-flex; align-items:center; gap:6px; margin-top:5px; padding:4px 7px; border-radius:999px; background:#ffedd5; color:#c2410c; font-size:11px; font-weight:900; }
+        .duplicate-row { background:#fff7ed; }
+        .duplicate-chip { display:inline-flex; align-items:center; gap:6px; margin-top:5px; padding:4px 7px; border-radius:999px; background:#ffedd5; color:#c2410c; font-size:11px; font-weight:900; }
         @media (max-width:1100px) { .info-grid{grid-template-columns:repeat(2,1fr);} }
-        @media (max-width:700px) { .admin-layout{display:block;} .admin-main{padding:18px;} .topbar{display:block;} .info-grid,.checklist-grid{grid-template-columns:1fr;} }
+        @media (max-width:700px) { .admin-layout{display:block;} .admin-main{padding:18px;} .topbar{display:block;} .info-grid,.review-grid{grid-template-columns:1fr;} .approval-actions{justify-content:flex-start;margin-top:14px;} }
     </style>
 </head>
 <body>
@@ -73,55 +75,60 @@
                 <h1>${tour.tourName}</h1>
                 <p>${empty tour.tourCode ? 'Chưa có mã tour' : tour.tourCode} · ${tour.startPlace} → ${tour.endPlace}</p>
             </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour"><i class="fa-solid fa-arrow-left"></i> Danh sách</a>
-                <c:if test="${tour.status == 'Draft' || tour.status == 'Rejected' || tour.status == 'Pending' || tour.status == 'Active'}">
-                    <a class="btn-main" href="${pageContext.request.contextPath}/staff/tour/edit?id=${tour.tourID}"><i class="fa-solid fa-pen"></i> Sửa tour</a>
-                    <a class="btn-main" href="${pageContext.request.contextPath}/staff/tour/schedule?tourID=${tour.tourID}"><i class="fa-solid fa-calendar-days"></i> Quản lý lịch</a>
-                </c:if>
-                <c:if test="${tour.status == 'Draft' || tour.status == 'Rejected'}">
-                    <form method="post" action="${pageContext.request.contextPath}/staff/tour/submit" class="d-inline">
-                        <input type="hidden" name="tourID" value="${tour.tourID}">
-                        <button class="btn-main" type="submit" ${empty readinessErrors ? '' : 'disabled'}><i class="fa-solid fa-paper-plane"></i> Gửi duyệt</button>
-                    </form>
-                </c:if>
+            <div class="approval-actions">
+                <c:choose>
+                    <c:when test="${tour.status == 'Draft' || tour.status == 'Rejected'}">
+                        <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour/schedule?tourID=${tour.tourID}"><i class="fa-solid fa-arrow-left"></i> Quay lại lịch tour</a>
+                        <form method="post" action="${pageContext.request.contextPath}/staff/tour/submit" class="d-inline submit-approval-form">
+                            <input type="hidden" name="tourID" value="${tour.tourID}">
+                            <button class="btn-main" type="submit" ${empty readinessErrors ? '' : 'disabled'}><i class="fa-solid fa-paper-plane"></i> Gửi duyệt</button>
+                        </form>
+                    </c:when>
+                    <c:otherwise>
+                        <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour"><i class="fa-solid fa-arrow-left"></i> Danh sách</a>
+                        <c:if test="${tour.status == 'Pending' || tour.status == 'Active'}">
+                            <a class="btn-main" href="${pageContext.request.contextPath}/staff/tour/edit?id=${tour.tourID}"><i class="fa-solid fa-pen"></i> Sửa tour</a>
+                        </c:if>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </section>
 
         <c:if test="${messageCode == 'addSuccess'}"><div class="alert alert-success fw-bold">Thêm tour thành công. Tour đã có lịch khởi hành đầu tiên nếu bạn nhập hợp lệ.</div></c:if>
+        <c:if test="${messageCode == 'scheduleAddSuccess'}"><div class="alert alert-success fw-bold">Đã lưu lịch khởi hành. Vui lòng kiểm tra lại tour trước khi gửi duyệt.</div></c:if>
+        <c:if test="${messageCode == 'scheduleAddFail'}"><div class="alert alert-danger fw-bold">Lưu lịch khởi hành thất bại. Vui lòng kiểm tra lại dữ liệu lịch.</div></c:if>
+        <c:if test="${messageCode == 'scheduleUpdateSuccess'}"><div class="alert alert-success fw-bold">Đã cập nhật lịch khởi hành. Vui lòng kiểm tra lại tour trước khi gửi duyệt.</div></c:if>
+        <c:if test="${messageCode == 'scheduleUpdateFail'}"><div class="alert alert-danger fw-bold">Cập nhật lịch khởi hành thất bại. Vui lòng thử lại.</div></c:if>
         <c:if test="${messageCode == 'updateSuccess'}"><div class="alert alert-success fw-bold">Cập nhật tour thành công.</div></c:if>
         <c:if test="${messageCode == 'updateFail'}"><div class="alert alert-danger fw-bold">Cập nhật tour thất bại.</div></c:if>
         <c:if test="${messageCode == 'noEditPermission'}"><div class="alert alert-warning fw-bold">Tour này không được sửa ở trạng thái hiện tại. Nháp/Bị từ chối được sửa đầy đủ; Chờ duyệt/Đang bán chỉ được bổ sung nội dung, ảnh và lịch trình.</div></c:if>
         <c:if test="${messageCode == 'submitted'}"><div class="alert alert-success fw-bold">Đã gửi tour cho Admin duyệt.</div></c:if>
-        <c:if test="${messageCode == 'submitNotReady'}"><div class="alert alert-warning fw-bold">Tour chưa đủ điều kiện gửi duyệt. Hãy bổ sung các thông tin còn thiếu bên dưới.</div></c:if>
         <c:if test="${messageCode == 'submitInvalidStatus'}"><div class="alert alert-warning fw-bold">Chỉ tour Nháp hoặc Bị từ chối mới được gửi duyệt.</div></c:if>
         <c:if test="${messageCode == 'submitFail'}"><div class="alert alert-danger fw-bold">Gửi duyệt thất bại. Vui lòng thử lại.</div></c:if>
 
-
-        <c:if test="${(tour.status == 'Draft' || tour.status == 'Rejected') && not empty readinessErrors}">
-            <div class="alert alert-warning">
-                <div class="fw-bold mb-2">Tour chưa đủ điều kiện gửi duyệt:</div>
-                <ul class="mb-0">
-                    <c:forEach var="err" items="${readinessErrors}"><li>${err}</li></c:forEach>
-                </ul>
-            </div>
-        </c:if>
-
         <c:if test="${tour.status == 'Draft' || tour.status == 'Rejected'}">
             <section class="page-card">
-                <div class="section-title"><i class="fa-solid fa-list-check text-primary"></i><h5>Checklist độ hoàn thiện trước khi gửi duyệt</h5></div>
+                <div class="section-title"><i class="fa-solid fa-clipboard-check text-primary"></i><h5>Các phần cần kiểm tra trước khi gửi duyệt</h5></div>
                 <div class="section-body">
-                    <div class="checklist-grid">
-                        <c:forEach var="item" items="${readinessChecklist}">
-                            <div class="check-item ${item.ready ? 'ready' : 'missing'}">
-                                <i class="fa-solid ${item.ready ? 'fa-check' : 'fa-triangle-exclamation'}"></i>
-                                <div>
-                                    <strong>${item.title}</strong>
-                                    <small>${item.detail}</small>
-                                </div>
-                            </div>
-                        </c:forEach>
+                    <div class="review-grid mb-3">
+                        <div class="review-item"><i class="fa-solid fa-circle-check"></i><span>Thông tin định danh: tên tour, mã tour, danh mục, khu vực, tuyến đi và thời lượng.</span></div>
+                        <div class="review-item"><i class="fa-solid fa-circle-check"></i><span>Ảnh hiển thị: ảnh bìa, ảnh giới thiệu và ảnh lịch trình từng ngày.</span></div>
+                        <div class="review-item"><i class="fa-solid fa-circle-check"></i><span>Nội dung tour: điểm nổi bật, mô tả ngắn và lịch trình theo đúng số ngày.</span></div>
+                        <div class="review-item"><i class="fa-solid fa-circle-check"></i><span>Lịch khởi hành: ngày đi/ngày về, số chỗ, giá người lớn, giá trẻ em và trạng thái lịch.</span></div>
                     </div>
+                    <c:choose>
+                        <c:when test="${empty readinessErrors}">
+                            <div class="alert alert-success fw-bold mb-0">Tour đã đủ điều kiện cơ bản. Staff kiểm tra lại nội dung hiển thị bên dưới rồi bấm Gửi duyệt.</div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="alert alert-warning mb-0">
+                                <div class="fw-bold mb-2">Cần sửa trước khi gửi duyệt:</div>
+                                <ul class="mb-0">
+                                    <c:forEach var="error" items="${readinessErrors}"><li>${error}</li></c:forEach>
+                                </ul>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </section>
         </c:if>
@@ -208,20 +215,27 @@
         <section class="page-card">
             <div class="section-title d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2"><i class="fa-solid fa-calendar-check text-primary"></i><h5>Lịch khởi hành hiện có</h5></div>
-                <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour/schedule?tourID=${tour.tourID}"><i class="fa-solid fa-list"></i> Quản lý lịch</a>
             </div>
             <c:choose>
                 <c:when test="${empty tour.scheduleList}">
-                    <div class="section-body"><p class="muted mb-0">Tour chưa có lịch khởi hành.</p></div>
+                    <div class="section-body">
+                        <p class="muted mb-3">Tour chưa có lịch khởi hành.</p>
+                        <c:if test="${tour.status != 'Inactive'}">
+                            <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour/schedule/add?tourID=${tour.tourID}">
+                                <i class="fa-solid fa-plus"></i> Thêm lịch
+                            </a>
+                        </c:if>
+                    </div>
                 </c:when>
                 <c:otherwise>
                     <div class="table-responsive">
                         <table class="table align-middle">
-                            <thead><tr><th>Ngày đi</th><th>Ngày về</th><th>Giờ đi</th><th>Số khách tối thiểu</th><th>Đã đặt/Tối đa</th><th>Giá người lớn</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                            <thead><tr><th style="width:72px;">STT</th><th>Ngày đi</th><th>Ngày về</th><th>Giờ đi</th><th>Số khách tối thiểu</th><th>Đã đặt/Tối đa</th><th>Giá người lớn</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
                             <tbody>
-                            <c:forEach var="schedule" items="${tour.scheduleList}">
+                            <c:forEach var="schedule" items="${tour.scheduleList}" varStatus="loop">
                                 <fmt:formatDate value="${schedule.startDate}" pattern="yyyy-MM-dd" var="scheduleDateKey" />
-                                <tr class="${duplicateStartDateMap[scheduleDateKey] == true ? 'duplicate-row' : ''} ${not empty schedulePriceWarningMap[schedule.tourScheduleID] ? 'warning-row' : ''}">
+                                <tr class="${duplicateStartDateMap[scheduleDateKey] == true ? 'duplicate-row' : ''}">
+                                    <td class="fw-bold text-muted">${loop.count}</td>
                                     <td>
                                         <fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy"/>
                                         <c:if test="${duplicateStartDateMap[scheduleDateKey] == true}">
@@ -237,21 +251,43 @@
                                             <c:when test="${empty schedule.adultPrice}">Chưa nhập</c:when>
                                             <c:otherwise><fmt:formatNumber value="${schedule.adultPrice}" type="number" maxFractionDigits="0"/> đ</c:otherwise>
                                         </c:choose>
-                                        <c:if test="${not empty schedulePriceWarningMap[schedule.tourScheduleID]}">
-                                            <span class="price-warning-chip" title="${schedulePriceWarningMap[schedule.tourScheduleID]}"><i class="fa-solid fa-triangle-exclamation"></i> Giá bất thường</span>
-                                        </c:if>
                                     </td>
-                                    <td>${schedule.displayScheduleStatus}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${schedule.upcomingSoon}"><span class="status-badge status-Pending">Sắp khởi hành</span></c:when>
+                                            <c:when test="${schedule.scheduleStatus == 'Open'}"><span class="status-badge status-Open">Mở bán</span></c:when>
+                                            <c:when test="${schedule.scheduleStatus == 'Closed'}"><span class="status-badge status-Closed">Đóng bán</span></c:when>
+                                            <c:when test="${schedule.scheduleStatus == 'Cancelled'}"><span class="status-badge status-Cancelled">Đã hủy</span></c:when>
+                                            <c:when test="${schedule.scheduleStatus == 'Completed'}"><span class="status-badge status-Completed">Hoàn tất</span></c:when>
+                                            <c:otherwise><span class="status-badge status-Planned">Chưa mở bán</span></c:otherwise>
+                                        </c:choose>
+                                    </td>
                                     <td><a class="icon-action" href="${pageContext.request.contextPath}/staff/tour/schedule/detail?id=${schedule.tourScheduleID}" title="Xem lịch" aria-label="Xem lịch"><i class="fa-solid fa-eye"></i></a></td>
                                 </tr>
                             </c:forEach>
                             </tbody>
                         </table>
                     </div>
+                    <div class="section-body pt-3">
+                        <c:if test="${tour.status != 'Inactive'}">
+                            <a class="btn-soft" href="${pageContext.request.contextPath}/staff/tour/schedule/add?tourID=${tour.tourID}">
+                                <i class="fa-solid fa-plus"></i> Thêm lịch
+                            </a>
+                        </c:if>
+                    </div>
                 </c:otherwise>
             </c:choose>
         </section>
     </main>
 </div>
+<script>
+document.querySelectorAll('.submit-approval-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+        if (!window.confirm('Bạn đang ở trang chi tiết tour. Bạn đã kiểm tra kỹ và chắc chắn muốn gửi Admin duyệt không?')) {
+            event.preventDefault();
+        }
+    });
+});
+</script>
 </body>
 </html>

@@ -80,7 +80,7 @@ public class AddTourScheduleController extends StaffTourScheduleSupport {
 
         boolean success = tourDAO.insertTourSchedule(schedule);
         response.sendRedirect(request.getContextPath()
-                + "/staff/tour/schedule?tourID=" + tour.getTourID()
+                + "/staff/tour/detail?id=" + tour.getTourID()
                 + "&message=" + (success ? "scheduleAddSuccess" : "scheduleAddFail"));
     }
 

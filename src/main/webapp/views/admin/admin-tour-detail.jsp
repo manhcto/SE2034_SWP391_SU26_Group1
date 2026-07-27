@@ -63,7 +63,7 @@
                     <div class="info-item"><small>Phương tiện chính</small><strong>${empty tour.mainTransportType ? '-' : tour.mainTransportType}</strong></div>
                     <div class="info-item"><small>Điểm khởi hành</small><strong>${tour.startPlace}</strong></div>
                     <div class="info-item"><small>Điểm đến</small><strong>${tour.endPlace}</strong></div>
-                    <div class="info-item"><small>Giá người lớn</small><strong><fmt:formatNumber value="${tour.adultPrice}" type="number" maxFractionDigits="0"/> đ</strong></div>
+                    <div class="info-item"><small>Giá người lớn</small><strong><c:choose><c:when test="${hasApprovalDisplayPrice}">Từ <fmt:formatNumber value="${approvalDisplayPrice}" type="number" maxFractionDigits="0"/> đ</c:when><c:otherwise>Theo lịch</c:otherwise></c:choose></strong></div>
                     <div class="info-item"><small>Lịch / Booking</small><strong>${tour.scheduleCount} lịch · ${tour.bookingCount} booking</strong></div>
                 </div>
             </div>
@@ -208,7 +208,7 @@
                                     <td><fmt:formatDate value="${schedule.startDate}" pattern="dd/MM/yyyy"/></td>
                                     <td><fmt:formatDate value="${schedule.endDate}" pattern="dd/MM/yyyy"/></td>
                                     <td>${empty schedule.scheduleTransportType ? tour.mainTransportType : schedule.scheduleTransportType}</td>
-                                    <td><fmt:formatNumber value="${empty schedule.adultPrice ? tour.adultPrice : schedule.adultPrice}" type="number" maxFractionDigits="0"/> đ</td>
+                                    <td><c:choose><c:when test="${not empty schedule.adultPrice && schedule.adultPrice > 0}"><fmt:formatNumber value="${schedule.adultPrice}" type="number" maxFractionDigits="0"/> đ</c:when><c:otherwise>Chưa nhập</c:otherwise></c:choose></td>
                                     <td>${schedule.maxParticipants}</td>
                                     <td>${schedule.quantity}</td>
                                     <td>${schedule.remainingSeats}</td>

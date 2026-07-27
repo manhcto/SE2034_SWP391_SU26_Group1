@@ -51,6 +51,11 @@
         .icon-action.schedule { color: #7c3aed; background: #f5f3ff; border-color: #ddd6fe; }
         .empty-box { padding: 44px; text-align: center; color: var(--muted); }
         .empty-box i { font-size: 42px; color: #94a3b8; margin-bottom: 12px; }
+        .pagination-bar { padding: 18px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .page-link-soft { min-width: 40px; height: 40px; padding: 0 13px; border: 1px solid #dbe3ef; border-radius: 10px; background: #fff; color: var(--dark); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-weight: 800; }
+        .page-link-soft:hover, .page-link-soft.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .page-link-soft.disabled { pointer-events: none; opacity: .45; background: #f2f4f7; }
+        .page-total { color: var(--muted); font-weight: 800; font-size: 13px; }
         @media (max-width: 992px) { .admin-layout { display: block; } .admin-main { padding: 18px; } .topbar { display: block; } }
     </style>
 </head>
@@ -109,7 +114,7 @@
                         <option value="">Tất cả</option>
                         <c:forEach var="category" items="${categoryList}">
                             <option value="${category.tourCategoryID}" ${selectedCategoryID == category.tourCategoryID ? 'selected' : ''}>
-                                    ${category.categoryName}
+                                ${category.categoryName}
                             </option>
                         </c:forEach>
                     </select>
@@ -120,7 +125,7 @@
                         <option value="">Tất cả</option>
                         <c:forEach var="region" items="${regionList}">
                             <option value="${region.regionID}" ${selectedRegionID == region.regionID ? 'selected' : ''}>
-                                    ${region.regionName}
+                                ${region.regionName}
                             </option>
                         </c:forEach>
                     </select>
@@ -154,6 +159,7 @@
                                 <th>Danh mục</th>
                                 <th>Tuyến</th>
                                 <th>Thời lượng</th>
+                                <th>Khu vực</th>
                                 <th>Lịch</th>
                                 <th>Booking</th>
                                 <th>Trạng thái</th>
@@ -163,20 +169,19 @@
                             <tbody>
                             <c:forEach var="tour" items="${tourList}" varStatus="loop">
                                 <tr>
-                                    <td class="fw-bold text-muted">${loop.count}</td>
+                                    <td class="fw-bold text-muted">${rowNumberStart + loop.index}</td>
                                     <td><span class="tour-code">${empty tour.tourCode ? 'Chưa sinh mã' : tour.tourCode}</span></td>
                                     <td>
                                         <div class="tour-name">${tour.tourName}</div>
                                     </td>
                                     <td>
                                         <div class="fw-bold">${tour.categoryName}</div>
-                                        <small class="text-muted">${empty tour.regionName ? 'Chưa chọn khu vực' : tour.regionName}</small>
                                     </td>
                                     <td>
-                                        <div>${tour.startPlace}</div>
-                                        <small class="text-muted">→ ${tour.endPlace}</small>
+                                        <div>${tour.startPlace} → ${tour.endPlace}</div>
                                     </td>
                                     <td>${tour.numberOfDay}N${tour.numberOfNights}Đ</td>
+                                    <td>${empty tour.regionName ? 'Chưa chọn' : tour.regionName}</td>
                                     <td>${tour.scheduleCount}</td>
                                     <td>${tour.bookingCount}</td>
                                     <td>
@@ -202,6 +207,20 @@
                             </tbody>
                         </table>
                     </div>
+                    <c:if test="${totalPages > 1}">
+                        <nav class="pagination-bar" aria-label="Phân trang danh sách tour">
+                            <span class="page-total">${totalTourCount} tour</span>
+                            <a class="page-link-soft ${hasPreviousPage ? '' : 'disabled'}" href="${pageContext.request.contextPath}/staff/tour?page=${previousPage}${paginationQuery}">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
+                            <c:forEach begin="1" end="${totalPages}" var="pageNo">
+                                <a class="page-link-soft ${pageNo == currentPage ? 'active' : ''}" href="${pageContext.request.contextPath}/staff/tour?page=${pageNo}${paginationQuery}">${pageNo}</a>
+                            </c:forEach>
+                            <a class="page-link-soft ${hasNextPage ? '' : 'disabled'}" href="${pageContext.request.contextPath}/staff/tour?page=${nextPage}${paginationQuery}">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </nav>
+                    </c:if>
                 </c:otherwise>
             </c:choose>
         </section>

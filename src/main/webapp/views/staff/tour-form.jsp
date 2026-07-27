@@ -43,7 +43,8 @@
         .day-pill { display:inline-flex; align-items:center; justify-content:center; min-width:78px; border-radius:999px; background:#dbeafe; color:#1d4ed8; font-weight:900; padding:7px 12px; margin-bottom:14px; }
         .hint-box { background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; border-radius:16px; padding:14px 16px; font-weight:700; }
         .preview-img { width:100%; max-height:220px; object-fit:cover; border-radius:16px; border:1px solid var(--border); background:#f8fafc; }
-        .preview-small { width:100%; height:118px; object-fit:cover; border-radius:12px; border:1px solid var(--border); background:#f8fafc; }
+        .preview-small { width:100%; height:132px; object-fit:cover; border-radius:12px; border:1px solid var(--border); background:#f8fafc; }
+        .image-input { width:100%; }
         .muted { color:var(--muted); }
         .table thead th { background:#f8fafc; color:#475569; font-size:13px; text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--border); }
         .table td,.table th { vertical-align:middle; padding:14px 16px; }
@@ -126,29 +127,11 @@
                     <div class="form-block mb-3">
                         <div class="form-block-title"><i class="fa-solid fa-file-lines"></i>Thông tin định danh</div>
                         <div class="row g-3">
-                        <div class="col-lg-6 col-md-12">
+                        <div class="col-lg-5 col-md-12">
                             <label class="form-label">Tên tour <span class="text-danger">*</span></label>
-                            <input type="text" name="tourName" class="form-control ${activeTourContentOnly ? 'locked' : ''} ${not empty fieldErrors.tourName ? 'is-invalid' : ''}" value="${tour.tourName}" required maxlength="255" minlength="5" placeholder="Ví dụ: Đà Nẵng - Hội An - Bà Nà 3N2Đ" ${activeTourContentOnly ? 'readonly' : ''}>
+                            <input type="text" name="tourName" class="form-control ${activeTourContentOnly ? 'locked' : ''} ${not empty fieldErrors.tourName ? 'is-invalid' : ''}" value="${tour.tourName}" required maxlength="100" minlength="5" placeholder="Ví dụ: Đà Nẵng - Hội An - Bà Nà 3N2Đ" ${activeTourContentOnly ? 'readonly' : ''}>
                             <c:if test="${not empty fieldErrors.tourName}"><div class="field-error">${fieldErrors.tourName}</div></c:if>
                         </div>
-                        <div class="col-lg-3 col-md-6">
-                            <label class="form-label">Mã tour</label>
-                            <input type="text" class="form-control" value="${empty tour.tourCode ? nextTourCode : tour.tourCode}" readonly>
-                            <div class="form-text">Mã dự kiến sẽ được kiểm tra lại khi lưu để tránh trùng.</div>
-                        </div>
-
-                        <div class="col-lg-3 col-md-6">
-                            <label class="form-label">Khu vực <span class="text-danger">*</span></label>
-                            <c:if test="${routeAndScheduleInfoLocked}"><input type="hidden" name="regionID" value="${tour.regionID}"></c:if>
-                            <select name="${routeAndScheduleInfoLocked ? 'regionIDDisplay' : 'regionID'}" id="regionSelect" class="form-select ${not empty fieldErrors.regionID ? 'is-invalid' : ''}" required ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
-                                <option value="">-- Chọn khu vực --</option>
-                                <c:forEach var="region" items="${regionList}">
-                                    <option value="${region.regionID}" data-name="${region.regionName}" ${tour.regionID == region.regionID ? 'selected' : ''}>${region.regionName}</option>
-                                </c:forEach>
-                            </select>
-                            <c:if test="${not empty fieldErrors.regionID}"><div class="field-error">${fieldErrors.regionID}</div></c:if>
-                        </div>
-
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label">Danh mục <span class="text-danger">*</span></label>
                             <c:if test="${activeTourContentOnly}"><input type="hidden" name="tourCategoryID" value="${tour.tourCategoryID}"></c:if>
@@ -160,10 +143,14 @@
                             </select>
                             <c:if test="${not empty fieldErrors.tourCategoryID}"><div class="field-error">${fieldErrors.tourCategoryID}</div></c:if>
                         </div>
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Mã tour</label>
+                            <input type="text" class="form-control" value="${empty tour.tourCode ? nextTourCode : tour.tourCode}" readonly>
+                        </div>
+
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label">Ảnh bìa tour</label>
                             <input type="file" name="coverImageFile" class="form-control image-input ${not empty fieldErrors.coverImage ? 'is-invalid' : ''}" accept="image/*" data-preview="coverPreview">
-                            <input type="url" name="coverImageUrl" class="form-control mt-2 image-url-input ${not empty fieldErrors.coverImage ? 'is-invalid' : ''}" data-preview="coverPreview" placeholder="Hoặc dán URL ảnh bìa https://...">
                             <c:if test="${not empty fieldErrors.coverImage}"><div class="field-error">${fieldErrors.coverImage}</div></c:if>
                         </div>
                         <div class="col-lg-3 col-md-6">
@@ -182,7 +169,6 @@
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label">Ảnh giới thiệu</label>
                             <input type="file" name="introImageFile" class="form-control image-input ${not empty fieldErrors.introImage ? 'is-invalid' : ''}" accept="image/*" data-preview="introPreview">
-                            <input type="url" name="introImageUrl" class="form-control mt-2 image-url-input ${not empty fieldErrors.introImage ? 'is-invalid' : ''}" data-preview="introPreview" placeholder="Hoặc dán URL ảnh giới thiệu https://...">
                             <c:if test="${not empty fieldErrors.introImage}"><div class="field-error">${fieldErrors.introImage}</div></c:if>
                         </div>
                         <div class="col-lg-3 col-md-6">
@@ -217,7 +203,7 @@
                         </div>
                         <div class="col-lg-4 col-md-6">
                             <label class="form-label">Số đêm <span class="text-danger">*</span></label>
-                            <input type="number" name="numberOfNights" id="numberOfNights" min="0" max="15" class="form-control ${not empty fieldErrors.numberOfNights ? 'is-invalid' : ''}" value="${empty tour.numberOfNights ? 0 : tour.numberOfNights}" required ${routeAndScheduleInfoLocked ? 'readonly' : ''} placeholder="Ví dụ: 2">
+                            <input type="number" name="numberOfNights" id="numberOfNights" min="0" max="14" class="form-control locked ${not empty fieldErrors.numberOfNights ? 'is-invalid' : ''}" value="${empty tour.numberOfNights ? 0 : tour.numberOfNights}" required readonly placeholder="Tự tính theo số ngày">
                             <c:if test="${not empty fieldErrors.numberOfNights}"><div class="field-error">${fieldErrors.numberOfNights}</div></c:if>
                         </div>
                         <div class="col-lg-4 col-md-12 d-flex align-items-end">
@@ -225,6 +211,18 @@
                                 <input class="form-check-input" type="checkbox" name="featured" value="true" id="featured" ${tour.featured ? 'checked' : ''} ${activeTourContentOnly ? 'disabled' : ''}>
                                 <label class="form-check-label" for="featured">Tour nổi bật</label>
                             </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Khu vực <span class="text-danger">*</span></label>
+                            <c:if test="${routeAndScheduleInfoLocked}"><input type="hidden" name="regionID" value="${tour.regionID}"></c:if>
+                            <select name="${routeAndScheduleInfoLocked ? 'regionIDDisplay' : 'regionID'}" id="regionSelect" class="form-select ${not empty fieldErrors.regionID ? 'is-invalid' : ''}" required ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
+                                <option value="">-- Chọn khu vực --</option>
+                                <c:forEach var="region" items="${regionList}">
+                                    <option value="${region.regionID}" data-name="${region.regionName}" ${tour.regionID == region.regionID ? 'selected' : ''}>${region.regionName}</option>
+                                </c:forEach>
+                            </select>
+                            <c:if test="${not empty fieldErrors.regionID}"><div class="field-error">${fieldErrors.regionID}</div></c:if>
                         </div>
 
                         <div class="col-lg-6 col-md-12">
@@ -281,20 +279,19 @@
                                 <div class="col-md-8">
                                     <label class="form-label">Tiêu đề ngày ${day} <span class="text-danger">*</span></label>
                                     <c:set var="titleErrorKey" value="itineraryTitle_${day}" />
-                                    <input type="text" name="itineraryTitle_${day}" class="form-control itinerary-title ${activeTourContentOnly ? 'locked' : ''} ${not empty fieldErrors[titleErrorKey] ? 'is-invalid' : ''}" value="${itinerary.title}" required maxlength="255" ${activeTourContentOnly ? 'readonly' : ''}>
+                                    <input type="text" name="itineraryTitle_${day}" class="form-control itinerary-title ${activeTourContentOnly ? 'locked' : ''} ${not empty fieldErrors[titleErrorKey] ? 'is-invalid' : ''}" value="${itinerary.title}" required maxlength="200" ${activeTourContentOnly ? 'readonly' : ''}>
                                     <c:if test="${not empty fieldErrors[titleErrorKey]}"><div class="field-error">${fieldErrors[titleErrorKey]}</div></c:if>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Ảnh mô tả ngày ${day}</label>
                                     <c:set var="imageErrorKey" value="itineraryImage_${day}" />
                                     <input type="file" name="itineraryImageFile_${day}" class="form-control image-input ${not empty fieldErrors[imageErrorKey] ? 'is-invalid' : ''}" accept="image/*" data-preview="itineraryPreview_${day}">
-                                    <input type="url" name="itineraryImageUrl_${day}" class="form-control mt-2 image-url-input ${not empty fieldErrors[imageErrorKey] ? 'is-invalid' : ''}" data-preview="itineraryPreview_${day}" placeholder="Hoặc URL ảnh https://...">
                                     <c:if test="${not empty fieldErrors[imageErrorKey]}"><div class="field-error">${fieldErrors[imageErrorKey]}</div></c:if>
                                 </div>
                                 <div class="col-md-8">
                                     <label class="form-label">Mô tả lịch trình ngày ${day}</label>
                                     <c:set var="descriptionErrorKey" value="itineraryDescription_${day}" />
-                                    <textarea name="itineraryDescription_${day}" class="form-control itinerary-description ${activeTourContentOnly ? 'locked' : ''} ${not empty fieldErrors[descriptionErrorKey] ? 'is-invalid' : ''}" maxlength="5000" placeholder="Mô tả hoạt động chính, thời gian, điểm tham quan, ăn uống, lưu trú nếu có..." ${activeTourContentOnly ? 'readonly' : ''}>${itinerary.description}</textarea>
+                                    <textarea name="itineraryDescription_${day}" class="form-control itinerary-description ${activeTourContentOnly ? 'locked' : ''} ${not empty fieldErrors[descriptionErrorKey] ? 'is-invalid' : ''}" maxlength="500" required placeholder="Mô tả hoạt động chính, thời gian, điểm tham quan, ăn uống, lưu trú nếu có..." ${activeTourContentOnly ? 'readonly' : ''}>${itinerary.description}</textarea>
                                     <c:if test="${not empty fieldErrors[descriptionErrorKey]}"><div class="field-error">${fieldErrors[descriptionErrorKey]}</div></c:if>
                                 </div>
                                 <div class="col-md-4">
@@ -432,12 +429,6 @@
             };
         });
 
-        (scope || document).querySelectorAll('.image-url-input').forEach(function (input) {
-            input.onchange = function () {
-                const preview = document.getElementById(input.getAttribute('data-preview'));
-                if (preview && input.value.trim()) preview.src = input.value.trim();
-            };
-        });
     }
 
     function escapeHtml(value) {
@@ -465,13 +456,11 @@
             if (!day) return;
             const title = card.querySelector('[name="itineraryTitle_' + day + '"]');
             const description = card.querySelector('[name="itineraryDescription_' + day + '"]');
-            const imageUrl = card.querySelector('[name="itineraryImageUrl_' + day + '"]');
             const existingImage = card.querySelector('[name="existingItineraryImage_' + day + '"]');
             const preview = document.getElementById('itineraryPreview_' + day);
             result[day] = {
                 title: title ? title.value : '',
                 description: description ? description.value : '',
-                imageUrl: imageUrl ? imageUrl.value : '',
                 existingImage: existingImage ? existingImage.value : '',
                 previewSrc: preview ? (preview.getAttribute('src') || '') : ''
             };
@@ -489,16 +478,15 @@
             '<div class="row g-3">' +
             '<div class="col-md-8">' +
             '<label class="form-label">Tiêu đề ngày ' + day + ' <span class="text-danger">*</span></label>' +
-            '<input type="text" name="itineraryTitle_' + day + '" class="form-control itinerary-title" value="' + escapeHtml(data.title || '') + '" required maxlength="255">' +
+            '<input type="text" name="itineraryTitle_' + day + '" class="form-control itinerary-title" value="' + escapeHtml(data.title || '') + '" required maxlength="200">' +
             '</div>' +
             '<div class="col-md-4">' +
             '<label class="form-label">Ảnh mô tả ngày ' + day + '</label>' +
             '<input type="file" name="itineraryImageFile_' + day + '" class="form-control image-input" accept="image/*" data-preview="itineraryPreview_' + day + '">' +
-            '<input type="url" name="itineraryImageUrl_' + day + '" class="form-control mt-2 image-url-input" data-preview="itineraryPreview_' + day + '" value="' + escapeHtml(data.imageUrl || '') + '" placeholder="Hoặc URL ảnh https://...">' +
             '</div>' +
             '<div class="col-md-8">' +
             '<label class="form-label">Mô tả lịch trình ngày ' + day + '</label>' +
-            '<textarea name="itineraryDescription_' + day + '" class="form-control itinerary-description" maxlength="5000" placeholder="Mô tả hoạt động chính, thời gian, điểm tham quan, ăn uống, lưu trú nếu có...">' + escapeHtml(data.description || '') + '</textarea>' +
+            '<textarea name="itineraryDescription_' + day + '" class="form-control itinerary-description" maxlength="500" required placeholder="Mô tả hoạt động chính, thời gian, điểm tham quan, ăn uống, lưu trú nếu có...">' + escapeHtml(data.description || '') + '</textarea>' +
             '</div>' +
             '<div class="col-md-4">' +
             '<label class="form-label">Xem trước ảnh ngày ' + day + '</label>' +
@@ -526,15 +514,129 @@
         }
     }
 
+    function getErrorAnchor(field) {
+        if (!field) return null;
+        return field._customSelect ? field._customSelect.wrapper : (field.closest('.input-group') || field);
+    }
+
+    function removeClientError(field) {
+        if (!field) return;
+        field.classList.remove('is-invalid');
+        const holder = getErrorAnchor(field);
+        const next = holder.nextElementSibling;
+        if (next && next.classList && next.classList.contains('client-field-error')) {
+            next.remove();
+        }
+    }
+
+    function showClientError(field, message) {
+        if (!field || !message) return false;
+        removeClientError(field);
+        field.classList.add('is-invalid');
+        const holder = getErrorAnchor(field);
+        const error = document.createElement('div');
+        error.className = 'field-error client-field-error';
+        error.textContent = message;
+        holder.insertAdjacentElement('afterend', error);
+        return false;
+    }
+
+    function startsWithInvalidText(value) {
+        if (!value) return false;
+        const first = value.charAt(0);
+        return /\s/.test(first) || /\d/.test(first) || !/[\p{L}]/u.test(first);
+    }
+
+    function validateCleanTextField(field, label, options) {
+        if (!field || field.disabled || field.readOnly) return true;
+        options = options || {};
+        removeClientError(field);
+        const raw = field.value || '';
+        const trimmed = raw.trim();
+        const required = !!options.required;
+        const min = options.min || 0;
+        const max = options.max || Number(field.getAttribute('maxlength') || 5000);
+        const rejectRepeatedSpaces = options.rejectRepeatedSpaces !== false;
+
+        if (required && !trimmed) return showClientError(field, label + ' là bắt buộc.');
+        if (!trimmed) return true;
+        if (trimmed.length < min || trimmed.length > max) {
+            return showClientError(field, label + ' phải từ ' + min + ' đến ' + max + ' ký tự.');
+        }
+        if (raw !== trimmed) {
+            return showClientError(field, label + ' không được bắt đầu hoặc kết thúc bằng khoảng trắng.');
+        }
+        if (startsWithInvalidText(raw)) {
+            return showClientError(field, label + ' không được bắt đầu bằng chữ số hoặc ký tự đặc biệt.');
+        }
+        if (rejectRepeatedSpaces && /\s{2,}/.test(trimmed)) {
+            return showClientError(field, label + ' không được chứa nhiều khoảng trắng liên tiếp.');
+        }
+        return true;
+    }
+
+    function validateRequiredSelect(select, label) {
+        if (!select || select.disabled) return true;
+        removeClientError(select);
+        if (!select.value) return showClientError(select, label + ' là bắt buộc.');
+        return true;
+    }
+
+    function validateTourFormFields() {
+        let valid = true;
+        tourForm.querySelectorAll('.client-field-error').forEach(function (node) { node.remove(); });
+        tourForm.querySelectorAll('.is-invalid').forEach(function (field) { field.classList.remove('is-invalid'); });
+
+        valid = validateCleanTextField(tourForm.querySelector('[name="tourName"]'), 'Tên tour', { required: true, min: 5, max: 100 }) && valid;
+        valid = validateCleanTextField(tourForm.querySelector('[name="tourIntroduce"]'), 'Mô tả ngắn', { max: 5000 }) && valid;
+        valid = validateCleanTextField(tourForm.querySelector('[name="tourHighlights"]'), 'Điểm nổi bật của tour', { max: 5000 }) && valid;
+
+        const days = parseInt(numberOfDay ? numberOfDay.value || '0' : '0', 10);
+        if (!numberOfDay || days < 1 || days > 15) {
+            valid = showClientError(numberOfDay, 'Số ngày tour phải là số từ 1 đến 15.') && valid;
+        }
+        if (numberOfNights) {
+            const nights = parseInt(numberOfNights.value || '0', 10);
+            if (nights < 0) {
+                valid = showClientError(numberOfNights, 'Số đêm không được âm.') && valid;
+            } else if (days > 0 && nights > days) {
+                valid = showClientError(numberOfNights, 'Số đêm không được lớn hơn số ngày của tour.') && valid;
+            } else if (days > 0 && nights !== Math.max(0, days - 1)) {
+                valid = showClientError(numberOfNights, 'Số đêm phải bằng số ngày trừ 1.') && valid;
+            }
+        }
+
+        valid = validateRequiredSelect(tourForm.querySelector('[name="tourCategoryID"]'), 'Danh mục') && valid;
+        valid = validateRequiredSelect(document.getElementById('regionSelect'), 'Khu vực') && valid;
+        valid = validateRequiredSelect(document.getElementById('startPlaceSelect'), 'Điểm khởi hành') && valid;
+        valid = validateRequiredSelect(document.getElementById('endPlaceSelect'), 'Điểm đến') && valid;
+
+        document.querySelectorAll('.itinerary-title').forEach(function (field) {
+            const card = field.closest('.day-card');
+            const day = card ? card.getAttribute('data-day') : '';
+            valid = validateCleanTextField(field, 'Tiêu đề ngày ' + day, { required: true, min: 2, max: 200 }) && valid;
+        });
+        document.querySelectorAll('.itinerary-description').forEach(function (field) {
+            const card = field.closest('.day-card');
+            const day = card ? card.getAttribute('data-day') : '';
+            valid = validateCleanTextField(field, 'Mô tả lịch trình ngày ' + day, { required: true, min: 1, max: 500, rejectRepeatedSpaces: false }) && valid;
+        });
+
+        return valid;
+    }
+
     function syncNightLimit() {
         if (!numberOfDay || !numberOfNights) return;
         const days = parseInt(numberOfDay.value || '0', 10);
-        const nights = parseInt(numberOfNights.value || '0', 10);
+        const expectedNights = days > 0 ? Math.max(0, days - 1) : 0;
         if (days > 0) {
-            numberOfNights.max = String(Math.min(15, days));
+            numberOfNights.max = String(Math.min(14, expectedNights));
+            numberOfNights.value = String(expectedNights);
         }
-        if (days > 0 && nights > days) {
-            numberOfNights.setCustomValidity('Số đêm không được lớn hơn số ngày của tour.');
+        if (days <= 0) {
+            numberOfNights.setCustomValidity('Số ngày phải từ 1 đến 15.');
+        } else if (expectedNights < 0) {
+            numberOfNights.setCustomValidity('Số đêm không được âm.');
         } else {
             numberOfNights.setCustomValidity('');
         }
@@ -558,15 +660,19 @@
             }
             syncNightLimit();
         });
+        numberOfDay.addEventListener('input', syncNightLimit);
     }
-    if (numberOfNights) numberOfNights.addEventListener('input', syncNightLimit);
 
     if (tourForm) {
         tourForm.addEventListener('submit', function (event) {
             syncNightLimit();
-            if (numberOfNights && !numberOfNights.checkValidity()) {
+            if (!validateTourFormFields()) {
                 event.preventDefault();
-                numberOfNights.reportValidity();
+                const firstInvalid = tourForm.querySelector('.is-invalid:not([type="hidden"])');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus({ preventScroll: true });
+                }
                 return;
             }
             if (tourForm.dataset.confirmed === 'true') return;

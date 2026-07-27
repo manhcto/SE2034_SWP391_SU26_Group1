@@ -7,8 +7,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.DAO.TourDAO;
 import vn.edu.fpt.model.Tour;
+import vn.edu.fpt.model.TourSchedule;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @WebServlet(name = "AdminTourDetailController", urlPatterns = "/admin/tour/detail")
@@ -40,11 +42,33 @@ public class AdminTourDetailController extends HttpServlet {
         tour.setScheduleList(tourDAO.getSchedulesByTourId(tourID));
         tourDAO.loadManagedImages(tour);
         List<String> readinessErrors = tourDAO.getTourReadinessErrors(tourID);
+        BigDecimal approvalDisplayPrice = resolveDisplayAdultPrice(tour);
 
         request.setAttribute("tour", tour);
         request.setAttribute("readinessErrors", readinessErrors);
+        request.setAttribute("approvalDisplayPrice", approvalDisplayPrice);
+        request.setAttribute("hasApprovalDisplayPrice", approvalDisplayPrice.compareTo(BigDecimal.ZERO) > 0);
         request.setAttribute("message", normalize(request.getParameter("message")));
         request.getRequestDispatcher("/views/admin/admin-tour-detail.jsp").forward(request, response);
+    }
+
+    private BigDecimal resolveDisplayAdultPrice(Tour tour) {
+        if (tour != null && tour.getScheduleList() != null) {
+            BigDecimal lowestSchedulePrice = null;
+            for (TourSchedule schedule : tour.getScheduleList()) {
+                BigDecimal adultPrice = schedule == null ? null : schedule.getAdultPrice();
+                if (adultPrice == null || adultPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
+                if (lowestSchedulePrice == null || adultPrice.compareTo(lowestSchedulePrice) < 0) {
+                    lowestSchedulePrice = adultPrice;
+                }
+            }
+            if (lowestSchedulePrice != null) {
+                return lowestSchedulePrice;
+            }
+        }
+        return tour == null || tour.getAdultPrice() == null ? BigDecimal.ZERO : tour.getAdultPrice();
     }
 
     private int parseInt(String raw) {

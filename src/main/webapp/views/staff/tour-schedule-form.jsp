@@ -84,7 +84,6 @@
                             </div>
                             <input type="hidden" name="endDate" id="endDate" value="${endDateValue}">
                             <c:if test="${not empty fieldErrors.endDate}"><div class="field-error">${fieldErrors.endDate}</div></c:if>
-                            <div class="form-text">Tự tính theo thời lượng ${tour.numberOfDay} ngày ${tour.numberOfNights} đêm khi chọn ngày xuất phát.</div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Giờ xuất phát</label>
@@ -111,7 +110,6 @@
                                     </select>
                                 </c:otherwise>
                             </c:choose>
-                            <div class="form-text">Có thể khác phương tiện chính của tour nếu chuyến này điều xe khác.</div>
                             <c:if test="${not empty fieldErrors.scheduleTransportType}"><div class="field-error">${fieldErrors.scheduleTransportType}</div></c:if>
                         </div>
                         <div class="col-md-3">
@@ -121,7 +119,6 @@
                                     <option value="${seat}" ${schedule.maxParticipants == seat ? 'selected' : ''}>${seat} khách</option>
                                 </c:forEach>
                             </select>
-                            <c:if test="${bookedSchedule}"><div class="form-text">Không được nhỏ hơn số khách đã đặt: ${schedule.quantity}.</div></c:if>
                             <c:if test="${not empty fieldErrors.maxParticipants}"><div class="field-error">${fieldErrors.maxParticipants}</div></c:if>
                         </div>
                         <div class="col-md-3">
@@ -134,7 +131,6 @@
                             <label class="form-label">Trạng thái <span class="text-danger">*</span></label>
                             <input type="text" class="form-control locked ${not empty fieldErrors.scheduleStatus ? 'is-invalid' : ''}"
                                    value="${canOpenSchedule ? (empty schedule.scheduleStatus || schedule.scheduleStatus == 'Open' ? 'Mở bán' : schedule.displayScheduleStatus) : 'Chưa mở bán'}" readonly>
-                            <div class="form-text">Hệ thống tự đồng bộ theo trạng thái tour; Staff không sửa trực tiếp tại form.</div>
                             <c:if test="${not empty fieldErrors.scheduleStatus}"><div class="field-error">${fieldErrors.scheduleStatus}</div></c:if>
                         </div>
                     </div>
@@ -148,13 +144,11 @@
                         <div class="col-md-4">
                             <label class="form-label">Giá người lớn <span class="text-danger">*</span></label>
                             <input type="number" name="adultPrice" id="adultPrice" min="100001" step="1" inputmode="numeric" class="form-control ${lockedCore ? 'locked' : ''} ${not empty fieldErrors.adultPrice ? 'is-invalid' : ''}" value="${schedule.adultPrice > 0 ? schedule.adultPrice : ''}" placeholder="Ví dụ: 23000000" required ${lockedCore ? 'readonly' : ''}>
-                            <div class="form-text">Nhập số tiền nguyên, lớn hơn 100.000 đ. Ví dụ: 23000000.</div>
                             <c:if test="${not empty fieldErrors.adultPrice}"><div class="field-error">${fieldErrors.adultPrice}</div></c:if>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Trẻ em 5-10 tuổi</label>
                             <input type="number" name="childPrice" id="childPrice" min="0" step="1" inputmode="numeric" class="form-control locked ${not empty fieldErrors.childPrice ? 'is-invalid' : ''}" value="${schedule.childPrice > 0 ? schedule.childPrice : ''}" placeholder="Tự tính 50% giá người lớn" readonly required>
-                            <div class="form-text">Hệ thống tự tính bằng 50% giá người lớn.</div>
                             <c:if test="${not empty fieldErrors.childPrice}"><div class="field-error">${fieldErrors.childPrice}</div></c:if>
                         </div>
                         <input type="hidden" name="infantPrice" id="infantPrice" value="0">

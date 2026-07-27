@@ -74,7 +74,9 @@ public class TourDAO {
                     SELECT COUNT(DISTINCT bd.bookingID)
                     FROM Tour_Scheduler ts
                     JOIN Booking_Detail bd ON bd.tourScheduleID = ts.tourScheduleID
+                    JOIN Booking b ON b.bookingID = bd.bookingID
                     WHERE ts.tourID = t.tourID
+                      AND ISNULL(b.[status], N'') NOT IN (N'Cancelled', N'Đã hủy')
                 ), 0) AS bookingCount
             FROM Tour t
             JOIN Tour_Category tc ON t.tourCategoryID = tc.tourCategoryID
@@ -114,7 +116,19 @@ public class TourDAO {
             params.add(regionID);
         }
 
-        sql.append(" ORDER BY t.createdAt DESC, t.tourID DESC ");
+        sql.append("""
+                ORDER BY
+                    CASE t.[status]
+                        WHEN N'Active' THEN 0
+                        WHEN N'Draft' THEN 1
+                        WHEN N'Pending' THEN 2
+                        WHEN N'Rejected' THEN 3
+                        WHEN N'Inactive' THEN 4
+                        ELSE 5
+                    END,
+                    t.createdAt DESC,
+                    t.tourID DESC
+                """);
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
@@ -131,6 +145,62 @@ public class TourDAO {
         }
 
         return tours;
+    }
+
+    public void applyLowestScheduleAdultPrices(List<Tour> tours) {
+        if (tours == null || tours.isEmpty()) {
+            return;
+        }
+
+        List<Tour> validTours = new ArrayList<>();
+        StringBuilder placeholders = new StringBuilder();
+        for (Tour tour : tours) {
+            if (tour == null || tour.getTourID() <= 0) {
+                continue;
+            }
+            if (!validTours.isEmpty()) {
+                placeholders.append(", ");
+            }
+            placeholders.append("?");
+            validTours.add(tour);
+        }
+
+        if (validTours.isEmpty()) {
+            return;
+        }
+
+        String sql = """
+                SELECT tourID, MIN(adultPrice) AS lowestAdultPrice
+                FROM Tour_Scheduler
+                WHERE tourID IN (%s)
+                  AND adultPrice > 0
+                  AND scheduleStatus <> N'Cancelled'
+                GROUP BY tourID
+                """.formatted(placeholders);
+
+        Map<Integer, BigDecimal> priceByTourID = new HashMap<>();
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            int index = 1;
+            for (Tour tour : validTours) {
+                ps.setInt(index++, tour.getTourID());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    priceByTourID.put(rs.getInt("tourID"), rs.getBigDecimal("lowestAdultPrice"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        for (Tour tour : validTours) {
+            BigDecimal schedulePrice = priceByTourID.get(tour.getTourID());
+            if (schedulePrice != null && schedulePrice.compareTo(BigDecimal.ZERO) > 0) {
+                tour.setAdultPrice(schedulePrice);
+            }
+        }
     }
 
     public Tour getTourById(int tourID) {
@@ -806,7 +876,7 @@ public class TourDAO {
     }
 
     private String buildTourCode(int tourID) {
-        return String.format("TOUR-%06d", tourID);
+        return String.format("WV%02d-PKG-%03d", java.time.Year.now().getValue() % 100, tourID);
     }
 
     private boolean existsByIdAndStatus(String tableName, String idColumn, int id) {

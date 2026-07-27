@@ -111,7 +111,7 @@ public class EditTourScheduleController extends StaffTourScheduleSupport {
                 : tourDAO.updateTourSchedule(schedule);
 
         response.sendRedirect(request.getContextPath()
-                + "/staff/tour/schedule/detail?id=" + schedule.getTourScheduleID()
+                + "/staff/tour/detail?id=" + schedule.getTourID()
                 + "&message=" + (success ? "scheduleUpdateSuccess" : "scheduleUpdateFail"));
     }
 }

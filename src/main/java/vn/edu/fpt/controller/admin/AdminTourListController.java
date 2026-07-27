@@ -9,8 +9,12 @@ import vn.edu.fpt.DAO.TourDAO;
 import vn.edu.fpt.model.Tour;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 @WebServlet(name = "AdminTourListController", urlPatterns = {
         "/admin/tour",
@@ -19,6 +23,7 @@ import java.util.Map;
 public class AdminTourListController extends HttpServlet {
 
     private TourDAO tourDAO;
+    private static final int PAGE_SIZE = 10;
 
     @Override
     public void init() {
@@ -40,15 +45,33 @@ public class AdminTourListController extends HttpServlet {
         String status = normalize(request.getParameter("status"));
         Integer categoryID = parsePositiveInt(request.getParameter("categoryID"));
         Integer regionID = parsePositiveInt(request.getParameter("regionID"));
+        Integer requestedPage = parsePositiveInt(request.getParameter("page"));
+        int currentPage = requestedPage == null ? 1 : requestedPage;
 
         if (!isValidTourStatus(status)) {
             status = "";
         }
 
-        List<Tour> tours = tourDAO.getToursForStaff(keyword, status, categoryID, regionID);
+        List<Tour> allTours = tourDAO.getToursForStaff(keyword, status, categoryID, regionID);
+        tourDAO.applyLowestScheduleAdultPrices(allTours);
+        int totalTourCount = allTours.size();
+        int totalPages = Math.max(1, (int) Math.ceil(totalTourCount / (double) PAGE_SIZE));
+        currentPage = Math.min(Math.max(1, currentPage), totalPages);
+        int fromIndex = Math.min((currentPage - 1) * PAGE_SIZE, totalTourCount);
+        int toIndex = Math.min(fromIndex + PAGE_SIZE, totalTourCount);
+        List<Tour> tours = new ArrayList<>(allTours.subList(fromIndex, toIndex));
         Map<String, Integer> statusCounts = tourDAO.getTourStatusCounts();
 
         request.setAttribute("tours", tours);
+        request.setAttribute("totalTourCount", totalTourCount);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("previousPage", Math.max(1, currentPage - 1));
+        request.setAttribute("nextPage", Math.min(totalPages, currentPage + 1));
+        request.setAttribute("hasPreviousPage", currentPage > 1);
+        request.setAttribute("hasNextPage", currentPage < totalPages);
+        request.setAttribute("rowNumberStart", fromIndex + 1);
+        request.setAttribute("paginationQuery", buildPaginationQuery(request));
         request.setAttribute("statusCounts", statusCounts);
         request.setAttribute("categoryList", tourDAO.getActiveCategories());
         request.setAttribute("regionList", tourDAO.getActiveRegions());
@@ -80,5 +103,30 @@ public class AdminTourListController extends HttpServlet {
         }
         return status.equals("Draft") || status.equals("Pending") || status.equals("Active")
                 || status.equals("Rejected") || status.equals("Inactive");
+    }
+
+    private String buildPaginationQuery(HttpServletRequest request) {
+        StringJoiner joiner = new StringJoiner("&");
+        for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+            String key = entry.getKey();
+            if ("page".equals(key)) {
+                continue;
+            }
+            String[] values = entry.getValue();
+            if (values == null) {
+                continue;
+            }
+            for (String value : values) {
+                String safeValue = normalize(value);
+                if (safeValue.isEmpty()) {
+                    continue;
+                }
+                joiner.add(URLEncoder.encode(key, StandardCharsets.UTF_8)
+                        + "="
+                        + URLEncoder.encode(safeValue, StandardCharsets.UTF_8));
+            }
+        }
+        String query = joiner.toString();
+        return query.isEmpty() ? "" : "&" + query;
     }
 }

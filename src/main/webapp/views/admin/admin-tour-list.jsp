@@ -12,7 +12,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        *{box-sizing:border-box} body{margin:0;background:#f4f7fb;font-family:"Be Vietnam Pro",Arial,sans-serif;color:#0f172a}.admin-layout{display:flex;min-height:100vh}.main-content{margin-left:292px;width:calc(100% - 292px);padding:34px 42px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:22px}.topbar h1{font-size:34px;font-weight:900;margin:0}.topbar p{color:#64748b;margin:6px 0 0;font-weight:600}.content-card{background:#fff;border:1px solid #e2e8f0;border-radius:24px;padding:24px;box-shadow:0 10px 28px rgba(15,23,42,.08);margin-bottom:22px}.summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:22px}.summary-card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:18px;box-shadow:0 10px 22px rgba(15,23,42,.06)}.summary-label{color:#64748b;font-weight:800;font-size:13px}.summary-value{font-size:28px;font-weight:900;margin-top:4px}.filter-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:12px}.form-control,.form-select{border-radius:14px;padding:12px 14px;border-color:#cbd5e1;font-weight:700}.btn-main{border:none;border-radius:14px;background:#ea580c;color:#fff;padding:12px 18px;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;gap:8px}.btn-main:hover{background:#c2410c;color:#fff}.btn-soft{border:1px solid #e2e8f0;border-radius:14px;background:#fff;color:#334155;padding:11px 15px;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;gap:8px}.btn-soft:hover{background:#f8fafc;color:#0f172a}.tour-thumb{width:76px;height:54px;border-radius:10px;object-fit:cover;border:1px solid #e2e8f0;background:#f8fafc}.tour-thumb-empty{width:76px;height:54px;border-radius:10px;border:1px dashed #cbd5e1;background:#f8fafc;color:#94a3b8;display:flex;align-items:center;justify-content:center}.table thead th{background:#f8fafc;color:#334155;font-size:13px;font-weight:900;text-transform:uppercase;border-bottom:1px solid #e2e8f0;padding:14px;white-space:nowrap}.table tbody td{padding:14px;vertical-align:middle;font-size:14px}.tour-code{font-weight:900;color:#ea580c}.status-badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:900}.status-Draft{background:#e0f2fe;color:#0369a1}.status-Pending{background:#fef3c7;color:#92400e}.status-Active{background:#dcfce7;color:#166534}.status-Rejected{background:#ffe4e6;color:#9f1239}.status-Inactive{background:#fee2e2;color:#991b1b}.action-link{font-weight:900;text-decoration:none;color:#2563eb;margin-right:10px}.empty-box{border:1px dashed #cbd5e1;background:#f8fafc;border-radius:18px;padding:42px;text-align:center;color:#64748b;font-weight:800}@media(max-width:992px){.main-content{margin-left:0;width:100%;padding:24px}.summary-grid{grid-template-columns:1fr 1fr}.filter-grid{grid-template-columns:1fr}.topbar{display:block}}
+        *{box-sizing:border-box} body{margin:0;background:#f4f7fb;font-family:"Be Vietnam Pro",Arial,sans-serif;color:#0f172a}.admin-layout{display:flex;min-height:100vh}.main-content{margin-left:292px;width:calc(100% - 292px);padding:34px 42px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:22px}.topbar h1{font-size:34px;font-weight:900;margin:0}.topbar p{color:#64748b;margin:6px 0 0;font-weight:600}.content-card{background:#fff;border:1px solid #e2e8f0;border-radius:24px;padding:24px;box-shadow:0 10px 28px rgba(15,23,42,.08);margin-bottom:22px}.summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:22px}.summary-card{background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:18px;box-shadow:0 10px 22px rgba(15,23,42,.06)}.summary-label{color:#64748b;font-weight:800;font-size:13px}.summary-value{font-size:28px;font-weight:900;margin-top:4px}.filter-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:12px}.form-control,.form-select{border-radius:14px;padding:12px 14px;border-color:#cbd5e1;font-weight:700}.btn-main{border:none;border-radius:14px;background:#ea580c;color:#fff;padding:12px 18px;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;gap:8px}.btn-main:hover{background:#c2410c;color:#fff}.btn-soft{border:1px solid #e2e8f0;border-radius:14px;background:#fff;color:#334155;padding:11px 15px;font-weight:900;text-decoration:none;display:inline-flex;align-items:center;gap:8px}.btn-soft:hover{background:#f8fafc;color:#0f172a}.tour-thumb{width:76px;height:54px;border-radius:10px;object-fit:cover;border:1px solid #e2e8f0;background:#f8fafc}.tour-thumb-empty{width:76px;height:54px;border-radius:10px;border:1px dashed #cbd5e1;background:#f8fafc;color:#94a3b8;display:flex;align-items:center;justify-content:center}.table thead th{background:#f8fafc;color:#334155;font-size:13px;font-weight:900;text-transform:uppercase;border-bottom:1px solid #e2e8f0;padding:14px;white-space:nowrap}.table tbody td{padding:14px;vertical-align:middle;font-size:14px}.tour-code{font-weight:900;color:#ea580c}.status-badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:900}.status-Draft{background:#e0f2fe;color:#0369a1}.status-Pending{background:#fef3c7;color:#92400e}.status-Active{background:#dcfce7;color:#166534}.status-Rejected{background:#ffe4e6;color:#9f1239}.status-Inactive{background:#fee2e2;color:#991b1b}.action-link{font-weight:900;text-decoration:none;color:#2563eb;margin-right:10px}.empty-box{border:1px dashed #cbd5e1;background:#f8fafc;border-radius:18px;padding:42px;text-align:center;color:#64748b;font-weight:800}.pagination-bar{padding-top:18px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}.page-link-soft{min-width:40px;height:40px;padding:0 13px;border:1px solid #dbe3ef;border-radius:10px;background:#fff;color:#0f172a;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:800}.page-link-soft:hover,.page-link-soft.active{background:#ea580c;border-color:#ea580c;color:#fff}.page-link-soft.disabled{pointer-events:none;opacity:.45;background:#f2f4f7}.page-total{color:#64748b;font-weight:800;font-size:13px}@media(max-width:992px){.main-content{margin-left:0;width:100%;padding:24px}.summary-grid{grid-template-columns:1fr 1fr}.filter-grid{grid-template-columns:1fr}.topbar{display:block}}
     </style>
 </head>
 <body>
@@ -78,12 +78,13 @@
                         <table class="table align-middle">
                             <thead>
                             <tr>
-                                <th>Ảnh</th><th>Mã tour</th><th>Tên tour</th><th>Danh mục</th><th>Khu vực</th><th>Điểm đi/đến</th><th>Lịch</th><th>Booking</th><th>Giá</th><th>Trạng thái</th><th>Thao tác</th>
+                                <th>STT</th><th>Ảnh</th><th>Mã tour</th><th>Tên tour</th><th>Danh mục</th><th>Khu vực</th><th>Điểm đi/đến</th><th>Lịch</th><th>Booking</th><th>Giá</th><th>Trạng thái</th><th>Thao tác</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <c:forEach var="tour" items="${tours}">
+                            <c:forEach var="tour" items="${tours}" varStatus="loop">
                                 <tr>
+                                    <td class="fw-bold text-muted">${rowNumberStart + loop.index}</td>
                                     <td>
                                         <c:choose>
                                             <c:when test="${not empty tour.image}">
@@ -103,7 +104,7 @@
                                     <td>${tour.startPlace}<br><span class="text-muted">→ ${tour.endPlace}</span></td>
                                     <td>${tour.scheduleCount}</td>
                                     <td>${tour.bookingCount}</td>
-                                    <td><fmt:formatNumber value="${tour.adultPrice}" type="number" maxFractionDigits="0"/> đ</td>
+                                    <td><c:choose><c:when test="${not empty tour.adultPrice && tour.adultPrice > 0}">Từ <fmt:formatNumber value="${tour.adultPrice}" type="number" maxFractionDigits="0"/> đ</c:when><c:otherwise>Theo lịch</c:otherwise></c:choose></td>
                                     <td><span class="status-badge status-${tour.status}">${tour.displayStatus}</span></td>
                                     <td>
                                         <a class="action-link" href="${pageContext.request.contextPath}/admin/tour/detail?id=${tour.tourID}">${tour.status == 'Pending' ? 'Xem duyệt' : 'Xem'}</a>
@@ -114,6 +115,20 @@
                             </tbody>
                         </table>
                     </div>
+                    <c:if test="${totalPages > 1}">
+                        <nav class="pagination-bar" aria-label="Phân trang quản lý tour">
+                            <span class="page-total">${totalTourCount} tour</span>
+                            <a class="page-link-soft ${hasPreviousPage ? '' : 'disabled'}" href="${pageContext.request.contextPath}/admin/tour?page=${previousPage}${paginationQuery}">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
+                            <c:forEach begin="1" end="${totalPages}" var="pageNo">
+                                <a class="page-link-soft ${pageNo == currentPage ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/tour?page=${pageNo}${paginationQuery}">${pageNo}</a>
+                            </c:forEach>
+                            <a class="page-link-soft ${hasNextPage ? '' : 'disabled'}" href="${pageContext.request.contextPath}/admin/tour?page=${nextPage}${paginationQuery}">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </nav>
+                    </c:if>
                 </c:otherwise>
             </c:choose>
         </section>
