@@ -1,5 +1,6 @@
 package vn.edu.fpt.controller.staff;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +15,7 @@ import java.io.IOException;
 public class StaffHomeController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        response.sendRedirect(request.getContextPath() + "/staff/tour");
+            throws ServletException, IOException {
+        request.getRequestDispatcher("/views/staff/staff-home.jsp").forward(request, response);
     }
 }
