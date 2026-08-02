@@ -209,7 +209,7 @@
                                     <c:when test="${bookingSummary.status == 'Đã duyệt' || bookingSummary.status == 'Đã xác nhận' || bookingSummary.status == 'Confirmed'}">Đã xác nhận</c:when>
                                     <c:when test="${bookingSummary.status == 'Hoàn thành' || bookingSummary.status == 'Completed' || bookingSummary.status == 'Đã booking và thanh toán thành công'}">Thanh toán thành công</c:when>
                                     <c:when test="${bookingSummary.status == 'Đã hủy' || bookingSummary.status == 'Cancelled'}">Đã hủy</c:when>
-                                    <c:when test="${bookingSummary.status == 'End' || bookingSummary.status == 'Ended' || bookingSummary.status == 'Tour kết thúc' || bookingSummary.status == 'Đã kết thúc'}">Hoàn tất Tour</c:when>
+                                    <c:when test="${bookingSummary.status == 'End' || bookingSummary.status == 'Ended' || bookingSummary.status == 'Tour kết thúc' || bookingSummary.status == 'Đã kết thúc'}">Tour kết thúc</c:when>
                                     <c:otherwise>${bookingSummary.status}</c:otherwise>
                                 </c:choose>
                             </span>

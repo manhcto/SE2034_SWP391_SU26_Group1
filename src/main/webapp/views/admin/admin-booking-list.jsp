@@ -190,7 +190,7 @@
           <i class="fa-solid fa-flag-checkered"></i>
         </div>
         <div>
-          <div class="summary-label">Hoàn tất Tour</div>
+          <div class="summary-label">Tour kết thúc</div>
           <div class="summary-value">${endedCount}</div>
         </div>
       </div>
@@ -210,7 +210,7 @@
         <option value="Chờ xử lý" ${param.status == 'Chờ xử lý' ? 'selected' : ''}>Chờ xử lý</option>
         <option value="Đã xác nhận" ${param.status == 'Đã xác nhận' ? 'selected' : ''}>Đã xác nhận</option>
         <option value="Đã hủy" ${param.status == 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
-        <option value="Hoàn tất Tour" ${param.status == 'Hoàn tất Tour' ? 'selected' : ''}>Hoàn tất Tour</option>
+        <option value="Tour kết thúc" ${param.status == 'Tour kết thúc' ? 'selected' : ''}>Tour kết thúc</option>
       </select>
 
       <button class="btn btn-outline-secondary fw-bold" type="submit">
@@ -271,8 +271,8 @@
                       <c:when test="${booking.displayStatus == 'Đã hủy'}">
                         <span class="status-badge status-cancelled">Đã hủy</span>
                       </c:when>
-                      <c:when test="${booking.displayStatus == 'Hoàn tất Tour'}">
-                        <span class="status-badge status-ended">Hoàn tất Tour</span>
+                      <c:when test="${booking.displayStatus == 'Tour kết thúc'}">
+                        <span class="status-badge status-ended">Tour kết thúc</span>
                       </c:when>
                       <c:otherwise>
                         <span class="status-badge bg-secondary">${booking.displayStatus}</span>

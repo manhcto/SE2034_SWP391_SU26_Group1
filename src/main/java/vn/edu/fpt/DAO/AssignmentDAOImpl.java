@@ -36,6 +36,15 @@ public class AssignmentDAOImpl {
     private static final String CLOSED_ASSIGNMENT_STATUSES =
             "N'Completed', N'Cancelled', N'Rejected', N'Hoàn thành', N'Đã hủy', N'Từ chối'";
 
+    private static final String COMPLETED_ASSIGNMENT_STATUSES =
+            "N'Completed', N'Hoàn thành', N'Đã đi hoàn tất'";
+
+    private static final String REJECTED_ASSIGNMENT_STATUSES =
+            "N'Rejected', N'Từ chối'";
+
+    private static final String ENDED_BOOKING_STATUSES =
+            "N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc', N'Hoàn tất Tour'";
+
     private static final String ASSIGNMENT_SELECT = """
         SELECT
             ta.assignmentID,
@@ -112,6 +121,7 @@ public class AssignmentDAOImpl {
 
     public List<AssignmentView> getAllAssignments() {
         List<AssignmentView> list = new ArrayList<>();
+        synchronizeEndedBookingsForCompletedAssignments();
 
         String sql = ASSIGNMENT_SELECT + """
             WHERE LTRIM(RTRIM(ISNULL(ta.assignmentStatus, N'Pending')))
@@ -453,6 +463,7 @@ public class AssignmentDAOImpl {
 
     public List<AssignmentView> getAllBookingsForAssignment() {
         List<AssignmentView> list = new ArrayList<>();
+        synchronizeEndedBookingsForCompletedAssignments();
 
         String sql = """
             SELECT DISTINCT
@@ -479,7 +490,17 @@ public class AssignmentDAOImpl {
                 ts.endDate,
                 ts.departureTime,
                 ts.maxParticipants,
-                ts.quantity AS bookedQuantity
+                ts.quantity AS bookedQuantity,
+                STUFF((
+                    SELECT DISTINCT N',' + CAST(rejectedTour.userID AS NVARCHAR(20))
+                    FROM Tour_Assignments rejectedTour
+                    WHERE rejectedTour.tourScheduleID = bd.tourScheduleID
+                      AND rejectedTour.bookingID = b.bookingID
+                      AND LTRIM(RTRIM(ISNULL(rejectedTour.assignmentStatus, N'Pending'))) IN (
+                          """ + REJECTED_ASSIGNMENT_STATUSES + """
+                      )
+                    FOR XML PATH(''), TYPE
+                ).value('.', 'NVARCHAR(MAX)'), 1, 1, N'') AS rejectedGuideIDs
             FROM Booking b
             OUTER APPLY (
                 SELECT TOP 1 *
@@ -493,6 +514,9 @@ public class AssignmentDAOImpl {
                 ON ts.tourID = t.tourID
             WHERE bd.tourScheduleID IS NOT NULL
               AND UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
+              AND LTRIM(RTRIM(ISNULL(b.[status], N''))) NOT IN (
+                  """ + ENDED_BOOKING_STATUSES + """
+              )
               AND (
                   """ + ASSIGNABLE_TOUR_BOOKING_STATUS_CONDITION + """
               )
@@ -523,7 +547,16 @@ public class AssignmentDAOImpl {
                             NULLIF(LTRIM(RTRIM(ISNULL(b.phone, N''))), N'') IS NOT NULL
                             AND LTRIM(RTRIM(ISNULL(assignedBooking.phone, N''))) =
                                 LTRIM(RTRIM(ISNULL(b.phone, N'')))
-                        )
+                      )
+                    )
+              )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM Tour_Assignments completedTour
+                  WHERE completedTour.tourScheduleID = bd.tourScheduleID
+                    AND completedTour.bookingID = b.bookingID
+                    AND LTRIM(RTRIM(ISNULL(completedTour.assignmentStatus, N'Pending'))) IN (
+                        """ + COMPLETED_ASSIGNMENT_STATUSES + """
                     )
               )
             ORDER BY b.bookingID DESC
@@ -568,6 +601,7 @@ public class AssignmentDAOImpl {
                 a.setCheckInDeadline(minutesBefore(departureAt, 10));
                 a.setMaxParticipants(rs.getInt("maxParticipants"));
                 a.setBookedQuantity(rs.getInt("bookedQuantity"));
+                a.setRejectedGuideIDs(rs.getString("rejectedGuideIDs"));
 
                 list.add(a);
             }
@@ -924,8 +958,45 @@ public class AssignmentDAOImpl {
         return false;
     }
 
+    public boolean hasRejectedAssignmentForGuide(int tourScheduleID, int bookingID, int guideID) {
+        if (tourScheduleID <= 0 || bookingID <= 0 || guideID <= 0) {
+            return false;
+        }
+
+        String sql = """
+            SELECT TOP 1 1
+            FROM Tour_Assignments
+            WHERE tourScheduleID = ?
+              AND bookingID = ?
+              AND userID = ?
+              AND LTRIM(RTRIM(ISNULL(assignmentStatus, N'Pending'))) IN (
+                  """ + REJECTED_ASSIGNMENT_STATUSES + """
+              )
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, tourScheduleID);
+            ps.setInt(2, bookingID);
+            ps.setInt(3, guideID);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public List<AssignmentView> getAssignmentsByGuide(int guideID) {
         List<AssignmentView> list = new ArrayList<>();
+        synchronizeEndedBookingsForCompletedAssignments();
 
         String sql = ASSIGNMENT_SELECT + """
             WHERE ta.userID = ?
@@ -1037,6 +1108,41 @@ public class AssignmentDAOImpl {
         return false;
     }
 
+    public boolean rejectAssignmentForGuide(int assignmentID, int guideID, String rejectionReason) {
+        String sql = """
+            UPDATE Tour_Assignments
+            SET
+                assignmentStatus = N'Rejected',
+                rejectionReason = ?,
+                guideNote = ?,
+                rejectedAt = CASE WHEN rejectedAt IS NULL THEN GETDATE() ELSE rejectedAt END,
+                updatedAt = GETDATE()
+            WHERE assignmentID = ?
+              AND userID = ?
+              AND LTRIM(RTRIM(ISNULL(assignmentStatus, N'Pending')))
+                  IN (N'Pending', N'Assigned', N'Accepted')
+            """;
+
+        DBConnection db = new DBConnection();
+
+        try (
+                Connection conn = db.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            String note = normalize(rejectionReason, "Hướng dẫn viên đã từ chối nhận tour.");
+            ps.setString(1, note);
+            ps.setString(2, note);
+            ps.setInt(3, assignmentID);
+            ps.setInt(4, guideID);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public boolean updateAssignmentStatusFromProgressForGuide(
             int assignmentID,
             int guideID,
@@ -1120,6 +1226,10 @@ public class AssignmentDAOImpl {
             e.printStackTrace();
             return false;
         }
+    }
+
+    private int synchronizeEndedBookingsForCompletedAssignments() {
+        return new BookingDAO().syncEndedTourBookingsFromCompletedAssignments();
     }
 
     private TourAssignments mapTourAssignment(ResultSet rs) throws Exception {

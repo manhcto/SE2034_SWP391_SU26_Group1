@@ -65,6 +65,13 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'guideRejected'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                Hướng dẫn viên này đã từ chối tour này. Vui lòng phân công cho hướng dẫn viên khác.
+            </div>
+        </c:if>
+
         <c:if test="${param.error == 'updateFailed'}">
             <div class="alert alert-danger">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>

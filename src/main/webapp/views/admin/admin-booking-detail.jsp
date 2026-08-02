@@ -392,7 +392,7 @@
                 <c:when test="${bookingDetail.status == 'Đã duyệt' || bookingDetail.status == 'Đã xác nhận' || bookingDetail.status == 'Confirmed'}">Đã xác nhận</c:when>
                 <c:when test="${bookingDetail.status == 'Hoàn thành' || bookingDetail.status == 'Completed' || bookingDetail.status == 'Thanh toán thành công' || bookingDetail.status == 'Đã booking và thanh toán thành công'}">Thanh toán thành công</c:when>
                 <c:when test="${bookingDetail.status == 'Đã hủy' || bookingDetail.status == 'Cancelled'}">Đã hủy</c:when>
-                <c:when test="${bookingDetail.status == 'End' || bookingDetail.status == 'Ended' || bookingDetail.status == 'Tour kết thúc' || bookingDetail.status == 'Đã kết thúc'}">Hoàn tất Tour</c:when>
+                <c:when test="${bookingDetail.status == 'End' || bookingDetail.status == 'Ended' || bookingDetail.status == 'Tour kết thúc' || bookingDetail.status == 'Đã kết thúc'}">Tour kết thúc</c:when>
                 <c:otherwise>${bookingDetail.status}</c:otherwise>
               </c:choose>
             </span>

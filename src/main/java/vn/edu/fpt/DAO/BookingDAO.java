@@ -15,6 +15,15 @@ import java.util.Map;
 
 public class BookingDAO {
 
+    private static final String COMPLETED_ASSIGNMENT_STATUSES =
+            "N'Completed', N'Hoàn thành', N'Đã đi hoàn tất'";
+
+    private static final String ENDED_BOOKING_STATUSES =
+            "N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc', N'Hoàn tất Tour'";
+
+    private static final String CANCELLED_BOOKING_STATUSES =
+            "N'Cancelled', N'Đã hủy', N'Hủy'";
+
     // Check if tour schedule exists
     public boolean isTourScheduleExist(int tourScheduleID) {
         String sql = "SELECT tourScheduleID FROM Tour_Scheduler WHERE tourScheduleID = ?";
@@ -359,6 +368,8 @@ public class BookingDAO {
 
     // Get booking summary by booking ID
     public Map<String, Object> getBookingSummaryByID(int bookingID) {
+        syncEndedTourBookingsFromCompletedAssignments();
+
         String sql = "SELECT "
                 + "b.bookingID, "
                 + "b.bookingCode, "
@@ -467,6 +478,7 @@ public class BookingDAO {
     // Get all bookings
     public List<Booking> getAllBookings() {
         List<Booking> bookings = new ArrayList<>();
+        syncEndedTourBookingsFromCompletedAssignments();
 
         String sql = "SELECT b.bookingID, b.bookingCode, b.bookingType, b.email, b.phone, "
                 + "b.numberAdult, b.numberChildren, b.note, b.identityNumber, b.identityImageUrl, "
@@ -506,6 +518,7 @@ public class BookingDAO {
 
     public List<Booking> getBookingsByUserID(int userID) {
         List<Booking> bookings = new ArrayList<>();
+        syncEndedTourBookingsFromCompletedAssignments();
 
         String sql = "SELECT b.bookingID, b.bookingCode, b.bookingType, b.email, b.phone, "
                 + "b.numberAdult, b.numberChildren, b.note, b.identityNumber, b.identityImageUrl, "
@@ -549,6 +562,8 @@ public class BookingDAO {
 
     // Get booking by ID
     public Booking getBookingByID(int bookingID) {
+        syncEndedTourBookingsFromCompletedAssignments();
+
         String sql = "SELECT b.bookingID, b.bookingCode, b.bookingType, b.email, b.phone, "
                 + "b.numberAdult, b.numberChildren, b.note, b.identityNumber, b.identityImageUrl, "
                 + "b.address, b.firstName, b.lastName, "
@@ -1146,6 +1161,10 @@ public class BookingDAO {
                 if (Booking.isCancelledStatus(bookingStatus)) {
                     return false;
                 }
+
+                if (Booking.isEndedStatus(bookingStatus)) {
+                    return false;
+                }
             }
         } catch (Exception e) {
             System.out.println("Lỗi đồng bộ booking đã thanh toán: " + e.getMessage());
@@ -1154,6 +1173,43 @@ public class BookingDAO {
         }
 
         return updateBookingStatus(bookingID, Booking.STATUS_COMPLETED);
+    }
+
+    public int syncEndedTourBookingsFromCompletedAssignments() {
+        String sql = """
+                UPDATE b
+                SET b.[status] = ?, b.updatedAt = GETDATE()
+                FROM Booking b
+                INNER JOIN Booking_Detail bd
+                    ON bd.bookingID = b.bookingID
+                INNER JOIN Tour_Assignments ta
+                    ON ta.tourScheduleID = bd.tourScheduleID
+                WHERE UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
+                  AND (
+                        (ta.bookingID IS NOT NULL AND ta.bookingID > 0 AND b.bookingID = ta.bookingID)
+                        OR (ta.bookingID IS NULL OR ta.bookingID = 0)
+                      )
+                  AND LTRIM(RTRIM(ISNULL(ta.assignmentStatus, N'Pending'))) IN (
+                      """ + COMPLETED_ASSIGNMENT_STATUSES + """
+                  )
+                  AND LTRIM(RTRIM(ISNULL(b.[status], N''))) NOT IN (
+                      """ + ENDED_BOOKING_STATUSES + """
+                  )
+                  AND LTRIM(RTRIM(ISNULL(b.[status], N''))) NOT IN (
+                      """ + CANCELLED_BOOKING_STATUSES + """
+                  )
+                """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setNString(1, Booking.STATUS_ENDED);
+            return ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println("Lỗi đồng bộ booking tour đã kết thúc: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
     public boolean hasPayableReservationForPayment(int bookingID) {

@@ -118,7 +118,7 @@
                                     <c:if test="${assignmentRejected}">
                                         <div class="text-danger small mt-1">
                                             <i class="fa-solid fa-circle-xmark me-1"></i>
-                                            Bị từ chối
+                                            Tour bị từ chối
                                         </div>
                                     </c:if>
                                 </td>
@@ -142,12 +142,12 @@
                                         <div class="text-danger small mt-1">
                                             <c:choose>
                                                 <c:when test="${not empty a.rejectionReason}">
-                                                    ${a.rejectionReason}
+                                                    Tour bị từ chối - ${a.rejectionReason}
                                                 </c:when>
                                                 <c:when test="${not empty a.guideNote}">
-                                                    ${a.guideNote}
+                                                    Tour bị từ chối - ${a.guideNote}
                                                 </c:when>
-                                                <c:otherwise>Hướng dẫn viên đã từ chối nhận tour.</c:otherwise>
+                                                <c:otherwise>Tour bị từ chối.</c:otherwise>
                                             </c:choose>
                                         </div>
                                     </c:if>

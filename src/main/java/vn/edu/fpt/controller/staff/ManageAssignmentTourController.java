@@ -174,6 +174,14 @@ public class ManageAssignmentTourController extends HttpServlet {
             return;
         }
 
+        if (assignmentDAO.hasRejectedAssignmentForGuide(tourScheduleID, bookingID, guideID)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=create&error=guideRejected"
+            );
+            return;
+        }
+
         TourAssignments assignment = buildAssignmentFromRequest(request);
 
         assignment.setTourScheduleID(tourScheduleID);
@@ -220,10 +228,15 @@ public class ManageAssignmentTourController extends HttpServlet {
         }
 
         AssignmentView assignmentDetail = assignmentDAO.getAssignmentDetail(id);
+        List<User> guideList = assignmentDAO.getAllGuides(assignment.getAssignmentID());
+
+        if (isRejectedAssignmentStatus(assignment.getAssignmentStatus())) {
+            guideList.removeIf(guide -> guide.getUserID() == assignment.getUserID());
+        }
 
         request.setAttribute("assignment", assignment);
         request.setAttribute("assignmentDetail", assignmentDetail);
-        request.setAttribute("guideList", assignmentDAO.getAllGuides(assignment.getAssignmentID()));
+        request.setAttribute("guideList", guideList);
 
         request.getRequestDispatcher("/views/staff/assignment-edit.jsp")
                 .forward(request, response);
@@ -279,6 +292,14 @@ public class ManageAssignmentTourController extends HttpServlet {
             response.sendRedirect(
                     request.getContextPath()
                             + "/staff/assignment?action=edit&id=" + assignmentID + "&error=guideScheduleOverlap"
+            );
+            return;
+        }
+
+        if (assignmentDAO.hasRejectedAssignmentForGuide(tourScheduleID, bookingID, userID)) {
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/staff/assignment?action=edit&id=" + assignmentID + "&error=guideRejected"
             );
             return;
         }

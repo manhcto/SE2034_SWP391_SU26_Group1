@@ -326,6 +326,11 @@ public class TourGuideScheduleController extends HttpServlet {
             return;
         }
 
+        if ("rejectAssignment".equals(action)) {
+            rejectAssignment(request, response);
+            return;
+        }
+
         response.sendRedirect(
                 request.getContextPath() + "/guide/assignment");
     }
@@ -373,15 +378,57 @@ public class TourGuideScheduleController extends HttpServlet {
         );
     }
 
+    private void rejectAssignment(HttpServletRequest request,
+                                  HttpServletResponse response)
+            throws IOException {
+
+        User guide = getCurrentGuide(request);
+
+        if (guide == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        int assignmentID = Integer.parseInt(request.getParameter("assignmentID"));
+        AssignmentView assignment =
+                assignmentDAO.getAssignmentDetailForGuide(assignmentID, guide.getUserID());
+
+        if (assignment == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        if (!canConfirmAssignment(assignment)) {
+            redirectToAssignmentDetail(request, response, assignmentID, "rejectNotAllowed");
+            return;
+        }
+
+        boolean rejected = assignmentDAO.rejectAssignmentForGuide(
+                assignmentID,
+                guide.getUserID(),
+                request.getParameter("rejectionReason")
+        );
+
+        redirectToAssignmentDetail(
+                request,
+                response,
+                assignmentID,
+                rejected ? "rejectSuccess" : "rejectFailed"
+        );
+    }
+
     private void redirectToAssignmentDetail(HttpServletRequest request,
                                             HttpServletResponse response,
                                             int assignmentID,
                                             String resultCode)
             throws IOException {
 
-        boolean success = "confirmSuccess".equals(resultCode);
+        boolean success = "confirmSuccess".equals(resultCode)
+                || "rejectSuccess".equals(resultCode);
         String parameterName = success ? "success" : "error";
-        String parameterValue = success ? "confirm" : resultCode;
+        String parameterValue = "rejectSuccess".equals(resultCode)
+                ? "reject"
+                : (success ? "confirm" : resultCode);
 
         response.sendRedirect(
                 request.getContextPath()

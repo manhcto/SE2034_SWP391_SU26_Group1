@@ -15,7 +15,7 @@ public class Booking {
     public static final String DISPLAY_STATUS_CANCELLED = "\u0110\u00e3 h\u1ee7y";
     public static final String DISPLAY_STATUS_COMPLETED = "Thanh toán thành công";
     public static final String LEGACY_DISPLAY_STATUS_COMPLETED = "Đã booking và thanh toán thành công";
-    public static final String DISPLAY_STATUS_ENDED = "Hoàn tất Tour";
+    public static final String DISPLAY_STATUS_ENDED = "Tour kết thúc";
 
     private int bookingID;
     private String bookingCode;
@@ -215,7 +215,7 @@ public class Booking {
 
     public static boolean isEndedStatus(String value) {
         return equalsAny(value, STATUS_ENDED, "Ended", DISPLAY_STATUS_ENDED,
-                "Tour kết thúc", "Đã kết thúc", "Kết thúc", "Hoàn tất");
+                "Hoàn tất Tour", "Đã kết thúc", "Kết thúc", "Hoàn tất");
     }
 
     public static String normalizeStatus(String value) {

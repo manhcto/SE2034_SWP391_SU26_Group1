@@ -440,6 +440,11 @@
             color: #047857;
         }
 
+        .btn-reject {
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
         .btn-update {
             background: #fff7ed;
             color: #c2410c;
@@ -743,12 +748,19 @@
                             <div class="info-row">
                                 <i class="fa-solid fa-user-group"></i>
                                 <span>
-                                    <c:if test="${not empty assignment.customerPhone}">
-                                        Khách: ${assignment.customerPhone}
-                                    </c:if>
-                                    <c:if test="${empty assignment.customerPhone}">
-                                        Chưa có số điện thoại khách
-                                    </c:if>
+                                    Khách:
+                                    <c:choose>
+                                        <c:when test="${not empty assignment.customerName}">
+                                            ${assignment.customerName}
+                                            <c:if test="${not empty assignment.customerPhone}">
+                                                - ${assignment.customerPhone}
+                                            </c:if>
+                                        </c:when>
+                                        <c:when test="${not empty assignment.customerPhone}">
+                                            ${assignment.customerPhone}
+                                        </c:when>
+                                        <c:otherwise>Chưa có thông tin khách</c:otherwise>
+                                    </c:choose>
                                 </span>
                             </div>
 
@@ -766,6 +778,15 @@
                                         <button class="guide-btn btn-confirm" type="submit">
                                             <i class="fa-solid fa-circle-check"></i>
                                             Xác nhận tour
+                                        </button>
+                                    </form>
+                                    <form method="post" action="${pageContext.request.contextPath}/guide/assignment" class="m-0"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn từ chối tour này không?');">
+                                        <input type="hidden" name="action" value="rejectAssignment">
+                                        <input type="hidden" name="assignmentID" value="${assignment.assignmentID}">
+                                        <button class="guide-btn btn-reject" type="submit">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            Từ chối tour
                                         </button>
                                     </form>
                                 </c:if>

@@ -46,6 +46,15 @@
                             Xác nhận tour
                         </button>
                     </form>
+                    <form method="post" action="${pageContext.request.contextPath}/guide/assignment" class="m-0"
+                          onsubmit="return confirm('Bạn có chắc chắn muốn từ chối tour này không?');">
+                        <input type="hidden" name="action" value="rejectAssignment">
+                        <input type="hidden" name="assignmentID" value="${assignment.assignmentID}">
+                        <button class="top-action-btn btn-light-action text-danger" type="submit">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            Từ chối tour
+                        </button>
+                    </form>
                 </c:if>
 
                 <c:if test="${showTourActions}">
@@ -68,6 +77,13 @@
             <div class="alert alert-success">
                 <i class="fa-solid fa-circle-check me-2"></i>
                 Đã xác nhận tour. Bạn có thể cập nhật hành khách và nhật ký tiến độ.
+            </div>
+        </c:if>
+
+        <c:if test="${param.success == 'reject'}">
+            <div class="alert alert-success">
+                <i class="fa-solid fa-circle-check me-2"></i>
+                Đã từ chối tour. Bộ phận staff có thể phân công lại cho hướng dẫn viên khác.
             </div>
         </c:if>
 
@@ -120,6 +136,13 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'rejectFailed' || param.error == 'rejectNotAllowed'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                Không từ chối được tour này. Tour có thể đã được xác nhận, đang diễn ra hoặc đã hoàn thành.
+            </div>
+        </c:if>
+
         <c:if test="${param.error == 'notAllowed'}">
             <div class="alert alert-danger">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>
@@ -148,48 +171,6 @@
             </div>
 
             <div class="panel-body">
-                <c:if test="${assignment.assignmentStatus != 'Completed' && assignment.assignmentStatus != 'Cancelled' && assignment.assignmentStatus != 'Rejected'}">
-                    <form class="row g-3 mb-4" method="post" action="${pageContext.request.contextPath}/guide/assignment">
-                        <input type="hidden" name="action" value="updateAssignmentStatus">
-                        <input type="hidden" name="assignmentID" value="${assignment.assignmentID}">
-
-                        <div class="col-md-4">
-                            <label class="form-label">Cập nhật trạng thái chuyến đi</label>
-                            <select name="assignmentStatus" class="form-select" required>
-                                <c:choose>
-                                    <c:when test="${assignment.assignmentStatus == 'Assigned' || assignment.assignmentStatus == 'Pending'}">
-                                        <option value="Accepted">Đã nhận tour</option>
-                                        <option value="Rejected">Từ chối tour</option>
-                                    </c:when>
-                                    <c:when test="${assignment.assignmentStatus == 'Accepted'}">
-                                        <option value="Confirmed">Đã xác nhận nhận tour</option>
-                                        <option value="Rejected">Từ chối tour</option>
-                                    </c:when>
-                                    <c:when test="${assignment.assignmentStatus == 'Confirmed'}">
-                                        <option value="In Progress">Bắt đầu chuyến đi</option>
-                                        <option value="Cancelled">Hủy chuyến đi</option>
-                                    </c:when>
-                                    <c:when test="${assignment.assignmentStatus == 'In Progress'}">
-                                        <option value="Completed">Đã đi hoàn tất</option>
-                                        <option value="Cancelled">Hủy chuyến đi</option>
-                                    </c:when>
-                                </c:choose>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">Ghi chú hướng dẫn viên</label>
-                            <input class="form-control" name="guideNote" value="${assignment.guideNote}">
-                        </div>
-
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button class="top-action-btn btn-guide-action w-100" type="submit">
-                                <i class="fa-solid fa-floppy-disk"></i> Lưu
-                            </button>
-                        </div>
-                    </form>
-                </c:if>
-
                 <div class="detail-grid">
                     <div class="detail-item">
                         <span>Tour</span>

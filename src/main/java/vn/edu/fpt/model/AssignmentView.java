@@ -63,6 +63,7 @@ public class AssignmentView {
     private double unitPrice;
     private double subTotal;
     private double totalPrice;
+    private String rejectedGuideIDs;
 
     public AssignmentView() {
     }
@@ -600,5 +601,13 @@ public class AssignmentView {
 
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public String getRejectedGuideIDs() {
+        return rejectedGuideIDs;
+    }
+
+    public void setRejectedGuideIDs(String rejectedGuideIDs) {
+        this.rejectedGuideIDs = rejectedGuideIDs;
     }
 }

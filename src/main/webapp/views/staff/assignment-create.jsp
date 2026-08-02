@@ -83,6 +83,13 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'guideRejected'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                Hướng dẫn viên này đã từ chối tour này. Vui lòng phân công cho hướng dẫn viên khác.
+            </div>
+        </c:if>
+
         <c:if test="${param.error == 'insertFailed'}">
             <div class="alert alert-danger">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>
@@ -112,7 +119,8 @@
                                     <fmt:formatDate value="${b.checkInDeadline}" pattern="yyyy-MM-dd'T'HH:mm" var="bookingCheckInValue"/>
                                     <option value="${b.bookingID}"
                                             data-pickup-time="${bookingPickupValue}"
-                                            data-check-in-deadline="${bookingCheckInValue}">
+                                            data-check-in-deadline="${bookingCheckInValue}"
+                                            data-rejected-guide-ids="${b.rejectedGuideIDs}">
                                         <c:choose>
                                             <c:when test="${not empty b.bookingCode}">${b.bookingCode}</c:when>
                                             <c:otherwise>Booking #${b.bookingID}</c:otherwise>
@@ -128,7 +136,7 @@
                             <select name="userID" class="form-select" required>
                                 <option value="">Chọn hướng dẫn viên</option>
                                 <c:forEach var="g" items="${guideList}">
-                                    <option value="${g.userID}">${g.firstName} ${g.lastName}</option>
+                                    <option value="${g.userID}" data-guide-id="${g.userID}">${g.firstName} ${g.lastName}</option>
                                 </c:forEach>
                             </select>
                         </div>
@@ -236,6 +244,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const bookingSelect = document.querySelector('select[name="bookingID"]');
+        const guideSelect = document.querySelector('select[name="userID"]');
         const pickupTime = document.getElementById('pickupTime');
         const checkInDeadline = document.getElementById('checkInDeadline');
 
@@ -243,6 +252,26 @@
             const option = bookingSelect?.selectedOptions?.[0];
             pickupTime.value = option?.dataset.pickupTime || '';
             checkInDeadline.value = option?.dataset.checkInDeadline || '';
+            filterRejectedGuides(option?.dataset.rejectedGuideIds || '');
+        }
+
+        function filterRejectedGuides(rejectedGuideIDs) {
+            const rejected = new Set(
+                rejectedGuideIDs
+                    .split(',')
+                    .map(id => id.trim())
+                    .filter(Boolean)
+            );
+
+            guideSelect?.querySelectorAll('option[data-guide-id]').forEach(option => {
+                const rejectedForBooking = rejected.has(option.dataset.guideId);
+                option.disabled = rejectedForBooking;
+                option.hidden = rejectedForBooking;
+            });
+
+            if (guideSelect?.selectedOptions?.[0]?.disabled) {
+                guideSelect.value = '';
+            }
         }
 
         bookingSelect?.addEventListener('change', syncAssignmentTimes);

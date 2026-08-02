@@ -217,6 +217,8 @@ public class PaymentDAO {
         for (int bookingID : findPaidBookingIDs()) {
             bookingDAO.syncCompletedBookingFromPaidPayment(bookingID);
         }
+
+        bookingDAO.syncEndedTourBookingsFromCompletedAssignments();
     }
 
     private boolean updatePendingStatus(int bookingID, String status, String note) {

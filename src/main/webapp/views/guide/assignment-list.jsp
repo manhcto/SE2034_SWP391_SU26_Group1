@@ -124,6 +124,15 @@
                                                     Xác nhận
                                                 </button>
                                             </form>
+                                            <form method="post" action="${pageContext.request.contextPath}/guide/assignment" class="m-0"
+                                                  onsubmit="return confirm('Bạn có chắc chắn muốn từ chối tour này không?');">
+                                                <input type="hidden" name="action" value="rejectAssignment">
+                                                <input type="hidden" name="assignmentID" value="${a.assignmentID}">
+                                                <button class="btn btn-sm btn-outline-danger" type="submit">
+                                                    <i class="fa-solid fa-circle-xmark me-1"></i>
+                                                    Từ chối
+                                                </button>
+                                            </form>
                                         </c:if>
                                     </div>
                                 </td>
