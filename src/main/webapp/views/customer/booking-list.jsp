@@ -21,15 +21,23 @@
 
         .booking-body {
             padding: 24px;
-            overflow-x: auto;
+            overflow-x: visible;
         }
 
         .booking-table {
             width: 100%;
-            min-width: 980px;
+            min-width: 0;
+            table-layout: fixed;
             border-collapse: separate;
             border-spacing: 0;
         }
+
+        .booking-table th:nth-child(1) { width: 14%; }
+        .booking-table th:nth-child(2) { width: 29%; }
+        .booking-table th:nth-child(3) { width: 15%; }
+        .booking-table th:nth-child(4) { width: 17%; }
+        .booking-table th:nth-child(5) { width: 17%; }
+        .booking-table th:nth-child(6) { width: 8%; }
 
         .booking-table th {
             padding: 13px 12px;
@@ -51,6 +59,7 @@
             font-size: 13px;
             font-weight: 700;
             vertical-align: middle;
+            overflow-wrap: anywhere;
         }
 
         .booking-table tr:last-child td {
@@ -110,21 +119,6 @@
             white-space: nowrap;
         }
 
-        .identity-cell {
-            min-width: 150px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .identity-thumb {
-            width: 44px;
-            height: 32px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 1px solid #dbe5f2;
-            background: #f8fafc;
-        }
 
         .action-group {
             display: flex;
@@ -213,8 +207,6 @@
                                 <tr>
                                     <th>Mã đơn</th>
                                     <th>Dịch vụ</th>
-                                    <th>Khách hàng</th>
-                                    <th>CCCD</th>
                                     <th>Ngày đặt</th>
                                     <th>Trạng thái</th>
                                     <th>Tổng tiền</th>
@@ -248,41 +240,6 @@
                                             </c:if>
                                         </td>
 
-                                        <td>
-                                            <div>${booking.firstName} ${booking.lastName}</div>
-                                            <div class="muted">${booking.phone}</div>
-                                        </td>
-
-                                        <td>
-                                            <div class="identity-cell">
-                                                <span>
-                                                    <c:choose>
-                                                        <c:when test="${not empty booking.identityNumber}">
-                                                            ${booking.identityNumber}
-                                                        </c:when>
-                                                        <c:otherwise>Không có</c:otherwise>
-                                                    </c:choose>
-                                                </span>
-
-                                                <c:if test="${not empty booking.identityImageUrl}">
-                                                    <c:choose>
-                                                        <c:when test="${fn:startsWith(booking.identityImageUrl, 'http')}">
-                                                            <c:set var="identityImageSrc" value="${booking.identityImageUrl}"/>
-                                                        </c:when>
-                                                        <c:when test="${fn:startsWith(booking.identityImageUrl, '/')}">
-                                                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}${booking.identityImageUrl}"/>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <c:set var="identityImageSrc" value="${pageContext.request.contextPath}/${booking.identityImageUrl}"/>
-                                                        </c:otherwise>
-                                                    </c:choose>
-
-                                                    <a href="${identityImageSrc}" target="_blank" rel="noopener">
-                                                        <img class="identity-thumb" src="${identityImageSrc}" alt="Ảnh CCCD">
-                                                    </a>
-                                                </c:if>
-                                            </div>
-                                        </td>
 
                                         <td>
                                             <fmt:formatDate value="${booking.bookDate}" pattern="dd/MM/yyyy HH:mm"/>

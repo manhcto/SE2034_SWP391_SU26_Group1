@@ -462,7 +462,7 @@
 
         <a class="sidebar-link" href="${pageContext.request.contextPath}/admin/feedback">
             <i class="fa-solid fa-comments"></i>
-            <span>Xem Feedback</span>
+            <span>Xem đánh giá</span>
         </a>
 
         <div class="sidebar-bottom">
@@ -607,9 +607,9 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h5>Xem Feedback</h5>
-                    <p>Admin xem danh sách feedback và chi tiết feedback của khách hàng, không duyệt hoặc chỉnh sửa.</p>
-                    <span class="module-open">Mở Feedback View <i class="fa-solid fa-arrow-right ms-1"></i></span>
+                    <h5>Xem đánh giá</h5>
+                    <p>Quản trị viên xem danh sách và chi tiết đánh giá của khách hàng, không duyệt hoặc chỉnh sửa.</p>
+                    <span class="module-open">Mở trang đánh giá <i class="fa-solid fa-arrow-right ms-1"></i></span>
                 </a>
             </div>
         </div>
@@ -666,8 +666,8 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h5>View Staff Feedback</h5>
-                    <p>Xem khu vực staff xử lý feedback, duyệt hoặc ẩn đánh giá khách hàng.</p>
+                    <h5>Xem khu vực quản lý đánh giá</h5>
+                    <p>Xem khu vực nhân viên xử lý, duyệt hoặc ẩn đánh giá khách hàng.</p>
                     <span class="module-open">Xem module</span>
                 </a>
             </div>

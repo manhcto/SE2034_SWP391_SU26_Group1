@@ -587,29 +587,6 @@
         }
 
 
-        .feedback-btn {
-            flex: 0 0 auto;
-            height: 56px;
-            padding: 0 20px;
-            border: 2px solid #2563eb;
-            border-radius: 18px;
-            background: #fff;
-            color: #2563eb;
-            font-size: 17px;
-            font-weight: 800;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            white-space: nowrap;
-            text-decoration: none;
-            transition: background .2s ease;
-        }
-
-
-        .feedback-btn:hover {
-            background: #eff6ff;
-        }
 
 
         .detail-btn {
@@ -1179,11 +1156,6 @@
 
 
                             <div class="card-actions">
-                                <a class="feedback-btn"
-                                   href="${pageContext.request.contextPath}/feedback-list?accommodationID=${acc.accommodationID}">
-                                    <i class="fa-regular fa-comment-dots"></i>
-                                    Đánh giá
-                                </a>
                                 <a class="detail-btn"
                                    href="${pageContext.request.contextPath}/accommodation/detail?id=${acc.accommodationID}&checkIn=${selectedCheckIn}&checkOut=${selectedCheckOut}&adults=${selectedAdults}&children=${selectedChildren}&rooms=${selectedRooms}&guests=${selectedGuests}">
                                     Xem chi tiết

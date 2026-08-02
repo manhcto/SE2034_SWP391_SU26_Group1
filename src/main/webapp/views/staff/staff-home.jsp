@@ -616,7 +616,7 @@
                     <div class="module-icon">
                         <i class="fa-solid fa-comments"></i>
                     </div>
-                    <h5>Feedback</h5>
+                    <h5>Đánh giá khách hàng</h5>
                     <p>Xem đánh giá, phản hồi khách hàng và chất lượng dịch vụ.</p>
                     <span class="module-open">Mở chức năng</span>
                 </a>
