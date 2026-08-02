@@ -48,14 +48,14 @@ public class FeedbackDAO {
 
         try (Connection conn = new DBConnection().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()) {
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 feedbackList.add(mapManagedFeedback(rs));
             }
 
         } catch (Exception e) {
-            System.out.println("Lỗi lấy danh sách feedback: " + e.getMessage());
+            System.out.println("Lỗi lấy danh sách đánh giá: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -64,34 +64,93 @@ public class FeedbackDAO {
 
     public List<Feedback> getFeedbacksForManagement(
             String serviceType, String status, String keyword) {
-        String normalizedType = serviceType == null ? "" : serviceType.trim();
-        String normalizedStatus = status == null ? "" : status.trim();
-        String normalizedKeyword = keyword == null
-                ? ""
-                : keyword.trim().toLowerCase(Locale.ROOT);
-        List<Feedback> filtered = new ArrayList<>();
+        String normalizedType = normalizeManagementServiceType(serviceType);
+        String normalizedStatus = normalizeManagementStatus(status);
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
 
-        for (Feedback feedback : getAllFeedbacks()) {
-            if (!normalizedType.isEmpty()
-                    && !normalizedType.equalsIgnoreCase(feedback.getServiceType())) {
-                continue;
-            }
-            if (!normalizedStatus.isEmpty()
-                    && !normalizedStatus.equalsIgnoreCase(feedback.getStatus())) {
-                continue;
-            }
-            if (!normalizedKeyword.isEmpty()) {
-                String searchable = (feedback.getServiceName() + " "
-                        + feedback.getFeedbackID() + " "
-                        + feedback.getBookingID()).toLowerCase(Locale.ROOT);
-                if (!searchable.contains(normalizedKeyword)) {
-                    continue;
-                }
-            }
-            filtered.add(feedback);
+        StringBuilder sql = new StringBuilder(
+                "SELECT f.feedbackID, f.rate, f.content, f.createDate, f.status, "
+                        + "f.image, f.userID, f.bookingID, feedbackTarget.serviceType, "
+                        + "COALESCE(feedbackTarget.tourID, feedbackTarget.accommodationID, 0) AS serviceID, "
+                        + "feedbackTarget.serviceName "
+                        + "FROM Feedback f "
+                        + "LEFT JOIN Booking b ON b.bookingID = f.bookingID "
+                        + "LEFT JOIN [User] u ON u.userID = f.userID "
+                        + MANAGEMENT_TARGET_APPLY
+                        + "WHERE 1 = 1 ");
+
+        List<Object> parameters = new ArrayList<>();
+
+        if (!normalizedType.isEmpty()) {
+            sql.append("AND feedbackTarget.serviceType = ? ");
+            parameters.add(normalizedType);
         }
 
-        return filtered;
+        if (!normalizedStatus.isEmpty()) {
+            sql.append("AND f.status = ? ");
+            parameters.add(normalizedStatus);
+        }
+
+        if (!normalizedKeyword.isEmpty()) {
+            String keywordPattern = "%" + normalizedKeyword.toLowerCase(Locale.ROOT) + "%";
+            sql.append("AND ("
+                    + "LOWER(COALESCE(feedbackTarget.serviceName, N'')) LIKE ? "
+                    + "OR LOWER(COALESCE(f.content, N'')) LIKE ? "
+                    + "OR LOWER(COALESCE(b.bookingCode, N'')) LIKE ? "
+                    + "OR LOWER(CONCAT(COALESCE(u.firstName, N''), N' ', COALESCE(u.lastName, N''))) LIKE ? "
+                    + "OR LOWER(CONCAT(COALESCE(b.firstName, N''), N' ', COALESCE(b.lastName, N''))) LIKE ? "
+                    + "OR CAST(f.feedbackID AS NVARCHAR(20)) LIKE ? "
+                    + "OR CAST(f.bookingID AS NVARCHAR(20)) LIKE ?"
+                    + ") ");
+
+            for (int i = 0; i < 7; i++) {
+                parameters.add(keywordPattern);
+            }
+        }
+
+        sql.append("ORDER BY f.createDate DESC, f.feedbackID DESC");
+
+        List<Feedback> feedbackList = new ArrayList<>();
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int index = 0; index < parameters.size(); index++) {
+                ps.setObject(index + 1, parameters.get(index));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    feedbackList.add(mapManagedFeedback(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("Lỗi tìm kiếm và lọc đánh giá: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return feedbackList;
+    }
+
+    private String normalizeManagementServiceType(String serviceType) {
+        if ("Tour".equalsIgnoreCase(serviceType == null ? "" : serviceType.trim())) {
+            return "Tour";
+        }
+        if ("Accommodation".equalsIgnoreCase(serviceType == null ? "" : serviceType.trim())) {
+            return "Accommodation";
+        }
+        return "";
+    }
+
+    private String normalizeManagementStatus(String status) {
+        if ("Visible".equalsIgnoreCase(status == null ? "" : status.trim())) {
+            return "Visible";
+        }
+        if ("Hidden".equalsIgnoreCase(status == null ? "" : status.trim())) {
+            return "Hidden";
+        }
+        return "";
     }
 
     // Get feedbacks by tourID (Feedback -> Booking -> Booking_Detail -> Tour_Scheduler -> Tour)
@@ -118,7 +177,7 @@ public class FeedbackDAO {
             }
 
         } catch (Exception e) {
-            System.out.println("Lỗi lấy feedback theo tour: " + e.getMessage());
+            System.out.println("Lỗi lấy đánh giá theo tour: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -148,7 +207,7 @@ public class FeedbackDAO {
             }
 
         } catch (Exception e) {
-            System.out.println("Lỗi lấy feedback theo lưu trú: " + e.getMessage());
+            System.out.println("Lỗi lấy đánh giá theo lưu trú: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -219,7 +278,7 @@ public class FeedbackDAO {
             }
 
         } catch (Exception e) {
-            System.out.println("Lỗi lấy feedback đã duyệt: " + e.getMessage());
+            System.out.println("Lỗi lấy đánh giá đã duyệt: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -342,7 +401,7 @@ public class FeedbackDAO {
             }
 
         } catch (Exception e) {
-            System.out.println("Lỗi lấy feedback theo ID: " + e.getMessage());
+            System.out.println("Lỗi lấy đánh giá theo ID: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -408,7 +467,7 @@ public class FeedbackDAO {
             }
 
         } catch (Exception e) {
-            System.out.println("Lỗi lấy chi tiết feedback: " + e.getMessage());
+            System.out.println("Lỗi lấy chi tiết đánh giá: " + e.getMessage());
             e.printStackTrace();
         }
 

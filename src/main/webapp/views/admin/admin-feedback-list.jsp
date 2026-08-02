@@ -205,7 +205,7 @@
 
         .filter-card {
             display: grid;
-            grid-template-columns: minmax(240px, 1fr) 220px 190px auto auto;
+            grid-template-columns: minmax(280px, 1fr) 220px 190px auto;
             gap: 12px;
             align-items: center;
             padding: 18px;
@@ -223,8 +223,7 @@
             font-weight: 700;
         }
 
-        .filter-button,
-        .reset-button {
+        .filter-button {
             min-height: 46px;
             border-radius: 13px;
             padding: 0 18px;
@@ -243,11 +242,6 @@
             color: #ffffff;
         }
 
-        .reset-button {
-            border: 1px solid #cbd5e1;
-            background: #ffffff;
-            color: #334155;
-        }
 
         .service-badge {
             display: inline-flex;
@@ -283,7 +277,13 @@
             color: #ea580c;
         }
 
+        .table-responsive {
+            overflow-x: visible;
+        }
+
         .table {
+            width: 100%;
+            table-layout: fixed;
             margin-bottom: 0;
         }
 
@@ -294,7 +294,7 @@
             font-weight: 900;
             border-bottom: 1px solid #e2e8f0;
             padding: 16px 14px;
-            white-space: nowrap;
+            white-space: normal;
         }
 
         .table tbody td {
@@ -302,13 +302,8 @@
             vertical-align: middle;
             color: #0f172a;
             font-size: 14px;
+            overflow-wrap: anywhere;
         }
-
-        .feedback-id {
-            font-weight: 900;
-            color: #ea580c;
-        }
-
         .rate-badge {
             display: inline-flex;
             align-items: center;
@@ -439,12 +434,12 @@
                    type="search"
                    name="keyword"
                    value="${fn:escapeXml(keyword)}"
-                   placeholder="Tìm tên tour, khách sạn, mã feedback hoặc booking...">
+                   placeholder="Tìm tên tour, nơi lưu trú, nội dung, khách hàng hoặc mã đơn...">
 
             <select class="form-select" name="serviceType" aria-label="Lọc loại dịch vụ">
-                <option value="">Tất cả loại feedback</option>
-                <option value="Tour" ${selectedServiceType == 'Tour' ? 'selected' : ''}>Feedback Tour</option>
-                <option value="Accommodation" ${selectedServiceType == 'Accommodation' ? 'selected' : ''}>Feedback Accommodation</option>
+                <option value="">Tất cả loại đánh giá</option>
+                <option value="Tour" ${selectedServiceType == 'Tour' ? 'selected' : ''}>Đánh giá Tour</option>
+                <option value="Accommodation" ${selectedServiceType == 'Accommodation' ? 'selected' : ''}>Đánh giá Lưu trú</option>
             </select>
 
             <select class="form-select" name="status" aria-label="Lọc trạng thái">
@@ -457,10 +452,6 @@
                 <i class="fa-solid fa-filter"></i>
                 Lọc
             </button>
-
-            <a class="reset-button" href="${pageContext.request.contextPath}/admin/feedback">
-                Xóa lọc
-            </a>
         </form>
 
         <div class="content-card">
@@ -468,16 +459,21 @@
                 <c:when test="${not empty feedbackList}">
                     <div class="table-responsive">
                         <table class="table align-middle">
+                            <colgroup>
+                                <col style="width: 10%;">
+                                <col style="width: 28%;">
+                                <col style="width: 28%;">
+                                <col style="width: 15%;">
+                                <col style="width: 11%;">
+                                <col style="width: 8%;">
+                            </colgroup>
                             <thead>
                             <tr>
-                                <th>Mã Feedback</th>
                                 <th>Số sao</th>
                                 <th>Nội dung</th>
                                 <th>Đối tượng đánh giá</th>
                                 <th>Ngày tạo</th>
                                 <th>Trạng thái</th>
-                                <th>Mã người dùng</th>
-                                <th>Mã Booking</th>
                                 <th>Thao tác</th>
                             </tr>
                             </thead>
@@ -485,9 +481,6 @@
                             <tbody>
                             <c:forEach items="${feedbackList}" var="feedback">
                                 <tr>
-                                    <td>
-                                        <span class="feedback-id">#${feedback.feedbackID}</span>
-                                    </td>
 
                                     <td>
                                         <span class="rate-badge">
@@ -515,7 +508,7 @@
                                             </c:when>
                                             <c:when test="${feedback.serviceType == 'Accommodation'}">
                                                 <span class="service-badge service-accommodation">
-                                                    <i class="fa-solid fa-hotel"></i> Accommodation
+                                                    <i class="fa-solid fa-hotel"></i> Lưu trú
                                                 </span>
                                                 <a class="service-name"
                                                    href="${pageContext.request.contextPath}/accommodation/detail?id=${feedback.serviceID}">
@@ -543,10 +536,6 @@
                                         </c:choose>
                                     </td>
 
-                                    <td>${feedback.userID}</td>
-
-                                    <td>${feedback.bookingID}</td>
-
                                     <td>
                                         <a class="btn-view"
                                            href="${pageContext.request.contextPath}/admin/feedback-detail?feedbackID=${feedback.feedbackID}">
@@ -563,7 +552,7 @@
 
                 <c:otherwise>
                     <div class="empty-box">
-                        Không có feedback phù hợp với bộ lọc.
+                        Không có đánh giá phù hợp với bộ lọc.
                     </div>
                 </c:otherwise>
             </c:choose>

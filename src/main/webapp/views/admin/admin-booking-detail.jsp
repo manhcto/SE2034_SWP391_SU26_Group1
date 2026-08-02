@@ -333,7 +333,7 @@
 
     <a class="sidebar-link" href="${pageContext.request.contextPath}/staff/feedback">
       <i class="fa-solid fa-comments"></i>
-      <span>Staff Feedback</span>
+      <span>Đánh giá khách hàng</span>
     </a>
 
     <div class="admin-user">

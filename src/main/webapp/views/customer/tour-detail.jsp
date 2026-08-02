@@ -391,11 +391,9 @@
                     <h2 class="section-title"><i class="fa-regular fa-star"></i>Đánh giá tour</h2>
                     <p>Các đánh giá đã được duyệt của khách hàng về <strong><c:out value="${tour.tourName}" /></strong>.</p>
                 </div>
-                <c:if test="${canAddTourFeedback and not empty tourFeedbackList}">
-                    <a class="feedback-add-button" href="${pageContext.request.contextPath}/feedback-add?tourID=${tour.tourID}">
-                        <i class="fa-solid fa-plus"></i> Thêm đánh giá
-                    </a>
-                </c:if>
+                <a class="feedback-add-button" href="${pageContext.request.contextPath}/feedback-add?tourID=${tour.tourID}">
+                    <i class="fa-solid fa-plus"></i> Thêm đánh giá
+                </a>
             </div>
 
             <c:if test="${param.feedbackSuccess == '1'}">
@@ -406,7 +404,7 @@
 
             <c:if test="${param.feedbackError == 'notEnded'}">
                 <div class="tour-feedback-alert error">
-                    Bạn chỉ có thể thêm đánh giá khi booking của tour đã ở trạng thái “Tour kết thúc”.
+                    Bạn chỉ có thể thêm đánh giá khi có đơn tour đã kết thúc và chưa được đánh giá.
                 </div>
             </c:if>
 
@@ -414,16 +412,9 @@
                 <c:when test="${empty tourFeedbackList}">
                     <div class="tour-feedback-empty">
                         <p>Chưa có đánh giá nào.</p>
-                        <c:choose>
-                            <c:when test="${canAddTourFeedback}">
-                                <a class="feedback-add-button" href="${pageContext.request.contextPath}/feedback-add?tourID=${tour.tourID}">
-                                    <i class="fa-solid fa-plus"></i> Thêm đánh giá
-                                </a>
-                            </c:when>
-                            <c:otherwise>
-                                <div class="tour-feedback-note">Bạn có thể thêm đánh giá sau khi booking của tour đã kết thúc.</div>
-                            </c:otherwise>
-                        </c:choose>
+                        <c:if test="${not canAddTourFeedback}">
+                            <div class="tour-feedback-note">Bạn có thể gửi đánh giá khi có đơn tour đã kết thúc và chưa được đánh giá.</div>
+                        </c:if>
                     </div>
                 </c:when>
                 <c:otherwise>
@@ -479,7 +470,7 @@
                         </c:forEach>
                     </div>
                     <c:if test="${not canAddTourFeedback}">
-                        <div class="tour-feedback-note">Bạn có thể thêm đánh giá sau khi booking của tour đã kết thúc.</div>
+                        <div class="tour-feedback-note">Bạn có thể thêm đánh giá khi có đơn tour đã kết thúc và chưa được đánh giá.</div>
                     </c:if>
                 </c:otherwise>
             </c:choose>

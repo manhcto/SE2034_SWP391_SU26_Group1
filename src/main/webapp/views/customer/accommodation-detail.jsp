@@ -7,7 +7,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-<title>WonderVN | ${fn:escapeXml(accommodation.name)}</title>
+    <title>WonderVN | ${fn:escapeXml(accommodation.name)}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -606,8 +606,8 @@
 
                     <div class="location">
                         <i class="fa-solid fa-location-dot text-info me-1"></i>
-                            <strong><c:out value="${accommodation.province}"/></strong><br>
-                            <c:out value="${accommodation.fullAddress}"/>
+                        <strong><c:out value="${accommodation.province}"/></strong><br>
+                        <c:out value="${accommodation.fullAddress}"/>
                     </div>
 
                     <div class="info-grid">
@@ -678,7 +678,7 @@
                     </h2>
 
                     <div class="text-box">
-                            <c:out value="${accommodation.description}"/>
+                        <c:out value="${accommodation.description}"/>
                     </div>
 
                     <h2 class="section-title">
@@ -700,10 +700,10 @@
                                                 <i class="fa-solid fa-circle-check"></i>
                                             </c:when>
                                             <c:when test="${f.icon.contains('fa-solid') || f.icon.contains('fa-regular') || f.icon.contains('fa-brands')}">
-                                            <i class="${fn:escapeXml(f.icon)}"></i>
+                                                <i class="${fn:escapeXml(f.icon)}"></i>
                                             </c:when>
                                             <c:otherwise>
-                                            <i class="fa-solid ${fn:escapeXml(f.icon)}"></i>
+                                                <i class="fa-solid ${fn:escapeXml(f.icon)}"></i>
                                             </c:otherwise>
                                         </c:choose>
                                     <c:out value="${f.facilityName}"/>
@@ -742,7 +742,7 @@
                                             <div class="room-title"><c:out value="${r.roomType}"/></div>
 
                                             <div class="room-description">
-                                                    <c:out value="${r.description}"/>
+                                                <c:out value="${r.description}"/>
                                             </div>
 
                                             <div class="room-specs">
@@ -828,6 +828,18 @@
                     Đánh giá <c:out value="${accommodation.name}"/>
                 </h2>
 
+                <c:if test="${param.feedbackSuccess == '1'}">
+                    <div class="alert alert-success mb-4">
+                        Đã gửi đánh giá thành công. Đánh giá của bạn sẽ hiển thị sau khi được nhân viên duyệt.
+                    </div>
+                </c:if>
+
+                <c:if test="${param.feedbackError == 'notEnded'}">
+                    <div class="alert alert-warning mb-4">
+                        Bạn chỉ có thể thêm đánh giá khi có đơn lưu trú đã kết thúc và chưa được đánh giá.
+                    </div>
+                </c:if>
+
                 <div class="rating-summary">
                     <div class="rating-total">
                         <div class="rating-number">
@@ -886,8 +898,20 @@
                                     <div class="review-content"><c:out value="${feedback.content}"/></div>
 
                                     <c:if test="${not empty feedback.image}">
+                                        <c:set var="feedbackImage" value="${feedback.image}"/>
+                                        <c:choose>
+                                            <c:when test="${fn:startsWith(feedback.image, 'http://') or fn:startsWith(feedback.image, 'https://')}">
+                                                <c:set var="feedbackImage" value="${feedback.image}"/>
+                                            </c:when>
+                                            <c:when test="${fn:startsWith(feedback.image, '/')}">
+                                                <c:set var="feedbackImage" value="${pageContext.request.contextPath}${feedback.image}"/>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:set var="feedbackImage" value="${pageContext.request.contextPath}/${feedback.image}"/>
+                                            </c:otherwise>
+                                        </c:choose>
                                         <img class="review-image"
-                                             src="${fn:escapeXml(feedback.image)}"
+                                             src="${fn:escapeXml(feedbackImage)}"
                                              alt="Ảnh đánh giá của ${fn:escapeXml(feedback.userName)}">
                                     </c:if>
                                 </article>
@@ -897,12 +921,11 @@
                 </div>
 
                 <div class="review-actions">
-                    <c:if test="${canAddFeedback}">
-                        <a class="review-action btn btn-primary"
-                           href="${pageContext.request.contextPath}/feedback-add?accommodationID=${accommodation.accommodationID}">
-                            Viết đánh giá
-                        </a>
-                    </c:if>
+                    <a class="review-action btn btn-primary"
+                       href="${pageContext.request.contextPath}/feedback-add?accommodationID=${accommodation.accommodationID}">
+                        <i class="fa-solid fa-plus me-1"></i>
+                        Thêm đánh giá
+                    </a>
                     <a class="review-action btn btn-outline-primary"
                        href="${pageContext.request.contextPath}/feedback-list?accommodationID=${accommodation.accommodationID}">
                         Xem tất cả đánh giá

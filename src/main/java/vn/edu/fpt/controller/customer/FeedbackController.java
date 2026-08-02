@@ -82,7 +82,7 @@ public class FeedbackController extends HttpServlet {
         }
     }
 
-    // Danh sách feedback ĐÃ DUYỆT của 1 tour hoặc 1 nơi lưu trú
+    // Danh sách đánh giá ĐÃ DUYỆT của 1 tour hoặc 1 nơi lưu trú
     private void showFeedbackList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -115,7 +115,7 @@ public class FeedbackController extends HttpServlet {
         request.getRequestDispatcher(LIST_PAGE).forward(request, response);
     }
 
-    // Chi tiết feedback (chỉ cho xem feedback đã được duyệt)
+    // Chi tiết đánh giá (chỉ cho xem đánh giá đã được duyệt)
     private void showFeedbackDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -138,7 +138,7 @@ public class FeedbackController extends HttpServlet {
         request.getRequestDispatcher(DETAIL_PAGE).forward(request, response);
     }
 
-    // Hiển thị form thêm feedback (yêu cầu đăng nhập + booking đã ở trạng thái Tour kết thúc)
+    // Hiển thị form thêm đánh giá (yêu cầu đăng nhập + booking đã ở trạng thái Tour kết thúc)
     private void showAddFeedbackForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -167,7 +167,7 @@ public class FeedbackController extends HttpServlet {
         request.getRequestDispatcher(ADD_PAGE).forward(request, response);
     }
 
-    // Xử lý gửi feedback
+    // Xử lý gửi đánh giá
     private void addFeedback(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -247,8 +247,8 @@ public class FeedbackController extends HttpServlet {
                         + "&feedbackSuccess=1#danh-gia");
             } else {
                 response.sendRedirect(request.getContextPath()
-                        + "/feedback-list?accommodationID=" + accommodationID
-                        + "&success=1");
+                        + "/accommodation/detail?id=" + accommodationID
+                        + "&feedbackSuccess=1#feedbackSection");
             }
         } else {
             errors.add("Gửi đánh giá thất bại. Vui lòng thử lại.");
@@ -279,7 +279,7 @@ public class FeedbackController extends HttpServlet {
         }
     }
 
-    // Tìm booking đã kết thúc mới nhất của user cho tour hoặc nơi lưu trú.
+    // Tìm booking đã kết thúc mới nhất của người dùng cho tour hoặc nơi lưu trú.
     private int findEndedBookingID(int userID, int tourID, int accommodationID) {
         FeedbackDAO feedbackDAO = new FeedbackDAO();
 
@@ -311,8 +311,8 @@ public class FeedbackController extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath()
-                + "/feedback-list?accommodationID=" + accommodationID
-                + "&error=notEnded");
+                + "/accommodation/detail?id=" + accommodationID
+                + "&feedbackError=notEnded#feedbackSection");
     }
 
     private void forwardBackToForm(HttpServletRequest request, HttpServletResponse response,

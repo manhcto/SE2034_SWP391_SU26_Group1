@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>WonderVN | Chi tiết Feedback</title>
+  <title>WonderVN | Chi tiết đánh giá</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -369,7 +369,7 @@
   <main class="main-content">
     <div class="topbar">
       <div>
-        <h1>Chi tiết Feedback</h1>
+        <h1>Chi tiết đánh giá</h1>
       </div>
 
       <a class="top-action-btn" href="${pageContext.request.contextPath}/staff/feedback">
@@ -381,13 +381,13 @@
     <c:if test="${param.success == 'status'}">
       <div class="success-box">
         <i class="fa-solid fa-circle-check me-2"></i>
-        Cập nhật trạng thái feedback thành công.
+        Cập nhật trạng thái đánh giá thành công.
       </div>
     </c:if>
 
     <c:if test="${param.error == 'update'}">
       <div class="error-box">
-        Cập nhật trạng thái feedback thất bại.
+        Cập nhật trạng thái đánh giá thất bại.
       </div>
     </c:if>
 
@@ -401,12 +401,12 @@
       <div class="detail-card">
         <div class="section-title">
           <i class="fa-solid fa-comment-dots me-2"></i>
-          Thông tin Feedback
+          Thông tin đánh giá
         </div>
 
         <div class="info-grid">
           <div class="info-box">
-            <span class="info-label">Mã Feedback</span>
+            <span class="info-label">Mã đánh giá</span>
             <span class="info-value">#${feedbackDetail.feedbackID}</span>
           </div>
 
@@ -440,25 +440,25 @@
 
         <div class="section-title">
           <i class="fa-solid fa-align-left me-2"></i>
-          Nội dung Feedback
+          Nội dung đánh giá
         </div>
 
         <div class="content-box">${feedbackDetail.content}</div>
 
         <div class="section-title">
           <i class="fa-solid fa-image me-2"></i>
-          Hình ảnh Feedback
+          Hình ảnh đánh giá
         </div>
 
         <c:choose>
           <c:when test="${not empty feedbackDetail.image}">
             <img class="feedback-image"
                  src="${feedbackDetail.image}"
-                 alt="Hình ảnh feedback">
+                 alt="Hình ảnh đánh giá">
           </c:when>
           <c:otherwise>
             <div class="no-image">
-              Feedback này không có hình ảnh.
+              Đánh giá này không có hình ảnh.
             </div>
           </c:otherwise>
         </c:choose>
@@ -500,7 +500,7 @@
             <span class="info-value">
               <c:choose>
                 <c:when test="${feedbackDetail.serviceType == 'Tour'}">Tour</c:when>
-                <c:when test="${feedbackDetail.serviceType == 'Accommodation'}">Accommodation</c:when>
+                <c:when test="${feedbackDetail.serviceType == 'Accommodation'}">Lưu trú</c:when>
                 <c:otherwise>Không xác định</c:otherwise>
               </c:choose>
             </span>
@@ -540,7 +540,7 @@
 
         <div class="info-grid">
           <div class="info-box">
-            <span class="info-label">Mã Booking</span>
+            <span class="info-label">Mã đơn</span>
             <span class="info-value">${feedbackDetail.bookingID}</span>
           </div>
 

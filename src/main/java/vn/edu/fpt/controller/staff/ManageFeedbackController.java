@@ -71,9 +71,9 @@ public class ManageFeedbackController extends HttpServlet {
             throws ServletException, IOException {
 
         FeedbackDAO feedbackDAO = new FeedbackDAO();
-        String serviceType = request.getParameter("serviceType");
-        String status = request.getParameter("status");
-        String keyword = request.getParameter("keyword");
+        String serviceType = normalizeFilter(request.getParameter("serviceType"));
+        String status = normalizeFilter(request.getParameter("status"));
+        String keyword = normalizeFilter(request.getParameter("keyword"));
         List<Feedback> feedbackList =
                 feedbackDAO.getFeedbacksForManagement(serviceType, status, keyword);
 
@@ -101,7 +101,7 @@ public class ManageFeedbackController extends HttpServlet {
             Map<String, Object> feedbackDetail = feedbackDAO.getFeedbackDetailByID(feedbackID);
 
             if (feedbackDetail == null) {
-                request.setAttribute("error", "Không tìm thấy feedback.");
+                request.setAttribute("error", "Không tìm thấy đánh giá.");
                 request.getRequestDispatcher(STAFF_FEEDBACK_DETAIL_PAGE).forward(request, response);
                 return;
             }
@@ -170,4 +170,9 @@ public class ManageFeedbackController extends HttpServlet {
     private boolean isValidStatus(String status) {
         return "Visible".equals(status) || "Hidden".equals(status);
     }
+
+    private String normalizeFilter(String value) {
+        return value == null ? "" : value.trim();
+    }
+
 }

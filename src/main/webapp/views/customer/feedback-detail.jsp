@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>WonderVN | Chi tiết Feedback</title>
+    <title>WonderVN | Chi tiết đánh giá</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/home.css">
 
     <style>
@@ -197,8 +197,8 @@
     <section class="feedback-detail-container">
         <div class="section-head" style="justify-content: center; text-align: center; margin-bottom: 36px;">
             <div>
-                <p class="section-kicker">Feedback Detail</p>
-                <h2>Chi tiết Feedback</h2>
+                <p class="section-kicker">Chi tiết đánh giá</p>
+                <h2>Chi tiết đánh giá</h2>
                 <p>Thông tin chi tiết về đánh giá của khách hàng.</p>
             </div>
         </div>
@@ -211,11 +211,11 @@
 
         <c:if test="${not empty feedbackDetail}">
             <div class="detail-card">
-                <h3>1. Thông tin Feedback</h3>
+                <h3>1. Thông tin đánh giá</h3>
 
                 <div class="detail-grid">
                     <div class="detail-item">
-                        <span class="detail-label">Feedback ID</span>
+                        <span class="detail-label">Mã đánh giá</span>
                         <span class="detail-value">${feedbackDetail.feedbackID}</span>
                     </div>
 
@@ -241,21 +241,21 @@
             </div>
 
             <div class="detail-card">
-                <h3>2. Nội dung Feedback</h3>
+                <h3>2. Nội dung đánh giá</h3>
 
                 <p class="content-box">
                     <c:choose>
                         <c:when test="${not empty feedbackDetail.content}">
                             ${feedbackDetail.content}
                         </c:when>
-                        <c:otherwise>Không có nội dung feedback.</c:otherwise>
+                        <c:otherwise>Không có nội dung đánh giá.</c:otherwise>
                     </c:choose>
                 </p>
 
                 <c:if test="${not empty feedbackDetail.image}">
                     <img class="feedback-image"
                          src="${feedbackDetail.image}"
-                         alt="Feedback image">
+                         alt="Hình ảnh đánh giá">
                 </c:if>
             </div>
 
@@ -290,12 +290,12 @@
                     </div>
 
                     <div class="detail-item">
-                        <span class="detail-label">Mã Booking</span>
+                        <span class="detail-label">Mã đơn</span>
                         <span class="detail-value">${feedbackDetail.bookingCode}</span>
                     </div>
 
                     <div class="detail-item">
-                        <span class="detail-label">Loại Booking</span>
+                        <span class="detail-label">Loại đơn</span>
                         <span class="detail-value">${feedbackDetail.bookingType}</span>
                     </div>
 
@@ -311,7 +311,7 @@
             <div class="detail-actions">
                 <a href="${pageContext.request.contextPath}/feedback-list"
                    class="detail-btn detail-btn-primary">
-                    Danh sách Feedback
+                    Danh sách đánh giá
                 </a>
 
                 <a href="${pageContext.request.contextPath}/home"
