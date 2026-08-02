@@ -203,6 +203,12 @@
             box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
         }
 
+        .content-card.is-loading {
+            opacity: 0.58;
+            pointer-events: none;
+            transition: opacity 0.18s ease;
+        }
+
         .filter-card {
             display: grid;
             grid-template-columns: minmax(280px, 1fr) 220px 190px auto;
@@ -427,22 +433,24 @@
             </a>
         </div>
 
-        <form class="filter-card"
+        <form id="feedbackFilterForm"
+              class="filter-card"
               action="${pageContext.request.contextPath}/admin/feedback"
               method="get">
-            <input class="form-control"
+            <input id="feedbackKeyword"
+                   class="form-control"
                    type="search"
                    name="keyword"
                    value="${fn:escapeXml(keyword)}"
                    placeholder="Tìm tên tour, nơi lưu trú, nội dung, khách hàng hoặc mã đơn...">
 
-            <select class="form-select" name="serviceType" aria-label="Lọc loại dịch vụ">
+            <select id="feedbackServiceType" class="form-select" name="serviceType" aria-label="Lọc loại đánh giá">
                 <option value="">Tất cả loại đánh giá</option>
                 <option value="Tour" ${selectedServiceType == 'Tour' ? 'selected' : ''}>Đánh giá Tour</option>
                 <option value="Accommodation" ${selectedServiceType == 'Accommodation' ? 'selected' : ''}>Đánh giá Lưu trú</option>
             </select>
 
-            <select class="form-select" name="status" aria-label="Lọc trạng thái">
+            <select id="feedbackStatus" class="form-select" name="status" aria-label="Lọc trạng thái">
                 <option value="">Tất cả trạng thái</option>
                 <option value="Visible" ${selectedStatus == 'Visible' ? 'selected' : ''}>Hiển thị</option>
                 <option value="Hidden" ${selectedStatus == 'Hidden' ? 'selected' : ''}>Đã ẩn</option>
@@ -454,7 +462,7 @@
             </button>
         </form>
 
-        <div class="content-card">
+        <div id="feedbackResults" class="content-card" aria-live="polite">
             <c:choose>
                 <c:when test="${not empty feedbackList}">
                     <div class="table-responsive">
@@ -561,5 +569,97 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (() => {
+        const form = document.getElementById('feedbackFilterForm');
+        const keywordInput = document.getElementById('feedbackKeyword');
+        const serviceTypeSelect = document.getElementById('feedbackServiceType');
+        const statusSelect = document.getElementById('feedbackStatus');
+        const results = document.getElementById('feedbackResults');
+
+        if (!form || !keywordInput || !serviceTypeSelect || !statusSelect || !results) {
+            return;
+        }
+
+        let debounceTimer = null;
+        let activeRequest = null;
+
+        const buildFilterUrl = () => {
+            const url = new URL(form.action, window.location.origin);
+            const formData = new FormData(form);
+
+            formData.forEach((value, key) => {
+                const normalizedValue = String(value).trim();
+                if (normalizedValue) {
+                    url.searchParams.set(key, normalizedValue);
+                }
+            });
+
+            return url;
+        };
+
+        const loadFilteredFeedbacks = async () => {
+            const url = buildFilterUrl();
+
+            if (activeRequest) {
+                activeRequest.abort();
+            }
+
+            const requestController = new AbortController();
+            activeRequest = requestController;
+            results.classList.add('is-loading');
+            results.setAttribute('aria-busy', 'true');
+
+            try {
+                const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: requestController.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error('Không thể tải danh sách đánh giá.');
+                }
+
+                const html = await response.text();
+                const nextDocument = new DOMParser().parseFromString(html, 'text/html');
+                const nextResults = nextDocument.getElementById('feedbackResults');
+
+                if (!nextResults) {
+                    throw new Error('Không tìm thấy vùng kết quả đánh giá.');
+                }
+
+                results.innerHTML = nextResults.innerHTML;
+                window.history.replaceState({}, '', url.pathname + url.search);
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    form.submit();
+                }
+            } finally {
+                if (activeRequest === requestController) {
+                    activeRequest = null;
+                    results.classList.remove('is-loading');
+                    results.removeAttribute('aria-busy');
+                }
+            }
+        };
+
+        keywordInput.addEventListener('input', () => {
+            window.clearTimeout(debounceTimer);
+            debounceTimer = window.setTimeout(loadFilteredFeedbacks, 350);
+        });
+
+        serviceTypeSelect.addEventListener('change', loadFilteredFeedbacks);
+        statusSelect.addEventListener('change', loadFilteredFeedbacks);
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            window.clearTimeout(debounceTimer);
+            loadFilteredFeedbacks();
+        });
+    })();
+</script>
 </body>
 </html>
