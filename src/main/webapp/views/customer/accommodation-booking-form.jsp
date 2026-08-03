@@ -494,22 +494,26 @@
                 <div class="booking-form-grid">
                     <div class="field">
                         <label for="firstName">Họ</label>
-                        <input class="form-control" id="firstName" name="firstName" value="${user.firstName}" placeholder="Nhập họ" autocomplete="family-name" required>
+                        <input class="form-control" id="firstName" name="firstName" value="${user.firstName}" placeholder="Nhập họ" autocomplete="family-name" maxlength="100" required>
+                        <span class="field-message" id="firstNameMessage"></span>
                     </div>
 
                     <div class="field">
                         <label for="lastName">Tên</label>
-                        <input class="form-control" id="lastName" name="lastName" value="${user.lastName}" placeholder="Nhập tên" autocomplete="given-name" required>
+                        <input class="form-control" id="lastName" name="lastName" value="${user.lastName}" placeholder="Nhập tên" autocomplete="given-name" maxlength="100" required>
+                        <span class="field-message" id="lastNameMessage"></span>
                     </div>
 
                     <div class="field">
                         <label for="email">Email</label>
-                        <input class="form-control" id="email" type="email" name="email" value="${user.email}" placeholder="example@gmail.com" autocomplete="email" required>
+                        <input class="form-control" id="email" type="email" name="email" value="${user.email}" placeholder="example@gmail.com" autocomplete="email" maxlength="254" required>
+                        <span class="field-message" id="emailMessage"></span>
                     </div>
 
                     <div class="field">
                         <label for="phone">Số điện thoại</label>
-                        <input class="form-control" id="phone" name="phone" value="${user.phone}" placeholder="Nhập số điện thoại" autocomplete="tel" required>
+                        <input class="form-control" id="phone" name="phone" value="${user.phone}" placeholder="Nhập số điện thoại" autocomplete="tel" inputmode="numeric" maxlength="11" pattern="[0-9]{10,11}" required>
+                        <span class="field-message" id="phoneMessage"></span>
                     </div>
 
                     <div class="field">
@@ -571,7 +575,7 @@
 
                     <div class="field full">
                         <label for="note">Ghi chú cho nơi lưu trú (nếu có)</label>
-                        <textarea class="form-control" id="note" name="note" placeholder="Nếu có: nhận phòng muộn, cần phòng yên tĩnh, hỗ trợ trẻ em..."></textarea>
+                        <textarea class="form-control" id="note" name="note" maxlength="1000" placeholder="Nếu có: nhận phòng muộn, cần phòng yên tĩnh, hỗ trợ trẻ em..."></textarea>
                     </div>
                 </div>
 
@@ -701,6 +705,14 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const form = document.querySelector("form[action$='/booking/accommodation']");
+        const firstNameInput = document.getElementById("firstName");
+        const lastNameInput = document.getElementById("lastName");
+        const emailInput = document.getElementById("email");
+        const phoneInput = document.getElementById("phone");
+        const firstNameMessage = document.getElementById("firstNameMessage");
+        const lastNameMessage = document.getElementById("lastNameMessage");
+        const emailMessage = document.getElementById("emailMessage");
+        const phoneMessage = document.getElementById("phoneMessage");
         const citySelect = document.getElementById("city");
         const wardSelect = document.getElementById("administrativeUnitID");
         const identityNumberInput = document.getElementById("identityNumber");
@@ -768,6 +780,61 @@
             input.classList.remove("is-valid", "is-invalid");
             messageEl.classList.remove("success", "error");
             messageEl.textContent = "";
+        }
+
+        function validateCustomerName(input, messageEl, label, showEmptyError) {
+            const value = (input.value || "").trim();
+            if (!value) {
+                if (showEmptyError) {
+                    setFieldState(input, messageEl, false, "Vui lòng nhập " + label.toLowerCase() + ".");
+                } else {
+                    clearFieldState(input, messageEl);
+                }
+                return false;
+            }
+            if (value.length > 100) {
+                setFieldState(input, messageEl, false, label + " không được vượt quá 100 ký tự.");
+                return false;
+            }
+            setFieldState(input, messageEl, true, label + " hợp lệ.");
+            return true;
+        }
+
+        function validateEmail(showEmptyError) {
+            const value = (emailInput.value || "").trim();
+            const validPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!value) {
+                if (showEmptyError) {
+                    setFieldState(emailInput, emailMessage, false, "Vui lòng nhập email.");
+                } else {
+                    clearFieldState(emailInput, emailMessage);
+                }
+                return false;
+            }
+            if (value.length > 254 || !validPattern.test(value)) {
+                setFieldState(emailInput, emailMessage, false, "Email chưa đúng định dạng.");
+                return false;
+            }
+            setFieldState(emailInput, emailMessage, true, "Email hợp lệ.");
+            return true;
+        }
+
+        function validatePhone(showEmptyError) {
+            const value = (phoneInput.value || "").trim();
+            if (!value) {
+                if (showEmptyError) {
+                    setFieldState(phoneInput, phoneMessage, false, "Vui lòng nhập số điện thoại.");
+                } else {
+                    clearFieldState(phoneInput, phoneMessage);
+                }
+                return false;
+            }
+            if (!/^[0-9]{10,11}$/.test(value)) {
+                setFieldState(phoneInput, phoneMessage, false, "Số điện thoại phải gồm 10 đến 11 chữ số.");
+                return false;
+            }
+            setFieldState(phoneInput, phoneMessage, true, "Số điện thoại hợp lệ.");
+            return true;
         }
 
         function validateIdentityNumber(showEmptyError) {
@@ -973,6 +1040,18 @@
             );
         }
 
+        firstNameInput.addEventListener("input", function () {
+            validateCustomerName(firstNameInput, firstNameMessage, "Họ", false);
+        });
+        lastNameInput.addEventListener("input", function () {
+            validateCustomerName(lastNameInput, lastNameMessage, "Tên", false);
+        });
+        emailInput.addEventListener("input", function () {
+            validateEmail(false);
+        });
+        phoneInput.addEventListener("input", function () {
+            validatePhone(false);
+        });
         identityNumberInput.addEventListener("input", function () {
             validateIdentityNumber(false);
         });
@@ -1007,19 +1086,28 @@
         updateVoucherTotal();
 
         form.addEventListener("submit", function (event) {
+            const isFirstNameValid = validateCustomerName(firstNameInput, firstNameMessage, "Họ", true);
+            const isLastNameValid = validateCustomerName(lastNameInput, lastNameMessage, "Tên", true);
+            const isEmailValid = validateEmail(true);
+            const isPhoneValid = validatePhone(true);
             const isIdentityValid = validateIdentityNumber(true);
             const isImageValid = validateIdentityImage(true);
             const isCityValid = validateCity(true);
             const isWardValid = validateWard(true);
             const isStreetValid = validateStreetAddress(true);
 
-            if (!isIdentityValid || !isImageValid || !isCityValid || !isWardValid || !isStreetValid) {
+            if (!isFirstNameValid || !isLastNameValid || !isEmailValid || !isPhoneValid
+                    || !isIdentityValid || !isImageValid || !isCityValid || !isWardValid || !isStreetValid) {
                 event.preventDefault();
                 const firstInvalid = form.querySelector(".is-invalid");
                 if (firstInvalid) {
                     firstInvalid.focus();
                 }
             } else {
+                firstNameInput.value = firstNameInput.value.trim();
+                lastNameInput.value = lastNameInput.value.trim();
+                emailInput.value = emailInput.value.trim();
+                phoneInput.value = phoneInput.value.trim();
                 identityNumberInput.value = normalizeIdentityNumber(identityNumberInput.value);
             }
         });

@@ -17,7 +17,7 @@ public class DBConnection {
     private final String serverName = "localhost";
     private final String dbName = "WonderVn";
     private final String portNumber = "1433";
-    private final String userID = "sa";        // Thay bằng username SQL Server của bạn
+    private final String userID = "minhanh";        // Thay bằng username SQL Server của bạn
     private final String password = "123";    // Thay bằng password SQL Server của bạn
 
     public Connection getConnection() throws SQLException {

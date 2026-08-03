@@ -590,11 +590,11 @@ public class ManageAccommodationController extends HttpServlet {
 
         Integer roomAvailability = parseNonNegativeInt(data.roomAvailabilityRaw);
         if (roomAvailability == null || roomAvailability > 1000) {
-            errors.put("roomAvailability", "Số phòng còn trống phải từ 0 đến 1000.");
+            errors.put("roomAvailability", "Số phòng đang vận hành phải từ 0 đến 1000.");
         }
 
         if (numberOfRooms != null && roomAvailability != null && roomAvailability > numberOfRooms) {
-            errors.put("roomAvailability", "Số phòng còn trống không được lớn hơn tổng số phòng.");
+            errors.put("roomAvailability", "Số phòng đang vận hành không được lớn hơn tổng số phòng.");
         }
 
         if (!isBlank(data.image) && !isValidUrl(data.image)) {

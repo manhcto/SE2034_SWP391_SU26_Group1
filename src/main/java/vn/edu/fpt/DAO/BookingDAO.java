@@ -801,7 +801,7 @@ public class BookingDAO {
         }
 
         String sqlGetBooking = """
-                SELECT b.[status], bd.tourScheduleID, bd.roomID, bd.quantity
+                SELECT b.[status], bd.tourScheduleID, bd.quantity
                 FROM Booking b WITH (UPDLOCK, ROWLOCK)
                 LEFT JOIN Booking_Detail bd ON b.bookingID = bd.bookingID
                 WHERE b.bookingID = ?
@@ -815,19 +815,6 @@ public class BookingDAO {
                 UPDATE Tour_Scheduler
                 SET quantity = quantity + ?
                 WHERE quantity + ? <= maxParticipants AND tourScheduleID = ?
-                """;
-        String sqlReleaseRoom = """
-                UPDATE Room
-                SET roomAvailability = CASE
-                    WHEN roomAvailability + ? > numberOfRooms THEN numberOfRooms
-                    ELSE roomAvailability + ? END,
-                    updatedAt = GETDATE()
-                WHERE roomID = ?
-                """;
-        String sqlReserveRoom = """
-                UPDATE Room
-                SET roomAvailability = roomAvailability - ?, updatedAt = GETDATE()
-                WHERE roomAvailability >= ? AND roomID = ?
                 """;
         String sqlUpdateBooking = """
                 UPDATE Booking SET [status] = ?, updatedAt = GETDATE() WHERE bookingID = ?
@@ -845,7 +832,6 @@ public class BookingDAO {
                 String currentStatus;
                 String paymentStatus = null;
                 int tourScheduleID = 0;
-                int roomID = 0;
                 int quantity = 0;
 
                 try (PreparedStatement ps = conn.prepareStatement(sqlGetBooking)) {
@@ -857,7 +843,6 @@ public class BookingDAO {
                         }
                         currentStatus = rs.getString("status");
                         tourScheduleID = rs.getInt("tourScheduleID");
-                        roomID = rs.getInt("roomID");
                         quantity = rs.getInt("quantity");
                     }
                 }
@@ -890,9 +875,6 @@ public class BookingDAO {
                 if (!wasCancelled && willCancel) {
                     if (quantity > 0 && tourScheduleID > 0) {
                         executeQuantityUpdate(conn, sqlReleaseTour, quantity, tourScheduleID);
-                    }
-                    if (quantity > 0 && roomID > 0) {
-                        executeQuantityUpdate(conn, sqlReleaseRoom, quantity, roomID);
                     }
                     if (!cancelPendingPayment(conn, bookingID, "Booking đã bị hủy nên payment không thể thanh toán tiếp.")) {
                         conn.rollback();
@@ -1289,7 +1271,7 @@ public class BookingDAO {
         }
 
         String sqlGetReservation = """
-                SELECT bd.tourScheduleID, bd.roomID, bd.quantity
+                SELECT bd.tourScheduleID, bd.quantity
                 FROM Payment p WITH (UPDLOCK, HOLDLOCK)
                 INNER JOIN Booking b ON b.bookingID = p.bookingID
                 LEFT JOIN Booking_Detail bd ON bd.bookingID = b.bookingID
@@ -1301,14 +1283,6 @@ public class BookingDAO {
                 UPDATE Tour_Scheduler
                 SET quantity = CASE WHEN quantity - ? < 0 THEN 0 ELSE quantity - ? END
                 WHERE tourScheduleID = ?
-                """;
-        String sqlReleaseRoom = """
-                UPDATE Room
-                SET roomAvailability = CASE
-                    WHEN roomAvailability + ? > numberOfRooms THEN numberOfRooms
-                    ELSE roomAvailability + ? END,
-                    updatedAt = GETDATE()
-                WHERE roomID = ?
                 """;
         String sqlMarkReleased = """
                 UPDATE Payment
@@ -1331,7 +1305,6 @@ public class BookingDAO {
             conn.setAutoCommit(false);
             try {
                 int tourScheduleID;
-                int roomID;
                 int quantity;
                 try (PreparedStatement ps = conn.prepareStatement(sqlGetReservation)) {
                     ps.setInt(1, bookingID);
@@ -1341,7 +1314,6 @@ public class BookingDAO {
                             return false;
                         }
                         tourScheduleID = rs.getInt("tourScheduleID");
-                        roomID = rs.getInt("roomID");
                         quantity = rs.getInt("quantity");
                     }
                 }
@@ -1351,12 +1323,6 @@ public class BookingDAO {
                     conn.rollback();
                     return false;
                 }
-                if (quantity > 0 && roomID > 0
-                        && !executeQuantityUpdate(conn, sqlReleaseRoom, quantity, roomID)) {
-                    conn.rollback();
-                    return false;
-                }
-
                 try (PreparedStatement ps = conn.prepareStatement(sqlMarkReleased)) {
                     ps.setNString(1, "[SLOT_RELEASED] " + note);
                     ps.setInt(2, bookingID);

@@ -228,7 +228,7 @@
                                 </c:if>
                                 <a class="home-tour-card" href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">
                                     <div class="home-tour-image">
-                                        <img src="${imageUrl}" alt="${fn:escapeXml(tour.tourName)}" loading="lazy">
+                                        <img src="${imageUrl}" alt="${fn:escapeXml(tour.tourName)}" loading="lazy" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/home/hero-bana.png';">
                                         <div class="home-tour-origin">Từ <c:out value="${tour.startPlace}" /></div>
                                     </div>
                                     <div class="home-tour-title"><c:out value="${tour.tourName}" /></div>
@@ -282,7 +282,7 @@
                                 </c:if>
                                 <a class="home-tour-card" href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">
                                     <div class="home-tour-image">
-                                        <img src="${imageUrl}" alt="${fn:escapeXml(tour.tourName)}" loading="lazy">
+                                        <img src="${imageUrl}" alt="${fn:escapeXml(tour.tourName)}" loading="lazy" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/home/hero-bana.png';">
                                         <div class="home-tour-origin">Từ <c:out value="${tour.startPlace}" /></div>
                                     </div>
                                     <div class="home-tour-title"><c:out value="${tour.tourName}" /></div>

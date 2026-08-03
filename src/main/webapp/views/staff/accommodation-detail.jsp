@@ -689,7 +689,7 @@
                                                     </div>
 
                                                     <div class="col-md-3">
-                                                        <label class="form-label fw-bold">Phòng còn trống</label>
+                                                        <label class="form-label fw-bold">Phòng đang vận hành</label>
                                                         <input class="form-control" type="number" min="0" name="roomAvailability" value="${r.roomAvailability}" required>
                                                     </div>
 
@@ -820,7 +820,7 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label fw-bold">Phòng còn trống</label>
+                            <label class="form-label fw-bold">Phòng đang vận hành</label>
                             <input class="form-control" type="number" min="0" name="roomAvailability" value="1" required>
                         </div>
 
@@ -1067,12 +1067,12 @@
         }
 
         if (available > total) {
-            showFieldError(roomAvailability, "Phòng còn trống không được lớn hơn tổng số phòng.");
+            showFieldError(roomAvailability, "Phòng đang vận hành không được lớn hơn tổng số phòng.");
             return false;
         }
 
         if (available < 0) {
-            showFieldError(roomAvailability, "Phòng còn trống không được nhỏ hơn 0.");
+            showFieldError(roomAvailability, "Phòng đang vận hành không được nhỏ hơn 0.");
             return false;
         }
 
@@ -1098,7 +1098,7 @@
         if (!validateText(roomType, "Loại phòng", 2, 100)) valid = false;
         if (!validateNumberRange(priceOfRoom, "Giá phòng", 1, 1000000000, true)) valid = false;
         if (!validateNumberRange(numberOfRooms, "Tổng số phòng", 0, 1000, false)) valid = false;
-        if (!validateNumberRange(roomAvailability, "Phòng còn trống", 0, 1000, false)) valid = false;
+        if (!validateNumberRange(roomAvailability, "Phòng đang vận hành", 0, 1000, false)) valid = false;
         if (!validateRoomAvailability(form)) valid = false;
         if (!validateNumberRange(bedCount, "Số giường", 1, 20, false)) valid = false;
         if (!validateText(bedType, "Loại giường", 2, 50)) valid = false;

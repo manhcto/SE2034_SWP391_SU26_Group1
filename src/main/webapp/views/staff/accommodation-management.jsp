@@ -592,7 +592,7 @@
 
 
             <div class="stat-card">
-                <div class="label">Tổng phòng còn trống</div>
+                <div class="label">Tổng phòng đang vận hành</div>
                 <div class="value">
                     <c:set var="roomAvailable" value="0"/>
                     <c:forEach var="a" items="${accommodationList}">

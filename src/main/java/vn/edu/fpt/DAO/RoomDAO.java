@@ -5,13 +5,16 @@ import vn.edu.fpt.model.Room;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,14 +71,25 @@ public class RoomDAO {
         return findMany(sql, null);
     }
 
+    public List<Room> getAllAvailableRoomsByDate(String checkIn, String checkOut) {
+        if (!isValidDateRange(checkIn, checkOut)) {
+            return new ArrayList<>();
+        }
+
+        return applyDateAvailability(getAllAvailableRooms(), checkIn, checkOut, null);
+    }
+
     public List<Room> getAvailableRoomsByAccommodationAndDate(
             int accommodationID, String checkIn, String checkOut) {
         if (!isValidDateRange(checkIn, checkOut)) {
             return new ArrayList<>();
         }
 
-        // roomAvailability is reserved atomically when a booking is created.
-        return getAvailableRoomsByAccommodation(accommodationID);
+        return applyDateAvailability(
+                getAvailableRoomsByAccommodation(accommodationID),
+                checkIn,
+                checkOut,
+                accommodationID);
     }
 
     public Room getRoomById(int roomID) {
@@ -406,6 +420,66 @@ public class RoomDAO {
             room.setUpdatedAt(resultSet.getTimestamp("updatedAt").toLocalDateTime());
         }
         return room;
+    }
+
+    private List<Room> applyDateAvailability(
+            List<Room> rooms, String checkIn, String checkOut, Integer accommodationID) {
+        Map<Integer, Integer> reservedByRoom = loadReservedRoomQuantities(
+                checkIn, checkOut, accommodationID);
+        if (reservedByRoom == null) {
+            return new ArrayList<>();
+        }
+
+        List<Room> availableRooms = new ArrayList<>();
+        for (Room room : rooms) {
+            int available = calculateEffectiveAvailability(
+                    room.getRoomAvailability(),
+                    reservedByRoom.getOrDefault(room.getRoomID(), 0));
+            if (available > 0) {
+                room.setRoomAvailability(available);
+                availableRooms.add(room);
+            }
+        }
+        return availableRooms;
+    }
+
+    private Map<Integer, Integer> loadReservedRoomQuantities(
+            String checkIn, String checkOut, Integer accommodationID) {
+        String sql =
+                "SELECT bd.roomID, SUM(bd.quantity) AS reservedQuantity " +
+                        "FROM [dbo].[Booking_Detail] bd " +
+                        "INNER JOIN [dbo].[Booking] b ON b.bookingID = bd.bookingID " +
+                        "WHERE bd.roomID IS NOT NULL " +
+                        "AND bd.startDate < ? AND bd.endDate > ? " +
+                        "AND LTRIM(RTRIM(ISNULL(b.[status], N''))) " +
+                        "NOT IN (N'Cancelled', N'Đã hủy', N'Hủy') " +
+                        (accommodationID == null ? "" : "AND bd.accommodationID = ? ") +
+                        "GROUP BY bd.roomID";
+
+        Map<Integer, Integer> reservedByRoom = new HashMap<>();
+        try (Connection connection = new DBConnection().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setDate(1, Date.valueOf(checkOut));
+            statement.setDate(2, Date.valueOf(checkIn));
+            if (accommodationID != null) {
+                statement.setInt(3, accommodationID);
+            }
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    reservedByRoom.put(
+                            resultSet.getInt("roomID"),
+                            resultSet.getInt("reservedQuantity"));
+                }
+            }
+            return reservedByRoom;
+        } catch (SQLException e) {
+            logFailure("load date-based room availability", e);
+            return null;
+        }
+    }
+
+    static int calculateEffectiveAvailability(int operationalCapacity, int reservedQuantity) {
+        return Math.max(0, operationalCapacity - Math.max(0, reservedQuantity));
     }
 
     private boolean isValidDateRange(String checkIn, String checkOut) {

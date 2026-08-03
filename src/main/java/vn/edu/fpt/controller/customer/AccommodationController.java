@@ -177,7 +177,10 @@ public class AccommodationController extends HttpServlet {
         Map<Integer, List<Facility>> facilitiesByRoom = facilityDAO.getRoomFacilitiesGrouped();
 
 
-        for (Room room : roomDAO.getAllAvailableRooms()) {
+        List<Room> customerRooms = hasDateRange(checkIn, checkOut)
+                ? roomDAO.getAllAvailableRoomsByDate(checkIn, checkOut)
+                : roomDAO.getAllAvailableRooms();
+        for (Room room : customerRooms) {
             room.setFacilityList(facilitiesByRoom.getOrDefault(room.getRoomID(), List.of()));
             roomsByAccommodation
                     .computeIfAbsent(room.getAccommodationID(), ignored -> new ArrayList<>())
@@ -685,9 +688,17 @@ public class AccommodationController extends HttpServlet {
                 adults, children, rooms, guests);
 
 
-        if (isBlank(firstName) || isBlank(lastName) || isBlank(email) || isBlank(phone)) {
+        if (!isValidCustomerName(firstName) || !isValidCustomerName(lastName)
+                || !isValidEmail(email) || !isValidPhone(phone)
+                || note.length() > 1000) {
             response.sendRedirect(buildBookingFormUrl(request, accommodationID, roomID, checkIn, checkOut,
                     adults, children, rooms, guests) + "&status=invalidCustomerInfo");
+            return;
+        }
+
+
+        if (guests != adults + children) {
+            response.sendRedirect(detailUrl + "&status=invalidBooking");
             return;
         }
 
@@ -779,12 +790,14 @@ public class AccommodationController extends HttpServlet {
 
 
         if (bookingID == -2) {
+            deleteIdentityImage(identityImageUrl);
             response.sendRedirect(bookingFormUrl + "&status=invalidVoucher");
             return;
         }
 
 
         if (bookingID <= 0) {
+            deleteIdentityImage(identityImageUrl);
             response.sendRedirect(detailUrl + "&status=bookingFail");
             return;
         }
@@ -983,7 +996,7 @@ public class AccommodationController extends HttpServlet {
         try {
             LocalDate inDate = LocalDate.parse(checkIn);
             LocalDate outDate = LocalDate.parse(checkOut);
-            return outDate.isAfter(inDate);
+            return !inDate.isBefore(LocalDate.now()) && outDate.isAfter(inDate);
         } catch (Exception e) {
             return false;
         }
@@ -1024,6 +1037,24 @@ public class AccommodationController extends HttpServlet {
     private boolean isValidIdentityNumber(String identityNumber) {
         String normalizedIdentityNumber = normalizeIdentityNumber(identityNumber);
         return normalizedIdentityNumber.matches("^[0-9]{9}$|^[0-9]{12}$");
+    }
+
+
+    private boolean isValidCustomerName(String value) {
+        String normalized = safeTrim(value);
+        return !normalized.isEmpty() && normalized.length() <= 100;
+    }
+
+
+    private boolean isValidEmail(String value) {
+        String normalized = safeTrim(value);
+        return normalized.length() <= 254
+                && normalized.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+    }
+
+
+    private boolean isValidPhone(String value) {
+        return safeTrim(value).matches("^[0-9]{10,11}$");
     }
 
 
@@ -1299,21 +1330,20 @@ public class AccommodationController extends HttpServlet {
 
         String contentType = part.getContentType();
         String normalizedType = contentType == null ? "" : contentType.toLowerCase(Locale.ROOT);
-        if ("image/jpeg".equals(normalizedType)
+        boolean validType = "image/jpeg".equals(normalizedType)
                 || "image/jpg".equals(normalizedType)
                 || "image/pjpeg".equals(normalizedType)
                 || "image/png".equals(normalizedType)
-                || "image/webp".equals(normalizedType)) {
-            return true;
-        }
+                || "image/webp".equals(normalizedType);
 
 
         String fileName = part.getSubmittedFileName();
         String normalizedName = fileName == null ? "" : fileName.toLowerCase(Locale.ROOT);
-        return normalizedName.endsWith(".jpg")
+        boolean validExtension = normalizedName.endsWith(".jpg")
                 || normalizedName.endsWith(".jpeg")
                 || normalizedName.endsWith(".png")
                 || normalizedName.endsWith(".webp");
+        return validType && validExtension;
     }
 
 
@@ -1345,6 +1375,30 @@ public class AccommodationController extends HttpServlet {
 
         part.write(target.toString());
         return "uploads/identity/" + fileName;
+    }
+
+
+    private void deleteIdentityImage(String identityImageUrl) {
+        if (isBlank(identityImageUrl)) {
+            return;
+        }
+
+
+        String uploadRoot = getServletContext().getRealPath("/uploads/identity");
+        if (uploadRoot == null) {
+            return;
+        }
+
+
+        try {
+            Path uploadDir = Paths.get(uploadRoot).normalize();
+            Path target = uploadDir.resolve(Paths.get(identityImageUrl).getFileName()).normalize();
+            if (target.startsWith(uploadDir)) {
+                Files.deleteIfExists(target);
+            }
+        } catch (IOException e) {
+            getServletContext().log("Failed to delete unused identity image", e);
+        }
     }
 
 

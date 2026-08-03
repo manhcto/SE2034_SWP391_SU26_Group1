@@ -87,13 +87,19 @@ public class RoomBookingDAO {
             return -1;
         }
 
-        String sqlReserveRoom =
-                "UPDATE [dbo].[Room] " +
-                        "SET roomAvailability = roomAvailability - ?, updatedAt = GETDATE() " +
-                        "WHERE roomID = ? AND accommodationID = ? " +
-                        "AND [status] IN (N'Available', N'Active') AND roomAvailability >= ? " +
-                        "AND maxAdults * ? >= ? AND maxChildren * ? >= ? " +
-                        "AND (maxAdults + maxChildren) * ? >= ?";
+        String sqlLockRoom =
+                "SELECT roomAvailability, maxAdults, maxChildren, [status] " +
+                        "FROM [dbo].[Room] WITH (UPDLOCK, HOLDLOCK) " +
+                        "WHERE roomID = ? AND accommodationID = ?";
+
+        String sqlReservedRooms =
+                "SELECT COALESCE(SUM(bd.quantity), 0) AS reservedQuantity " +
+                        "FROM [dbo].[Booking_Detail] bd " +
+                        "INNER JOIN [dbo].[Booking] b ON b.bookingID = bd.bookingID " +
+                        "WHERE bd.roomID = ? AND bd.accommodationID = ? " +
+                        "AND bd.startDate < ? AND bd.endDate > ? " +
+                        "AND LTRIM(RTRIM(ISNULL(b.[status], N''))) " +
+                        "NOT IN (N'Cancelled', N'Đã hủy', N'Hủy')";
 
         String sqlVoucher =
                 "SELECT uv.voucherID, v.percentDiscount, v.amountDiscount " +
@@ -156,22 +162,46 @@ public class RoomBookingDAO {
                     }
                 }
 
-                try (PreparedStatement psReserve = conn.prepareStatement(sqlReserveRoom)) {
-                    psReserve.setInt(1, roomQuantity);
-                    psReserve.setInt(2, roomID);
-                    psReserve.setInt(3, accommodationID);
-                    psReserve.setInt(4, roomQuantity);
-                    psReserve.setInt(5, roomQuantity);
-                    psReserve.setInt(6, adults);
-                    psReserve.setInt(7, roomQuantity);
-                    psReserve.setInt(8, children);
-                    psReserve.setInt(9, roomQuantity);
-                    psReserve.setInt(10, totalGuests);
+                int operationalCapacity;
+                int maxAdults;
+                int maxChildren;
+                try (PreparedStatement psRoom = conn.prepareStatement(sqlLockRoom)) {
+                    psRoom.setInt(1, roomID);
+                    psRoom.setInt(2, accommodationID);
+                    try (ResultSet rs = psRoom.executeQuery()) {
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return -1;
+                        }
+                        String roomStatus = rs.getString("status");
+                        if (!("Available".equalsIgnoreCase(roomStatus)
+                                || "Active".equalsIgnoreCase(roomStatus))) {
+                            conn.rollback();
+                            return -1;
+                        }
+                        operationalCapacity = rs.getInt("roomAvailability");
+                        maxAdults = rs.getInt("maxAdults");
+                        maxChildren = rs.getInt("maxChildren");
+                    }
+                }
 
-                    if (psReserve.executeUpdate() == 0) {
+                int reservedQuantity;
+                try (PreparedStatement psReserved = conn.prepareStatement(sqlReservedRooms)) {
+                    psReserved.setInt(1, roomID);
+                    psReserved.setInt(2, accommodationID);
+                    psReserved.setDate(3, checkOutDate);
+                    psReserved.setDate(4, checkInDate);
+                    try (ResultSet rs = psReserved.executeQuery()) {
+                        reservedQuantity = rs.next() ? rs.getInt("reservedQuantity") : 0;
+                    }
+                }
+
+                if (operationalCapacity - reservedQuantity < roomQuantity
+                        || (long) maxAdults * roomQuantity < adults
+                        || (long) maxChildren * roomQuantity < children
+                        || (long) (maxAdults + maxChildren) * roomQuantity < totalGuests) {
                         conn.rollback();
                         return -1;
-                    }
                 }
 
                 int bookingID;
