@@ -71,7 +71,7 @@
                     <div class="detail-item"><span>Thời gian</span><strong><fmt:formatDate value="${assignment.departureDate}" pattern="dd/MM/yyyy"/> - <fmt:formatDate value="${assignment.endDate}" pattern="dd/MM/yyyy"/></strong></div>
                     <div class="detail-item"><span>Điểm đón</span><strong>${empty assignment.meetingPoint ? 'Chưa nhập' : assignment.meetingPoint}</strong></div>
                     <div class="detail-item"><span>Giờ đón / hạn check-in</span><strong><fmt:formatDate value="${assignment.pickupTime}" pattern="dd/MM/yyyy HH:mm"/> / <fmt:formatDate value="${assignment.checkInDeadline}" pattern="dd/MM/yyyy HH:mm"/></strong></div>
-                    <div class="detail-item"><span>Số khách</span><strong>${assignment.totalGuests} khách</strong></div>
+                    <div class="detail-item"><span>Số khách</span><strong>${assignment.linkedParticipantCount} khách (${assignment.linkedBookingCount} booking)</strong></div>
                 </div>
             </div>
         </section>

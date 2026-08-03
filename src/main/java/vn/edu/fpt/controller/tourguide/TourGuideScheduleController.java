@@ -361,7 +361,7 @@ public class TourGuideScheduleController extends HttpServlet {
         }
 
         if (canUseTourActions(assignment)) {
-            redirectToAssignmentDetail(request, response, assignmentID, "confirmSuccess");
+            redirectToAssignmentDetail(request, response, assignmentID, "alreadyConfirmed");
             return;
         }
 
@@ -424,11 +424,12 @@ public class TourGuideScheduleController extends HttpServlet {
             throws IOException {
 
         boolean success = "confirmSuccess".equals(resultCode)
-                || "rejectSuccess".equals(resultCode);
+                || "rejectSuccess".equals(resultCode)
+                || "alreadyConfirmed".equals(resultCode);
         String parameterName = success ? "success" : "error";
         String parameterValue = "rejectSuccess".equals(resultCode)
                 ? "reject"
-                : (success ? "confirm" : resultCode);
+                : ("alreadyConfirmed".equals(resultCode) ? "alreadyConfirmed" : (success ? "confirm" : resultCode));
 
         response.sendRedirect(
                 request.getContextPath()

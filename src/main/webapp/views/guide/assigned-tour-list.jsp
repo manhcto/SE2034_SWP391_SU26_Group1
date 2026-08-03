@@ -86,7 +86,7 @@
                                 <td>${a.tourName}<div class="text-muted small">${a.startPlace} → ${a.endPlace}</div></td>
                                 <td><fmt:formatDate value="${a.departureDate}" pattern="dd/MM/yyyy HH:mm"/></td>
                                 <td>${empty a.meetingPoint ? 'Chưa nhập' : a.meetingPoint}</td>
-                                <td>${a.totalGuests} khách</td>
+                                <td>${a.linkedParticipantCount} khách (${a.linkedBookingCount} booking)</td>
                                 <td>
                                     <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/guide/assignment?action=detail&id=${a.assignmentID}">
                                         <i class="fa-solid fa-eye me-1"></i>Xem chi tiết

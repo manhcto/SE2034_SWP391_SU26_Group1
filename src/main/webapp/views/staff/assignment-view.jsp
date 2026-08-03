@@ -61,12 +61,11 @@
                         <strong>${empty assignment.assignmentCode ? assignment.assignmentID : assignment.assignmentCode}</strong>
                     </div>
                     <div class="detail-item">
-                        <span>Booking</span>
+                        <span>Booking / hành khách</span>
                         <strong>
                             <c:choose>
                                 <c:when test="${not empty assignment.bookingCode}">${assignment.bookingCode}</c:when>
-                                <c:when test="${assignment.bookingID > 0}">#${assignment.bookingID}</c:when>
-                                <c:otherwise>Chưa gắn booking</c:otherwise>
+                            <c:otherwise>${assignment.linkedBookingCount} booking / ${assignment.linkedParticipantCount} hành khách</c:otherwise>
                             </c:choose>
                         </strong>
                     </div>

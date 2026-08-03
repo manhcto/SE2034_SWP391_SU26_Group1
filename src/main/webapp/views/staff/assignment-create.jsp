@@ -41,10 +41,17 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'migrationRequired'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-database me-2"></i>
+                Database chưa có bảng liên kết booking cho phân công. Hãy chạy migration 20260803_tour_assignment_bookings.sql.
+            </div>
+        </c:if>
+
         <c:if test="${param.error == 'notCompletedBooking' || param.error == 'paymentRequired'}">
             <div class="alert alert-danger">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
-                Chỉ booking tour đã thanh toán thành công mới được phân công hướng dẫn viên.
+                Chỉ lịch tour có booking đã thanh toán thành công mới được phân công hướng dẫn viên.
             </div>
         </c:if>
 
@@ -55,17 +62,10 @@
             </div>
         </c:if>
 
-        <c:if test="${param.error == 'duplicateCustomer'}">
+        <c:if test="${param.error == 'scheduleAssigned'}">
             <div class="alert alert-danger">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
-                Booking hoặc khách đặt này đã được phân công cho lịch tour này. Vui lòng chọn booking khác.
-            </div>
-        </c:if>
-
-        <c:if test="${param.error == 'duplicateGuide'}">
-            <div class="alert alert-danger">
-                <i class="fa-solid fa-circle-exclamation me-2"></i>
-                Hướng dẫn viên này đã được phân công cho lịch tour này. Vui lòng chọn hướng dẫn viên khác.
+                Lịch tour này đã có hướng dẫn viên được phân công.
             </div>
         </c:if>
 
@@ -101,7 +101,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Thông tin phân công</h2>
-                    <p>Chỉ hiển thị booking tour đã thanh toán thành công và lưu trực tiếp vào phân công tour.</p>
+                    <p>Chọn lịch tour và hướng dẫn viên. Mọi booking đã thanh toán của lịch sẽ được liên kết tự động.</p>
                 </div>
             </div>
 
@@ -111,21 +111,17 @@
 
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="form-label">Booking tour</label>
-                            <select name="bookingID" class="form-select" required>
-                                <option value="">Chọn booking cần phân công</option>
-                                <c:forEach var="b" items="${bookingList}">
-                                    <fmt:formatDate value="${b.pickupTime}" pattern="yyyy-MM-dd'T'HH:mm" var="bookingPickupValue"/>
-                                    <fmt:formatDate value="${b.checkInDeadline}" pattern="yyyy-MM-dd'T'HH:mm" var="bookingCheckInValue"/>
-                                    <option value="${b.bookingID}"
-                                            data-pickup-time="${bookingPickupValue}"
-                                            data-check-in-deadline="${bookingCheckInValue}"
-                                            data-rejected-guide-ids="${b.rejectedGuideIDs}">
-                                        <c:choose>
-                                            <c:when test="${not empty b.bookingCode}">${b.bookingCode}</c:when>
-                                            <c:otherwise>Booking #${b.bookingID}</c:otherwise>
-                                        </c:choose>
-                                        - ${b.tourName} - ${b.customerName}
+                            <label class="form-label">Lịch tour đã có booking thanh toán</label>
+                            <select name="tourScheduleID" class="form-select" required>
+                                <option value="">Chọn lịch tour cần phân công</option>
+                                <c:forEach var="schedule" items="${scheduleList}">
+                                    <fmt:formatDate value="${schedule.pickupTime}" pattern="yyyy-MM-dd'T'HH:mm" var="schedulePickupValue"/>
+                                    <fmt:formatDate value="${schedule.checkInDeadline}" pattern="yyyy-MM-dd'T'HH:mm" var="scheduleCheckInValue"/>
+                                    <option value="${schedule.tourScheduleID}"
+                                            data-pickup-time="${schedulePickupValue}"
+                                            data-check-in-deadline="${scheduleCheckInValue}">
+                                        ${schedule.tourName} - ${schedule.startPlace} → ${schedule.endPlace}
+                                        (${schedule.linkedBookingCount} booking, ${schedule.linkedParticipantCount} khách)
                                     </option>
                                 </c:forEach>
                             </select>
@@ -175,8 +171,8 @@
         <section class="panel mt-4">
             <div class="panel-header">
                 <div>
-                    <h2>Booking tour khả dụng</h2>
-                    <p>Kiểm tra nhanh khách, tuyến và lịch trước khi phân công.</p>
+                    <h2>Lịch tour khả dụng</h2>
+                    <p>Một guide sẽ quản lý tất cả booking đã thanh toán của lịch tour được chọn.</p>
                 </div>
             </div>
 
@@ -185,33 +181,26 @@
                     <table class="table table-hover align-middle data-table">
                         <thead>
                         <tr>
-                            <th>Booking</th>
-                            <th>Khách</th>
-                            <th>Tour</th>
+                            <th>Lịch tour</th>
                             <th>Tuyến</th>
-                            <th>Lịch</th>
-                            <th>Số khách</th>
+                            <th>Khởi hành</th>
+                            <th>Booking</th>
+                            <th>Hành khách</th>
                             <th>Trạng thái</th>
-                            <th>Tổng tiền</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <c:forEach var="b" items="${bookingList}">
+                        <c:forEach var="b" items="${scheduleList}">
                             <tr>
                                 <td>
                                     <strong>
                                         <c:choose>
-                                            <c:when test="${not empty b.bookingCode}">${b.bookingCode}</c:when>
-                                            <c:otherwise>#${b.bookingID}</c:otherwise>
+                                            <c:when test="${not empty b.tourName}">${b.tourName}</c:when>
+                                            <c:otherwise>Lịch #${b.tourScheduleID}</c:otherwise>
                                         </c:choose>
                                     </strong>
-                                    <div class="text-muted small">ID: ${b.bookingID}</div>
+                                    <div class="text-muted small">Lịch #${b.tourScheduleID}</div>
                                 </td>
-                                <td>
-                                    ${b.customerName}
-                                    <div class="text-muted small">${b.customerPhone}</div>
-                                </td>
-                                <td>${b.tourName}</td>
                                 <td>${b.startPlace} → ${b.endPlace}</td>
                                 <td>
                                     <fmt:formatDate value="${b.departureDate}" pattern="dd/MM/yyyy"/>
@@ -221,16 +210,16 @@
                                         </div>
                                     </c:if>
                                 </td>
-                                <td>${b.totalGuests} khách</td>
+                                <td>${b.linkedBookingCount} booking</td>
+                                <td>${b.linkedParticipantCount} khách</td>
                                 <td><span class="status-pill status-assigned">Đã thanh toán</span></td>
-                                <td><fmt:formatNumber value="${b.totalPrice}" type="number" maxFractionDigits="0"/> VNĐ</td>
                             </tr>
                         </c:forEach>
 
-                        <c:if test="${empty bookingList}">
+                        <c:if test="${empty scheduleList}">
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-5">
-                                    Chưa có booking tour đã thanh toán thành công nào có lịch trình để phân công.
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    Chưa có lịch tour nào có booking đã thanh toán cần phân công.
                                 </td>
                             </tr>
                         </c:if>
@@ -243,7 +232,7 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const bookingSelect = document.querySelector('select[name="bookingID"]');
+        const bookingSelect = document.querySelector('select[name="tourScheduleID"]');
         const guideSelect = document.querySelector('select[name="userID"]');
         const pickupTime = document.getElementById('pickupTime');
         const checkInDeadline = document.getElementById('checkInDeadline');
@@ -252,26 +241,6 @@
             const option = bookingSelect?.selectedOptions?.[0];
             pickupTime.value = option?.dataset.pickupTime || '';
             checkInDeadline.value = option?.dataset.checkInDeadline || '';
-            filterRejectedGuides(option?.dataset.rejectedGuideIds || '');
-        }
-
-        function filterRejectedGuides(rejectedGuideIDs) {
-            const rejected = new Set(
-                rejectedGuideIDs
-                    .split(',')
-                    .map(id => id.trim())
-                    .filter(Boolean)
-            );
-
-            guideSelect?.querySelectorAll('option[data-guide-id]').forEach(option => {
-                const rejectedForBooking = rejected.has(option.dataset.guideId);
-                option.disabled = rejectedForBooking;
-                option.hidden = rejectedForBooking;
-            });
-
-            if (guideSelect?.selectedOptions?.[0]?.disabled) {
-                guideSelect.value = '';
-            }
         }
 
         bookingSelect?.addEventListener('change', syncAssignmentTimes);

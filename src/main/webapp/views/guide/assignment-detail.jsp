@@ -80,6 +80,13 @@
             </div>
         </c:if>
 
+        <c:if test="${param.success == 'alreadyConfirmed'}">
+            <div class="alert alert-info">
+                <i class="fa-solid fa-circle-info me-2"></i>
+                Tour này đã được xác nhận trước đó.
+            </div>
+        </c:if>
+
         <c:if test="${param.success == 'reject'}">
             <div class="alert alert-success">
                 <i class="fa-solid fa-circle-check me-2"></i>
@@ -211,25 +218,19 @@
                     </div>
                     <div class="detail-item">
                         <span>Booking</span>
-                        <strong>
-                            <c:choose>
-                                <c:when test="${not empty assignment.bookingCode}">${assignment.bookingCode}</c:when>
-                                <c:when test="${assignment.bookingID > 0}">#${assignment.bookingID}</c:when>
-                                <c:otherwise>Chưa gắn booking</c:otherwise>
-                            </c:choose>
-                        </strong>
+                        <strong>${assignment.linkedBookingCount} booking đã liên kết</strong>
                     </div>
                     <div class="detail-item">
                         <span>Khách</span>
-                        <strong>${empty assignment.customerName ? 'Chưa có booking' : assignment.customerName}</strong>
+                        <strong>${assignment.linkedParticipantCount} hành khách</strong>
                     </div>
                     <div class="detail-item">
                         <span>Liên hệ khách</span>
-                        <strong>${assignment.customerPhone} - ${assignment.customerEmail}</strong>
+                        <strong>Xem danh sách hành khách để xem thông tin từng booking.</strong>
                     </div>
                     <div class="detail-item">
                         <span>Số khách</span>
-                        <strong>${assignment.totalGuests} khách</strong>
+                        <strong>${assignment.linkedParticipantCount} khách</strong>
                     </div>
                 </div>
             </div>

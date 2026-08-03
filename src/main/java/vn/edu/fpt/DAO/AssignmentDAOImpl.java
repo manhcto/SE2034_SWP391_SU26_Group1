@@ -102,7 +102,9 @@ public class AssignmentDAOImpl {
             ts.endDate,
             ts.departureTime,
             ts.maxParticipants,
-            ts.quantity AS bookedQuantity
+            ts.quantity AS bookedQuantity,
+            ISNULL(linkedBookings.bookingCount, 0) AS linkedBookingCount,
+            ISNULL(linkedBookings.participantCount, 0) AS linkedParticipantCount
         FROM Tour_Assignments ta
         JOIN Tour_Scheduler ts
             ON ta.tourScheduleID = ts.tourScheduleID
@@ -117,10 +119,19 @@ public class AssignmentDAOImpl {
         LEFT JOIN Booking_Detail bd
             ON bd.bookingID = b.bookingID
            AND bd.tourScheduleID = ta.tourScheduleID
+        OUTER APPLY (
+            SELECT
+                COUNT(*) AS bookingCount,
+                SUM(ISNULL(linkedBooking.numberAdult, 0) + ISNULL(linkedBooking.numberChildren, 0)) AS participantCount
+            FROM Tour_Assignment_Booking tab
+            JOIN Booking linkedBooking ON linkedBooking.bookingID = tab.bookingID
+            WHERE tab.assignmentID = ta.assignmentID
+        ) linkedBookings
         """;
 
     public List<AssignmentView> getAllAssignments() {
         List<AssignmentView> list = new ArrayList<>();
+        syncPaidBookingsToActiveAssignments();
         synchronizeEndedBookingsForCompletedAssignments();
 
         String sql = ASSIGNMENT_SELECT + """
@@ -209,14 +220,6 @@ public class AssignmentDAOImpl {
             WHERE u.userID = ?
               AND r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
               AND u.[status] = N'Active'
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM Tour_Assignments activeAssignment
-                  WHERE activeAssignment.userID = u.userID
-                    AND LTRIM(RTRIM(ISNULL(activeAssignment.assignmentStatus, N'Pending'))) NOT IN (
-                        """ + CLOSED_ASSIGNMENT_STATUSES + """
-                    )
-              )
             """;
 
         DBConnection db = new DBConnection();
@@ -246,7 +249,9 @@ public class AssignmentDAOImpl {
                 if (affectedRows > 0) {
                     try (ResultSet keys = ps.getGeneratedKeys()) {
                         if (keys.next()) {
-                            updateAssignmentCode(conn, keys.getInt(1));
+                            int assignmentID = keys.getInt(1);
+                            updateAssignmentCode(conn, assignmentID);
+                            linkPaidBookingsToAssignment(conn, assignmentID);
                         }
                     }
 
@@ -306,15 +311,6 @@ public class AssignmentDAOImpl {
             WHERE ta.assignmentID = ?
               AND r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
               AND u.[status] = N'Active'
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM Tour_Assignments activeAssignment
-                  WHERE activeAssignment.userID = u.userID
-                    AND activeAssignment.assignmentID <> ta.assignmentID
-                    AND LTRIM(RTRIM(ISNULL(activeAssignment.assignmentStatus, N'Pending'))) NOT IN (
-                        """ + CLOSED_ASSIGNMENT_STATUSES + """
-                    )
-              )
             """;
 
         DBConnection db = new DBConnection();
@@ -410,6 +406,7 @@ public class AssignmentDAOImpl {
     }
 
     public AssignmentView getAssignmentDetail(int id) {
+        syncPaidBookingsToActiveAssignments();
         String sql = ASSIGNMENT_SELECT + """
             WHERE ta.assignmentID = ?
             """;
@@ -435,6 +432,7 @@ public class AssignmentDAOImpl {
     }
 
     public AssignmentView getAssignmentDetailForGuide(int id, int guideID) {
+        syncPaidBookingsToActiveAssignments();
         String sql = ASSIGNMENT_SELECT + """
             WHERE ta.assignmentID = ?
               AND ta.userID = ?
@@ -612,6 +610,211 @@ public class AssignmentDAOImpl {
         return list;
     }
 
+    public List<AssignmentView> getAssignableTourSchedules() {
+        List<AssignmentView> schedules = new ArrayList<>();
+        String sql = """
+            SELECT ts.tourScheduleID, t.tourID, t.tourName, t.startPlace, t.endPlace,
+                   ts.startDate, ts.endDate, ts.departureTime, ts.maxParticipants, ts.quantity AS bookedQuantity,
+                   COUNT(DISTINCT b.bookingID) AS linkedBookingCount,
+                   SUM(ISNULL(b.numberAdult, 0) + ISNULL(b.numberChildren, 0)) AS linkedParticipantCount
+            FROM Tour_Scheduler ts
+            JOIN Tour t ON t.tourID = ts.tourID
+            JOIN Booking_Detail bd ON bd.tourScheduleID = ts.tourScheduleID
+            JOIN Booking b ON b.bookingID = bd.bookingID
+            JOIN Payment p ON p.bookingID = b.bookingID AND p.[status] = N'Paid'
+            WHERE UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
+              AND LTRIM(RTRIM(ISNULL(b.[status], N''))) NOT IN (N'Cancelled', N'Đã hủy', N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc')
+              AND NOT EXISTS (
+                  SELECT 1 FROM Tour_Assignments ta
+                  WHERE ta.tourScheduleID = ts.tourScheduleID
+                    AND LTRIM(RTRIM(ISNULL(ta.assignmentStatus, N'Pending')))
+                        IN (N'Pending', N'Assigned', N'Accepted', N'Confirmed', N'In Progress')
+              )
+            GROUP BY ts.tourScheduleID, t.tourID, t.tourName, t.startPlace, t.endPlace,
+                     ts.startDate, ts.endDate, ts.departureTime, ts.maxParticipants, ts.quantity
+            ORDER BY ts.startDate ASC, ts.tourScheduleID ASC
+            """;
+
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                AssignmentView schedule = new AssignmentView();
+                schedule.setTourScheduleID(rs.getInt("tourScheduleID"));
+                schedule.setTourID(rs.getInt("tourID"));
+                schedule.setTourName(rs.getString("tourName"));
+                schedule.setStartPlace(rs.getString("startPlace"));
+                schedule.setEndPlace(rs.getString("endPlace"));
+                schedule.setDepartureDate(rs.getTimestamp("startDate"));
+                schedule.setEndDate(rs.getTimestamp("endDate"));
+                Timestamp departureAt = composeDepartureAt(
+                        rs.getTimestamp("startDate"), rs.getTime("departureTime"));
+                schedule.setPickupTime(minutesBefore(departureAt, 30));
+                schedule.setCheckInDeadline(departureAt);
+                schedule.setMaxParticipants(rs.getInt("maxParticipants"));
+                schedule.setBookedQuantity(rs.getInt("bookedQuantity"));
+                schedule.setLinkedBookingCount(rs.getInt("linkedBookingCount"));
+                schedule.setLinkedParticipantCount(rs.getInt("linkedParticipantCount"));
+                schedules.add(schedule);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return schedules;
+    }
+
+    public boolean isAssignmentBookingSchemaReady() {
+        String sql = "SELECT OBJECT_ID(N'dbo.Tour_Assignment_Booking', N'U') AS tableID";
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return rs.next() && rs.getObject("tableID") != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean hasPaidBookingForSchedule(int tourScheduleID) {
+        String sql = """
+            SELECT TOP 1 1
+            FROM Booking_Detail bd
+            JOIN Booking b ON b.bookingID = bd.bookingID
+            JOIN Payment p ON p.bookingID = b.bookingID AND p.[status] = N'Paid'
+            WHERE bd.tourScheduleID = ?
+              AND UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
+              AND LTRIM(RTRIM(ISNULL(b.[status], N''))) NOT IN (N'Cancelled', N'Đã hủy', N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc')
+            """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, tourScheduleID);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean hasActiveAssignmentForSchedule(int tourScheduleID, int excludedAssignmentID) {
+        String sql = """
+            SELECT TOP 1 1 FROM Tour_Assignments
+            WHERE tourScheduleID = ?
+              AND (? <= 0 OR assignmentID <> ?)
+              AND LTRIM(RTRIM(ISNULL(assignmentStatus, N'Pending')))
+                  IN (N'Pending', N'Assigned', N'Accepted', N'Confirmed', N'In Progress')
+            """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, tourScheduleID);
+            ps.setInt(2, excludedAssignmentID);
+            ps.setInt(3, excludedAssignmentID);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+
+    public boolean isGuideAvailableForSchedule(int guideID, int tourScheduleID, int excludedAssignmentID) {
+        if (guideID <= 0 || tourScheduleID <= 0) {
+            return false;
+        }
+        String sql = """
+            SELECT TOP 1 1 FROM [User] u
+            JOIN [Role] r ON r.roleID = u.roleID
+            WHERE u.userID = ? AND u.[status] = N'Active'
+              AND r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
+            """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, guideID);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && !hasOverlappingAssignmentForGuide(tourScheduleID, guideID, excludedAssignmentID);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public void linkPaidBookingToExistingAssignment(int bookingID) {
+        String sql = """
+            INSERT INTO Tour_Assignment_Booking (assignmentID, bookingID)
+            SELECT ta.assignmentID, bd.bookingID
+            FROM Tour_Assignments ta
+            JOIN Booking_Detail bd ON bd.tourScheduleID = ta.tourScheduleID
+            JOIN Booking b ON b.bookingID = bd.bookingID
+            JOIN Payment p ON p.bookingID = b.bookingID AND p.[status] = N'Paid'
+            WHERE bd.bookingID = ?
+              AND UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
+              AND LTRIM(RTRIM(ISNULL(ta.assignmentStatus, N'Pending')))
+                  IN (N'Pending', N'Assigned', N'Accepted', N'Confirmed', N'In Progress')
+              AND NOT EXISTS (
+                  SELECT 1 FROM Tour_Assignment_Booking tab
+                  WHERE tab.assignmentID = ta.assignmentID AND tab.bookingID = bd.bookingID
+              )
+            """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, bookingID);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void syncPaidBookingsToActiveAssignments() {
+        String sql = """
+            INSERT INTO Tour_Assignment_Booking (assignmentID, bookingID)
+            SELECT ta.assignmentID, bd.bookingID
+            FROM Tour_Assignments ta
+            JOIN Booking_Detail bd ON bd.tourScheduleID = ta.tourScheduleID
+            JOIN Booking b ON b.bookingID = bd.bookingID
+            JOIN Payment p ON p.bookingID = b.bookingID AND p.[status] = N'Paid'
+            WHERE UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
+              AND LTRIM(RTRIM(ISNULL(b.[status], N''))) NOT IN (N'Cancelled', N'Đã hủy', N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc')
+              AND LTRIM(RTRIM(ISNULL(ta.assignmentStatus, N'Pending')))
+                  IN (N'Pending', N'Assigned', N'Accepted', N'Confirmed', N'In Progress')
+              AND NOT EXISTS (
+                  SELECT 1 FROM Tour_Assignment_Booking tab
+                  WHERE tab.assignmentID = ta.assignmentID AND tab.bookingID = bd.bookingID
+              )
+            """;
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void linkPaidBookingsToAssignment(Connection conn, int assignmentID) throws Exception {
+        String sql = """
+            INSERT INTO Tour_Assignment_Booking (assignmentID, bookingID)
+            SELECT ?, bd.bookingID
+            FROM Tour_Assignments ta
+            JOIN Booking_Detail bd ON bd.tourScheduleID = ta.tourScheduleID
+            JOIN Booking b ON b.bookingID = bd.bookingID
+            JOIN Payment p ON p.bookingID = b.bookingID AND p.[status] = N'Paid'
+            WHERE ta.assignmentID = ?
+              AND UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
+              AND LTRIM(RTRIM(ISNULL(b.[status], N''))) NOT IN (N'Cancelled', N'Đã hủy', N'End', N'Ended', N'Tour kết thúc', N'Đã kết thúc')
+              AND NOT EXISTS (
+                  SELECT 1 FROM Tour_Assignment_Booking tab
+                  WHERE tab.assignmentID = ? AND tab.bookingID = bd.bookingID
+              )
+            """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, assignmentID);
+            ps.setInt(2, assignmentID);
+            ps.setInt(3, assignmentID);
+            ps.executeUpdate();
+        }
+    }
+
     public Timestamp getScheduleDepartureAt(int tourScheduleID) {
         String sql = """
             SELECT
@@ -665,15 +868,6 @@ public class AssignmentDAOImpl {
                 ON u.roleID = r.roleID
             WHERE r.roleName IN (N'TourGuide', N'Tour Guide', N'Guide')
               AND u.[status] = N'Active'
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM Tour_Assignments activeAssignment
-                  WHERE activeAssignment.userID = u.userID
-                    AND (? <= 0 OR activeAssignment.assignmentID <> ?)
-                    AND LTRIM(RTRIM(ISNULL(activeAssignment.assignmentStatus, N'Pending'))) NOT IN (
-                        """ + CLOSED_ASSIGNMENT_STATUSES + """
-                    )
-              )
             ORDER BY u.userID DESC
             """;
 
@@ -683,9 +877,6 @@ public class AssignmentDAOImpl {
                 Connection conn = db.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-            ps.setInt(1, excludedAssignmentID);
-            ps.setInt(2, excludedAssignmentID);
-
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     User u = new User();
@@ -928,6 +1119,7 @@ public class AssignmentDAOImpl {
             JOIN Tour_Scheduler assignedSchedule
                 ON assignedTour.tourScheduleID = assignedSchedule.tourScheduleID
             WHERE candidateSchedule.tourScheduleID = ?
+              AND assignedSchedule.tourScheduleID <> candidateSchedule.tourScheduleID
               AND LTRIM(RTRIM(ISNULL(assignedTour.assignmentStatus, N''))) NOT IN
                   (""" + CLOSED_ASSIGNMENT_STATUSES + """
                   )
@@ -996,6 +1188,7 @@ public class AssignmentDAOImpl {
 
     public List<AssignmentView> getAssignmentsByGuide(int guideID) {
         List<AssignmentView> list = new ArrayList<>();
+        syncPaidBookingsToActiveAssignments();
         synchronizeEndedBookingsForCompletedAssignments();
 
         String sql = ASSIGNMENT_SELECT + """
@@ -1165,14 +1358,10 @@ public class AssignmentDAOImpl {
             UPDATE b
             SET b.[status] = ?, b.updatedAt = GETDATE()
             FROM Booking b
-            INNER JOIN Booking_Detail bd ON bd.bookingID = b.bookingID
-            INNER JOIN Tour_Assignments ta ON ta.tourScheduleID = bd.tourScheduleID
+            INNER JOIN Tour_Assignment_Booking tab ON tab.bookingID = b.bookingID
+            INNER JOIN Tour_Assignments ta ON ta.assignmentID = tab.assignmentID
             WHERE ta.assignmentID = ?
               AND ta.userID = ?
-              AND (
-                    (ta.bookingID IS NOT NULL AND ta.bookingID > 0 AND b.bookingID = ta.bookingID)
-                    OR (ta.bookingID IS NULL OR ta.bookingID = 0)
-                  )
               AND LTRIM(RTRIM(ISNULL(b.[status], N''))) IN (
                     N'Pending', N'Đang xử lý', N'Đang thanh toán', N'Đang đợi chuyển khoản',
                     N'Completed', N'Hoàn thành', N'Confirmed', N'Đã duyệt',
@@ -1330,9 +1519,11 @@ public class AssignmentDAOImpl {
                 rs.getTime("departureTime")
         );
         a.setPickupTime(minutesBefore(departureAt, 30));
-        a.setCheckInDeadline(minutesBefore(departureAt, 10));
+        a.setCheckInDeadline(departureAt);
         a.setMaxParticipants(rs.getInt("maxParticipants"));
         a.setBookedQuantity(rs.getInt("bookedQuantity"));
+        a.setLinkedBookingCount(rs.getInt("linkedBookingCount"));
+        a.setLinkedParticipantCount(rs.getInt("linkedParticipantCount"));
 
         return a;
     }

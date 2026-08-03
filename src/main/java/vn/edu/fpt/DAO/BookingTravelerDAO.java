@@ -38,14 +38,8 @@ public class BookingTravelerDAO {
                     ELSE 0
                 END AS booker
             FROM Tour_Assignments ta
-            JOIN Booking_Detail bd
-                ON bd.tourScheduleID = ta.tourScheduleID
-            JOIN Booking b
-                ON b.bookingID = CASE
-                    WHEN ta.bookingID IS NOT NULL AND ta.bookingID > 0 THEN ta.bookingID
-                    ELSE bd.bookingID
-                END
-               AND b.bookingType = N'Tour'
+            JOIN Tour_Assignment_Booking tab ON tab.assignmentID = ta.assignmentID
+            JOIN Booking b ON b.bookingID = tab.bookingID AND b.bookingType = N'Tour'
             JOIN Booking_Traveler bt
                 ON bt.bookingID = b.bookingID
             WHERE ta.assignmentID = ?
@@ -111,17 +105,9 @@ public class BookingTravelerDAO {
                 ON ta.assignmentID = ?
             WHERE ta.userID = ?
               AND bt.travelerID = ?
-              AND (
-                    (ta.bookingID IS NOT NULL AND ta.bookingID > 0 AND bt.bookingID = ta.bookingID)
-                    OR (
-                        (ta.bookingID IS NULL OR ta.bookingID = 0)
-                        AND EXISTS (
-                            SELECT 1
-                            FROM Booking_Detail bd
-                            WHERE bd.bookingID = bt.bookingID
-                              AND bd.tourScheduleID = ta.tourScheduleID
-                        )
-                    )
+              AND EXISTS (
+                  SELECT 1 FROM Tour_Assignment_Booking tab
+                  WHERE tab.assignmentID = ta.assignmentID AND tab.bookingID = bt.bookingID
               )
             """;
 
@@ -160,13 +146,8 @@ public class BookingTravelerDAO {
                 ISNULL(b.numberAdult, 0) AS numberAdult,
                 ISNULL(b.numberChildren, 0) AS numberChildren
             FROM Tour_Assignments ta
-            JOIN Booking_Detail bd
-                ON bd.tourScheduleID = ta.tourScheduleID
-            JOIN Booking b
-                ON b.bookingID = CASE
-                    WHEN ta.bookingID IS NOT NULL AND ta.bookingID > 0 THEN ta.bookingID
-                    ELSE bd.bookingID
-                END
+            JOIN Tour_Assignment_Booking tab ON tab.assignmentID = ta.assignmentID
+            JOIN Booking b ON b.bookingID = tab.bookingID
             WHERE ta.assignmentID = ?
               AND UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
             ORDER BY b.bookingID

@@ -63,8 +63,6 @@ public class HomeController extends HttpServlet {
         }
 
         List<Tour> featuredTours = tourDAO.findFeaturedToursForHome(4);
-        List<Tour> packageTours = tourDAO.findToursVisibleToCustomer(
-                null, null, null, null, null, null, 10);
         List<Accommodation> availableAccommodations =
                 accommodationDAO.getAvailableAccommodationsForCustomer();
         List<Accommodation> featuredAccommodations = take(availableAccommodations, 6);
@@ -84,11 +82,9 @@ public class HomeController extends HttpServlet {
         /*
          * CUSTOMER HOMEPAGE FLOW
          * home.jsp khong tu goi DAO. Controller gan cac attribute ben duoi vao request,
-         * JSP chi dung ${featuredTours}, ${domesticTours}, ${activeTourCount}... de hien man hinh.
+         * JSP chi dung ${featuredTours}, ${activeTourCount}... de hien man hinh.
          */
         request.setAttribute("featuredTours", featuredTours);
-        request.setAttribute("domesticTours", take(packageTours, 8));
-        request.setAttribute("packageTours", packageTours);
         request.setAttribute("featuredAccommodations", featuredAccommodations);
         request.setAttribute("latestBlogs", take(publishedBlogs, 3));
         /*

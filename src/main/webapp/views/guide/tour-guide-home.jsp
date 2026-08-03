@@ -717,7 +717,7 @@
                                         <c:when test="${not empty assignment.assignmentCode}">${assignment.assignmentCode}</c:when>
                                         <c:otherwise>ASG-${assignment.assignmentID}</c:otherwise>
                                     </c:choose>
-                                    | ${assignment.totalGuests} khách
+                                    | ${assignment.linkedParticipantCount} khách
                                 </div>
                             </div>
                             <span class="status-badge ${statusClass}">${statusLabel}</span>
@@ -748,19 +748,7 @@
                             <div class="info-row">
                                 <i class="fa-solid fa-user-group"></i>
                                 <span>
-                                    Khách:
-                                    <c:choose>
-                                        <c:when test="${not empty assignment.customerName}">
-                                            ${assignment.customerName}
-                                            <c:if test="${not empty assignment.customerPhone}">
-                                                - ${assignment.customerPhone}
-                                            </c:if>
-                                        </c:when>
-                                        <c:when test="${not empty assignment.customerPhone}">
-                                            ${assignment.customerPhone}
-                                        </c:when>
-                                        <c:otherwise>Chưa có thông tin khách</c:otherwise>
-                                    </c:choose>
+                                    Khách: ${assignment.linkedParticipantCount} hành khách từ ${assignment.linkedBookingCount} booking
                                 </span>
                             </div>
 

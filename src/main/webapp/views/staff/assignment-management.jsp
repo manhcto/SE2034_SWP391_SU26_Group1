@@ -94,7 +94,7 @@
                         <thead>
                         <tr>
                             <th>Mã</th>
-                            <th>Booking</th>
+                            <th>Booking / khách</th>
                             <th>Tour</th>
                             <th>Hướng dẫn viên</th>
                             <th>Điểm hẹn</th>
@@ -123,14 +123,8 @@
                                     </c:if>
                                 </td>
                                 <td>
-                                    <c:choose>
-                                        <c:when test="${not empty a.bookingCode}">
-                                            ${a.bookingCode}
-                                            <div class="text-muted small">ID: ${a.bookingID}</div>
-                                        </c:when>
-                                        <c:when test="${a.bookingID > 0}">#${a.bookingID}</c:when>
-                                        <c:otherwise>Chưa gắn booking</c:otherwise>
-                                    </c:choose>
+                                    ${a.linkedBookingCount} booking
+                                    <div class="text-muted small">${a.linkedParticipantCount} hành khách</div>
                                 </td>
                                 <td>
                                     ${a.tourName}

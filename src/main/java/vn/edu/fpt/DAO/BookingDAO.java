@@ -896,6 +896,9 @@ public class BookingDAO {
                 }
 
                 conn.commit();
+                if (willComplete) {
+                    new AssignmentDAOImpl().linkPaidBookingToExistingAssignment(bookingID);
+                }
                 return true;
             } catch (Exception e) {
                 conn.rollback();
@@ -1137,6 +1140,7 @@ public class BookingDAO {
                 }
 
                 if (Booking.isCompletedStatus(bookingStatus)) {
+                    new AssignmentDAOImpl().linkPaidBookingToExistingAssignment(bookingID);
                     return false;
                 }
 
@@ -1154,7 +1158,11 @@ public class BookingDAO {
             return false;
         }
 
-        return updateBookingStatus(bookingID, Booking.STATUS_COMPLETED);
+        boolean completed = updateBookingStatus(bookingID, Booking.STATUS_COMPLETED);
+        if (completed) {
+            new AssignmentDAOImpl().linkPaidBookingToExistingAssignment(bookingID);
+        }
+        return completed;
     }
 
     public int syncEndedTourBookingsFromCompletedAssignments() {
@@ -1162,15 +1170,11 @@ public class BookingDAO {
                 UPDATE b
                 SET b.[status] = ?, b.updatedAt = GETDATE()
                 FROM Booking b
-                INNER JOIN Booking_Detail bd
-                    ON bd.bookingID = b.bookingID
+                INNER JOIN Tour_Assignment_Booking tab
+                    ON tab.bookingID = b.bookingID
                 INNER JOIN Tour_Assignments ta
-                    ON ta.tourScheduleID = bd.tourScheduleID
+                    ON ta.assignmentID = tab.assignmentID
                 WHERE UPPER(LTRIM(RTRIM(ISNULL(b.bookingType, N'')))) = N'TOUR'
-                  AND (
-                        (ta.bookingID IS NOT NULL AND ta.bookingID > 0 AND b.bookingID = ta.bookingID)
-                        OR (ta.bookingID IS NULL OR ta.bookingID = 0)
-                      )
                   AND LTRIM(RTRIM(ISNULL(ta.assignmentStatus, N'Pending'))) IN (
                       """ + COMPLETED_ASSIGNMENT_STATUSES + """
                   )

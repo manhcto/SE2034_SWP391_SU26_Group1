@@ -60,6 +60,8 @@ public class AssignmentView {
     private int quantity;
     private int maxParticipants;
     private int bookedQuantity;
+    private int linkedBookingCount;
+    private int linkedParticipantCount;
     private double unitPrice;
     private double subTotal;
     private double totalPrice;
@@ -569,6 +571,22 @@ public class AssignmentView {
 
     public void setBookedQuantity(int bookedQuantity) {
         this.bookedQuantity = bookedQuantity;
+    }
+
+    public int getLinkedBookingCount() {
+        return linkedBookingCount;
+    }
+
+    public void setLinkedBookingCount(int linkedBookingCount) {
+        this.linkedBookingCount = linkedBookingCount;
+    }
+
+    public int getLinkedParticipantCount() {
+        return linkedParticipantCount;
+    }
+
+    public void setLinkedParticipantCount(int linkedParticipantCount) {
+        this.linkedParticipantCount = linkedParticipantCount;
     }
 
     public int getRemainingSeats() {

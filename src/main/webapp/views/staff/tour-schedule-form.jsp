@@ -38,17 +38,13 @@
             </div>
         </c:if>
 
-        <c:if test="${messageCode == 'tourCreated'}">
-            <div class="alert alert-success fw-bold">Tour đã được tạo ở trạng thái Bản nháp. Hãy nhập lịch khởi hành đầu tiên và giá bán riêng cho lịch này.</div>
-        </c:if>
-
         <c:if test="${lockedCore}">
             <div class="alert alert-warning fw-bold">Lịch này đã có booking hoặc đã khóa. Hệ thống không cho sửa ngày khởi hành, ngày kết thúc và giá để tránh lệch dữ liệu đặt tour.</div>
         </c:if>
 
-        <c:if test="${!canOpenSchedule}">
-            <div class="alert alert-info fw-bold">Tour chưa ở trạng thái Đang bán, nên lịch khởi hành sẽ được giữ ở trạng thái Chưa mở bán.</div>
-        </c:if>
+        <div class="alert alert-warning fw-bold py-2 mb-3">
+            Thiết lập lịch khởi hành và giá bán; lịch chỉ mở bán khi tour Đang bán, giá không thể sửa sau khi có booking.
+        </div>
 
         <fmt:formatDate value="${schedule.startDate}" pattern="yyyy-MM-dd" var="startDateValue" />
         <fmt:formatDate value="${schedule.endDate}" pattern="yyyy-MM-dd" var="endDateValue" />
@@ -62,7 +58,6 @@
             <section class="page-card">
                 <div class="section-title"><i class="fa-solid fa-calendar-check text-primary"></i><h5>Thông tin lịch khởi hành</h5></div>
                 <div class="section-body">
-                    <div class="hint-box mb-3">Mỗi lịch khởi hành là một chuyến bán riêng. Giá có thể thay đổi theo ngày/tháng, nhưng không sửa giá khi lịch đã có booking.</div>
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Ngày xuất phát <span class="text-danger">*</span></label>

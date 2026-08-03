@@ -44,6 +44,13 @@
             </div>
         </c:if>
 
+        <c:if test="${param.error == 'scheduleAssigned'}">
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                Lịch tour này đã có hướng dẫn viên được phân công.
+            </div>
+        </c:if>
+
         <c:if test="${param.error == 'duplicateGuide'}">
             <div class="alert alert-danger">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>

@@ -250,60 +250,6 @@
         </div>
     </section>
 
-    <%--
-        domesticTours den tu HomeController -> TourDAO.findToursVisibleToCustomer(...).
-        Day la danh sach tour dang ban tren homepage, sap xep noi bat truoc roi moi den tour moi.
-    --%>
-    <section class="tour-showcase-section domestic-tour-section">
-        <div class="home-shell">
-            <div class="tour-showcase-head">
-                <h2>Tour trong nước</h2>
-                <a href="${pageContext.request.contextPath}/tour"><i class="fa-regular fa-pen-to-square"></i> Xem tất cả</a>
-            </div>
-
-            <c:choose>
-                <c:when test="${empty domesticTours}">
-                    <div class="empty-state">Chưa có tour trong nước đang mở bán. Staff cần thêm lịch khởi hành và giá bán để tour hiển thị tại đây.</div>
-                </c:when>
-                <c:otherwise>
-                    <div class="tour-rail-wrap">
-                        <button class="tour-rail-btn prev" type="button" data-rail-prev aria-label="Tour trước">‹</button>
-                        <div class="tour-rail" data-tour-rail>
-                            <c:forEach var="tour" items="${domesticTours}">
-                                <c:set var="schedule" value="${tour.scheduleList[0]}" />
-                                <c:set var="imageUrl" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png" />
-                                <c:if test="${not empty tour.image}">
-                                    <c:choose>
-                                        <c:when test="${fn:startsWith(tour.image, 'http')}"><c:set var="imageUrl" value="${tour.image}" /></c:when>
-                                        <c:when test="${not empty pageContext.request.contextPath and fn:startsWith(tour.image, pageContext.request.contextPath)}"><c:set var="imageUrl" value="${tour.image}" /></c:when>
-                                        <c:when test="${fn:startsWith(tour.image, '/')}"><c:set var="imageUrl" value="${pageContext.request.contextPath}${tour.image}" /></c:when>
-                                        <c:otherwise><c:set var="imageUrl" value="${pageContext.request.contextPath}/${tour.image}" /></c:otherwise>
-                                    </c:choose>
-                                </c:if>
-                                <a class="home-tour-card" href="${pageContext.request.contextPath}/tour-detail?id=${tour.tourID}">
-                                    <div class="home-tour-image">
-                                        <img src="${imageUrl}" alt="${fn:escapeXml(tour.tourName)}" loading="lazy" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/home/hero-bana.png';">
-                                        <div class="home-tour-origin">Từ <c:out value="${tour.startPlace}" /></div>
-                                    </div>
-                                    <div class="home-tour-title"><c:out value="${tour.tourName}" /></div>
-                                    <div class="home-tour-body">
-                                        <span><i class="fa-regular fa-clock"></i> ${tour.numberOfDay} ngày ${tour.numberOfNights} đêm</span>
-                                        <span><i class="fa-regular fa-calendar-check"></i> <fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy" /></span>
-                                        <div class="home-tour-footer">
-                                            <span><i class="fa-regular fa-user"></i> Còn ${schedule.remainingSeats} chỗ</span>
-                                            <strong class="home-tour-price"><fmt:formatNumber value="${not empty schedule.adultPrice ? schedule.adultPrice : tour.adultPrice}" pattern="#,##0" /> đ</strong>
-                                        </div>
-                                    </div>
-                                </a>
-                            </c:forEach>
-                        </div>
-                        <button class="tour-rail-btn next" type="button" data-rail-next aria-label="Tour sau">›</button>
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </div>
-    </section>
-
     <section class="home-section stay-section">
         <div class="home-shell">
             <div class="section-heading compact">
