@@ -23,8 +23,9 @@ public class CloseTourScheduleController extends StaffTourScheduleSupport {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        // Dong lich chi nhan POST tu nut tren trang detail, khong cho dong bang GET.
         Integer scheduleID = parsePositiveInt(request.getParameter("id"));
-        TourSchedule schedule = scheduleID == null ? null : tourDAO.getScheduleById(scheduleID);
+        TourSchedule schedule = scheduleID == null ? null : scheduleDAO.getScheduleById(scheduleID);
 
         if (schedule == null) {
             response.sendRedirect(request.getContextPath() + "/staff/tour?message=notFound");
@@ -38,6 +39,7 @@ public class CloseTourScheduleController extends StaffTourScheduleSupport {
         }
 
         alignScheduleStatusForTour(tour, schedule);
+        // Chi lich Open/Planned cua tour con duoc quan ly moi duoc dong ban.
         if (!canCloseSchedule(tour, schedule)) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/tour/schedule/detail?id=" + scheduleID
@@ -45,7 +47,7 @@ public class CloseTourScheduleController extends StaffTourScheduleSupport {
             return;
         }
 
-        boolean success = tourDAO.closeTourSchedule(scheduleID);
+        boolean success = scheduleDAO.closeTourSchedule(scheduleID);
         response.sendRedirect(request.getContextPath()
                 + "/staff/tour/schedule/detail?id=" + scheduleID
                 + "&message=" + (success ? "scheduleCloseSuccess" : "scheduleCloseFail"));

@@ -38,6 +38,7 @@ public class ManageAssignmentTourController extends HttpServlet {
             action = "list";
         }
 
+        // GET chi mo man hinh list/view/create/edit. Insert/update/delete phai di bang POST.
         switch (action) {
             case "list" -> listAssignment(request, response);
             case "view" -> viewAssignment(request, response);
@@ -57,6 +58,7 @@ public class ManageAssignmentTourController extends HttpServlet {
 
         String action = request.getParameter("action");
 
+        // Cac form trong assignment JSP gui action de controller chon thao tac DB tuong ung.
         if ("insert".equals(action)) {
             insertAssignment(request, response);
             return;
@@ -81,6 +83,7 @@ public class ManageAssignmentTourController extends HttpServlet {
 
         List<AssignmentView> list = assignmentDAO.getAllAssignments();
 
+        // Danh sach phan cong guide/staff cho cac booking tour.
         request.setAttribute("assignmentList", list);
         request.getRequestDispatcher("/views/staff/assignment-management.jsp")
                 .forward(request, response);
@@ -114,6 +117,7 @@ public class ManageAssignmentTourController extends HttpServlet {
         request.setAttribute("bookingList", assignmentDAO.getAllBookingsForAssignment());
         request.setAttribute("guideList", assignmentDAO.getAllGuides());
 
+        // Form tao can booking da hoan tat va danh sach huong dan vien de phan cong.
         request.getRequestDispatcher("/views/staff/assignment-create.jsp")
                 .forward(request, response);
     }
@@ -126,6 +130,7 @@ public class ManageAssignmentTourController extends HttpServlet {
         int guideID = Integer.parseInt(request.getParameter("userID"));
         int tourScheduleID = assignmentDAO.getTourScheduleIDByBookingID(bookingID);
 
+        // Booking phai tro ve duoc tourScheduleID thi moi biet phan cong cho lich tour nao.
         if (tourScheduleID == -1) {
             response.sendRedirect(
                     request.getContextPath()
@@ -134,6 +139,7 @@ public class ManageAssignmentTourController extends HttpServlet {
             return;
         }
 
+        // Chi booking tour da hoan tat thanh toan/xu ly moi duoc phan cong van hanh.
         if (!assignmentDAO.isCompletedTourBookingForAssignment(bookingID)) {
             response.sendRedirect(
                     request.getContextPath()
@@ -336,6 +342,7 @@ public class ManageAssignmentTourController extends HttpServlet {
     private TourAssignments buildAssignmentFromRequest(HttpServletRequest request) {
         TourAssignments assignment = new TourAssignments();
 
+        // Gom toan bo input form thanh model; DAO moi la noi insert/update vao database.
         assignment.setRoleInTour(normalizeRoleInTour(request.getParameter("roleInTour")));
         assignment.setAssignedBy(getCurrentUserID(request));
         assignment.setAssignmentStatus(normalizeAssignmentStatus(request.getParameter("assignmentStatus")));

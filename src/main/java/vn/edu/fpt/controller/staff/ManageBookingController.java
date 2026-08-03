@@ -33,6 +33,8 @@ public class ManageBookingController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
+        // Cung mot controller xu ly 2 man GET:
+        // /staff/booking -> danh sach booking, /staff/booking-detail -> chi tiet booking.
         if ("/staff/booking-detail".equals(request.getServletPath())) {
             showBookingDetail(request, response);
             return;
@@ -46,6 +48,7 @@ public class ManageBookingController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
+        // Chi endpoint /staff/booking-status moi duoc phep update trang thai booking bang POST.
         if (!"/staff/booking-status".equals(request.getServletPath())) {
             response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
             return;
@@ -55,11 +58,13 @@ public class ManageBookingController extends HttpServlet {
 
     private void showBookingList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Dong bo trang thai thanh toan/booking truoc khi hien danh sach de Staff thay du lieu moi nhat.
         paymentDAO.synchronizeBookingStates();
 
         List<Booking> bookingList = bookingDAO.getAllBookings();
         setStatusCounts(request, bookingList);
 
+        // Filter tren memory theo type/status lay tu query string.
         String type = trim(request.getParameter("type"));
         if (!type.isEmpty()) {
             bookingList.removeIf(booking ->
@@ -78,6 +83,7 @@ public class ManageBookingController extends HttpServlet {
 
     private void showBookingDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Chi tiet booking lay theo bookingID tren URL.
         paymentDAO.synchronizeBookingStates();
 
         int bookingID = parsePositiveInt(request.getParameter("bookingID"));
@@ -95,6 +101,7 @@ public class ManageBookingController extends HttpServlet {
 
     private void updateStatusFromList(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        // Nut doi trang thai tren list gui bookingID + status ve day.
         int bookingID = parsePositiveInt(request.getParameter("bookingID"));
         String status = trim(request.getParameter("status"));
         boolean updated = bookingID > 0

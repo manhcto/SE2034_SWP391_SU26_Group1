@@ -31,6 +31,11 @@ public class HomeController extends HttpServlet {
     private final BlogDAO blogDAO = new BlogDAO();
     private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
 
+    /*
+     * FRONT-END /home di vao day.
+     * Ham nhan request homepage, chuyen role Admin/Staff/Guide ve dashboard rieng,
+     * con customer/guest thi load tour, luu tru, blog va forward sang home.jsp.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -57,8 +62,8 @@ public class HomeController extends HttpServlet {
             }
         }
 
-        List<Tour> featuredTours = tourDAO.getFeaturedToursForHome(4);
-        List<Tour> packageTours = tourDAO.getPublishedToursForCustomer(
+        List<Tour> featuredTours = tourDAO.findFeaturedToursForHome(4);
+        List<Tour> packageTours = tourDAO.findToursVisibleToCustomer(
                 null, null, null, null, null, null, 10);
         List<Accommodation> availableAccommodations =
                 accommodationDAO.getAvailableAccommodationsForCustomer();
@@ -76,18 +81,27 @@ public class HomeController extends HttpServlet {
                     accommodation.getAccommodationID(), List.of()));
         }
 
+        /*
+         * CUSTOMER HOMEPAGE FLOW
+         * home.jsp khong tu goi DAO. Controller gan cac attribute ben duoi vao request,
+         * JSP chi dung ${featuredTours}, ${domesticTours}, ${activeTourCount}... de hien man hinh.
+         */
         request.setAttribute("featuredTours", featuredTours);
         request.setAttribute("domesticTours", take(packageTours, 8));
         request.setAttribute("packageTours", packageTours);
         request.setAttribute("featuredAccommodations", featuredAccommodations);
         request.setAttribute("latestBlogs", take(publishedBlogs, 3));
-        request.setAttribute("northTours", tourDAO.getPublishedToursForHomeByRegionName("Miền Bắc", 3));
-        request.setAttribute("centralTours", tourDAO.getPublishedToursForHomeByRegionName("Miền Trung", 3));
-        request.setAttribute("southTours", tourDAO.getPublishedToursForHomeByRegionName("Miền Nam", 3));
+        /*
+         * Cac ham getPublished... chi lay tour da Active va co lich Open hop le.
+         * Vi vay tour Staff moi tao hoac tour Pending chua duyet se khong hien cho customer.
+         */
+        request.setAttribute("northTours", tourDAO.findHomeToursByRegionName("Miền Bắc", 3));
+        request.setAttribute("centralTours", tourDAO.findHomeToursByRegionName("Miền Trung", 3));
+        request.setAttribute("southTours", tourDAO.findHomeToursByRegionName("Miền Nam", 3));
         request.setAttribute("startPlaces", tourDAO.getPublishedStartPlaces());
         request.setAttribute("destinations", tourDAO.getPublishedDestinations());
         request.setAttribute("provinceList", administrativeUnitDAO.getActiveProvinceNames());
-        request.setAttribute("activeTourCount", tourDAO.countPublishedToursForCustomer());
+        request.setAttribute("activeTourCount", tourDAO.countToursCurrentlyOnSale());
         request.setAttribute("accommodationCount", availableAccommodations.size());
         request.setAttribute("publishedBlogCount", publishedBlogs.size());
 

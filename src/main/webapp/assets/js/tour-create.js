@@ -110,7 +110,7 @@ function setupDateRules() {
 }
 
 function setupDraftPrice() {
-    ['draftAdultPrice', 'draftChildPrice', 'draftInfantPrice', 'draftSingleRoomSurcharge', 'draftDepositPercent', 'draftVatPercent', 'draftHasVAT']
+    ['draftAdultPrice', 'draftChildPrice', 'draftInfantPrice', 'draftSingleRoomSurcharge', 'draftDepositPercent']
         .forEach(function (id) {
             const el = document.getElementById(id);
             if (el) {
@@ -129,16 +129,13 @@ function updateDraftPrice() {
     const infant = parseMoney(valueOf('draftInfantPrice'));
     const single = parseMoney(valueOf('draftSingleRoomSurcharge'));
     const deposit = parseMoney(valueOf('draftDepositPercent'));
-    const hasVAT = document.getElementById('draftHasVAT')?.checked;
-    const vat = parseMoney(valueOf('draftVatPercent'));
     if (!adult) {
         summary.textContent = 'Giá: chưa tính';
         summary.setAttribute('data-tooltip', '');
         return;
     }
-    const display = hasVAT ? adult + Math.floor(adult * vat / 100) : adult;
-    summary.textContent = 'Giá: ' + formatMoney(display) + ' VND';
-    summary.setAttribute('data-tooltip', buildPriceTooltip(adult, child, infant, single, deposit, hasVAT, vat));
+    summary.textContent = 'Giá: ' + formatMoney(adult) + ' VND';
+    summary.setAttribute('data-tooltip', buildPriceTooltip(adult, child, infant, single, deposit));
 }
 
 function setupScheduleDraftAdd() {
@@ -164,9 +161,7 @@ function setupScheduleDraftAdd() {
             childPrice: parseMoney(valueOf('draftChildPrice')),
             infantPrice: parseMoney(valueOf('draftInfantPrice')),
             singleRoomSurcharge: parseMoney(valueOf('draftSingleRoomSurcharge')),
-            depositPercent: parseMoney(valueOf('draftDepositPercent')),
-            hasVAT: document.getElementById('draftHasVAT')?.checked,
-            vatPercent: parseMoney(valueOf('draftVatPercent'))
+            depositPercent: parseMoney(valueOf('draftDepositPercent'))
         };
 
         const error = validateDraftSchedule(draft, transport);
@@ -234,8 +229,7 @@ function addHiddenSchedule(container, index, draft) {
         ['childPrice_' + index]: draft.childPrice,
         ['infantPrice_' + index]: draft.infantPrice,
         ['singleRoomSurcharge_' + index]: draft.singleRoomSurcharge,
-        ['depositPercent_' + index]: draft.depositPercent,
-        ['vatPercent_' + index]: draft.hasVAT ? draft.vatPercent : 0
+        ['depositPercent_' + index]: draft.depositPercent
     };
     Object.keys(fields).forEach(function (name) {
         const input = document.createElement('input');
@@ -244,18 +238,10 @@ function addHiddenSchedule(container, index, draft) {
         input.value = fields[name] ?? '';
         wrap.appendChild(input);
     });
-    if (draft.hasVAT) {
-        const vat = document.createElement('input');
-        vat.type = 'hidden';
-        vat.name = 'hasVAT_' + index;
-        vat.value = 'on';
-        wrap.appendChild(vat);
-    }
     container.appendChild(wrap);
 }
 
 function addPreviewRow(body, index, draft, removable) {
-    const display = draft.hasVAT ? draft.adultPrice + Math.floor(draft.adultPrice * draft.vatPercent / 100) : draft.adultPrice;
     const row = document.createElement('tr');
     row.setAttribute('data-index', index);
     row.innerHTML = `
@@ -267,7 +253,7 @@ function addPreviewRow(body, index, draft, removable) {
         <td>0/${escapeHtml(draft.maxParticipants)}</td>
         <td>${escapeHtml(draft.guideText)}</td>
         <td>${escapeHtml(draft.driverText)}</td>
-        <td><span class="price-summary" data-tooltip="${escapeHtml(buildPriceTooltip(draft.adultPrice, draft.childPrice, draft.infantPrice, draft.singleRoomSurcharge, draft.depositPercent, draft.hasVAT, draft.vatPercent))}">${formatMoney(display)} VND</span></td>
+        <td><span class="price-summary" data-tooltip="${escapeHtml(buildPriceTooltip(draft.adultPrice, draft.childPrice, draft.infantPrice, draft.singleRoomSurcharge, draft.depositPercent))}">${formatMoney(draft.adultPrice)} VND</span></td>
         <td>${removable ? '<button type="button" class="table-action" onclick="removeScheduleRow(' + index + ')">Xóa</button>' : ''}</td>
     `;
     body.appendChild(row);
@@ -390,13 +376,12 @@ function setupCreateFormClientValidation() {
     });
 }
 
-function buildPriceTooltip(adult, child, infant, single, deposit, hasVAT, vat) {
+function buildPriceTooltip(adult, child, infant, single, deposit) {
     return 'Người lớn: ' + formatMoney(adult) + ' VND\n'
         + 'Trẻ em: ' + formatMoney(child) + ' VND\n'
         + 'Em bé: ' + formatMoney(infant) + ' VND\n'
         + 'Phụ thu phòng đơn: ' + formatMoney(single) + ' VND\n'
-        + 'Đặt cọc: ' + deposit + '%\n'
-        + 'VAT: ' + (hasVAT ? vat + '%' : 'Không áp dụng');
+        + 'Đặt cọc: ' + deposit + '%';
 }
 
 function valueOf(id) { const el = document.getElementById(id); return el ? el.value : ''; }

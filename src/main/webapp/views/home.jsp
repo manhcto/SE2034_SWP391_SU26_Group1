@@ -65,6 +65,12 @@
 </c:if>
 
 <main class="home-page">
+    <%--
+        CUSTOMER HOMEPAGE - FRONT-END DISPLAY FLOW
+        HomeController.doGet() lay data tu TourDAO/AccommodationDAO/BlogDAO,
+        setAttribute(...) vao request, sau do forward ve /views/home.jsp.
+        JSP nay chi hien thi data da duoc controller dua sang, khong query DB truc tiep.
+    --%>
     <section class="home-hero" aria-labelledby="homeHeroTitle">
         <img class="home-hero-media" src="${heroImage}" alt="Điểm đến nổi bật của WonderVN">
         <div class="home-hero-overlay"></div>
@@ -185,6 +191,11 @@
         </div>
     </section>
 
+    <%--
+        featuredTours den tu HomeController -> TourDAO.findFeaturedToursForHome().
+        DAO chi tra tour status Active, co lich Open trong tuong lai, con cho va co gia hop le.
+        Neu Staff tao tour nhung chua duyet/chua co lich Open thi tour khong xuat hien o day.
+    --%>
     <section class="tour-showcase-section tours-section">
         <div class="home-shell">
             <div class="tour-showcase-head">
@@ -201,6 +212,10 @@
                         <button class="tour-rail-btn prev" type="button" data-rail-prev aria-label="Tour trước">‹</button>
                         <div class="tour-rail" data-tour-rail>
                             <c:forEach var="tour" items="${featuredTours}">
+                                <%--
+                                    Moi card lay lich dau tien trong tour.scheduleList.
+                                    scheduleList duoc TourDAO nap tu Tour_Scheduler de hien ngay, gia va so cho con.
+                                --%>
                                 <c:set var="schedule" value="${tour.scheduleList[0]}" />
                                 <c:set var="imageUrl" value="${pageContext.request.contextPath}/assets/images/home/hero-bana.png" />
                                 <c:if test="${not empty tour.image}">
@@ -235,6 +250,10 @@
         </div>
     </section>
 
+    <%--
+        domesticTours den tu HomeController -> TourDAO.findToursVisibleToCustomer(...).
+        Day la danh sach tour dang ban tren homepage, sap xep noi bat truoc roi moi den tour moi.
+    --%>
     <section class="tour-showcase-section domestic-tour-section">
         <div class="home-shell">
             <div class="tour-showcase-head">

@@ -9,13 +9,11 @@ import vn.edu.fpt.model.TourItinerary;
 import vn.edu.fpt.model.TourSchedule;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -25,8 +23,7 @@ import java.util.Map;
 
 public class TourDAO {
 
-    private static final BigDecimal MIN_SCHEDULE_ADULT_PRICE = new BigDecimal("100000");
-    private static final BigDecimal CHILD_RATE = new BigDecimal("0.50");
+    private final TourScheduleDAO scheduleDAO = new TourScheduleDAO();
 
     private static final String TOUR_SELECT = """
             SELECT
@@ -45,7 +42,6 @@ public class TourDAO {
                 t.infantPrice,
                 t.singleRoomSurcharge,
                 t.depositPercent,
-                t.vatPercent,
                 t.tourIntroduce,
                 t.tourInclude,
                 t.tourNonInclude,
@@ -297,76 +293,14 @@ public class TourDAO {
         return itineraries;
     }
 
+    // Wrapper giu code cu khong bi vo; SQL lich nam trong TourScheduleDAO.
     public List<TourSchedule> getSchedulesByTourId(int tourID) {
-        List<TourSchedule> schedules = new ArrayList<>();
-        boolean hasTransportColumn = hasScheduleTransportTypeColumn();
-
-        String sql = """
-                SELECT
-                    tourScheduleID, tourID, %s startDate, endDate, departureTime, expectedReturnTime,
-                    bookingDeadline, minParticipants, maxParticipants, quantity, bookedSeats,
-                    maxParticipantsPerBooking, adultPrice, childPrice, infantPrice,
-                    singleRoomSurcharge, depositPercent, vatPercent, cancellationPolicy,
-                    scheduleStatus, createdAt, updatedAt
-                FROM Tour_Scheduler
-                WHERE tourID = ?
-                ORDER BY startDate ASC, tourScheduleID ASC
-                """.formatted(scheduleTransportSelectFragment(hasTransportColumn));
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, tourID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    schedules.add(mapSchedule(rs));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return schedules;
+        return scheduleDAO.getSchedulesByTourId(tourID);
     }
 
+    // Wrapper cho man hinh tong quan lich cua Staff.
     public List<TourSchedule> getSchedulesForStaffOverview() {
-        List<TourSchedule> schedules = new ArrayList<>();
-        boolean hasTransportColumn = hasScheduleTransportTypeColumn();
-        String transportColumn = hasTransportColumn
-                ? "ts.scheduleTransportType AS scheduleTransportType, "
-                : "CAST(NULL AS NVARCHAR(50)) AS scheduleTransportType, ";
-
-        String sql = """
-                SELECT
-                    ts.tourScheduleID, ts.tourID, %s ts.startDate, ts.endDate,
-                    ts.departureTime, ts.expectedReturnTime, ts.bookingDeadline,
-                    ts.minParticipants, ts.maxParticipants, ts.quantity, ts.bookedSeats,
-                    ts.maxParticipantsPerBooking, ts.adultPrice, ts.childPrice, ts.infantPrice,
-                    ts.singleRoomSurcharge, ts.depositPercent, ts.vatPercent, ts.cancellationPolicy,
-                    ts.scheduleStatus, ts.createdAt, ts.updatedAt,
-                    t.tourName, t.tourCode, t.[status] AS tourStatus,
-                    t.startPlace, t.endPlace, t.mainTransportType
-                FROM Tour_Scheduler ts
-                JOIN Tour t ON t.tourID = ts.tourID
-                ORDER BY
-                    CASE WHEN ts.startDate >= CAST(GETDATE() AS DATE) THEN 0 ELSE 1 END,
-                    ts.startDate ASC,
-                    ts.tourScheduleID ASC
-                """.formatted(transportColumn);
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                schedules.add(mapSchedule(rs));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return schedules;
+        return scheduleDAO.getSchedulesForStaffOverview();
     }
 
     public List<TourCategory> getActiveCategories() {
@@ -490,13 +424,13 @@ public class TourDAO {
                 INSERT INTO Tour (
                     tourCategoryID, tourName, tourCode, tourType, numberOfDay, numberOfNights,
                     startPlace, endPlace, [image], adultPrice, childrenPrice, infantPrice,
-                    singleRoomSurcharge, depositPercent, vatPercent, tourIntroduce, tourInclude,
+                    singleRoomSurcharge, depositPercent, tourIntroduce, tourInclude,
                     tourNonInclude, pickupPointName, pickupAddress, arriveBeforeMinutes,
                     pickupNote, mainTransportType, childPolicyNote, rate, [status], isFeatured,
                     regionID, createdByUserID, approvedByUserID, approvedAt, rejectionReason,
                     createdAt, updatedAt
                 ) VALUES (
-                    ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL,
+                    ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL,
                     ?, ?, ?, ?, NULL, NULL, NULL, GETDATE(), NULL
                 )
                 """;
@@ -523,7 +457,6 @@ public class TourDAO {
             updateTourCode(conn, tourID);
             insertItineraries(conn, tourID, tour.getItineraryList());
             replaceManagedImages(conn, tourID, tour);
-            insertSchedules(conn, tourID, tour.getScheduleList());
 
             conn.commit();
             return tourID;
@@ -542,7 +475,7 @@ public class TourDAO {
                 UPDATE Tour
                 SET tourCategoryID = ?, tourName = ?, tourType = ?, numberOfDay = ?, numberOfNights = ?,
                     startPlace = ?, endPlace = ?, [image] = ?, adultPrice = ?, childrenPrice = ?,
-                    infantPrice = ?, singleRoomSurcharge = ?, depositPercent = ?, vatPercent = ?,
+                    infantPrice = ?, singleRoomSurcharge = ?, depositPercent = ?,
                     tourIntroduce = ?, tourInclude = ?, tourNonInclude = ?, pickupPointName = ?,
                     pickupAddress = ?, arriveBeforeMinutes = ?, pickupNote = ?, mainTransportType = ?,
                     childPolicyNote = ?, [status] = ?, isFeatured = ?, regionID = ?, updatedAt = GETDATE(),
@@ -641,7 +574,6 @@ public class TourDAO {
         ps.setBigDecimal(index++, tour.getInfantPrice());
         ps.setBigDecimal(index++, tour.getSingleRoomSurcharge());
         ps.setInt(index++, tour.getDepositPercent());
-        ps.setInt(index++, tour.getVatPercent());
         setNullableString(ps, index++, tour.getTourIntroduce());
         setNullableString(ps, index++, tour.getTourInclude());
         setNullableString(ps, index++, tour.getTourNonInclude());
@@ -672,7 +604,6 @@ public class TourDAO {
         ps.setBigDecimal(index++, tour.getInfantPrice());
         ps.setBigDecimal(index++, tour.getSingleRoomSurcharge());
         ps.setInt(index++, tour.getDepositPercent());
-        ps.setInt(index++, tour.getVatPercent());
         setNullableString(ps, index++, tour.getTourIntroduce());
         setNullableString(ps, index++, tour.getTourInclude());
         setNullableString(ps, index++, tour.getTourNonInclude());
@@ -716,60 +647,6 @@ public class TourDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, tourID);
             ps.executeUpdate();
-        }
-    }
-
-    private void insertSchedules(Connection conn, int tourID, List<TourSchedule> schedules) throws Exception {
-        if (schedules == null || schedules.isEmpty()) {
-            return;
-        }
-
-        String sql = """
-                INSERT INTO Tour_Scheduler (
-                    tourID, startDate, endDate, departureTime, expectedReturnTime,
-                    bookingDeadline, minParticipants, maxParticipants, quantity, bookedSeats,
-                    maxParticipantsPerBooking, adultPrice, childPrice, infantPrice,
-                    singleRoomSurcharge, depositPercent, vatPercent, cancellationPolicy,
-                    scheduleStatus, createdAt, updatedAt
-                ) VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), NULL
-                )
-                """;
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            for (TourSchedule schedule : schedules) {
-                ps.setInt(1, tourID);
-                ps.setTimestamp(2, schedule.getStartDate());
-                ps.setTimestamp(3, schedule.getEndDate());
-                if (schedule.getDepartureTime() == null) {
-                    ps.setNull(4, Types.TIME);
-                } else {
-                    ps.setTime(4, schedule.getDepartureTime());
-                }
-                if (schedule.getExpectedReturnTime() == null) {
-                    ps.setNull(5, Types.TIME);
-                } else {
-                    ps.setTime(5, schedule.getExpectedReturnTime());
-                }
-                if (schedule.getBookingDeadline() == null) {
-                    ps.setNull(6, Types.TIMESTAMP);
-                } else {
-                    ps.setTimestamp(6, schedule.getBookingDeadline());
-                }
-                ps.setInt(7, schedule.getMinParticipants());
-                ps.setInt(8, schedule.getMaxParticipants());
-                ps.setInt(9, schedule.getMaxParticipantsPerBooking() <= 0 ? 10 : schedule.getMaxParticipantsPerBooking());
-                ps.setBigDecimal(10, schedule.getAdultPrice());
-                ps.setBigDecimal(11, schedule.getChildPrice());
-                ps.setBigDecimal(12, schedule.getInfantPrice());
-                ps.setBigDecimal(13, schedule.getSingleRoomSurcharge());
-                ps.setInt(14, schedule.getDepositPercent() == null ? 0 : schedule.getDepositPercent());
-                ps.setInt(15, schedule.getVatPercent() == null ? 0 : schedule.getVatPercent());
-                setNullableString(ps, 16, schedule.getCancellationPolicy());
-                ps.setString(17, isBlank(schedule.getScheduleStatus()) ? "Open" : schedule.getScheduleStatus());
-                ps.addBatch();
-            }
-            ps.executeBatch();
         }
     }
 
@@ -908,30 +785,6 @@ public class TourDAO {
         }
     }
 
-
-    private boolean hasScheduleTransportTypeColumn() {
-        String sql = """
-                SELECT 1
-                FROM INFORMATION_SCHEMA.COLUMNS
-                WHERE TABLE_NAME = 'Tour_Scheduler'
-                  AND COLUMN_NAME = 'scheduleTransportType'
-                """;
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            return rs.next();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    private String scheduleTransportSelectFragment(boolean supported) {
-        return supported ? "scheduleTransportType, " : "CAST(NULL AS NVARCHAR(50)) AS scheduleTransportType, ";
-    }
-
-
     public boolean syncOpenSchedulesWithTourStatus(Tour tour) {
         if (tour == null || tour.getTourID() <= 0 || "Active".equals(tour.getStatus())) {
             return true;
@@ -982,375 +835,64 @@ public class TourDAO {
     }
 
     public TourSchedule getScheduleById(int tourScheduleID) {
-        boolean hasTransportColumn = hasScheduleTransportTypeColumn();
-        String sql = """
-                SELECT
-                    tourScheduleID, tourID, %s startDate, endDate, departureTime, expectedReturnTime,
-                    bookingDeadline, minParticipants, maxParticipants, quantity, bookedSeats,
-                    maxParticipantsPerBooking, adultPrice, childPrice, infantPrice,
-                    singleRoomSurcharge, depositPercent, vatPercent, cancellationPolicy,
-                    scheduleStatus, createdAt, updatedAt
-                FROM Tour_Scheduler
-                WHERE tourScheduleID = ?
-                """.formatted(scheduleTransportSelectFragment(hasTransportColumn));
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, tourScheduleID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapSchedule(rs);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return scheduleDAO.getScheduleById(tourScheduleID);
     }
 
     public boolean insertTourSchedule(TourSchedule schedule) {
-        boolean hasTransportColumn = hasScheduleTransportTypeColumn();
-        String sql;
-        if (hasTransportColumn) {
-            sql = """
-                    INSERT INTO Tour_Scheduler (
-                        tourID, scheduleTransportType, startDate, endDate, departureTime, expectedReturnTime,
-                        bookingDeadline, minParticipants, maxParticipants, quantity, bookedSeats,
-                        maxParticipantsPerBooking, adultPrice, childPrice, infantPrice,
-                        singleRoomSurcharge, depositPercent, vatPercent, cancellationPolicy,
-                        scheduleStatus, createdAt, updatedAt
-                    ) VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), NULL
-                    )
-                    """;
-        } else {
-            sql = """
-                    INSERT INTO Tour_Scheduler (
-                        tourID, startDate, endDate, departureTime, expectedReturnTime,
-                        bookingDeadline, minParticipants, maxParticipants, quantity, bookedSeats,
-                        maxParticipantsPerBooking, adultPrice, childPrice, infantPrice,
-                        singleRoomSurcharge, depositPercent, vatPercent, cancellationPolicy,
-                        scheduleStatus, createdAt, updatedAt
-                    ) VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), NULL
-                    )
-                    """;
-        }
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            bindScheduleForInsertOrUpdate(ps, schedule, false, hasTransportColumn);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return scheduleDAO.insertTourSchedule(schedule);
     }
 
     public boolean updateTourSchedule(TourSchedule schedule) {
-        boolean hasTransportColumn = hasScheduleTransportTypeColumn();
-        String sql;
-        if (hasTransportColumn) {
-            sql = """
-                    UPDATE Tour_Scheduler
-                    SET scheduleTransportType = ?, startDate = ?, endDate = ?, departureTime = ?, expectedReturnTime = ?,
-                        bookingDeadline = ?, minParticipants = ?, maxParticipants = ?,
-                        maxParticipantsPerBooking = ?, adultPrice = ?, childPrice = ?, infantPrice = ?,
-                        singleRoomSurcharge = ?, depositPercent = ?, vatPercent = ?, cancellationPolicy = ?,
-                        scheduleStatus = ?, updatedAt = GETDATE()
-                    WHERE tourScheduleID = ?
-                    """;
-        } else {
-            sql = """
-                    UPDATE Tour_Scheduler
-                    SET startDate = ?, endDate = ?, departureTime = ?, expectedReturnTime = ?,
-                        bookingDeadline = ?, minParticipants = ?, maxParticipants = ?,
-                        maxParticipantsPerBooking = ?, adultPrice = ?, childPrice = ?, infantPrice = ?,
-                        singleRoomSurcharge = ?, depositPercent = ?, vatPercent = ?, cancellationPolicy = ?,
-                        scheduleStatus = ?, updatedAt = GETDATE()
-                    WHERE tourScheduleID = ?
-                    """;
-        }
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            bindScheduleForInsertOrUpdate(ps, schedule, true, hasTransportColumn);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return scheduleDAO.updateTourSchedule(schedule);
     }
 
     public boolean updateTourScheduleLimited(TourSchedule schedule) {
-        String sql = """
-                UPDATE Tour_Scheduler
-                SET departureTime = ?, expectedReturnTime = ?, bookingDeadline = ?,
-                    minParticipants = ?, maxParticipants = ?, maxParticipantsPerBooking = ?,
-                    cancellationPolicy = ?, scheduleStatus = ?, updatedAt = GETDATE()
-                WHERE tourScheduleID = ?
-                  AND ? <= maxParticipants
-                """;
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            if (schedule.getDepartureTime() == null) {
-                ps.setNull(1, Types.TIME);
-            } else {
-                ps.setTime(1, schedule.getDepartureTime());
-            }
-            if (schedule.getExpectedReturnTime() == null) {
-                ps.setNull(2, Types.TIME);
-            } else {
-                ps.setTime(2, schedule.getExpectedReturnTime());
-            }
-            if (schedule.getBookingDeadline() == null) {
-                ps.setNull(3, Types.TIMESTAMP);
-            } else {
-                ps.setTimestamp(3, schedule.getBookingDeadline());
-            }
-            ps.setInt(4, schedule.getMinParticipants());
-            ps.setInt(5, schedule.getMaxParticipants());
-            ps.setInt(6, schedule.getMaxParticipantsPerBooking() <= 0 ? 10 : schedule.getMaxParticipantsPerBooking());
-            setNullableString(ps, 7, schedule.getCancellationPolicy());
-            ps.setString(8, isBlank(schedule.getScheduleStatus()) ? "Open" : schedule.getScheduleStatus());
-            ps.setInt(9, schedule.getTourScheduleID());
-            ps.setInt(10, schedule.getQuantity());
-
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return scheduleDAO.updateTourScheduleLimited(schedule);
     }
 
     public boolean changeTourScheduleStatus(int tourScheduleID, String scheduleStatus) {
-        String sql = """
-                UPDATE Tour_Scheduler
-                SET scheduleStatus = ?, updatedAt = GETDATE()
-                WHERE tourScheduleID = ?
-                """;
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, scheduleStatus);
-            ps.setInt(2, tourScheduleID);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return scheduleDAO.changeTourScheduleStatus(tourScheduleID, scheduleStatus);
     }
 
     public boolean closeTourSchedule(int tourScheduleID) {
-        String sql = """
-                UPDATE Tour_Scheduler
-                SET scheduleStatus = N'Closed', updatedAt = GETDATE()
-                WHERE tourScheduleID = ?
-                  AND scheduleStatus IN (N'Open', N'Planned')
-                """;
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, tourScheduleID);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return scheduleDAO.closeTourSchedule(tourScheduleID);
     }
 
     public boolean isDuplicateScheduleStartDate(int tourID, int currentScheduleID, Timestamp startDate) {
-        if (startDate == null) {
-            return false;
-        }
-
-        String sql = """
-                SELECT 1
-                FROM Tour_Scheduler
-                WHERE tourID = ?
-                  AND tourScheduleID <> ?
-                  AND CONVERT(date, startDate) = CONVERT(date, ?)
-                  AND scheduleStatus <> N'Cancelled'
-                """;
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, tourID);
-            ps.setInt(2, currentScheduleID);
-            ps.setTimestamp(3, startDate);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return scheduleDAO.isDuplicateScheduleStartDate(tourID, currentScheduleID, startDate);
     }
 
     public Map<String, Boolean> getDuplicateScheduleStartDateMap(int tourID) {
-        Map<String, Boolean> duplicateDates = new HashMap<>();
-        String sql = """
-                SELECT CONVERT(date, startDate) AS dateKey
-                FROM Tour_Scheduler
-                WHERE tourID = ?
-                  AND scheduleStatus <> N'Cancelled'
-                GROUP BY CONVERT(date, startDate)
-                HAVING COUNT(*) > 1
-                """;
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, tourID);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    java.sql.Date date = rs.getDate("dateKey");
-                    if (date != null) {
-                        duplicateDates.put(date.toLocalDate().toString(), Boolean.TRUE);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return duplicateDates;
+        return scheduleDAO.getDuplicateScheduleStartDateMap(tourID);
     }
 
     public boolean isScheduleStartDateTooClose(int tourID, int currentScheduleID, Timestamp startDate, int minGapDays) {
-        if (startDate == null) {
-            return false;
-        }
-
-        String sql = """
-                SELECT 1
-                FROM Tour_Scheduler
-                WHERE tourID = ?
-                  AND tourScheduleID <> ?
-                  AND scheduleStatus <> N'Cancelled'
-                  AND ABS(DATEDIFF(day, CONVERT(date, startDate), CONVERT(date, ?))) < ?
-                """;
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, tourID);
-            ps.setInt(2, currentScheduleID);
-            ps.setTimestamp(3, startDate);
-            ps.setInt(4, Math.max(1, minGapDays));
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        return scheduleDAO.isScheduleStartDateTooClose(tourID, currentScheduleID, startDate, minGapDays);
     }
-
-    public Map<Integer, String> getSchedulePriceWarningMap(int tourID) {
-        Map<Integer, String> warningMap = new HashMap<>();
-        for (TourSchedule schedule : getSchedulesByTourId(tourID)) {
-            String warning = buildSchedulePriceWarning(schedule);
-            if (!isBlank(warning)) {
-                warningMap.put(schedule.getTourScheduleID(), warning);
-            }
-        }
-        return warningMap;
-    }
-
-    private String buildSchedulePriceWarning(TourSchedule schedule) {
-        if (schedule == null || "Cancelled".equals(schedule.getScheduleStatus())) {
-            return "";
-        }
-
-        List<String> warnings = new ArrayList<>();
-        BigDecimal adultPrice = schedule.getAdultPrice();
-        BigDecimal childPrice = schedule.getChildPrice();
-        BigDecimal singleRoom = schedule.getSingleRoomSurcharge();
-
-        if (adultPrice == null || adultPrice.compareTo(MIN_SCHEDULE_ADULT_PRICE) <= 0) {
-            warnings.add("Giá người lớn phải lớn hơn 100.000");
-        }
-
-        if (adultPrice != null && adultPrice.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal expectedChild = adultPrice.multiply(CHILD_RATE).setScale(0, RoundingMode.HALF_UP);
-            if (childPrice == null || childPrice.compareTo(expectedChild) != 0) {
-                warnings.add("Giá trẻ em 5-10 tuổi phải bằng 50% giá người lớn");
-            }
-        }
-
-        if (singleRoom == null || singleRoom.compareTo(BigDecimal.ZERO) < 0) {
-            warnings.add("Phụ thu phòng đơn phải lớn hơn hoặc bằng 0");
-        }
-
-        return String.join("; ", warnings);
-    }
-
-    private void bindScheduleForInsertOrUpdate(PreparedStatement ps, TourSchedule schedule, boolean updateMode, boolean hasTransportColumn) throws Exception {
-        int index = 1;
-        if (!updateMode) {
-            ps.setInt(index++, schedule.getTourID());
-        }
-        if (hasTransportColumn) {
-            setNullableString(ps, index++, schedule.getScheduleTransportType());
-        }
-        ps.setTimestamp(index++, schedule.getStartDate());
-        ps.setTimestamp(index++, schedule.getEndDate());
-        if (schedule.getDepartureTime() == null) {
-            ps.setNull(index++, Types.TIME);
-        } else {
-            ps.setTime(index++, schedule.getDepartureTime());
-        }
-        if (schedule.getExpectedReturnTime() == null) {
-            ps.setNull(index++, Types.TIME);
-        } else {
-            ps.setTime(index++, schedule.getExpectedReturnTime());
-        }
-        if (schedule.getBookingDeadline() == null) {
-            ps.setNull(index++, Types.TIMESTAMP);
-        } else {
-            ps.setTimestamp(index++, schedule.getBookingDeadline());
-        }
-        ps.setInt(index++, schedule.getMinParticipants());
-        ps.setInt(index++, schedule.getMaxParticipants());
-        ps.setInt(index++, schedule.getMaxParticipantsPerBooking() <= 0 ? 10 : schedule.getMaxParticipantsPerBooking());
-        ps.setBigDecimal(index++, schedule.getAdultPrice());
-        ps.setBigDecimal(index++, schedule.getChildPrice());
-        ps.setBigDecimal(index++, schedule.getInfantPrice());
-        ps.setBigDecimal(index++, schedule.getSingleRoomSurcharge());
-        ps.setInt(index++, schedule.getDepositPercent() == null ? 0 : schedule.getDepositPercent());
-        ps.setInt(index++, schedule.getVatPercent() == null ? 0 : schedule.getVatPercent());
-        setNullableString(ps, index++, schedule.getCancellationPolicy());
-        ps.setString(index++, isBlank(schedule.getScheduleStatus()) ? "Open" : schedule.getScheduleStatus());
-        if (updateMode) {
-            ps.setInt(index, schedule.getTourScheduleID());
-        }
-    }
-
 
     public List<Tour> getPublishedToursForCustomer(String keyword, String startPlace, String destination,
                                                    Integer regionID, Integer categoryID, String startDate,
                                                    int limit) {
         return getPublishedToursForCustomer(keyword, startPlace, destination, regionID, categoryID, startDate, null, null, limit);
+    }
+
+    /*
+     * Ten moi dung trong controller sau khi clean code.
+     * Wrapper nay giu tuong thich voi TourDAO sau merge van con logic ten cu.
+     */
+    public List<Tour> findToursVisibleToCustomer(String keyword, String startPlace, String destination,
+                                                 Integer regionID, Integer categoryID, String startDate,
+                                                 int limit) {
+        return getPublishedToursForCustomer(keyword, startPlace, destination, regionID, categoryID, startDate, limit);
+    }
+
+    /*
+     * Ten moi dung cho Tour List customer co filter gia.
+     */
+    public List<Tour> findToursVisibleToCustomer(String keyword, String startPlace, String destination,
+                                                 Integer regionID, Integer categoryID, String startDate,
+                                                 BigDecimal minPrice, BigDecimal maxPrice, int limit) {
+        return getPublishedToursForCustomer(keyword, startPlace, destination, regionID, categoryID, startDate, minPrice, maxPrice, limit);
     }
 
     public List<Tour> getPublishedToursForCustomer(String keyword, String startPlace, String destination,
@@ -1454,6 +996,13 @@ public class TourDAO {
         return tours;
     }
 
+    /*
+     * Ten moi dung cho Homepage. Logic that nam o getFeaturedToursForHome().
+     */
+    public List<Tour> findFeaturedToursForHome(int limit) {
+        return getFeaturedToursForHome(limit);
+    }
+
     public int countPublishedToursForCustomer() {
         String sql = """
                 SELECT COUNT(DISTINCT t.tourID)
@@ -1479,6 +1028,13 @@ public class TourDAO {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    /*
+     * Ten moi dung cho so thong ke "tour dang mo ban" tren homepage.
+     */
+    public int countToursCurrentlyOnSale() {
+        return countPublishedToursForCustomer();
     }
 
     public List<Tour> getPublishedToursForHomeByRegionName(String regionName, int limit) {
@@ -1521,6 +1077,13 @@ public class TourDAO {
         return tours;
     }
 
+    /*
+     * Ten moi dung cho cac block tour theo mien tren homepage.
+     */
+    public List<Tour> findHomeToursByRegionName(String regionName, int limit) {
+        return getPublishedToursForHomeByRegionName(regionName, limit);
+    }
+
     public Tour getPublishedTourById(int tourID) {
         String sql = TOUR_SELECT + " WHERE t.tourID = ? AND t.[status] = N'Active' ";
 
@@ -1546,41 +1109,7 @@ public class TourDAO {
     }
 
     public List<TourSchedule> getAvailableSchedulesForCustomerByTourId(int tourID, int limit) {
-        List<TourSchedule> schedules = new ArrayList<>();
-        boolean hasTransportColumn = hasScheduleTransportTypeColumn();
-        int safeLimit = limit <= 0 ? 50 : Math.min(limit, 100);
-
-        String sql = """
-                SELECT
-                    tourScheduleID, tourID, %s startDate, endDate, departureTime, expectedReturnTime,
-                    bookingDeadline, minParticipants, maxParticipants, quantity, bookedSeats,
-                    maxParticipantsPerBooking, adultPrice, childPrice, infantPrice,
-                    singleRoomSurcharge, depositPercent, vatPercent, cancellationPolicy,
-                    scheduleStatus, createdAt, updatedAt
-                FROM Tour_Scheduler
-                WHERE tourID = ?
-                  AND scheduleStatus = N'Open'
-                  AND startDate >= CAST(GETDATE() AS date)
-                  AND ISNULL(quantity, 0) < ISNULL(maxParticipants, 0)
-                ORDER BY startDate ASC, tourScheduleID ASC
-                OFFSET 0 ROWS FETCH NEXT %d ROWS ONLY
-                """.formatted(scheduleTransportSelectFragment(hasTransportColumn), safeLimit);
-
-        try (Connection conn = new DBConnection().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, tourID);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    schedules.add(mapSchedule(rs));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return schedules;
+        return scheduleDAO.getAvailableSchedulesForCustomerByTourId(tourID, limit);
     }
 
     public List<String> getPublishedStartPlaces() {
@@ -1691,11 +1220,15 @@ public class TourDAO {
             errors.add("Tour đang có lịch khởi hành bị trùng ngày. Vui lòng sửa hoặc đóng lịch trùng trước khi gửi duyệt.");
         }
 
-        if (!getSchedulePriceWarningMap(tourID).isEmpty()) {
-            errors.add("Tour đang có lịch có giá bất thường. Giá người lớn phải lớn hơn 100.000, giá trẻ em 5-10 tuổi bằng 50% giá người lớn và phụ thu phòng đơn không được âm.");
-        }
-
         return errors;
+    }
+
+    /*
+     * Ten moi dung trong Staff/Admin controller sau khi clean code.
+     * Ham nay tra ve cac loi can sua truoc khi Staff gui duyet hoac Admin duyet tour.
+     */
+    public List<String> checkTourBeforeSubmitForApproval(int tourID) {
+        return getTourReadinessErrors(tourID);
     }
 
     public List<TourReadinessItem> getTourReadinessChecklist(int tourID) {
@@ -1709,7 +1242,6 @@ public class TourDAO {
         int itineraryCount = countActiveItineraries(tourID);
         int validScheduleCount = countValidSchedulesForApproval(tourID);
         boolean hasDuplicateStartDate = !getDuplicateScheduleStartDateMap(tourID).isEmpty();
-        boolean hasPriceWarnings = !getSchedulePriceWarningMap(tourID).isEmpty();
 
         boolean identityReady = !isBlank(tour.getTourName())
                 && tour.getTourCategoryID() > 0
@@ -1763,14 +1295,6 @@ public class TourDAO {
                 hasDuplicateStartDate
                         ? "Đang có lịch cùng ngày khởi hành trong tour này. Staff nên sửa hoặc đóng lịch trùng trước khi gửi duyệt."
                         : "Không phát hiện lịch trùng ngày khởi hành."
-        ));
-
-        checklist.add(new TourReadinessItem(
-                "Không có giá bất thường",
-                !hasPriceWarnings,
-                hasPriceWarnings
-                        ? "Có lịch có giá chưa đúng rule: người lớn > 100.000, trẻ em 5-10 tuổi = 50%, phụ thu >= 0."
-                        : "Giá lịch đang đúng rule kiểm tra."
         ));
 
         return checklist;
@@ -1869,6 +1393,13 @@ public class TourDAO {
         return false;
     }
 
+    /*
+     * Ten moi: doi Draft/Rejected -> Pending de gui Admin duyet.
+     */
+    public boolean markTourAsPendingApproval(int tourID) {
+        return submitTourForApproval(tourID);
+    }
+
     public boolean approveTour(int tourID, int adminUserID, boolean openValidSchedules) {
         Connection conn = null;
         try {
@@ -1923,6 +1454,13 @@ public class TourDAO {
         return false;
     }
 
+    /*
+     * Ten moi: Admin duyet tour Pending -> Active.
+     */
+    public boolean approvePendingTour(int tourID, int adminUserID, boolean openValidSchedules) {
+        return approveTour(tourID, adminUserID, openValidSchedules);
+    }
+
     public boolean rejectTour(int tourID, int adminUserID, String rejectionReason) {
         String sql = """
                 UPDATE Tour
@@ -1944,6 +1482,13 @@ public class TourDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /*
+     * Ten moi: Admin tu choi tour Pending -> Rejected.
+     */
+    public boolean rejectPendingTour(int tourID, int adminUserID, String rejectionReason) {
+        return rejectTour(tourID, adminUserID, rejectionReason);
     }
 
     public boolean setTourInactive(int tourID) {
@@ -2031,7 +1576,6 @@ public class TourDAO {
         tour.setInfantPrice(rs.getBigDecimal("infantPrice"));
         tour.setSingleRoomSurcharge(rs.getBigDecimal("singleRoomSurcharge"));
         tour.setDepositPercent(rs.getInt("depositPercent"));
-        tour.setVatPercent(rs.getInt("vatPercent"));
         tour.setTourIntroduce(rs.getString("tourIntroduce"));
         tour.setTourInclude(rs.getString("tourInclude"));
         tour.setTourNonInclude(rs.getString("tourNonInclude"));
@@ -2076,50 +1620,6 @@ public class TourDAO {
         itinerary.setTransportNote(rs.getString("transportNote"));
         itinerary.setStatus(rs.getString("status"));
         return itinerary;
-    }
-
-    private TourSchedule mapSchedule(ResultSet rs) throws Exception {
-        TourSchedule schedule = new TourSchedule();
-        schedule.setTourScheduleID(rs.getInt("tourScheduleID"));
-        schedule.setTourID(rs.getInt("tourID"));
-        schedule.setScheduleTransportType(rs.getString("scheduleTransportType"));
-        schedule.setStartDate(rs.getTimestamp("startDate"));
-        schedule.setEndDate(rs.getTimestamp("endDate"));
-        schedule.setDepartureTime(rs.getTime("departureTime"));
-        schedule.setExpectedReturnTime(rs.getTime("expectedReturnTime"));
-        schedule.setBookingDeadline(rs.getTimestamp("bookingDeadline"));
-        schedule.setMinParticipants(rs.getInt("minParticipants"));
-        schedule.setMaxParticipants(rs.getInt("maxParticipants"));
-        schedule.setQuantity(rs.getInt("quantity"));
-        schedule.setBookedSeats(rs.getInt("bookedSeats"));
-        schedule.setMaxParticipantsPerBooking(rs.getInt("maxParticipantsPerBooking"));
-        schedule.setAdultPrice(rs.getBigDecimal("adultPrice"));
-        schedule.setChildPrice(rs.getBigDecimal("childPrice"));
-        schedule.setInfantPrice(rs.getBigDecimal("infantPrice"));
-        schedule.setSingleRoomSurcharge(rs.getBigDecimal("singleRoomSurcharge"));
-        int depositPercent = rs.getInt("depositPercent");
-        schedule.setDepositPercent(rs.wasNull() ? null : depositPercent);
-        int vatPercent = rs.getInt("vatPercent");
-        schedule.setVatPercent(rs.wasNull() ? null : vatPercent);
-        schedule.setCancellationPolicy(rs.getString("cancellationPolicy"));
-        schedule.setScheduleStatus(rs.getString("scheduleStatus"));
-        schedule.setCreatedAt(rs.getTimestamp("createdAt"));
-        schedule.setUpdatedAt(rs.getTimestamp("updatedAt"));
-        schedule.setTourName(getOptionalString(rs, "tourName"));
-        schedule.setTourCode(getOptionalString(rs, "tourCode"));
-        schedule.setTourStatus(getOptionalString(rs, "tourStatus"));
-        schedule.setStartPlace(getOptionalString(rs, "startPlace"));
-        schedule.setEndPlace(getOptionalString(rs, "endPlace"));
-        schedule.setMainTransportType(getOptionalString(rs, "mainTransportType"));
-        return schedule;
-    }
-
-    private String getOptionalString(ResultSet rs, String columnName) throws SQLException {
-        try {
-            return rs.getString(columnName);
-        } catch (SQLException e) {
-            return "";
-        }
     }
 
     private void setNullableString(PreparedStatement ps, int index, String value) throws Exception {

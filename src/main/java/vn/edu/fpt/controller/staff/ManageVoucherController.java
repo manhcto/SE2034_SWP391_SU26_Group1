@@ -38,6 +38,7 @@ public class ManageVoucherController extends HttpServlet {
 
         String action = normalize(request.getParameter("action"));
 
+        // Staff moi duoc mo form edit; admin vao cung URL nhung chi xem/approve.
         if ("edit".equals(action) && !isAdminRequest(request)) {
             showEditVoucherForm(request, response);
             return;
@@ -55,6 +56,7 @@ public class ManageVoucherController extends HttpServlet {
 
         String action = normalize(request.getParameter("action"));
 
+        // Admin chi duyet voucher; Staff tao/sua voucher va voucher moi luu o trang thai Inactive.
         if (isAdminRequest(request)) {
             if ("approve".equals(action)) {
                 approveVoucher(request, response);
@@ -81,6 +83,7 @@ public class ManageVoucherController extends HttpServlet {
     private void showVoucherList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Cung mot JSP nhung phan quyen bang voucherManagementRole/readOnly.
         request.setAttribute("voucherList", voucherDAO.getAllVouchers());
         request.setAttribute("voucherManagementPath", resolveManagementPath(request));
         request.setAttribute("voucherManagementRole", isAdminRequest(request) ? "admin" : "staff");
@@ -117,6 +120,7 @@ public class ManageVoucherController extends HttpServlet {
     private void insertVoucher(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Staff tao voucher moi: validate xong luu Inactive de admin duyet sau.
         List<String> errors = new ArrayList<>();
         Voucher voucher = buildVoucherFromRequest(request, errors, null, null);
 
@@ -147,6 +151,7 @@ public class ManageVoucherController extends HttpServlet {
     private void updateVoucher(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Staff sua voucher: neu voucher da co luot dung thi validate se han che cac thay doi nguy hiem.
         List<String> errors = new ArrayList<>();
         Integer voucherID = parseVoucherID(request.getParameter("voucherID"), errors);
         Voucher existingVoucher = null;
@@ -208,6 +213,7 @@ public class ManageVoucherController extends HttpServlet {
                                             List<String> errors,
                                             Integer voucherID,
                                             Integer currentUsedCount) {
+        // Doc va validate cac truong voucher: ma, mo ta, loai ap dung, muc giam, thoi gian hieu luc.
         String code = normalize(request.getParameter("code"));
         String description = normalize(request.getParameter("description"));
         String status = normalize(request.getParameter("status"));

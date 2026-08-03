@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.DAO.TourDAO;
+import vn.edu.fpt.DAO.TourScheduleDAO;
 import vn.edu.fpt.model.Tour;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.List;
 public class DetailTourController extends HttpServlet {
 
     private final TourDAO tourDAO = new TourDAO();
+    private final TourScheduleDAO scheduleDAO = new TourScheduleDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -22,6 +24,7 @@ public class DetailTourController extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
+        // id tren URL la khoa chinh tourID: /staff/tour/detail?id=...
         Integer tourID = parsePositiveInt(request.getParameter("id"));
 
         if (tourID == null) {
@@ -36,16 +39,16 @@ public class DetailTourController extends HttpServlet {
             return;
         }
 
+        // Trang detail can du 3 nhom du lieu: thong tin tour, lich trinh tung ngay, lich khoi hanh/gia.
         tour.setItineraryList(tourDAO.getItinerariesByTourId(tourID));
-        tour.setScheduleList(tourDAO.getSchedulesByTourId(tourID));
+        tour.setScheduleList(scheduleDAO.getSchedulesByTourId(tourID));
         tourDAO.loadManagedImages(tour);
 
-        List<String> readinessErrors = tourDAO.getTourReadinessErrors(tourID);
+        // readinessErrors la checklist nghiep vu truoc khi Staff bam Gui duyet.
+        List<String> readinessErrors = tourDAO.checkTourBeforeSubmitForApproval(tourID);
         request.setAttribute("tour", tour);
         request.setAttribute("readinessErrors", readinessErrors);
-        request.setAttribute("readinessChecklist", tourDAO.getTourReadinessChecklist(tourID));
-        request.setAttribute("duplicateStartDateMap", tourDAO.getDuplicateScheduleStartDateMap(tourID));
-        request.setAttribute("schedulePriceWarningMap", tourDAO.getSchedulePriceWarningMap(tourID));
+        request.setAttribute("duplicateStartDateMap", scheduleDAO.getDuplicateScheduleStartDateMap(tourID));
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
         request.getRequestDispatcher("/views/staff/tour-detail.jsp")
                 .forward(request, response);

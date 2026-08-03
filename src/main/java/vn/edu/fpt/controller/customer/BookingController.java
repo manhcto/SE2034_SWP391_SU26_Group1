@@ -3,6 +3,7 @@ package vn.edu.fpt.controller.customer;
 import vn.edu.fpt.DAO.BookingDAO;
 import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.TourDAO;
+import vn.edu.fpt.DAO.TourScheduleDAO;
 import vn.edu.fpt.DAO.UserVoucherDAO;
 import vn.edu.fpt.model.AdministrativeUnit;
 import vn.edu.fpt.model.Booking;
@@ -37,6 +38,7 @@ import java.util.UUID;
 public class BookingController extends HttpServlet {
     private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
     private final UserVoucherDAO userVoucherDAO = new UserVoucherDAO();
+    private final TourScheduleDAO scheduleDAO = new TourScheduleDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -59,7 +61,7 @@ public class BookingController extends HttpServlet {
         }
 
         TourDAO tourDAO = new TourDAO();
-        TourSchedule schedule = tourDAO.getScheduleById(scheduleID);
+        TourSchedule schedule = scheduleDAO.getScheduleById(scheduleID);
         if (schedule == null || !"Open".equalsIgnoreCase(schedule.getScheduleStatus()) || schedule.getRemainingSeats() <= 0) {
             response.sendRedirect(request.getContextPath() + "/tour?message=scheduleUnavailable");
             return;
@@ -387,7 +389,7 @@ public class BookingController extends HttpServlet {
 
         if (tourScheduleID > 0) {
             TourDAO tourDAO = new TourDAO();
-            schedule = tourDAO.getScheduleById(tourScheduleID);
+            schedule = scheduleDAO.getScheduleById(tourScheduleID);
 
             if (schedule != null) {
                 tour = tourDAO.getPublishedTourById(schedule.getTourID());

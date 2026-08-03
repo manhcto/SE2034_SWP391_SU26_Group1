@@ -22,9 +22,11 @@ public class ListTourScheduleController extends StaffTourScheduleSupport {
         Integer tourID = parsePositiveInt(request.getParameter("tourID"));
 
         if (tourID == null) {
-            tourDAO.syncOpenSchedulesWithTourStatuses();
+            // Khong co tourID: day la trang tong quan tat ca lich cua Staff.
+            // Truoc khi hien, dong bo lai lich Open cua tour khong con Active.
+            scheduleDAO.syncOpenSchedulesWithTourStatuses();
             request.setAttribute("tourList", tourDAO.getToursForStaff(null, null, null, null));
-            request.setAttribute("scheduleList", tourDAO.getSchedulesForStaffOverview());
+            request.setAttribute("scheduleList", scheduleDAO.getSchedulesForStaffOverview());
             request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
             request.setAttribute("allSchedules", true);
             request.getRequestDispatcher("/views/staff/tour-schedule-list.jsp")
@@ -32,18 +34,18 @@ public class ListTourScheduleController extends StaffTourScheduleSupport {
             return;
         }
 
+        // Co tourID: day la danh sach lich rieng cua mot tour, dung sau khi Staff bam icon lich.
         Tour tour = getTourForSchedule(tourID);
         if (tour == null) {
             response.sendRedirect(request.getContextPath() + "/staff/tour?message=notFound");
             return;
         }
 
+        // Day them readinessErrors/duplicateStartDateMap de JSP canh bao truoc khi gui duyet.
         request.setAttribute("tour", tour);
         request.setAttribute("scheduleList", tour.getScheduleList());
-        request.setAttribute("readinessErrors", tourDAO.getTourReadinessErrors(tourID));
-        request.setAttribute("readinessChecklist", tourDAO.getTourReadinessChecklist(tourID));
-        request.setAttribute("duplicateStartDateMap", tourDAO.getDuplicateScheduleStartDateMap(tourID));
-        request.setAttribute("schedulePriceWarningMap", tourDAO.getSchedulePriceWarningMap(tourID));
+        request.setAttribute("readinessErrors", tourDAO.checkTourBeforeSubmitForApproval(tourID));
+        request.setAttribute("duplicateStartDateMap", scheduleDAO.getDuplicateScheduleStartDateMap(tourID));
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
         request.setAttribute("canManageSchedule", canManageScheduleForTour(tour));
         request.setAttribute("canEditSchedule", canEditScheduleForTour(tour));

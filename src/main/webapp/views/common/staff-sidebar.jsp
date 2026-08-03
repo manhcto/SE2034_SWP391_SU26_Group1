@@ -4,7 +4,7 @@
 
 <c:set var="currentPath" value="${pageContext.request.servletPath}" />
 <c:set var="requestUri" value="${pageContext.request.requestURI}" />
-<c:set var="isTourActive" value="${currentPath eq '/staff/tour' || fn:contains(requestUri, '/staff/tour') || fn:contains(currentPath, 'tour-management.jsp') || fn:contains(currentPath, 'tour-form.jsp') || fn:contains(currentPath, 'tour-detail.jsp') || fn:contains(currentPath, 'tour-schedule-')}" />
+<c:set var="isTourActive" value="${currentPath eq '/staff/tour' || fn:contains(requestUri, '/staff/tour') || fn:contains(currentPath, 'tour-list.jsp') || fn:contains(currentPath, 'tour-form.jsp') || fn:contains(currentPath, 'tour-detail.jsp') || fn:contains(currentPath, 'tour-schedule-')}" />
 
 <style>
     .staff-sidebar {

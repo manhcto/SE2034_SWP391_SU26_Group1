@@ -86,6 +86,12 @@
             </div>
         </section>
 
+        <%--
+            ADMIN APPROVAL - FRONT-END ENTRY POINT
+            Khoi nay chi hien khi tour.status = Pending, nghia la Staff da bam Gui duyet.
+            Nut "Duyet tour" POST toi /admin/tour/approve -> AdminTourApproveController.doPost().
+            Nut "Tu choi tour" POST toi /admin/tour/reject -> AdminTourRejectController.doPost().
+        --%>
         <c:if test="${tour.status == 'Pending'}">
             <section class="content-card">
                 <div class="section-title"><h5><i class="fa-solid fa-user-check text-success me-2"></i>Duyệt / Từ chối tour</h5></div>
@@ -95,6 +101,11 @@
                             <div class="approval-box h-100">
                                 <h6 class="fw-bold">Duyệt tour</h6>
                                 <p class="muted">Sau khi duyệt, tour chuyển sang trạng thái Đang bán. Các lịch Planned hợp lệ có thể được mở bán tự động.</p>
+                                <%--
+                                    Form duyet chi gui tourID va openSchedules.
+                                    Controller se load tour tu DB, kiem tra readinessErrors lan nua,
+                                    sau do TourDAO.approvePendingTour() doi status sang Active.
+                                --%>
                                 <form method="post" action="${pageContext.request.contextPath}/admin/tour/approve">
                                     <input type="hidden" name="tourID" value="${tour.tourID}">
                                     <div class="form-check mb-3">
@@ -109,6 +120,11 @@
                             <div class="reject-box h-100">
                                 <h6 class="fw-bold">Từ chối tour</h6>
                                 <p class="muted">Nhập lý do rõ ràng để Staff biết cần sửa phần nào.</p>
+                                <%--
+                                    Form tu choi gui tourID + rejectionReason.
+                                    Controller validate do dai ly do, sau do TourDAO.rejectPendingTour()
+                                    doi status sang Rejected de Staff sua lai.
+                                --%>
                                 <form method="post" action="${pageContext.request.contextPath}/admin/tour/reject">
                                     <input type="hidden" name="tourID" value="${tour.tourID}">
                                     <textarea class="form-control mb-3" name="rejectionReason" rows="4" maxlength="500" placeholder="Ví dụ: Lịch trình ngày 2 còn thiếu mô tả, ảnh bìa chưa phù hợp..." required></textarea>

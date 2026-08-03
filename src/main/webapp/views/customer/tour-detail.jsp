@@ -257,7 +257,6 @@
                         <ul>
                             <li>Trẻ em từ 10 tuổi trở lên áp dụng giá người lớn.</li>
                             <li>Trẻ em 5-10 tuổi áp dụng 50% giá người lớn theo từng lịch khởi hành.</li>
-                            <li>Trẻ em dưới 5 tuổi miễn phí.</li>
                         </ul>
                     </div>
                     <div class="service-block">
@@ -293,7 +292,6 @@
                                 <fmt:formatDate value="${schedule.startDate}" pattern="dd-MM-yyyy" var="scheduleDateText" />
                                 <fmt:formatNumber value="${schedule.adultPrice}" pattern="#,##0" var="adultPriceText" />
                                 <fmt:formatNumber value="${schedule.childPrice}" pattern="#,##0" var="childPriceText" />
-                                <fmt:formatNumber value="${schedule.infantPrice}" pattern="#,##0" var="infantPriceText" />
                                 <fmt:formatNumber value="${schedule.singleRoomSurcharge}" pattern="#,##0" var="singleRoomText" />
                                 <tr class="schedule-main-row ${loop.first ? 'active' : ''}"
                                     data-schedule-id="${schedule.tourScheduleID}"
@@ -322,7 +320,6 @@
                                                     <th>Loại giá/Độ tuổi</th>
                                                     <th>Người lớn (Từ 11 tuổi)</th>
                                                     <th>Trẻ em (5-10 tuổi)</th>
-                                                    <th>Trẻ dưới 5 tuổi</th>
                                                     <th>Ghi chú</th>
                                                 </tr>
                                                 </thead>
@@ -331,12 +328,10 @@
                                                     <td>Giá</td>
                                                     <td>${adultPriceText}đ</td>
                                                     <td>${childPriceText}đ</td>
-                                                    <td>0đ</td>
-                                                    <td>Miễn phí</td>
+                                                    <td>Áp dụng theo từng lịch khởi hành.</td>
                                                 </tr>
                                                 <tr>
                                                     <td>Phụ thu nước ngoài</td>
-                                                    <td>0đ</td>
                                                     <td>0đ</td>
                                                     <td>0đ</td>
                                                     <td>0đ</td>
@@ -346,16 +341,14 @@
                                                     <td>0đ</td>
                                                     <td>0đ</td>
                                                     <td>0đ</td>
-                                                    <td>0đ</td>
                                                 </tr>
                                                 <tr>
                                                     <td>Phụ thu phòng đơn</td>
                                                     <td>${singleRoomText}đ</td>
-                                                    <td colspan="3">Áp dụng khi khách yêu cầu phòng riêng.</td>
+                                                    <td colspan="2">Áp dụng khi khách yêu cầu phòng riêng.</td>
                                                 </tr>
                                                 <tr>
                                                     <td>Giảm giá</td>
-                                                    <td>0đ</td>
                                                     <td>0đ</td>
                                                     <td>0đ</td>
                                                     <td>0đ</td>

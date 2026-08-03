@@ -538,7 +538,6 @@
                         <i class="fa-solid fa-map-location-dot"></i>
                     </div>
                     <h5>Quản lý Tour</h5>
-                    <p>Tạo, cập nhật tour, lịch trình, giá bán và trạng thái tour.</p>
                     <span class="module-open">Mở chức năng</span>
                 </a>
             </div>

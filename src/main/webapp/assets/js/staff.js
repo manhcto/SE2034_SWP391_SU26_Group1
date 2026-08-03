@@ -150,22 +150,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var scheduleSummaryBody = document.getElementById('scheduleSummaryBody');
     var scheduleIndex = scheduleList ? scheduleList.querySelectorAll('.schedule-card').length : 1;
 
-    function applyVatToggles(root) {
-        (root || document).querySelectorAll('.vat-row').forEach(function (row) {
-            var checkbox = row.querySelector('input[type="checkbox"]');
-            var input = row.querySelector('input[type="number"]');
-            if (!checkbox || !input) return;
-            function sync() {
-                input.disabled = !checkbox.checked;
-                if (!checkbox.checked) input.value = '0';
-                if (checkbox.checked && input.value === '0') input.value = '8';
-            }
-            checkbox.removeEventListener('change', sync);
-            checkbox.addEventListener('change', sync);
-            sync();
-        });
-    }
-
     function updateScheduleSummary() {
         if (!scheduleSummaryBody || !scheduleList) return;
         scheduleSummaryBody.innerHTML = '';
@@ -200,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (seatSelect && seatSelect.value) {
                 card.querySelectorAll('[data-max-participants]').forEach(function (input) { input.value = seatSelect.value; });
             }
-            applyVatToggles(card);
             scheduleIndex++;
             updateScheduleSummary();
         });
@@ -229,7 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    applyVatToggles(document);
     updateScheduleSummary();
 
     var optionalList = document.getElementById('optionalServiceList');

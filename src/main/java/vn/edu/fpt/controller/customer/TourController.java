@@ -36,14 +36,19 @@ public class TourController extends HttpServlet {
 
         String path = request.getServletPath();
         if ("/tour-detail".equals(path)) {
-            showTourDetail(request, response);
+            showCustomerTourDetailPage(request, response);
             return;
         }
 
-        showTourList(request, response);
+        showCustomerTourListPage(request, response);
     }
 
-    private void showTourList(HttpServletRequest request, HttpServletResponse response)
+    /*
+     * FRONT-END /tour hoac /tours se di vao day.
+     * Ham doc filter tu query string, goi TourDAO.findToursVisibleToCustomer(),
+     * cat phan trang 10 tour/trang roi forward sang /views/customer/tour-list.jsp.
+     */
+    private void showCustomerTourListPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         final int pageSize = 10;
         String keyword = normalize(request.getParameter("keyword"));
@@ -62,7 +67,7 @@ public class TourController extends HttpServlet {
             maxPrice = swap;
         }
 
-        List<Tour> allTours = tourDAO.getPublishedToursForCustomer(keyword, from, destination, regionID, categoryID, startDate, minPrice, maxPrice, 1000);
+        List<Tour> allTours = tourDAO.findToursVisibleToCustomer(keyword, from, destination, regionID, categoryID, startDate, minPrice, maxPrice, 1000);
         int totalTourCount = allTours.size();
         int totalPages = Math.max(1, (int) Math.ceil(totalTourCount / (double) pageSize));
         currentPage = Math.min(Math.max(1, currentPage), totalPages);
@@ -96,7 +101,12 @@ public class TourController extends HttpServlet {
         request.getRequestDispatcher("/views/customer/tour-list.jsp").forward(request, response);
     }
 
-    private void showTourDetail(HttpServletRequest request, HttpServletResponse response)
+    /*
+     * FRONT-END /tour-detail?id=... se di vao day.
+     * Ham load tour da duyet + lich dang mo ban, feedback va tour lien quan,
+     * sau do forward sang /views/customer/tour-detail.jsp.
+     */
+    private void showCustomerTourDetailPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         Integer tourID = parsePositiveInteger(request.getParameter("id"));
         if (tourID == null) {
@@ -126,7 +136,7 @@ public class TourController extends HttpServlet {
         request.setAttribute("tour", tour);
         request.setAttribute("tourFeedbackList", tourFeedbackList);
         request.setAttribute("canAddTourFeedback", canAddTourFeedback);
-        request.setAttribute("relatedTours", tourDAO.getPublishedToursForCustomer(null, null, null, tour.getRegionID(), null, null, 4));
+        request.setAttribute("relatedTours", tourDAO.findToursVisibleToCustomer(null, null, null, tour.getRegionID(), null, null, 4));
         request.getRequestDispatcher("/views/customer/tour-detail.jsp").forward(request, response);
     }
 

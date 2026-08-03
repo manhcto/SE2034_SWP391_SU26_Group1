@@ -53,6 +53,7 @@ public class ManageAccommodationController extends HttpServlet {
             action = "list";
         }
 
+        // GET chi dung de xem list/detail. Cac thao tac thay doi du lieu nam trong doPost.
         switch (action) {
             case "list":
                 showAccommodationList(request, response);
@@ -80,6 +81,7 @@ public class ManageAccommodationController extends HttpServlet {
 
         String action = safeTrim(request.getParameter("action"));
 
+        // POST chia theo action tu cac form trong accommodation-management/detail JSP.
         switch (action) {
             case "add":
                 addAccommodation(request, response);
@@ -122,6 +124,7 @@ public class ManageAccommodationController extends HttpServlet {
     private void showAccommodationList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Man list can lay noi luu tru + phong + tien ich de Staff xem tong quan va sua nhanh.
         List<Accommodation> accommodationList = accommodationDAO.getAllAccommodations();
         List<Facility> accommodationFacilityOptions = facilityDAO.getAccommodationFacilityOptions();
         Map<Integer, List<Room>> roomsByAccommodation = new HashMap<>();
@@ -155,6 +158,7 @@ public class ManageAccommodationController extends HttpServlet {
     private void showAccommodationDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Detail load mot noi luu tru va toan bo phong/tien ich con cua noi do.
         Integer accommodationID = parsePositiveInt(request.getParameter("id"));
 
         if (accommodationID == null) {
@@ -197,6 +201,7 @@ public class ManageAccommodationController extends HttpServlet {
     private void addAccommodation(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
+        // Them noi luu tru: doc form, validate, insert accommodation kem facility trong DAO.
         AccommodationData data = readAccommodationData(request);
         Map<String, String> errors = validateAccommodationInput(data);
 
@@ -225,6 +230,7 @@ public class ManageAccommodationController extends HttpServlet {
     private void updateAccommodation(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
+        // Sua noi luu tru: validate lai tu dau de tranh form bi bypass.
         AccommodationData data = readAccommodationData(request);
         Map<String, String> errors = validateAccommodationInput(data);
 

@@ -17,7 +17,7 @@
 - `src/main/java/vn/edu/fpt/DAO/TourDAO.java`
 - `src/main/java/vn/edu/fpt/model/Tour.java`
 - `src/main/java/vn/edu/fpt/model/TourSchedule.java`
-- `src/main/webapp/views/staff/tour-management.jsp`
+- `../../src/main/webapp/views/staff/tour-list.jsp`
 - `src/main/webapp/views/staff/tour-form.jsp`
 - `src/main/webapp/views/staff/tour-detail.jsp`
 - `src/main/webapp/views/staff/tour-schedule-list.jsp`

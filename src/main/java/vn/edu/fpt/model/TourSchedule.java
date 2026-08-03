@@ -25,7 +25,6 @@ public class TourSchedule {
     private BigDecimal infantPrice;
     private BigDecimal singleRoomSurcharge;
     private Integer depositPercent;
-    private Integer vatPercent;
     private String cancellationPolicy;
     private String scheduleStatus;
     private Timestamp createdAt;
@@ -179,14 +178,6 @@ public class TourSchedule {
 
     public void setDepositPercent(Integer depositPercent) {
         this.depositPercent = depositPercent;
-    }
-
-    public Integer getVatPercent() {
-        return vatPercent;
-    }
-
-    public void setVatPercent(Integer vatPercent) {
-        this.vatPercent = vatPercent;
     }
 
     public String getCancellationPolicy() {

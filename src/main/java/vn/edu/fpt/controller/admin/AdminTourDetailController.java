@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.DAO.TourDAO;
+import vn.edu.fpt.DAO.TourScheduleDAO;
 import vn.edu.fpt.model.Tour;
 import vn.edu.fpt.model.TourSchedule;
 
@@ -17,10 +18,12 @@ import java.util.List;
 public class AdminTourDetailController extends HttpServlet {
 
     private TourDAO tourDAO;
+    private TourScheduleDAO scheduleDAO;
 
     @Override
     public void init() {
         tourDAO = new TourDAO();
+        scheduleDAO = new TourScheduleDAO();
     }
 
     @Override
@@ -39,7 +42,7 @@ public class AdminTourDetailController extends HttpServlet {
         }
 
         tour.setItineraryList(tourDAO.getItinerariesByTourId(tourID));
-        tour.setScheduleList(tourDAO.getSchedulesByTourId(tourID));
+        tour.setScheduleList(scheduleDAO.getSchedulesByTourId(tourID));
         tourDAO.loadManagedImages(tour);
         List<String> readinessErrors = tourDAO.getTourReadinessErrors(tourID);
         BigDecimal approvalDisplayPrice = resolveDisplayAdultPrice(tour);

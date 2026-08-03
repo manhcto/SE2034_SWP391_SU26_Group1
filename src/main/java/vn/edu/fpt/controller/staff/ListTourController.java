@@ -28,7 +28,6 @@ public class ListTourController extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
-
         String keyword = safeTrim(request.getParameter("keyword"));
         String status = safeTrim(request.getParameter("status"));
         Integer categoryID = parsePositiveInt(request.getParameter("categoryID"));
@@ -77,7 +76,7 @@ public class ListTourController extends HttpServlet {
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
         attachExcelImportFlash(request);
 
-        request.getRequestDispatcher("/views/staff/tour-management.jsp")
+        request.getRequestDispatcher("/views/staff/tour-list.jsp")
                 .forward(request, response);
     }
 

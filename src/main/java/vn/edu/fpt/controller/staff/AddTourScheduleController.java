@@ -79,7 +79,7 @@ public class AddTourScheduleController extends StaffTourScheduleSupport {
         }
 
         boolean firstSchedule = tour.getScheduleList() == null || tour.getScheduleList().isEmpty();
-        boolean success = tourDAO.insertTourSchedule(schedule);
+        boolean success = scheduleDAO.insertTourSchedule(schedule);
         if (firstSchedule) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/tour?message=" + (success ? "scheduleAddSuccess" : "scheduleAddFail"));
@@ -104,7 +104,6 @@ public class AddTourScheduleController extends StaffTourScheduleSupport {
             schedule.setSingleRoomSurcharge(java.math.BigDecimal.ZERO);
         }
         schedule.setDepositPercent(0);
-        schedule.setVatPercent(NO_VAT_PERCENT);
         schedule.setCancellationPolicy(DEFAULT_CANCELLATION_POLICY);
         schedule.setScheduleStatus(canOpenScheduleForTour(tour) ? "Open" : "Planned");
         schedule.setScheduleTransportType(resolveScheduleTransportType(tour, null));

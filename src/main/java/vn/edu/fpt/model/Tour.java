@@ -22,7 +22,6 @@ public class Tour {
     private BigDecimal infantPrice;
     private BigDecimal singleRoomSurcharge;
     private int depositPercent;
-    private int vatPercent;
     private String tourIntroduce;
     private String tourInclude;
     private String tourNonInclude;
@@ -109,9 +108,6 @@ public class Tour {
 
     public int getDepositPercent() { return depositPercent; }
     public void setDepositPercent(int depositPercent) { this.depositPercent = depositPercent; }
-
-    public int getVatPercent() { return vatPercent; }
-    public void setVatPercent(int vatPercent) { this.vatPercent = vatPercent; }
 
     public String getTourIntroduce() { return tourIntroduce; }
     public void setTourIntroduce(String tourIntroduce) { this.tourIntroduce = safeTrim(tourIntroduce); }

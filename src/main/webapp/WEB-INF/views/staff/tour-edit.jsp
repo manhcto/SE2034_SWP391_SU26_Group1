@@ -115,8 +115,6 @@
                                                     <input class="table-input" name="infantPrice_${st.count}" value="${s.infantPrice}" placeholder="Em bé">
                                                     <input class="table-input" name="singleRoomSurcharge_${st.count}" value="${s.singleRoomSurcharge}" placeholder="Phụ thu">
                                                     <input class="table-input" type="number" name="depositPercent_${st.count}" value="${s.depositPercent}" placeholder="Cọc %">
-                                                    <label class="inline-check"><input type="checkbox" name="hasVAT_${st.count}" ${s.hasVAT ? 'checked' : ''}> VAT</label>
-                                                    <input class="table-input" type="number" name="vatPercent_${st.count}" value="${s.vatPercent}" placeholder="VAT %">
                                                 </div>
                                             </c:when>
                                             <c:otherwise>
@@ -141,7 +139,7 @@
                                     <div class="form-group"><label>Tối đa</label><input class="form-control" type="number" id="draftMaxParticipants" value="${tour.vehicleSeatCount}"></div>
                                 </div>
                                 <div class="form-grid grid-4" style="margin-top:12px;"><div class="form-group"><label>Guide</label><select class="form-select" id="draftGuideStaffID"><option value="">Chọn</option><c:forEach var="g" items="${guides}"><option value="${g.staffID}">${g.staffCode} - ${g.fullName}</option></c:forEach></select></div><div class="form-group"><label>Lái xe</label><select class="form-select" id="draftDriverStaffID"><option value="">Chọn</option><c:forEach var="d" items="${drivers}"><option value="${d.staffID}">${d.staffCode} - ${d.fullName}</option></c:forEach></select></div><div class="form-group"><label>Giá người lớn</label><input class="form-control" id="draftAdultPrice"></div><div class="form-group"><label>Giá trẻ em</label><input class="form-control" id="draftChildPrice"></div></div>
-                                <div class="form-grid grid-5" style="margin-top:12px;"><div class="form-group"><label>Giá em bé</label><input class="form-control" id="draftInfantPrice"></div><div class="form-group"><label>Phụ thu phòng đơn</label><input class="form-control" id="draftSingleRoomSurcharge"></div><div class="form-group"><label>Đặt cọc</label><input class="form-control" type="number" id="draftDepositPercent" value="30"></div><div class="form-group"><label>VAT</label><label class="inline-check"><input type="checkbox" id="draftHasVAT" checked> Có VAT</label></div><div class="form-group"><label>VAT (%)</label><input class="form-control" type="number" id="draftVatPercent" value="8"></div></div>
+                                <div class="form-grid grid-3" style="margin-top:12px;"><div class="form-group"><label>Giá em bé</label><input class="form-control" id="draftInfantPrice"></div><div class="form-group"><label>Phụ thu phòng đơn</label><input class="form-control" id="draftSingleRoomSurcharge"></div><div class="form-group"><label>Đặt cọc</label><input class="form-control" type="number" id="draftDepositPercent" value="30"></div></div>
                                 <div class="schedule-draft-actions"><span id="draftPriceSummary" class="price-summary">Giá: chưa tính</span><button type="button" class="btn btn-outline-green" id="addScheduleDraftBtn">+ Thêm lịch mới</button></div>
                             </div>
                         </c:if>

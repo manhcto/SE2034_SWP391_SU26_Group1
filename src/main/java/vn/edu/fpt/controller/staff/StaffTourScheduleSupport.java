@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.DAO.TourDAO;
+import vn.edu.fpt.DAO.TourScheduleDAO;
 import vn.edu.fpt.model.Tour;
 import vn.edu.fpt.model.TourSchedule;
 
@@ -26,13 +27,13 @@ import java.util.Map;
 public abstract class StaffTourScheduleSupport extends HttpServlet {
 
     protected final TourDAO tourDAO = new TourDAO();
+    protected final TourScheduleDAO scheduleDAO = new TourScheduleDAO();
 
     private static final BigDecimal MIN_ADULT_PRICE = new BigDecimal("100000");
     private static final BigDecimal MAX_MONEY = new BigDecimal("1000000000");
     private static final BigDecimal CHILD_RATE = new BigDecimal("0.50");
     private static final DateTimeFormatter DISPLAY_DATE_FORMATTER =
             DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
-    protected static final int NO_VAT_PERCENT = 0;
     protected static final String DEFAULT_CANCELLATION_POLICY = "Thanh toán đủ 100% khi đặt tour. Chính sách hủy/hoàn tiền áp dụng theo trang quy định chung của công ty.";
 
     protected static final Map<String, List<Integer>> TRANSPORT_SEATS = new LinkedHashMap<>();
@@ -55,6 +56,11 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
                                        List<String> errors)
             throws ServletException, IOException {
 
+        /*
+         * Diem tap trung de render form Add/Edit Schedule.
+         * Controller Add/Edit Schedule goi ham nay de dua Tour, Schedule, dropdown ghe,
+         * trang thai khoa form va loi validate sang tour-schedule-form.jsp.
+         */
         boolean bookedSchedule = schedule != null && Math.max(schedule.getQuantity(), schedule.getBookedSeats()) > 0;
         boolean lockedCore = bookedSchedule || isFinalScheduleStatus(schedule == null ? null : schedule.getScheduleStatus());
         String selectedTransport = resolveScheduleTransportType(tour, schedule == null ? null : schedule.getScheduleTransportType());
@@ -70,11 +76,14 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         request.setAttribute("seatOptions", getSeatOptions(selectedTransport));
         request.setAttribute("todayIso", LocalDate.now().toString());
         request.setAttribute("bookedSchedule", bookedSchedule);
+
+        // lockedCore = true thi form khoa ngay/gia/so ghe vi lich da co booking hoac da ket thuc/huy.
         request.setAttribute("lockedCore", lockedCore);
         request.setAttribute("canOpenSchedule", canOpenScheduleForTour(tour));
         request.setAttribute("existingScheduleDateKeys", getExistingScheduleDateKeys(tour, schedule));
         prepareScheduleValidationAttributes(request, errors);
 
+        // Forward ve JSP de hien form lich va loi tung o neu co.
         request.getRequestDispatcher("/views/staff/tour-schedule-form.jsp")
                 .forward(request, response);
     }
@@ -93,8 +102,10 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         for (String error : errors) {
             String key = resolveScheduleFieldErrorKey(error);
             if (key == null) {
+                // Loi chung cua form lich hien trong alert tren dau form.
                 commonErrors.add(error);
             } else {
+                // Loi co key hien ngay duoi input: startDate, adultPrice, maxParticipants...
                 fieldErrors.putIfAbsent(key, error);
             }
         }
@@ -131,6 +142,11 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
     }
 
     protected ScheduleFormData readScheduleFormData(HttpServletRequest request) {
+        /*
+         * Doc du lieu tu tour-schedule-form.jsp.
+         * Cac field ngay hien thi dang DD-MM-YYYY tren UI, nhung hidden input
+         * startDate/endDate gui ve server theo dang yyyy-MM-dd de parse on dinh.
+         */
         ScheduleFormData data = new ScheduleFormData();
         data.tourIDRaw = request.getParameter("tourID");
         data.tourScheduleIDRaw = request.getParameter("tourScheduleID");
@@ -146,6 +162,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         data.childPriceRaw = request.getParameter("childPrice");
         data.infantPriceRaw = request.getParameter("infantPrice");
         data.singleRoomSurchargeRaw = request.getParameter("singleRoomSurcharge");
+
+        // Staff khong nhap chinh sach huy/trang thai truc tiep; he thong tu ap dung rule.
         data.cancellationPolicy = DEFAULT_CANCELLATION_POLICY;
         data.scheduleStatus = "";
         return data;
@@ -156,6 +174,11 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
                                                 TourSchedule existingSchedule,
                                                 boolean editMode,
                                                 boolean lockedCore) {
+        /*
+         * Validate schedule server-side.
+         * AddSchedule truyen editMode=false, existingSchedule=null.
+         * EditSchedule truyen editMode=true va existingSchedule de kiem tra booking/trang thai cu.
+         */
         List<String> errors = new ArrayList<>();
 
         if (tour == null) {
@@ -219,6 +242,7 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
                 errors.add("Ngày kết thúc không được trước ngày xuất phát.");
             }
 
+            // Ngay ve phai khop so ngay tour. VD tour 3 ngay thi endDate = startDate + 2.
             long actualDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
             if (actualDays != tour.getNumberOfDay()) {
                 errors.add("Ngày xuất phát và ngày kết thúc phải khớp đúng số ngày của tour. Tour "
@@ -226,10 +250,12 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
             }
 
             int currentScheduleID = existingSchedule == null ? 0 : existingSchedule.getTourScheduleID();
-            if (!lockedCore && tourDAO.isDuplicateScheduleStartDate(tour.getTourID(), currentScheduleID, Timestamp.valueOf(startDate.atStartOfDay()))) {
+            if (!lockedCore && scheduleDAO.isDuplicateScheduleStartDate(tour.getTourID(), currentScheduleID, Timestamp.valueOf(startDate.atStartOfDay()))) {
+                // Cung mot tour khong duoc co hai lich cung ngay khoi hanh.
                 errors.add("Tour này đã có lịch khởi hành cùng ngày xuất phát. Không nên tạo trùng ngày.");
             }
-            if (!lockedCore && tourDAO.isScheduleStartDateTooClose(tour.getTourID(), currentScheduleID, Timestamp.valueOf(startDate.atStartOfDay()), 3)) {
+            if (!lockedCore && scheduleDAO.isScheduleStartDateTooClose(tour.getTourID(), currentScheduleID, Timestamp.valueOf(startDate.atStartOfDay()), 3)) {
+                // Lich qua gan nhau se kho van hanh va de trung ban.
                 errors.add("Ngày xuất phát của các lịch trong cùng tour phải cách nhau ít nhất 3 ngày để Staff dễ vận hành và tránh trùng bán.");
             }
         }
@@ -276,6 +302,7 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         }
 
         if (!lockedCore) {
+            // Gia nguoi lon la gia goc; gia tre em 5-10 tuoi bat buoc = 50% gia nguoi lon.
             validateAdultPrice(data.adultPriceRaw, errors);
             BigDecimal adultPrice = parseBigDecimal(data.adultPriceRaw);
             if (adultPrice != null && isWholeMoney(adultPrice) && adultPrice.compareTo(MIN_ADULT_PRICE) > 0) {
@@ -308,6 +335,11 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
     }
 
     protected TourSchedule buildScheduleFromData(ScheduleFormData data, Tour tour, TourSchedule existingSchedule, boolean lockedCore) {
+        /*
+         * Chuyen ScheduleFormData thanh model TourSchedule.
+         * Ham nay khong luu DB; DAO insert/update nam o AddTourScheduleController/EditTourScheduleController.
+         * Khi lockedCore=true, cac field loi nhu ngay/gia/so ghe duoc giu tu existingSchedule.
+         */
         TourSchedule schedule = new TourSchedule();
 
         int tourScheduleID = defaultInt(parsePositiveInt(data.tourScheduleIDRaw), 0);
@@ -354,9 +386,10 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
                 ? existingSchedule.getSingleRoomSurcharge()
                 : parseMoneyOrZero(data.singleRoomSurchargeRaw);
 
-        int vatPercent = NO_VAT_PERCENT;
         BigDecimal expectedChildPrice = calculatePercent(adultPrice, CHILD_RATE);
         BigDecimal expectedInfantPrice = BigDecimal.ZERO;
+
+        // Neu Staff khong gui childPrice hop le, server van tu set = 50% gia nguoi lon.
         BigDecimal childPrice = lockedCore && existingSchedule != null
                 ? existingSchedule.getChildPrice()
                 : parseBigDecimal(data.childPriceRaw);
@@ -369,7 +402,6 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
         schedule.setInfantPrice(infantPrice == null ? expectedInfantPrice : infantPrice);
         schedule.setSingleRoomSurcharge(singleRoom == null ? BigDecimal.ZERO : singleRoom);
         schedule.setDepositPercent(0);
-        schedule.setVatPercent(vatPercent);
         schedule.setCancellationPolicy(DEFAULT_CANCELLATION_POLICY);
         schedule.setScheduleStatus(resolveSystemScheduleStatus(tour, existingSchedule));
 
@@ -388,8 +420,8 @@ public abstract class StaffTourScheduleSupport extends HttpServlet {
     protected Tour getTourForSchedule(int tourID) {
         Tour tour = tourDAO.getTourById(tourID);
         if (tour != null) {
-            tourDAO.syncOpenSchedulesWithTourStatus(tour);
-            tour.setScheduleList(tourDAO.getSchedulesByTourId(tourID));
+            scheduleDAO.syncOpenSchedulesWithTourStatus(tour);
+            tour.setScheduleList(scheduleDAO.getSchedulesByTourId(tourID));
             alignSchedulesForTourStatus(tour);
         }
         return tour;

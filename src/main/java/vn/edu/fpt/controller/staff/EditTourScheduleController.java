@@ -18,8 +18,9 @@ public class EditTourScheduleController extends StaffTourScheduleSupport {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        // id tren URL la tourScheduleID cua lich can sua.
         Integer scheduleID = parsePositiveInt(request.getParameter("id"));
-        TourSchedule schedule = scheduleID == null ? null : tourDAO.getScheduleById(scheduleID);
+        TourSchedule schedule = scheduleID == null ? null : scheduleDAO.getScheduleById(scheduleID);
 
         if (schedule == null) {
             response.sendRedirect(request.getContextPath() + "/staff/tour?message=notFound");
@@ -34,6 +35,7 @@ public class EditTourScheduleController extends StaffTourScheduleSupport {
 
         alignScheduleStatusForTour(tour, schedule);
 
+        // Lich cua tour Active hoac lich da Closed/Completed/Cancelled khong cho sua truc tiep.
         if (!canEditScheduleForTour(tour) || isFinalScheduleStatus(schedule.getScheduleStatus())) {
             response.sendRedirect(request.getContextPath()
                     + "/staff/tour/schedule/detail?id=" + scheduleID
@@ -59,15 +61,18 @@ public class EditTourScheduleController extends StaffTourScheduleSupport {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        // POST edit phai load lai schedule cu de biet lich da co booking hay chua.
         ScheduleFormData data = readScheduleFormData(request);
         Integer scheduleID = parsePositiveInt(data.tourScheduleIDRaw);
-        TourSchedule existingSchedule = scheduleID == null ? null : tourDAO.getScheduleById(scheduleID);
+        TourSchedule existingSchedule = scheduleID == null ? null : scheduleDAO.getScheduleById(scheduleID);
         Tour tour = existingSchedule == null ? null : getTourForSchedule(existingSchedule.getTourID());
         if (existingSchedule == null || tour == null) {
             response.sendRedirect(request.getContextPath() + "/staff/tour?message=notFound");
             return;
         }
         alignScheduleStatusForTour(tour, existingSchedule);
+
+        // Neu da co khach dat, khoa core: ngay di/ngay ve/phuong tien/gia khong lay tu form nua.
         boolean lockedCore = Math.max(existingSchedule.getQuantity(), existingSchedule.getBookedSeats()) > 0;
 
         if (!canEditScheduleForTour(tour) || isFinalScheduleStatus(existingSchedule.getScheduleStatus())) {
@@ -80,6 +85,7 @@ public class EditTourScheduleController extends StaffTourScheduleSupport {
         if (existingSchedule != null) {
             data.tourIDRaw = String.valueOf(existingSchedule.getTourID());
             if (lockedCore) {
+                // Ghi de du lieu form bang DB cu de tranh sua lich da co booking.
                 data.startDateRaw = existingSchedule.getStartDate() == null ? null : existingSchedule.getStartDate().toLocalDateTime().toLocalDate().toString();
                 data.endDateRaw = existingSchedule.getEndDate() == null ? null : existingSchedule.getEndDate().toLocalDateTime().toLocalDate().toString();
                 data.scheduleTransportType = resolveScheduleTransportType(tour, existingSchedule.getScheduleTransportType());
@@ -106,9 +112,10 @@ public class EditTourScheduleController extends StaffTourScheduleSupport {
             return;
         }
 
+        // Lich da co booking chi update cac field an toan nhu gio/han chot/so khach moi booking/trang thai.
         boolean success = lockedCore
-                ? tourDAO.updateTourScheduleLimited(schedule)
-                : tourDAO.updateTourSchedule(schedule);
+                ? scheduleDAO.updateTourScheduleLimited(schedule)
+                : scheduleDAO.updateTourSchedule(schedule);
 
         response.sendRedirect(request.getContextPath()
                 + "/staff/tour/detail?id=" + schedule.getTourID()

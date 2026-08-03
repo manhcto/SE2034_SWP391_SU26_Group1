@@ -17,8 +17,9 @@ public class DetailTourScheduleController extends StaffTourScheduleSupport {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        // id tren URL la tourScheduleID: /staff/tour/schedule/detail?id=...
         Integer scheduleID = parsePositiveInt(request.getParameter("id"));
-        TourSchedule schedule = scheduleID == null ? null : tourDAO.getScheduleById(scheduleID);
+        TourSchedule schedule = scheduleID == null ? null : scheduleDAO.getScheduleById(scheduleID);
 
         if (schedule == null) {
             response.sendRedirect(request.getContextPath() + "/staff/tour?message=notFound");
@@ -33,6 +34,7 @@ public class DetailTourScheduleController extends StaffTourScheduleSupport {
 
         alignScheduleStatusForTour(tour, schedule);
 
+        // JSP can biet lich nay con duoc sua/dong hay khong de hien dung nut thao tac.
         request.setAttribute("tour", tour);
         request.setAttribute("schedule", schedule);
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
