@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-07-28T00:00:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="screen-flow" name="Screen Flow">
+    <mxGraphModel dx="2600" dy="1800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2600" pageHeight="1700" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="LEGEND_TITLE" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=16;fontColor=#000000;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="30" width="160" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="LEG_PUBLIC" value="Shared/Public" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="160" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="LEG_STAFF" value="Staff" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e7f7df;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="154" width="160" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="LEG_ADMIN" value="Admin" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="196" width="160" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="HDR_AUTH" value="Authentication and shared screens" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=16;fontColor=#000000;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="820" y="40" width="430" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="HDR_ADMIN" value="Admin screens" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=16;fontColor=#000000;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="40" width="300" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="LOGIN" value="Login" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="150" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="PROFILE" value="Profile" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="820" y="330" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="EDIT_PROFILE" value="Edit Profile" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="820" y="420" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="BLOG_MGMT" value="Blog Management" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="1120" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="VOUCHER_MGMT" value="Voucher Management" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="1200" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMIN_HOME" value="Admin Home" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="90" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMIN_DASH" value="Admin Dashboard" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="90" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="USER_MGMT" value="User Management" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1980" y="90" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMIN_TOUR_LIST" value="Admin Tour List" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="185" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMIN_TOUR_DETAIL" value="Admin Tour Detail" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="185" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMIN_BOOKING_LIST" value="Admin Booking List" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="280" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMIN_BOOKING_DETAIL" value="Admin Booking Detail" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="280" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMIN_FEEDBACK_LIST" value="Admin Feedback List" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1540" y="375" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMIN_FEEDBACK_DETAIL" value="Admin Feedback Detail" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dff0ff;strokeColor=#333333;fontColor=#000000;fontSize=12;align=center;verticalAlign=middle;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="1760" y="375" width="180" height="54" as="geometry"/>
+        </mxCell>
+        <mxCell id="E1" value="Admin login" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="LOGIN" target="ADMIN_HOME">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E2" value="Edit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="PROFILE" target="EDIT_PROFILE">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E3" value="Save/Cancel" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="EDIT_PROFILE" target="PROFILE">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E4" value="Dashboard" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_HOME" target="ADMIN_DASH">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E5" value="Users" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_HOME" target="USER_MGMT">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E6" value="Tours" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_HOME" target="ADMIN_TOUR_LIST">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E7" value="Bookings" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_HOME" target="ADMIN_BOOKING_LIST">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E8" value="Feedback" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_HOME" target="ADMIN_FEEDBACK_LIST">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E9" value="Blog" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_HOME" target="BLOG_MGMT">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E10" value="Voucher" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_HOME" target="VOUCHER_MGMT">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E11" value="View/review" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_TOUR_LIST" target="ADMIN_TOUR_DETAIL">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E12" value="Approve/reject/status" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_TOUR_DETAIL" target="ADMIN_TOUR_DETAIL">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E13" value="View" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_BOOKING_LIST" target="ADMIN_BOOKING_DETAIL">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E14" value="Back" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_BOOKING_DETAIL" target="ADMIN_BOOKING_LIST">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E15" value="View" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_FEEDBACK_LIST" target="ADMIN_FEEDBACK_DETAIL">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E16" value="Back" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_FEEDBACK_DETAIL" target="ADMIN_FEEDBACK_LIST">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E17" value="Update/delete" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="USER_MGMT" target="USER_MGMT">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="E18" value="Profile" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;fontColor=#000000;fontSize=10;endArrow=block;endFill=1;" edge="1" parent="1" source="ADMIN_HOME" target="PROFILE">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+

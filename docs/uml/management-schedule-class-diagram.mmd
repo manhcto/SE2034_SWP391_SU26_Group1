@@ -1,0 +1,279 @@
+classDiagram
+direction LR
+
+class HttpServlet {
+  <<framework>>
+}
+
+class Filter {
+  <<framework>>
+}
+
+class AuthenticationFilterSupport {
+  <<support>>
+  #getCurrentUser(request) User
+  #hasRole(user, roleID, roleNames) boolean
+  #redirectToLogin(request,response) void
+  #deny(response) void
+}
+
+class StaffAuthenticationFilter {
+  <<filter>>
+  +doFilter(request,response,chain) void
+}
+
+class ListTourScheduleController {
+  <<controller>>
+  +doGet(request,response) void
+}
+
+class AddTourScheduleController {
+  <<controller>>
+  +doGet(request,response) void
+  +doPost(request,response) void
+}
+
+class EditTourScheduleController {
+  <<controller>>
+  +doGet(request,response) void
+  +doPost(request,response) void
+}
+
+class DetailTourScheduleController {
+  <<controller>>
+  +doGet(request,response) void
+}
+
+class CloseTourScheduleController {
+  <<controller>>
+  +doGet(request,response) void
+  +doPost(request,response) void
+}
+
+class StaffTourScheduleSupport {
+  <<support>>
+  #tourDAO TourDAO
+  #NO_VAT_PERCENT int
+  #DEFAULT_CANCELLATION_POLICY String
+  #TRANSPORT_SEATS Map
+  #forwardScheduleForm(request,response,tour,schedule,mode,formAction,pageTitle,submitLabel,errors) void
+  #readScheduleFormData(request) ScheduleFormData
+  #validateScheduleData(data,tour,existingSchedule,editMode,lockedCore) List~String~
+  #buildScheduleFromData(data,tour,existingSchedule,lockedCore) TourSchedule
+  #getTourForSchedule(tourID) Tour
+  #canManageScheduleForTour(tour) boolean
+  #canEditScheduleForTour(tour) boolean
+  #canOpenScheduleForTour(tour) boolean
+  #resolveSystemScheduleStatus(tour,existingSchedule) String
+  #alignScheduleStatusForTour(tour,schedule) void
+  #getSeatOptions(tour) List~Integer~
+  #resolveScheduleTransportType(tour,scheduleTransportType) String
+}
+
+class ScheduleFormData {
+  <<form data>>
+  tourIDRaw String
+  tourScheduleIDRaw String
+  scheduleTransportType String
+  startDateRaw String
+  endDateRaw String
+  departureTimeRaw String
+  expectedReturnTimeRaw String
+  bookingDeadlineRaw String
+  maxParticipantsRaw String
+  maxParticipantsPerBookingRaw String
+  adultPriceRaw String
+  childPriceRaw String
+  infantPriceRaw String
+  singleRoomSurchargeRaw String
+  cancellationPolicy String
+  scheduleStatus String
+}
+
+class TourDAO {
+  <<dao>>
+  +getTourById(tourID) Tour
+  +getToursForStaff(keyword,status,categoryID,regionID) List~Tour~
+  +syncOpenSchedulesWithTourStatus(tour) boolean
+  +syncOpenSchedulesWithTourStatuses() boolean
+  +getSchedulesByTourId(tourID) List~TourSchedule~
+  +getSchedulesForStaffOverview() List~TourSchedule~
+  +getScheduleById(tourScheduleID) TourSchedule
+  +insertTourSchedule(schedule) boolean
+  +updateTourSchedule(schedule) boolean
+  +updateTourScheduleLimited(schedule) boolean
+  +changeTourScheduleStatus(tourScheduleID,scheduleStatus) boolean
+  +closeTourSchedule(tourScheduleID) boolean
+  +isDuplicateScheduleStartDate(tourID,currentScheduleID,startDate) boolean
+  +getDuplicateScheduleStartDateMap(tourID) Map~String,Boolean~
+  +isScheduleStartDateTooClose(tourID,currentScheduleID,startDate,minGapDays) boolean
+  +getSchedulePriceWarningMap(tourID) Map~Integer,String~
+  +getTourReadinessErrors(tourID) List~String~
+}
+
+class BookingDAO {
+  <<dao>>
+  +isTourScheduleExist(tourScheduleID) boolean
+  +getTourPricesBySchedule(tourScheduleID) doubleArray
+  +getRemainingSeats(tourScheduleID) int
+  +insertBookingTransaction(booking,tourScheduleID,unitPrice) boolean
+  +insertBookingTransactionReturnID(booking,tourScheduleID,unitPrice) int
+  +insertTourBookingWithVoucherReturnID(booking,tourScheduleID,adultUnitPrice,childUnitPrice,adultCount,childCount,voucherID,discount) int
+  +canEditBookingQuantity(bookingID,newQuantity) boolean
+  +releaseBookingCapacity(bookingID) boolean
+}
+
+class Tour {
+  <<entity>>
+  tourID int
+  tourName String
+  tourCode String
+  numberOfDay int
+  numberOfNights Integer
+  startPlace String
+  endPlace String
+  mainTransportType String
+  status String
+  scheduleList List~TourSchedule~
+  +getDisplayStatus() String
+}
+
+class TourSchedule {
+  <<entity>>
+  tourScheduleID int
+  tourID int
+  scheduleTransportType String
+  startDate Timestamp
+  endDate Timestamp
+  departureTime Time
+  expectedReturnTime Time
+  bookingDeadline Timestamp
+  minParticipants int
+  maxParticipants int
+  quantity int
+  bookedSeats int
+  maxParticipantsPerBooking int
+  adultPrice BigDecimal
+  childPrice BigDecimal
+  infantPrice BigDecimal
+  singleRoomSurcharge BigDecimal
+  depositPercent Integer
+  vatPercent Integer
+  cancellationPolicy String
+  scheduleStatus String
+  tourName String
+  tourCode String
+  tourStatus String
+  +getRemainingSeats() int
+  +getDisplayScheduleStatus() String
+  +isUpcomingSoon() boolean
+}
+
+class Booking {
+  <<entity>>
+  bookingID int
+  bookingCode String
+  bookingType String
+  numberAdult int
+  numberChildren int
+  status String
+  totalPrice double
+  detailTourScheduleID Integer
+  detailQuantity int
+  detailUnitPrice double
+  detailSubTotal double
+  +getTotalGuests() int
+  +getDisplayType() String
+  +getDisplayStatus() String
+  +isProcessingStatus(value) boolean
+  +isCancelledStatus(value) boolean
+  +isCompletedStatus(value) boolean
+}
+
+class BookingDetail {
+  <<entity>>
+  emptyModel boolean
+  sqlBackedFields String
+}
+
+class User {
+  <<entity>>
+  userID int
+  roleID int
+  roleName String
+}
+
+class StaffTourScheduleListJSP {
+  <<view>>
+  viewPath String
+  route String
+}
+
+class StaffTourScheduleFormJSP {
+  <<view>>
+  viewPath String
+  addAction String
+  editAction String
+}
+
+class StaffTourScheduleDetailJSP {
+  <<view>>
+  viewPath String
+  closeAction String
+}
+
+class StaffTourDetailJSP {
+  <<view>>
+  viewPath String
+  displaysSchedules boolean
+}
+
+HttpServlet <|-- StaffTourScheduleSupport
+StaffTourScheduleSupport <|-- ListTourScheduleController
+StaffTourScheduleSupport <|-- AddTourScheduleController
+StaffTourScheduleSupport <|-- EditTourScheduleController
+StaffTourScheduleSupport <|-- DetailTourScheduleController
+StaffTourScheduleSupport <|-- CloseTourScheduleController
+
+AuthenticationFilterSupport <|-- StaffAuthenticationFilter
+Filter <|.. StaffAuthenticationFilter
+StaffAuthenticationFilter ..> User : checks role Staff
+
+StaffTourScheduleSupport --> TourDAO
+StaffTourScheduleSupport ..> ScheduleFormData
+StaffTourScheduleSupport ..> Tour
+StaffTourScheduleSupport ..> TourSchedule
+ListTourScheduleController --> TourDAO
+AddTourScheduleController --> TourDAO
+EditTourScheduleController --> TourDAO
+DetailTourScheduleController --> TourDAO
+CloseTourScheduleController --> TourDAO
+
+TourDAO ..> Tour
+TourDAO ..> TourSchedule
+TourDAO ..> Booking : bookingCount readiness joins
+TourDAO ..> BookingDetail : bookingCount readiness joins
+
+BookingDAO ..> Booking
+BookingDAO ..> TourSchedule : reads price seats and updates quantity
+BookingDAO ..> BookingDetail : inserts updates detail rows
+
+Tour "1" *-- "0..*" TourSchedule : scheduleList
+TourSchedule "1" <-- "0..*" BookingDetail : tourScheduleID
+Booking "1" *-- "0..*" BookingDetail : booking details
+Booking "0..*" ..> "0..1" TourSchedule : detailTourScheduleID
+
+ListTourScheduleController ..> StaffTourScheduleListJSP : forward
+AddTourScheduleController ..> StaffTourScheduleFormJSP : forward
+EditTourScheduleController ..> StaffTourScheduleFormJSP : forward
+DetailTourScheduleController ..> StaffTourScheduleDetailJSP : forward
+CloseTourScheduleController ..> StaffTourScheduleDetailJSP : redirect result
+StaffTourDetailJSP ..> TourSchedule : displays current schedules
+
+note for TourSchedule "Schedule status is stored as String: Planned, Open, Closed, Completed, Cancelled. No ScheduleStatus enum class exists in source."
+note for StaffTourScheduleSupport "Validation includes DD-MM-YYYY parsing, duplicate date check, minimum 3-day gap, seat rules, booking deadline, adult price > 100000, child price = 50 percent, surcharge >= 0."
+note for BookingDAO "Booking module directly changes Tour_Scheduler.quantity when creating, editing, or releasing tour bookings."
+note for BookingDetail "The Java source class is empty; BookingDAO uses the SQL Booking_Detail table directly."
+note for StaffTourScheduleListJSP "Path: /views/staff/tour-schedule-list.jsp; route: GET /staff/tour/schedule."
+note for StaffTourScheduleFormJSP "Path: /views/staff/tour-schedule-form.jsp; actions: POST /staff/tour/schedule/add and POST /staff/tour/schedule/edit."
+note for StaffTourScheduleDetailJSP "Path: /views/staff/tour-schedule-detail.jsp; action: POST /staff/tour/schedule/close."

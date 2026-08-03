@@ -1,0 +1,227 @@
+﻿<svg xmlns='http://www.w3.org/2000/svg' width='2400' height='1540' viewBox='0 0 2400 1540'>
+<defs><marker id='arrow' markerWidth='10' markerHeight='8' refX='9' refY='4' orient='auto'><path d='M0,0 L10,4 L0,8 z' fill='#555'/></marker></defs>
+<rect width='100%' height='100%' fill='#fff'/>
+<line x1='1130' y1='357' x2='1130' y2='177' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='357' x2='910' y2='177' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='177' x2='910' y2='177' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='910' y1='177' x2='1130' y2='177' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='177' x2='1350' y2='177' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1350' y1='177' x2='1350' y2='267' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1350' y1='267' x2='1350' y2='357' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1350' y1='357' x2='1130' y2='177' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='177' x2='1630' y2='117' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='177' x2='1550' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='177' x2='1550' y2='1367' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='177' x2='1130' y2='357' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='910' y1='357' x2='910' y2='447' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='910' y1='447' x2='910' y2='357' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='357' x2='150' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='150' y1='587' x2='370' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='370' y1='587' x2='590' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='590' y1='587' x2='810' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='810' y1='587' x2='810' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='810' y1='587' x2='590' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='810' y1='677' x2='590' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='370' y1='587' x2='370' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='370' y1='677' x2='150' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='150' y1='677' x2='150' y2='987' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='357' x2='150' y2='787' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='150' y1='787' x2='370' y2='787' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='370' y1='787' x2='590' y2='787' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='590' y1='787' x2='810' y2='787' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='810' y1='787' x2='810' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='357' x2='150' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='150' y1='897' x2='370' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='357' x2='590' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='590' y1='897' x2='810' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='590' y1='987' x2='810' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='117' x2='1850' y2='117' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='117' x2='2070' y2='117' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='117' x2='1630' y2='212' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='117' x2='1630' y2='307' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='117' x2='1630' y2='402' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='117' x2='1220' y2='1147' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='117' x2='1220' y2='1227' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='212' x2='1850' y2='212' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1850' y1='212' x2='1850' y2='212' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='307' x2='1850' y2='307' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1850' y1='307' x2='1630' y2='307' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='402' x2='1850' y2='402' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1850' y1='402' x2='1630' y2='402' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='2070' y1='117' x2='2070' y2='117' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='587' x2='1770' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='587' x2='1550' y2='787' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='587' x2='1550' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='587' x2='1990' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='587' x2='1220' y2='1147' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='587' x2='1220' y2='1227' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='587' x2='1990' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1990' y1='587' x2='2210' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='2210' y1='677' x2='1770' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='2210' y1='677' x2='1770' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='587' x2='1770' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='587' x2='1990' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='677' x2='1990' y2='587' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='677' x2='2210' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='677' x2='1990' y2='767' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='677' x2='1770' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1990' y1='677' x2='2210' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1990' y1='677' x2='1990' y2='767' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1990' y1='767' x2='2210' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1990' y1='767' x2='1990' y2='677' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='787' x2='1770' y2='787' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='787' x2='1550' y2='787' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='897' x2='1770' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='897' x2='1550' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='1007' x2='1770' y2='1007' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='1007' x2='1550' y2='1007' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1990' y1='897' x2='2210' y2='1007' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1990' y1='897' x2='2210' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='2210' y1='1007' x2='1990' y2='897' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='2210' y1='897' x2='2210' y2='1007' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='1367' x2='1990' y2='1367' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='1367' x2='1770' y2='1367' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1770' y1='1367' x2='1990' y2='1367' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1990' y1='1367' x2='2210' y2='1367' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1990' y1='1367' x2='2210' y2='1457' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='2210' y1='1367' x2='2210' y2='1367' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='2210' y1='1367' x2='1990' y2='1367' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='2210' y1='1457' x2='1990' y2='1367' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='587' x2='910' y2='357' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1630' y1='117' x2='910' y2='357' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1550' y1='1367' x2='910' y2='357' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<line x1='1130' y1='357' x2='910' y2='357' stroke='#555' stroke-width='1.2' marker-end='url(#arrow)' opacity='0.75'/>
+<text x='40' y='52' font-family='Arial, sans-serif' font-size='18' font-weight='700' fill='#000'>Legend</text>
+<rect x='40' y='70' width='160' height='34' fill='#ffffff' stroke='#333333' stroke-width='1'/>
+<text x='120' y='91' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='120' dy='0'>Shared/Public</tspan></text>
+<rect x='40' y='112' width='160' height='34' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='120' y='133' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='120' dy='0'>Customer</tspan></text>
+<rect x='40' y='154' width='160' height='34' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='120' y='175' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='120' dy='0'>Staff</tspan></text>
+<rect x='40' y='196' width='160' height='34' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='120' y='217' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='120' dy='0'>Admin</tspan></text>
+<rect x='40' y='238' width='160' height='34' fill='#fff3bf' stroke='#333333' stroke-width='1'/>
+<text x='120' y='259' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='120' dy='0'>TourGuide</tspan></text>
+<text x='820' y='62' font-family='Arial, sans-serif' font-size='18' font-weight='700' fill='#000'>Authentication and shared screens</text>
+<text x='60' y='522' font-family='Arial, sans-serif' font-size='18' font-weight='700' fill='#000'>Public and Customer screens</text>
+<text x='1540' y='62' font-family='Arial, sans-serif' font-size='18' font-weight='700' fill='#000'>Admin screens</text>
+<text x='1460' y='522' font-family='Arial, sans-serif' font-size='18' font-weight='700' fill='#000'>Staff screens</text>
+<text x='1460' y='1302' font-family='Arial, sans-serif' font-size='18' font-weight='700' fill='#000'>TourGuide screens</text>
+<rect x='1040' y='330' width='180' height='54' fill='#ffffff' stroke='#333333' stroke-width='1'/>
+<text x='1130' y='361' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1130' dy='0'>Home</tspan></text>
+<rect x='1040' y='150' width='180' height='54' fill='#ffffff' stroke='#333333' stroke-width='1'/>
+<text x='1130' y='181' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1130' dy='0'>Login</tspan></text>
+<rect x='820' y='150' width='180' height='54' fill='#ffffff' stroke='#333333' stroke-width='1'/>
+<text x='910' y='181' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='910' dy='0'>Register</tspan></text>
+<rect x='1260' y='150' width='180' height='54' fill='#ffffff' stroke='#333333' stroke-width='1'/>
+<text x='1350' y='181' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1350' dy='0'>Forgot Password</tspan></text>
+<rect x='1260' y='240' width='180' height='54' fill='#ffffff' stroke='#333333' stroke-width='1'/>
+<text x='1350' y='271' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1350' dy='0'>Verify OTP</tspan></text>
+<rect x='1260' y='330' width='180' height='54' fill='#ffffff' stroke='#333333' stroke-width='1'/>
+<text x='1350' y='361' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1350' dy='0'>Reset Password</tspan></text>
+<rect x='820' y='330' width='180' height='54' fill='#f5f5f5' stroke='#333333' stroke-width='1'/>
+<text x='910' y='361' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='910' dy='0'>Profile</tspan></text>
+<rect x='820' y='420' width='180' height='54' fill='#f5f5f5' stroke='#333333' stroke-width='1'/>
+<text x='910' y='451' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='910' dy='0'>Edit Profile</tspan></text>
+<rect x='1130' y='1120' width='180' height='54' fill='#f5f5f5' stroke='#333333' stroke-width='1'/>
+<text x='1220' y='1151' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1220' dy='0'>Blog Management</tspan></text>
+<rect x='1130' y='1200' width='180' height='54' fill='#f5f5f5' stroke='#333333' stroke-width='1'/>
+<text x='1220' y='1231' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1220' dy='0'>Voucher Management</tspan></text>
+<rect x='60' y='560' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='150' y='591' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='150' dy='0'>Tour List</tspan></text>
+<rect x='280' y='560' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='370' y='591' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='370' dy='0'>Tour Detail</tspan></text>
+<rect x='500' y='560' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='590' y='591' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='590' dy='0'>Checkout</tspan></text>
+<rect x='720' y='560' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='810' y='591' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='810' dy='0'>Payment</tspan></text>
+<rect x='720' y='650' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='810' y='681' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='810' dy='0'>Booking Summary</tspan></text>
+<rect x='500' y='650' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='590' y='681' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='590' dy='0'>Booking History</tspan></text>
+<rect x='280' y='650' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='370' y='681' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='370' dy='0'>Add Feedback</tspan></text>
+<rect x='60' y='650' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='150' y='681' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='150' dy='0'>Feedback List</tspan></text>
+<rect x='60' y='760' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='150' y='791' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='150' dy='0'>Accommodation List</tspan></text>
+<rect x='280' y='760' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='370' y='791' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='370' dy='0'>Accommodation Detail</tspan></text>
+<rect x='500' y='760' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='590' y='791' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='590' dy='0'>Room Detail</tspan></text>
+<rect x='720' y='760' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='810' y='784' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='810' dy='0'>Accommodation</tspan><tspan x='810' dy='15'>Booking</tspan></text>
+<rect x='60' y='870' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='150' y='901' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='150' dy='0'>Voucher Promotions</tspan></text>
+<rect x='280' y='870' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='370' y='901' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='370' dy='0'>My Vouchers</tspan></text>
+<rect x='500' y='870' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='590' y='901' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='590' dy='0'>Blog List</tspan></text>
+<rect x='720' y='870' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='810' y='901' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='810' dy='0'>Blog Detail</tspan></text>
+<rect x='500' y='960' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='590' y='991' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='590' dy='0'>My Blogs</tspan></text>
+<rect x='60' y='960' width='180' height='54' fill='#ffe6ef' stroke='#333333' stroke-width='1'/>
+<text x='150' y='991' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='150' dy='0'>Feedback Detail</tspan></text>
+<rect x='1540' y='90' width='180' height='54' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='1630' y='121' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1630' dy='0'>Admin Home</tspan></text>
+<rect x='1760' y='90' width='180' height='54' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='1850' y='121' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1850' dy='0'>Admin Dashboard</tspan></text>
+<rect x='1980' y='90' width='180' height='54' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='2070' y='121' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='2070' dy='0'>User Management</tspan></text>
+<rect x='1540' y='185' width='180' height='54' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='1630' y='216' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1630' dy='0'>Admin Tour List</tspan></text>
+<rect x='1760' y='185' width='180' height='54' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='1850' y='216' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1850' dy='0'>Admin Tour Detail</tspan></text>
+<rect x='1540' y='280' width='180' height='54' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='1630' y='311' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1630' dy='0'>Admin Booking List</tspan></text>
+<rect x='1760' y='280' width='180' height='54' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='1850' y='311' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1850' dy='0'>Admin Booking Detail</tspan></text>
+<rect x='1540' y='375' width='180' height='54' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='1630' y='406' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1630' dy='0'>Admin Feedback List</tspan></text>
+<rect x='1760' y='375' width='180' height='54' fill='#dff0ff' stroke='#333333' stroke-width='1'/>
+<text x='1850' y='399' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1850' dy='0'>Admin Feedback</tspan><tspan x='1850' dy='15'>Detail</tspan></text>
+<rect x='1460' y='560' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1550' y='591' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1550' dy='0'>Staff Home</tspan></text>
+<rect x='1680' y='560' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1770' y='591' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1770' dy='0'>Tour Management</tspan></text>
+<rect x='1900' y='560' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1990' y='591' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1990' dy='0'>Create/Edit Tour</tspan></text>
+<rect x='1680' y='650' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1770' y='681' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1770' dy='0'>Staff Tour Detail</tspan></text>
+<rect x='1900' y='650' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1990' y='681' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1990' dy='0'>Schedule List</tspan></text>
+<rect x='2120' y='650' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='2210' y='681' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='2210' dy='0'>Create/Edit Schedule</tspan></text>
+<rect x='1900' y='740' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1990' y='771' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1990' dy='0'>Schedule Detail</tspan></text>
+<rect x='1460' y='760' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1550' y='791' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1550' dy='0'>Accommodation Mgmt</tspan></text>
+<rect x='1680' y='760' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1770' y='791' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1770' dy='0'>Accommodation Detail</tspan></text>
+<rect x='1460' y='870' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1550' y='901' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1550' dy='0'>Booking Management</tspan></text>
+<rect x='1680' y='870' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1770' y='901' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1770' dy='0'>Booking Detail</tspan></text>
+<rect x='1460' y='980' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1550' y='1011' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1550' dy='0'>Feedback Management</tspan></text>
+<rect x='1680' y='980' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1770' y='1011' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1770' dy='0'>Feedback Detail</tspan></text>
+<rect x='1900' y='870' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='1990' y='901' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1990' dy='0'>Assignment Mgmt</tspan></text>
+<rect x='2120' y='870' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='2210' y='901' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='2210' dy='0'>Assignment Detail</tspan></text>
+<rect x='2120' y='980' width='180' height='54' fill='#e7f7df' stroke='#333333' stroke-width='1'/>
+<text x='2210' y='1004' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='2210' dy='0'>Create/Edit</tspan><tspan x='2210' dy='15'>Assignment</tspan></text>
+<rect x='1460' y='1340' width='180' height='54' fill='#fff3bf' stroke='#333333' stroke-width='1'/>
+<text x='1550' y='1371' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1550' dy='0'>Guide Home</tspan></text>
+<rect x='1680' y='1340' width='180' height='54' fill='#fff3bf' stroke='#333333' stroke-width='1'/>
+<text x='1770' y='1364' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1770' dy='0'>Guide Assignment</tspan><tspan x='1770' dy='15'>List</tspan></text>
+<rect x='1900' y='1340' width='180' height='54' fill='#fff3bf' stroke='#333333' stroke-width='1'/>
+<text x='1990' y='1364' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='1990' dy='0'>Guide Assignment</tspan><tspan x='1990' dy='15'>Detail</tspan></text>
+<rect x='2120' y='1340' width='180' height='54' fill='#fff3bf' stroke='#333333' stroke-width='1'/>
+<text x='2210' y='1364' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='2210' dy='0'>Passenger Status</tspan><tspan x='2210' dy='15'>Edit</tspan></text>
+<rect x='2120' y='1430' width='180' height='54' fill='#fff3bf' stroke='#333333' stroke-width='1'/>
+<text x='2210' y='1461' text-anchor='middle' font-family='Arial, sans-serif' font-size='13' fill='#000'><tspan x='2210' dy='0'>Progress Log Form</tspan></text>
+</svg>
+

@@ -1,0 +1,375 @@
+classDiagram
+direction LR
+
+class HttpServlet {
+  <<framework>>
+}
+
+class Filter {
+  <<framework>>
+}
+
+class AuthenticationFilterSupport {
+  <<support>>
+  #getCurrentUser(request) User
+  #hasRole(user, roleID, roleNames) boolean
+  #redirectToLogin(request, response) void
+  #deny(response) void
+}
+
+class StaffAuthenticationFilter {
+  <<filter>>
+  +doFilter(request, response, chain) void
+}
+
+class AdminAuthenticationFilter {
+  <<filter>>
+  +doFilter(request, response, chain) void
+}
+
+class ListTourController {
+  <<controller>>
+  -tourDAO TourDAO
+  +doGet(request, response) void
+}
+
+class AddTourController {
+  <<controller>>
+  +doGet(request, response) void
+  +doPost(request, response) void
+}
+
+class EditTourController {
+  <<controller>>
+  +doGet(request, response) void
+  +doPost(request, response) void
+}
+
+class DetailTourController {
+  <<controller>>
+  -tourDAO TourDAO
+  +doGet(request, response) void
+}
+
+class SubmitTourForApprovalController {
+  <<controller>>
+  -tourDAO TourDAO
+  +init() void
+  +doPost(request, response) void
+}
+
+class AdminTourListController {
+  <<controller>>
+  -tourDAO TourDAO
+  +init() void
+  +doGet(request, response) void
+}
+
+class AdminTourDetailController {
+  <<controller>>
+  -tourDAO TourDAO
+  +init() void
+  +doGet(request, response) void
+}
+
+class AdminTourApproveController {
+  <<controller>>
+  -tourDAO TourDAO
+  +init() void
+  +doPost(request, response) void
+}
+
+class AdminTourRejectController {
+  <<controller>>
+  -tourDAO TourDAO
+  +init() void
+  +doPost(request, response) void
+}
+
+class AdminTourStatusController {
+  <<controller>>
+  -tourDAO TourDAO
+  +init() void
+  +doPost(request, response) void
+}
+
+class StaffTourFormSupport {
+  <<support>>
+  #tourDAO TourDAO
+  #administrativeUnitDAO AdministrativeUnitDAO
+  #forwardTourForm(request,response,tour,itineraries,dayCount,mode,formAction,pageTitle,submitLabel,errors) void
+  #readTourFormData(request) TourFormData
+  #validateTourData(data, editMode) List~String~
+  #buildTourFromData(data,currentUserID,includeInitialSchedule) Tour
+  #buildDefaultTour(dayCount) Tour
+  #canEditTourStatus(status) boolean
+  #isActiveTourStatus(status) boolean
+  #isPriceAndScheduleLocked(status) boolean
+  #preserveActiveTourEditableFields(data, existingTour) void
+  #preservePriceRouteAndScheduleFields(data, existingTour) void
+  #buildItineraryMap(itineraries) Map~Integer,TourItinerary~
+}
+
+class TourFormData {
+  <<form data>>
+  tourIDRaw String
+  tourCategoryIDRaw String
+  tourNameRaw String
+  tourName String
+  tourType String
+  numberOfDayRaw String
+  numberOfNightsRaw String
+  startPlace String
+  endPlace String
+  image String
+  introImage String
+  adultPriceRaw String
+  singleRoomSurchargeRaw String
+  tourIntroduce String
+  tourHighlights String
+  status String
+  featured boolean
+  regionIDRaw String
+  itineraries List~TourItinerary~
+  itineraryTitleRaw Map~Integer,String~
+  itineraryDescriptionRaw Map~Integer,String~
+}
+
+class TourDAO {
+  <<dao>>
+  +getToursForStaff(keyword,status,categoryID,regionID) List~Tour~
+  +getTourById(tourID) Tour
+  +loadManagedImages(tour) void
+  +getItinerariesByTourId(tourID) List~TourItinerary~
+  +getSchedulesByTourId(tourID) List~TourSchedule~
+  +getActiveCategories() List~TourCategory~
+  +getActiveRegions() List~Region~
+  +existsActiveCategory(categoryID) boolean
+  +existsActiveRegion(regionID) boolean
+  +insertTourWithItineraries(tour) int
+  +updateTourWithItineraries(tour) boolean
+  +updateActiveTourContentOnly(tour) boolean
+  +getTourStatusCounts() Map~String,Integer~
+  +getTourReadinessErrors(tourID) List~String~
+  +submitTourForApproval(tourID) boolean
+  +approveTour(tourID,adminUserID,openValidSchedules) boolean
+  +rejectTour(tourID,adminUserID,rejectionReason) boolean
+  +setTourInactive(tourID) boolean
+  +reactivateTour(tourID,adminUserID) boolean
+}
+
+class AdministrativeUnitDAO {
+  <<dao>>
+  +getActiveProvinces() List~AdministrativeUnit~
+  +getActiveProvinceNames() List~String~
+  +isValidProvinceName(provinceName) boolean
+}
+
+class TourImageStorage {
+  <<utility>>
+  +PUBLIC_PATH_PREFIX String
+  +isAllowedContentType(contentType) boolean
+  +save(part,fileName) String
+  +resolve(requestedName) Path
+}
+
+class Tour {
+  <<entity>>
+  tourID int
+  tourCategoryID int
+  tourName String
+  tourCode String
+  tourType String
+  numberOfDay int
+  numberOfNights Integer
+  startPlace String
+  endPlace String
+  image String
+  introImage String
+  adultPrice BigDecimal
+  singleRoomSurcharge BigDecimal
+  tourIntroduce String
+  tourInclude String
+  status String
+  featured boolean
+  regionID Integer
+  createdByUserID Integer
+  approvedByUserID Integer
+  approvedAt Timestamp
+  rejectionReason String
+  itineraryList List~TourItinerary~
+  scheduleList List~TourSchedule~
+  +getDisplayStatus() String
+  +getDisplayTourType() String
+}
+
+class TourItinerary {
+  <<entity>>
+  itineraryID int
+  tourID int
+  dayNumber int
+  title String
+  description String
+  mealPlan String
+  transportNote String
+  status String
+  imageUrl String
+}
+
+class TourImage {
+  <<entity>>
+  imageID int
+  tourID int
+  imageUrl String
+  caption String
+  displayOrder int
+  status String
+}
+
+class TourSchedule {
+  <<entity>>
+  tourScheduleID int
+  tourID int
+  startDate Timestamp
+  endDate Timestamp
+  quantity int
+  maxParticipants int
+  adultPrice BigDecimal
+  scheduleStatus String
+}
+
+class TourCategory {
+  <<entity>>
+  tourCategoryID int
+  categoryName String
+  description String
+  status String
+}
+
+class Region {
+  <<entity>>
+  regionID int
+  regionName String
+  description String
+  status String
+}
+
+class AdministrativeUnit {
+  <<entity>>
+  administrativeUnitID int
+  provinceCode String
+  provinceName String
+  wardType String
+  wardName String
+  regionGroup String
+  +getDisplayName() String
+}
+
+class User {
+  <<entity>>
+  userID int
+  firstName String
+  lastName String
+  email String
+  roleID int
+  roleName String
+  status String
+}
+
+class StaffTourManagementJSP {
+  <<view>>
+  viewPath String
+  route String
+}
+
+class StaffTourFormJSP {
+  <<view>>
+  viewPath String
+  addAction String
+  editAction String
+}
+
+class StaffTourDetailJSP {
+  <<view>>
+  viewPath String
+  submitAction String
+}
+
+class AdminTourListJSP {
+  <<view>>
+  viewPath String
+  route String
+}
+
+class AdminTourDetailJSP {
+  <<view>>
+  viewPath String
+  approveAction String
+  rejectAction String
+  statusAction String
+}
+
+HttpServlet <|-- ListTourController
+HttpServlet <|-- DetailTourController
+HttpServlet <|-- SubmitTourForApprovalController
+HttpServlet <|-- AdminTourListController
+HttpServlet <|-- AdminTourDetailController
+HttpServlet <|-- AdminTourApproveController
+HttpServlet <|-- AdminTourRejectController
+HttpServlet <|-- AdminTourStatusController
+HttpServlet <|-- StaffTourFormSupport
+StaffTourFormSupport <|-- AddTourController
+StaffTourFormSupport <|-- EditTourController
+
+AuthenticationFilterSupport <|-- StaffAuthenticationFilter
+AuthenticationFilterSupport <|-- AdminAuthenticationFilter
+Filter <|.. StaffAuthenticationFilter
+Filter <|.. AdminAuthenticationFilter
+StaffAuthenticationFilter ..> User : checks role Staff
+AdminAuthenticationFilter ..> User : checks role Admin
+
+ListTourController --> TourDAO
+DetailTourController --> TourDAO
+SubmitTourForApprovalController --> TourDAO
+AdminTourListController --> TourDAO
+AdminTourDetailController --> TourDAO
+AdminTourApproveController --> TourDAO
+AdminTourRejectController --> TourDAO
+AdminTourStatusController --> TourDAO
+StaffTourFormSupport --> TourDAO
+StaffTourFormSupport --> AdministrativeUnitDAO
+StaffTourFormSupport ..> TourFormData
+StaffTourFormSupport ..> TourImageStorage : saves uploads
+
+TourDAO ..> Tour
+TourDAO ..> TourItinerary
+TourDAO ..> TourImage
+TourDAO ..> TourSchedule
+TourDAO ..> TourCategory
+TourDAO ..> Region
+TourDAO ..> User : createdBy approvedBy joins
+AdministrativeUnitDAO ..> AdministrativeUnit
+AdministrativeUnitDAO ..> Tour : validates startPlace endPlace
+
+TourCategory "1" <-- "0..*" Tour : category
+Region "0..1" <-- "0..*" Tour : region
+User "0..1" <-- "0..*" Tour : createdBy
+User "0..1" <-- "0..*" Tour : approvedBy
+Tour "1" *-- "1..*" TourItinerary : itineraryList
+Tour "1" o-- "0..*" TourImage : managed images
+Tour "1" o-- "0..*" TourSchedule : schedules summary
+
+ListTourController ..> StaffTourManagementJSP : forward
+AddTourController ..> StaffTourFormJSP : forward
+EditTourController ..> StaffTourFormJSP : forward
+DetailTourController ..> StaffTourDetailJSP : forward
+AdminTourListController ..> AdminTourListJSP : forward
+AdminTourDetailController ..> AdminTourDetailJSP : forward
+
+note for Tour "Tour status is stored as String: Draft, Pending, Active, Rejected, Inactive. No TourStatus enum class exists in source."
+note for TourImage "Tour model does not expose List<TourImage>; TourDAO manages image rows by caption INTRO_IMAGE and ITINERARY_DAY_*_IMAGE."
+note for StaffTourManagementJSP "Path: /views/staff/tour-list.jsp; route: GET /staff/tour."
+note for StaffTourFormJSP "Path: /views/staff/tour-form.jsp; actions: POST /staff/tour/add and POST /staff/tour/edit."
+note for StaffTourDetailJSP "Path: /views/staff/tour-detail.jsp; action: POST /staff/tour/submit."
+note for AdminTourListJSP "Path: /views/admin/admin-tour-list.jsp; route: GET /admin/tour."
+note for AdminTourDetailJSP "Path: /views/admin/admin-tour-detail.jsp; actions: POST /admin/tour/approve, reject, status."

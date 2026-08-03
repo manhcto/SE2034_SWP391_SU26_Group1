@@ -1,0 +1,46 @@
+sequenceDiagram
+    autonumber
+
+    actor Admin as Admin
+    participant UI as Admin Tour Detail UI
+    participant Controller as AdminTourApproveController
+    participant TourDAO as TourDAO
+
+    Note over Admin,Controller: Preconditions: Admin is authenticated, authorized, and has selected a Tour for approval.
+    Note over Controller,TourDAO: Required current state: Pending. Successful approval changes Tour to Active.
+
+    Admin->>UI: Submit approval request
+    UI->>Controller: POST /admin/tour/approve
+    Controller->>TourDAO: getTourById(tourID)
+    TourDAO-->>Controller: Tour result
+
+    alt Tour or admin session is missing
+        Controller-->>UI: Redirect with notFound
+        UI-->>Admin: Display not found message
+    else Tour status is not Pending
+        Controller-->>UI: Redirect with invalidStatus
+        UI-->>Admin: Display invalid status message
+    else Tour status is Pending
+        Controller->>TourDAO: getTourReadinessErrors(tourID)
+        TourDAO-->>Controller: Approval eligibility result
+
+        alt Tour is not eligible for approval
+            Controller-->>UI: Redirect with notReady
+            UI-->>Admin: Display not ready message
+        else Tour is eligible for approval
+            Controller->>TourDAO: approveTour(tourID, adminUserID, openSchedules)
+            Note over TourDAO: Update Tour status from Pending to Active and save approval metadata.
+            opt openSchedules is selected
+                TourDAO->>TourDAO: Update eligible schedules from Planned to Open
+            end
+            TourDAO-->>Controller: Approval update result
+
+            alt Approval update succeeds
+                Controller-->>UI: Redirect with approved
+                UI-->>Admin: Display approval success
+            else Approval update fails
+                Controller-->>UI: Redirect with approveFail
+                UI-->>Admin: Display approval failure
+            end
+        end
+    end

@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+
+    actor Staff as Tour Staff
+    participant UI as Staff Tour Management UI
+    participant Controller as AddTourController
+    participant TourDAO as TourDAO
+    participant UnitDAO as AdministrativeUnitDAO
+
+    Note over Staff,Controller: Preconditions: Staff is authenticated, authorized, and has completed the create tour form.
+    Note over Controller,TourDAO: Initial state: Tour does not exist. Successful creation persists status Draft.
+
+    Staff->>UI: Submit new tour information
+    UI->>Controller: POST /staff/tour/add
+    Controller->>Controller: Read request and prepare Tour data with Draft status
+    Controller->>TourDAO: Verify active tour category and region
+    TourDAO-->>Controller: Reference validation result
+    Controller->>UnitDAO: Verify start and end provinces
+    UnitDAO-->>Controller: Province validation result
+    Controller->>Controller: Validate tour information
+
+    alt Tour information is invalid
+        Controller-->>UI: Return validation errors
+        UI-->>Staff: Display creation errors
+    else Tour information is valid
+        Controller->>TourDAO: insertTourWithItineraries(tour with status Draft)
+        Note over TourDAO: Persist Tour, generated tour code, itinerary data, and managed images.
+
+        alt Tour is saved
+            TourDAO-->>Controller: Created tourID
+            Controller-->>UI: Redirect to schedule creation with tourID
+            UI-->>Staff: Show successful creation result
+        else Tour save fails
+            TourDAO-->>Controller: Save failure
+            Controller-->>UI: Return save error
+            UI-->>Staff: Display save error
+        end
+    end
