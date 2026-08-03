@@ -73,7 +73,7 @@
         <section class="page-card topbar">
             <div>
                 <h1>${pageTitle}</h1>
-                <p>Staff nhập hồ sơ tour gốc, ảnh, tuyến đi và lịch trình. Sau khi lưu, hệ thống chuyển sang Lịch tour để nhập ngày khởi hành, số ghế và giá bán theo từng lịch.</p>
+                <p>Staff nhập hồ sơ tour gốc, ảnh, tuyến đi và lịch trình từng ngày.</p>
                 <div class="mt-2">
                     <span class="status-chip"><i class="fa-solid fa-circle-dot"></i> ${mode == 'add' ? 'Bản nháp' : tour.displayStatus}</span>
                 </div>
@@ -92,14 +92,14 @@
             </div>
         </c:if>
 
-        <c:if test="${priceAndScheduleLocked}">
+        <c:if test="${coreTourInfoLocked}">
             <div class="alert alert-warning fw-bold">
                 <c:choose>
                     <c:when test="${activeTourContentOnly}">
-                        Tour đang mở bán. Staff chỉ được thêm/cập nhật ảnh và sửa điểm nổi bật của tour; lịch đã có không được sửa, chỉ được thêm lịch mới ở phần quản lý lịch của tour.
+                        Tour đang mở bán. Staff chỉ được thêm/cập nhật ảnh và sửa nội dung mô tả, điểm nổi bật của tour.
                     </c:when>
                     <c:otherwise>
-                        Tour đang ở trạng thái ${tour.displayStatus}. Staff chỉ được bổ sung/chỉnh nội dung mô tả, ảnh, điểm nổi bật và lịch trình. Giá, tuyến, thời lượng và lịch khởi hành đang được quản lý ở Lịch tour để tránh sai lệch dữ liệu bán tour.
+                        Tour đang ở trạng thái ${tour.displayStatus}. Staff chỉ được bổ sung/chỉnh nội dung mô tả, ảnh, điểm nổi bật và lịch trình.
                     </c:otherwise>
                 </c:choose>
             </div>
@@ -112,7 +112,6 @@
             <input type="hidden" name="startPlace" id="startPlace" value="${tour.startPlace}">
             <input type="hidden" name="endPlace" id="endPlace" value="${tour.endPlace}">
             <input type="hidden" name="status" value="${mode == 'add' ? 'Draft' : tour.status}">
-            <input type="hidden" name="mainTransportType" value="${empty tour.mainTransportType ? 'Xe Du Lịch' : tour.mainTransportType}">
 
             <section class="page-card">
                 <div class="section-title">
@@ -122,7 +121,7 @@
                 <div class="section-body">
                     <div class="next-step-note mb-3">
                         <i class="fa-solid fa-circle-info mt-1"></i>
-                        <span>AddTour chỉ lưu hồ sơ tour. Lịch khởi hành, số ghế và giá bán sẽ nhập ở trang Lịch tour sau bước này.</span>
+                        <span>AddTour chỉ lưu hồ sơ tour, ảnh và lịch trình từng ngày. Sau khi lưu, Staff có thể thêm lịch khởi hành ở trang Lịch tour.</span>
                     </div>
                     <div class="form-block mb-3">
                         <div class="form-block-title"><i class="fa-solid fa-file-lines"></i>Thông tin định danh</div>
@@ -194,8 +193,8 @@
                         <div class="col-lg-4 col-md-6">
                             <label class="form-label">Số ngày <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="number" name="numberOfDay" id="numberOfDay" min="1" max="15" class="form-control ${not empty fieldErrors.numberOfDay ? 'is-invalid' : ''}" value="${dayCount}" required ${routeAndScheduleInfoLocked ? 'readonly' : ''} placeholder="Ví dụ: 3">
-                                <button type="button" id="updateItineraryBtn" class="btn-icon" title="Cập nhật lịch trình từng ngày" ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
+                                <input type="number" name="numberOfDay" id="numberOfDay" min="1" max="15" class="form-control ${not empty fieldErrors.numberOfDay ? 'is-invalid' : ''}" value="${dayCount}" required ${coreTourInfoLocked ? 'readonly' : ''} placeholder="Ví dụ: 3">
+                                <button type="button" id="updateItineraryBtn" class="btn-icon" title="Cập nhật lịch trình từng ngày" ${coreTourInfoLocked ? 'disabled' : ''}>
                                     <i class="fa-solid fa-rotate"></i>
                                 </button>
                             </div>
@@ -215,8 +214,8 @@
 
                         <div class="col-lg-4 col-md-6">
                             <label class="form-label">Khu vực <span class="text-danger">*</span></label>
-                            <c:if test="${routeAndScheduleInfoLocked}"><input type="hidden" name="regionID" value="${tour.regionID}"></c:if>
-                            <select name="${routeAndScheduleInfoLocked ? 'regionIDDisplay' : 'regionID'}" id="regionSelect" class="form-select ${not empty fieldErrors.regionID ? 'is-invalid' : ''}" required ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
+                            <c:if test="${coreTourInfoLocked}"><input type="hidden" name="regionID" value="${tour.regionID}"></c:if>
+                            <select name="${coreTourInfoLocked ? 'regionIDDisplay' : 'regionID'}" id="regionSelect" class="form-select ${not empty fieldErrors.regionID ? 'is-invalid' : ''}" required ${coreTourInfoLocked ? 'disabled' : ''}>
                                 <option value="">-- Chọn khu vực --</option>
                                 <c:forEach var="region" items="${regionList}">
                                     <option value="${region.regionID}" data-name="${region.regionName}" ${tour.regionID == region.regionID ? 'selected' : ''}>${region.regionName}</option>
@@ -227,7 +226,7 @@
 
                         <div class="col-lg-6 col-md-12">
                             <label class="form-label">Điểm khởi hành <span class="text-danger">*</span></label>
-                            <select id="startPlaceSelect" class="form-select place-select ${not empty fieldErrors.startPlace ? 'is-invalid' : ''}" data-hidden="startPlace" data-current="${tour.startPlace}" required ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
+                            <select id="startPlaceSelect" class="form-select place-select ${not empty fieldErrors.startPlace ? 'is-invalid' : ''}" data-hidden="startPlace" data-current="${tour.startPlace}" required ${coreTourInfoLocked ? 'disabled' : ''}>
                                 <option value="">-- Chọn tỉnh/thành --</option>
                                 <c:forEach var="unit" items="${administrativeUnitList}">
                                     <option value="${unit.provinceName}" data-region="${unit.regionGroup}" ${tour.startPlace == unit.provinceName ? 'selected' : ''}>${unit.provinceName}</option>
@@ -237,7 +236,7 @@
                         </div>
                         <div class="col-lg-6 col-md-12">
                             <label class="form-label">Điểm đến <span class="text-danger">*</span></label>
-                            <select id="endPlaceSelect" class="form-select place-select ${not empty fieldErrors.endPlace ? 'is-invalid' : ''}" data-hidden="endPlace" data-current="${tour.endPlace}" required ${routeAndScheduleInfoLocked ? 'disabled' : ''}>
+                            <select id="endPlaceSelect" class="form-select place-select ${not empty fieldErrors.endPlace ? 'is-invalid' : ''}" data-hidden="endPlace" data-current="${tour.endPlace}" required ${coreTourInfoLocked ? 'disabled' : ''}>
                                 <option value="">-- Chọn tỉnh/thành --</option>
                                 <c:forEach var="unit" items="${administrativeUnitList}">
                                     <option value="${unit.provinceName}" data-region="${unit.regionGroup}" ${tour.endPlace == unit.provinceName ? 'selected' : ''}>${unit.provinceName}</option>

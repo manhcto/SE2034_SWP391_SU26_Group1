@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import vn.edu.fpt.DAO.AdministrativeUnitDAO;
 import vn.edu.fpt.DAO.TourDAO;
-import vn.edu.fpt.DAO.TourScheduleDAO;
 import vn.edu.fpt.model.Tour;
 import vn.edu.fpt.model.TourItinerary;
 
@@ -23,7 +22,6 @@ public class EditTourController extends HttpServlet {
     private static final String SUBMIT_LABEL = "C\u1EADp nh\u1EADt tour";
 
     private final TourDAO tourDAO = new TourDAO();
-    private final TourScheduleDAO scheduleDAO = new TourScheduleDAO();
     private final AdministrativeUnitDAO administrativeUnitDAO = new AdministrativeUnitDAO();
     private final StaffTourFormService formService =
             new StaffTourFormService(tourDAO, administrativeUnitDAO);
@@ -55,14 +53,13 @@ public class EditTourController extends HttpServlet {
             return;
         }
 
-        // Load du lieu phu de form edit hien lich trinh ngay, lich khoi hanh va anh da upload.
+        // Load du lieu phu de form edit hien lich trinh ngay va anh da upload.
         List<TourItinerary> itineraries = tourDAO.getItinerariesByTourId(tourID);
         tour.setItineraryList(itineraries);
-        tour.setScheduleList(scheduleDAO.getSchedulesByTourId(tourID));
         tourDAO.loadManagedImages(tour);
 
         // Tour da khoa gia/lich thi khong cho doi so ngay, vi doi so ngay se lam lech lich trinh.
-        int dayCount = formService.isRouteAndScheduleLocked(tour.getStatus())
+        int dayCount = formService.isCoreTourInfoLocked(tour.getStatus())
                 ? formService.limitDayCountToAllowedRange(tour.getNumberOfDay())
                 : formService.resolveDayCountForTourForm(request, tour);
         List<TourItinerary> formItineraries = itineraries;
@@ -73,12 +70,11 @@ public class EditTourController extends HttpServlet {
             data.status = tour.getStatus();
             if (formService.isTourAlreadySelling(tour.getStatus())) {
                 formService.keepOnlyFieldsAllowedForActiveTour(data, tour);
-            } else if (formService.isRouteAndScheduleLocked(tour.getStatus())) {
-                formService.keepLockedRouteAndPriceFieldsFromDatabase(data, tour);
+            } else if (formService.isCoreTourInfoLocked(tour.getStatus())) {
+                formService.keepLockedCoreFieldsFromDatabase(data, tour);
             }
             Tour submittedTour = formService.convertFormInputToTour(data, formService.getLoggedInStaffId(request));
             submittedTour.setTourCode(tour.getTourCode());
-            submittedTour.setScheduleList(tour.getScheduleList());
             tour = submittedTour;
             formItineraries = submittedTour.getItineraryList();
         }
@@ -104,19 +100,16 @@ public class EditTourController extends HttpServlet {
 
         if (existingTour != null) {
             existingTour.setItineraryList(tourDAO.getItinerariesByTourId(existingTour.getTourID()));
-            existingTour.setScheduleList(scheduleDAO.getSchedulesByTourId(existingTour.getTourID()));
             tourDAO.loadManagedImages(existingTour);
             data.status = existingTour.getStatus();
 
             // Active: chi giu phan duoc sua nhe; cac truong loi nhu gia, tuyen, so ngay lay lai tu DB.
             if (formService.isTourAlreadySelling(existingTour.getStatus())) {
                 formService.keepOnlyFieldsAllowedForActiveTour(data, existingTour);
-            } else {
-                formService.keepTourPriceFieldsFromDatabase(data, existingTour);
             }
             if (!formService.isTourAlreadySelling(existingTour.getStatus())
-                    && formService.isRouteAndScheduleLocked(existingTour.getStatus())) {
-                formService.keepLockedRouteAndPriceFieldsFromDatabase(data, existingTour);
+                    && formService.isCoreTourInfoLocked(existingTour.getStatus())) {
+                formService.keepLockedCoreFieldsFromDatabase(data, existingTour);
             }
         }
 
@@ -131,7 +124,6 @@ public class EditTourController extends HttpServlet {
         if (existingTour != null) {
             // tourCode khong lay tu form de tranh Staff sua ma tour.
             tour.setTourCode(existingTour.getTourCode());
-            tour.setScheduleList(scheduleDAO.getSchedulesByTourId(existingTour.getTourID()));
         }
 
         if (!errors.isEmpty()) {

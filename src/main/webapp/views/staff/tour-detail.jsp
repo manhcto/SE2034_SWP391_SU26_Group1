@@ -151,7 +151,6 @@
                     <div class="info-item"><small>Khu vực</small><strong>${empty tour.regionName ? 'Chưa chọn' : tour.regionName}</strong></div>
                     <div class="info-item"><small>Loại tour</small><strong>${tour.displayTourType}</strong></div>
                     <div class="info-item"><small>Thời lượng</small><strong>${tour.numberOfDay} ngày ${tour.numberOfNights} đêm</strong></div>
-                    <div class="info-item"><small>Phương tiện</small><strong>${empty tour.mainTransportType ? 'Chưa chọn' : tour.mainTransportType}</strong></div>
                     <div class="info-item"><small>Giá người lớn</small><strong>Theo lịch</strong></div>
                     <div class="info-item"><small>Trẻ em 5–10 tuổi</small><strong>Theo lịch</strong></div>
                     <div class="info-item"><small>Trẻ em dưới 5 tuổi</small><strong>Miễn phí</strong></div>

@@ -55,7 +55,7 @@ public class AddTourController extends HttpServlet {
 
     /*
      * FRONT-END submit form AddTour bang method POST di vao day.
-     * Ham doc form, validate, insert Tour; thanh cong thi redirect sang AddTourSchedule de nhap lich/gia.
+     * Ham doc form, validate, insert Tour; thanh cong thi redirect sang AddTourSchedule de nhap lich dau tien.
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

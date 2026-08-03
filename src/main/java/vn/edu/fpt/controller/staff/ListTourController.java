@@ -5,7 +5,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import vn.edu.fpt.DAO.TourDAO;
 import vn.edu.fpt.model.Tour;
 
@@ -62,31 +61,9 @@ public class ListTourController extends HttpServlet {
         request.setAttribute("selectedRegionID", regionID);
         request.setAttribute("status", safeTrim(request.getParameter("statusMessage")));
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
-        attachExcelImportFlash(request);
 
         request.getRequestDispatcher("/views/staff/tour-list.jsp")
                 .forward(request, response);
-    }
-
-    private void attachExcelImportFlash(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return;
-        }
-
-        Object insertedCount = session.getAttribute("tourExcelImportInsertedCount");
-        Object updatedCount = session.getAttribute("tourExcelImportUpdatedCount");
-        Object errorList = session.getAttribute("tourExcelImportErrors");
-
-        if (insertedCount != null || updatedCount != null || errorList != null) {
-            request.setAttribute("tourExcelImportInsertedCount", insertedCount == null ? 0 : insertedCount);
-            request.setAttribute("tourExcelImportUpdatedCount", updatedCount == null ? 0 : updatedCount);
-            request.setAttribute("tourExcelImportErrors", errorList);
-        }
-
-        session.removeAttribute("tourExcelImportInsertedCount");
-        session.removeAttribute("tourExcelImportUpdatedCount");
-        session.removeAttribute("tourExcelImportErrors");
     }
 
     private Integer parsePositiveInt(String value) {

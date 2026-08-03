@@ -14,7 +14,6 @@ import vn.edu.fpt.model.User;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,15 +27,7 @@ import java.util.UUID;
  * Controller chi dieu huong request; class nay doc form, validate, map sang model va render JSP.
  */
 class StaffTourFormService {
-    static final BigDecimal CHILD_RATE = new BigDecimal("0.50");
     static final String DEFAULT_TOUR_TYPE = "Package";
-    static final String DEFAULT_TOUR_TRANSPORT = "Xe Du Lịch";
-    static final Map<String, List<Integer>> TRANSPORT_SEATS = Map.of(
-            "Xe Du Lịch", List.of(4, 7, 16, 29, 45),
-            "Xe Khách", List.of(29, 35, 45, 50),
-            "Xe Giường nằm", List.of(34, 40, 44),
-            "Toa tàu hỏa", List.of(56, 64, 80)
-    );
 
     private final TourDAO tourDAO;
     private final AdministrativeUnitDAO administrativeUnitDAO;
@@ -77,21 +68,15 @@ class StaffTourFormService {
         request.setAttribute("categoryList", tourDAO.getActiveCategories());
         request.setAttribute("regionList", tourDAO.getActiveRegions());
         request.setAttribute("administrativeUnitList", administrativeUnitDAO.getActiveProvinces());
-        request.setAttribute("transportSeats", TRANSPORT_SEATS);
         request.setAttribute("nextTourCode", tourDAO.getNextTourCodePreview());
 
         String status = tour == null ? "" : safeTrim(tour.getStatus());
         boolean editMode = "edit".equalsIgnoreCase(mode);
-        boolean priceAndScheduleLocked = editMode && isRouteAndScheduleLocked(status);
+        boolean coreTourInfoLocked = editMode && isCoreTourInfoLocked(status);
         request.setAttribute("fullEditAllowed", !editMode || canStaffEditAllTourFields(status));
         request.setAttribute("limitedEditAllowed", editMode && canStaffEditLimitedTourFields(status));
-        request.setAttribute("priceAndScheduleLocked", priceAndScheduleLocked);
-        request.setAttribute("routeAndScheduleInfoLocked", priceAndScheduleLocked);
+        request.setAttribute("coreTourInfoLocked", coreTourInfoLocked);
         request.setAttribute("activeTourContentOnly", editMode && isTourAlreadySelling(status));
-
-        if (tour != null && tour.getScheduleList() != null && !tour.getScheduleList().isEmpty()) {
-            request.setAttribute("initialSchedule", tour.getScheduleList().get(0));
-        }
 
         prepareValidationAttributes(request, errors);
         request.getRequestDispatcher("/views/staff/tour-form.jsp").forward(request, response);
@@ -127,18 +112,12 @@ class StaffTourFormService {
                 saveImageFile(request, "introImageFile", "Ảnh giới thi\u1EC7u", uploadErrors),
                 request.getParameter("existingIntroImage")
         );
-        data.adultPriceRaw = request.getParameter("adultPrice");
-        data.singleRoomSurchargeRaw = request.getParameter("singleRoomSurcharge");
         data.tourIntroduceRaw = trimTrailingWhitespace(request.getParameter("tourIntroduce"));
         data.tourHighlightsRaw = trimTrailingWhitespace(request.getParameter("tourHighlights"));
         data.tourIntroduce = safeTrim(data.tourIntroduceRaw);
         data.tourHighlights = safeTrim(data.tourHighlightsRaw);
         data.pickupAddress = "";
         data.arriveBeforeMinutesRaw = null;
-        data.mainTransportType = safeTrim(request.getParameter("mainTransportType"));
-        if (isBlank(data.mainTransportType)) {
-            data.mainTransportType = DEFAULT_TOUR_TRANSPORT;
-        }
         data.status = safeTrim(request.getParameter("status"));
         data.featured = "true".equalsIgnoreCase(request.getParameter("featured"));
         data.regionIDRaw = request.getParameter("regionID");
@@ -230,10 +209,6 @@ class StaffTourFormService {
             errors.add("Khu v\u1EF1c l\u00E0 bắt buộc v\u00E0 ph\u1EA3i \u0111ang ho\u1EA1t \u0111\u1ED9ng.");
         }
 
-        if (!TRANSPORT_SEATS.containsKey(data.mainTransportType)) {
-            errors.add("Ph\u01B0\u01A1ng ti\u1EC7n ch\u00EDnh kh\u00F4ng h\u1EE3p l\u1EC7.");
-        }
-
         validateLength(data.tourIntroduce, "M\u00F4 t\u1EA3 ng\u1EAFn", 0, 5000, errors);
         validateLength(data.tourHighlights, "\u0110i\u1EC3m n\u1ED5i b\u1EADt c\u1EE7a tour", 0, 5000, errors);
         validateCleanText(data.tourIntroduceRaw, data.tourIntroduce, "M\u00F4 t\u1EA3 ng\u1EAFn", 5000, true, errors);
@@ -253,7 +228,6 @@ class StaffTourFormService {
          * Y nghia trong luong: controller truyen object Tour nay vao TourDAO.insertTourWithItineraries()
          * hoac TourDAO.updateTourWithItineraries() de ghi xuong database.
          */
-        BigDecimal adultPrice = defaultMoney(parseBigDecimal(data.adultPriceRaw));
         Integer tourID = parsePositiveInt(data.tourIDRaw);
         Integer days = parsePositiveInt(data.numberOfDayRaw);
         Integer nights = parseNonNegativeInt(data.numberOfNightsRaw);
@@ -269,10 +243,10 @@ class StaffTourFormService {
         tour.setEndPlace(data.endPlace);
         tour.setImage(data.image);
         tour.setIntroImage(data.introImage);
-        tour.setAdultPrice(adultPrice);
-        tour.setChildrenPrice(calculatePercent(adultPrice, CHILD_RATE));
+        tour.setAdultPrice(BigDecimal.ZERO);
+        tour.setChildrenPrice(BigDecimal.ZERO);
         tour.setInfantPrice(BigDecimal.ZERO);
-        tour.setSingleRoomSurcharge(defaultMoney(parseBigDecimal(data.singleRoomSurchargeRaw)));
+        tour.setSingleRoomSurcharge(BigDecimal.ZERO);
         tour.setDepositPercent(0);
         tour.setTourIntroduce(data.tourIntroduce);
         tour.setTourInclude(data.tourHighlights);
@@ -281,7 +255,7 @@ class StaffTourFormService {
         tour.setPickupAddress(data.pickupAddress);
         tour.setArriveBeforeMinutes(null);
         tour.setPickupNote("");
-        tour.setMainTransportType(data.mainTransportType);
+        tour.setMainTransportType("");
         tour.setChildPolicyNote("");
         tour.setStatus(isBlank(data.status) ? "Draft" : data.status);
         tour.setFeatured(data.featured);
@@ -302,7 +276,7 @@ class StaffTourFormService {
         tour.setNumberOfNights(Math.max(0, dayCount - 1));
         tour.setDepositPercent(0);
         tour.setArriveBeforeMinutes(null);
-        tour.setMainTransportType(DEFAULT_TOUR_TRANSPORT);
+        tour.setMainTransportType("");
         tour.setStatus("Draft");
         tour.setFeatured(false);
         return tour;
@@ -410,26 +384,23 @@ class StaffTourFormService {
     }
 
     /*
-     * Khi tour Pending/Active, tuyen di, so ngay va gia se bi khoa trong form edit.
+     * Pending/Active khong duoc sua cac thong tin cot loi de tranh lech voi tour da gui duyet/da ban.
      */
-    boolean isRouteAndScheduleLocked(String status) {
+    boolean isCoreTourInfoLocked(String status) {
         return canStaffEditLimitedTourFields(status);
     }
 
     /*
-     * Khi form edit bi khoa route/gia, khong tin gia tri gui tu browser.
+     * Khi form edit bi khoa thong tin cot loi, khong tin gia tri gui tu browser.
      * Ham lay lai du lieu goc tu DB de tranh Staff sua bang devtools.
      */
-    void keepLockedRouteAndPriceFieldsFromDatabase(FormData data, Tour existingTour) {
+    void keepLockedCoreFieldsFromDatabase(FormData data, Tour existingTour) {
         if (data == null || existingTour == null) return;
         data.numberOfDayRaw = String.valueOf(existingTour.getNumberOfDay());
         data.numberOfNightsRaw = existingTour.getNumberOfNights() == null ? "0" : String.valueOf(existingTour.getNumberOfNights());
         data.startPlace = safeTrim(existingTour.getStartPlace());
         data.endPlace = safeTrim(existingTour.getEndPlace());
-        data.mainTransportType = safeTrim(existingTour.getMainTransportType());
         data.regionIDRaw = existingTour.getRegionID() == null ? null : String.valueOf(existingTour.getRegionID());
-        data.adultPriceRaw = existingTour.getAdultPrice() == null ? "0" : existingTour.getAdultPrice().toPlainString();
-        data.singleRoomSurchargeRaw = existingTour.getSingleRoomSurcharge() == null ? "0" : existingTour.getSingleRoomSurcharge().toPlainString();
         data.status = safeTrim(existingTour.getStatus());
     }
 
@@ -446,28 +417,15 @@ class StaffTourFormService {
         data.numberOfNightsRaw = existingTour.getNumberOfNights() == null ? "0" : String.valueOf(existingTour.getNumberOfNights());
         data.startPlace = safeTrim(existingTour.getStartPlace());
         data.endPlace = safeTrim(existingTour.getEndPlace());
-        data.adultPriceRaw = existingTour.getAdultPrice() == null ? "0" : existingTour.getAdultPrice().toPlainString();
-        data.singleRoomSurchargeRaw = existingTour.getSingleRoomSurcharge() == null ? "0" : existingTour.getSingleRoomSurcharge().toPlainString();
         data.tourIntroduce = firstNonBlank(data.tourIntroduce, existingTour.getTourIntroduce());
         data.pickupAddress = safeTrim(existingTour.getPickupAddress());
         data.arriveBeforeMinutesRaw = existingTour.getArriveBeforeMinutes() == null ? null : String.valueOf(existingTour.getArriveBeforeMinutes());
-        data.mainTransportType = safeTrim(existingTour.getMainTransportType());
         data.status = safeTrim(existingTour.getStatus());
         data.featured = existingTour.isFeatured();
         data.regionIDRaw = existingTour.getRegionID() == null ? null : String.valueOf(existingTour.getRegionID());
         data.image = firstNonBlank(data.image, existingTour.getImage());
         data.introImage = firstNonBlank(data.introImage, existingTour.getIntroImage());
         data.itineraries = mergeActiveTourItineraries(data.itineraries, existingTour.getItineraryList());
-    }
-
-    /*
-     * Gia tour cu khong sua o form Tour nua; gia that nam o TourSchedule.
-     * Ham giu gia cu de update tour khong vo tinh ghi ve 0.
-     */
-    void keepTourPriceFieldsFromDatabase(FormData data, Tour existingTour) {
-        if (data == null || existingTour == null) return;
-        data.adultPriceRaw = existingTour.getAdultPrice() == null ? "0" : existingTour.getAdultPrice().toPlainString();
-        data.singleRoomSurchargeRaw = existingTour.getSingleRoomSurcharge() == null ? "0" : existingTour.getSingleRoomSurcharge().toPlainString();
     }
 
     private void prepareValidationAttributes(HttpServletRequest request, List<String> errors) {
@@ -660,22 +618,6 @@ class StaffTourFormService {
         }
     }
 
-    private BigDecimal parseBigDecimal(String value) {
-        try {
-            return isBlank(value) ? null : new BigDecimal(value.trim().replace(",", "."));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private BigDecimal defaultMoney(BigDecimal value) {
-        return value == null ? BigDecimal.ZERO : value;
-    }
-
-    private BigDecimal calculatePercent(BigDecimal base, BigDecimal rate) {
-        return base == null ? BigDecimal.ZERO : base.multiply(rate).setScale(0, RoundingMode.HALF_UP);
-    }
-
     private int defaultInt(Integer value, int defaultValue) {
         return value == null ? defaultValue : value;
     }
@@ -745,15 +687,12 @@ class StaffTourFormService {
         String endPlace;
         String image;
         String introImage;
-        String adultPriceRaw;
-        String singleRoomSurchargeRaw;
         String tourIntroduceRaw;
         String tourIntroduce;
         String tourHighlightsRaw;
         String tourHighlights;
         String pickupAddress;
         String arriveBeforeMinutesRaw;
-        String mainTransportType;
         String status;
         boolean featured;
         String regionIDRaw;
