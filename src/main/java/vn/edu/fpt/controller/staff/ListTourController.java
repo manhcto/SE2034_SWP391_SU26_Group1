@@ -32,21 +32,10 @@ public class ListTourController extends HttpServlet {
         String status = safeTrim(request.getParameter("status"));
         Integer categoryID = parsePositiveInt(request.getParameter("categoryID"));
         Integer regionID = parsePositiveInt(request.getParameter("regionID"));
-        String readiness = safeTrim(request.getParameter("readiness"));
         Integer requestedPage = parsePositiveInt(request.getParameter("page"));
         int currentPage = requestedPage == null ? 1 : requestedPage;
 
         List<Tour> tourList = tourDAO.getToursForStaff(keyword, status, categoryID, regionID);
-        if ("notReady".equals(readiness)) {
-            List<Tour> notReadyTours = new ArrayList<>();
-            for (Tour tour : tourList) {
-                if (tour != null && !tourDAO.getTourReadinessErrors(tour.getTourID()).isEmpty()) {
-                    notReadyTours.add(tour);
-                }
-            }
-            tourList = notReadyTours;
-        }
-
         tourDAO.applyLowestScheduleAdultPrices(tourList);
         int totalTourCount = tourList.size();
         int totalPages = Math.max(1, (int) Math.ceil(totalTourCount / (double) PAGE_SIZE));
@@ -71,7 +60,6 @@ public class ListTourController extends HttpServlet {
         request.setAttribute("selectedStatus", status);
         request.setAttribute("selectedCategoryID", categoryID);
         request.setAttribute("selectedRegionID", regionID);
-        request.setAttribute("selectedReadiness", readiness);
         request.setAttribute("status", safeTrim(request.getParameter("statusMessage")));
         request.setAttribute("messageCode", safeTrim(request.getParameter("message")));
         attachExcelImportFlash(request);
@@ -122,7 +110,7 @@ public class ListTourController extends HttpServlet {
         StringJoiner joiner = new StringJoiner("&");
         for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
             String key = entry.getKey();
-            if ("page".equals(key)) {
+            if (!isTourListQueryParam(key)) {
                 continue;
             }
             String[] values = entry.getValue();
@@ -141,5 +129,12 @@ public class ListTourController extends HttpServlet {
         }
         String query = joiner.toString();
         return query.isEmpty() ? "" : "&" + query;
+    }
+
+    private boolean isTourListQueryParam(String key) {
+        return "keyword".equals(key)
+                || "status".equals(key)
+                || "categoryID".equals(key)
+                || "regionID".equals(key);
     }
 }

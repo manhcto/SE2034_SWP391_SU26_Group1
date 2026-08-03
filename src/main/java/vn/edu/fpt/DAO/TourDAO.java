@@ -83,6 +83,7 @@ public class TourDAO {
 
     public List<Tour> getToursForStaff(String keyword, String status, Integer categoryID, Integer regionID) {
         List<Tour> tours = new ArrayList<>();
+//        dòng tạo param: Danh sách này chứa các giá trị sẽ gắn vào dấu ? trong SQL.
         List<Object> params = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder(TOUR_SELECT)
